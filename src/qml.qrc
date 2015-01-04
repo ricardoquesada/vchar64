@@ -2,7 +2,8 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>MainForm.ui.qml</file>
-        <file>Letter.qml</file>
         <file>c64-chargen.bin</file>
+        <file>BigChar.qml</file>
+        <file>CharSet.qml</file>
     </qresource>
 </RCC>

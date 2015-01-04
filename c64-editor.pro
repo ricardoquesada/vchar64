@@ -16,6 +16,6 @@ include(deployment.pri)
 
 DISTFILES += \
     src/c64-chargen.json \
-    src/Letter.qml \
     src/main.qml \
-    src/MainForm.ui.qml
+    src/MainForm.ui.qml \
+    src/BigChar.qml

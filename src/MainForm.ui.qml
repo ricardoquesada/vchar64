@@ -6,10 +6,10 @@ Item {
 
     property alias prevCharButton: prevChar
     property alias nextCharButton: nextChar
-    property alias canvas: canvas
+    property alias bigChar: bigChar
 
-    width: 640
-    height: 480
+    width: 1040
+    height: 600
 
     RowLayout {
         id: rowLayout1
@@ -29,9 +29,17 @@ Item {
         }
     }
 
-    Letter {
-        id: canvas
+    BigChar {
+        id: bigChar
         x: 8
         y: 8
+    }
+
+    CharSet {
+        id: charSet1
+        x: 8
+        y: 316
+        width: 1024
+        height: 164
     }
 }

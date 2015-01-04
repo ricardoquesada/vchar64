@@ -4,7 +4,7 @@ import QtQuick.Window 2.2
 import QtQuick.Dialogs 1.2
 
 ApplicationWindow {
-    title: qsTr("Hello World")
+    title: qsTr("C64 editor")
     width: 640
     height: 480
     visible: true
@@ -26,10 +26,10 @@ ApplicationWindow {
     MainForm {
         anchors.fill: parent
         prevCharButton.onClicked: {
-            canvas.prevChar()
+            bigChar.prevChar()
         }
         nextCharButton.onClicked: {
-            canvas.nextChar()
+            bigChar.nextChar()
         }
     }
 
