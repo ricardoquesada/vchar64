@@ -3,6 +3,7 @@ import QtQuick 2.0
 Canvas {
     id:canvas
 
+    // size
     width: 32 * 8;
     height: 32 * 8;
 
