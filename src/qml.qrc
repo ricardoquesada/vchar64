@@ -5,5 +5,7 @@
         <file>c64-chargen.bin</file>
         <file>BigChar.qml</file>
         <file>CharSetView.qml</file>
+        <file>CBM.ttf</file>
+        <file>CMBLabel.qml</file>
     </qresource>
 </RCC>

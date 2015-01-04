@@ -25,14 +25,14 @@ Canvas {
         index++;
         if (index >= chars.length/8)
             index = 0;
-        requestPaint();
+        setChar(index)
     }
 
     onPrevChar: {
         index--;
         if (index<0)
             index = (chars.length/8)-1;
-        requestPaint();
+        setChar(index)
     }
 
     onSetChar: {
@@ -41,6 +41,9 @@ Canvas {
             return
         }
         index = idx;
+
+        charIndexLabel.text = "#"+index
+
         requestPaint();
     }
 

@@ -3,10 +3,12 @@ import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.1
 
 Item {
+    id: item1
 
     property alias prevCharButton: prevChar
     property alias nextCharButton: nextChar
     property alias bigChar: bigChar
+    property alias charIndexLabel: cbmLabel1
 
     width: 640
     height: 480
@@ -41,5 +43,13 @@ Item {
         y: 316
         width: 512
         height: 128
+    }
+
+    CMBLabel {
+        id: cbmLabel1
+        x: 200
+        y: 276
+        width: 64
+        height: 21
     }
 }
