@@ -4,6 +4,6 @@
         <file>MainForm.ui.qml</file>
         <file>c64-chargen.bin</file>
         <file>BigChar.qml</file>
-        <file>CharSet.qml</file>
+        <file>CharSetView.qml</file>
     </qresource>
 </RCC>

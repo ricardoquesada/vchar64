@@ -8,8 +8,8 @@ Item {
     property alias nextCharButton: nextChar
     property alias bigChar: bigChar
 
-    width: 1040
-    height: 600
+    width: 640
+    height: 480
 
     RowLayout {
         id: rowLayout1
@@ -35,11 +35,11 @@ Item {
         y: 8
     }
 
-    CharSet {
+    CharSetView {
         id: charSet1
         x: 8
         y: 316
-        width: 1024
-        height: 164
+        width: 512
+        height: 128
     }
 }

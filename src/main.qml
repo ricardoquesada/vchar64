@@ -4,6 +4,7 @@ import QtQuick.Window 2.2
 import QtQuick.Dialogs 1.2
 
 ApplicationWindow {
+    id: mainWindow
     title: qsTr("C64 editor")
     width: 640
     height: 480
