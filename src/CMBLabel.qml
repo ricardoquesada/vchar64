@@ -11,7 +11,7 @@ Text {
     }
 //    anchors.fill:parent
 
-    font.pointSize: 16
+    font.pixelSize: 16
     font.family: "CBM"
     text: "#0"
 }
