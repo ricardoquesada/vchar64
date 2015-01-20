@@ -43,5 +43,46 @@ void State::loadCharSet(const std::string &filename)
 
     auto total = file.read(_chars, toRead);
 
+    Q_ASSERT(total == toRead && "Failed to read file");
+
     file.close();
+}
+
+void State::toggleBit(int charIndex, int bitIndex)
+{
+    Q_ASSERT(charIndex >=0 && charIndex < 256 && "Invalid charIndex. Valid range: 0,255");
+    Q_ASSERT(bitIndex >=0 && bitIndex < 64 && "Invalid bit. Valid range: 0,63");
+
+    bool bit = getBit(charIndex, bitIndex);
+    bit = !bit;
+    setBit(charIndex, bitIndex, bit);
+}
+
+bool State::getBit(int charIndex, int bitIndex) const
+{
+    Q_ASSERT(charIndex >=0 && charIndex < 256 && "Invalid charIndex. Valid range: 0,255");
+    Q_ASSERT(bitIndex >=0 && bitIndex < 64 && "Invalid bit. Valid range: 0,63");
+
+    char c = _chars[charIndex*8 + bitIndex/8];
+    int b = bitIndex%8;
+    int mask = 1 << (7-b);
+
+   return (c & mask);
+}
+
+void State::setBit(int charIndex, int bitIndex, bool enabled)
+{
+    Q_ASSERT(charIndex >=0 && charIndex < 256 && "Invalid charIndex. Valid range: 0,255");
+    Q_ASSERT(bitIndex >=0 && bitIndex < 64 && "Invalid bit. Valid range: 0,63");
+
+    char c = _chars[charIndex*8 + bitIndex/8];
+    int b = bitIndex%8;
+    int mask = 1 << (7-b);
+
+    if (enabled)
+        c |= mask;
+    else
+        c &= ~mask;
+
+    _chars[charIndex*8 + bitIndex/8] = c;
 }

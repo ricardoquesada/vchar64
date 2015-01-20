@@ -16,6 +16,10 @@ public:
         return &_chars[index*8];
     }
 
+    void toggleBit(int charIndex, int bitIndex);
+    void setBit(int charIndex, int bitIndex, bool enabled);
+    bool getBit(int charIndex, int bitIndex) const;
+
 protected:
     State();
     ~State();

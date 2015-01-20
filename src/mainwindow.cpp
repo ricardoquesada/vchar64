@@ -18,13 +18,3 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
-
-void MainWindow::on_bigchar_indexChanged(int index)
-{
-    //
-}
-
-void MainWindow::on_charsetview_charSelected(int index)
-{
-
-}

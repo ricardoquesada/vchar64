@@ -16,9 +16,6 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_bigchar_indexChanged(int );
-
-    void on_charsetview_charSelected(int );
 
 private:
     Ui::MainWindow *ui;

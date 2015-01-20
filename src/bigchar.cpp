@@ -14,10 +14,47 @@ static const int PIXEL_SIZE = 32;
 BigChar::BigChar(QWidget *parent)
     : QWidget(parent)
     , _index(0)
+    , _selectedColor(-1)
 {
     setFixedSize(PIXEL_SIZE * 8, PIXEL_SIZE * 8);
 }
 //! [0]
+
+void BigChar::mousePressEvent(QMouseEvent * event)
+{
+    auto pos = event->localPos();
+
+    int x = pos.x() / PIXEL_SIZE;
+    int y = pos.y() / PIXEL_SIZE;
+    int bitIndex = x + y * 8;
+
+    State::getInstance()->toggleBit(_index, bitIndex);
+
+    repaint();
+}
+
+void BigChar::mouseMoveEvent(QMouseEvent * event)
+{
+    auto pos = event->localPos();
+
+    int x = pos.x() / PIXEL_SIZE;
+    int y = pos.y() / PIXEL_SIZE;
+    int bitIndex = x + y * 8;
+
+    if (_selectedColor == -1) {
+        bool bitValue = State::getInstance()->getBit(_index, bitIndex);
+        _selectedColor = bitValue;
+    }
+
+    State::getInstance()->setBit(_index, bitIndex, _selectedColor);
+
+    repaint();
+}
+
+void BigChar::mouseReleaseEvent(QMouseEvent * event)
+{
+    _selectedColor = -1;
+}
 
 //! [2]
 void BigChar::paintEvent(QPaintEvent *event)
