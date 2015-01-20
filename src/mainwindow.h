@@ -16,6 +16,7 @@ public:
     ~MainWindow();
 
 private slots:
+    void onActionOpen();
 
 private:
     Ui::MainWindow *ui;
