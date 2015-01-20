@@ -1,7 +1,7 @@
 #include "state.h"
 
 #include <algorithm>
-#include <QFile.h>
+#include <QFile>
 
 static State *__instance = nullptr;
 
@@ -21,7 +21,7 @@ State::State()
     , _multiColor0(0)
     , _multiColor1(1)
 {
-    memset(_chars, sizeof(_chars),0);
+    memset(_chars, 0, sizeof(_chars));
 
     loadCharSet(":/c64-chargen.bin");
 }

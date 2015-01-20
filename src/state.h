@@ -1,7 +1,7 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include <QString.h>
+#include <QString>
 #include <string>
 
 class State
