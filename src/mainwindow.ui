@@ -70,22 +70,16 @@
      <x>0</x>
      <y>0</y>
      <width>779</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuEditor">
+   <widget class="QMenu" name="menu_File">
     <property name="title">
-     <string>Editor</string>
+     <string>&amp;File</string>
     </property>
+    <addaction name="action_Open"/>
    </widget>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionHello"/>
-   </widget>
-   <addaction name="menuEditor"/>
-   <addaction name="menuFile"/>
+   <addaction name="menu_File"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -94,12 +88,15 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="separator"/>
+   <addaction name="action_Open"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionHello">
+  <action name="action_Open">
    <property name="text">
-    <string>Open Char</string>
+    <string>Open</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
  </widget>

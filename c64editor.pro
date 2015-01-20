@@ -26,6 +26,8 @@ HEADERS  += src/mainwindow.h \
 
 FORMS    += src/mainwindow.ui
 
+INCLUDEPATH += src
+
 DISTFILES +=
 
 RESOURCES += \
