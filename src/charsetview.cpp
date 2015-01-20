@@ -27,9 +27,9 @@ void CharSetView::paintEvent(QPaintEvent *event)
     QPainter painter;
     painter.begin(this);
 
-    painter.setRenderHint(QPainter::Qt4CompatiblePainting);
-
     painter.fillRect(event->rect(), QBrush(QColor(255, 255, 255)));
+
+    painter.setBrush(QColor(0,0,0));
 
     for (int w=0; w<COLUMNS; w++) {
         for (int h=0; h<ROWS; h++) {
@@ -42,7 +42,6 @@ void CharSetView::paintEvent(QPaintEvent *event)
 
                     int mask = 1 << (7-x);
                     if (letter[y] & mask) {
-                        painter.setBrush(QColor(0,0,0));
                         painter.drawRect((w*8+x) * PIXEL_SIZE, (h*8+y) * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
                     }
                 }

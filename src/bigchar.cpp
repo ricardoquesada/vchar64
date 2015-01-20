@@ -26,6 +26,8 @@ void BigChar::paintEvent(QPaintEvent *event)
 
     painter.fillRect(event->rect(), QBrush(QColor(255, 255, 255)));
 
+    painter.setBrush(QColor(0,0,0));
+
     int index = 0;
 
     const char *charPtr = State::getInstance()->getCharAtIndex(index);
@@ -35,7 +37,6 @@ void BigChar::paintEvent(QPaintEvent *event)
         for (int x=0; x<8; x++) {
             int mask = 1 << (7-x);
             if (letter & mask) {
-                painter.setBrush(QColor(0,0,0));
                 painter.drawRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE-2, PIXEL_SIZE-2);
             }
         }
