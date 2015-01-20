@@ -40,11 +40,16 @@ bool State::loadCharSet(const QString& filename)
     auto size = file.size();
 
     QFileInfo info(file);
-    if (info.suffix() == "64c") {
+    if (info.suffix() == "64c")
+    {
         // ignore first 2 bytes
         char buf[2];
         file.read(buf,2);
         size -= 2;
+    }
+    else if(info.suffix() == "ctm")
+    {
+
     }
 
     int toRead = std::min((int)size, (int)sizeof(_chars));
