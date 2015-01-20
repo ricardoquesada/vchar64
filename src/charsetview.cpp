@@ -29,7 +29,7 @@ void CharSetView::mousePressEvent(QMouseEvent * event)
     int y = pos.y() / PIXEL_SIZE / 8;
     int index = x + y * COLUMNS;
 
-//    bigChar.setChar(index);
+    emit charSelected(index);
 }
 
 //! [2]

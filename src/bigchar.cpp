@@ -49,6 +49,7 @@ void BigChar::setIndex(int index)
     if (_index != index) {
         _index = index;
         emit indexChanged(_index);
+        repaint();
     }
 }
 

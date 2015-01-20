@@ -15,6 +15,9 @@ class CharSetView : public QWidget
 public:
     CharSetView(QWidget *parent);
 
+signals:
+    void charSelected(int index);
+
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
