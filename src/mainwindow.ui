@@ -27,9 +27,9 @@
    <widget class="QSpinBox" name="spinBox">
     <property name="geometry">
      <rect>
-      <x>220</x>
+      <x>216</x>
       <y>270</y>
-      <width>47</width>
+      <width>51</width>
       <height>24</height>
      </rect>
     </property>
@@ -43,7 +43,7 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>120</x>
       <y>270</y>
       <width>71</width>
       <height>20</height>
@@ -70,7 +70,7 @@
      <x>0</x>
      <y>0</y>
      <width>779</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuEditor">
