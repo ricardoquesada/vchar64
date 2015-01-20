@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QString>
 
 namespace Ui {
 class MainWindow;
@@ -19,7 +20,8 @@ private slots:
     void onActionOpen();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow *_ui;
+    QString _lastDir;
 };
 
 #endif // MAINWINDOW_H

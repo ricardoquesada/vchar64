@@ -2,29 +2,44 @@
 #include "ui_mainwindow.h"
 
 #include <QFileDialog>
+#include <QFileInfo>
+#include <Qdir>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+#include "state.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , _ui(new Ui::MainWindow)
+    , _lastDir(QDir::homePath())
 {
-    ui->setupUi(this);
+    _ui->setupUi(this);
 
-    QObject::connect(ui->charsetview, &CharSetView::charSelected, ui->bigchar, &BigChar::setIndex);
+    QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->bigchar, &BigChar::setIndex);
     // FIXME: Qt5 API doesn't compile. Using Qt4 API
-//    QObject::connect(ui->spinBox, &QSpinBox::valueChanged, ui->bigchar, &BigChar::setIndex);
-    QObject::connect(ui->spinBox, SIGNAL(valueChanged(int)), ui->bigchar, SLOT(setIndex(int)));
-    QObject::connect(ui->charsetview, &CharSetView::charSelected, ui->spinBox, &QSpinBox::setValue);
+//    QObject::connect(ui->spinBox, &QSpinBox::valueChanged, _ui->bigchar, &BigChar::setIndex);
+    QObject::connect(_ui->spinBox, SIGNAL(valueChanged(int)), _ui->bigchar, SLOT(setIndex(int)));
+    QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->spinBox, &QSpinBox::setValue);
 
-    QObject::connect(ui->action_Open, &QAction::triggered, this, &MainWindow::onActionOpen);
+    QObject::connect(_ui->action_Open, &QAction::triggered, this, &MainWindow::onActionOpen);
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+    delete _ui;
 }
 
 void MainWindow::onActionOpen()
 {
-    auto fn = QFileDialog::getOpenFileName(this, "Select File", "~");
-    int x = 0;
+    auto fn = QFileDialog::getOpenFileName(this, "Select File", _lastDir);
+
+    if (fn.length()> 0) {
+        QFileInfo info(fn);
+        _lastDir = info.absolutePath();
+
+        if (State::getInstance()->loadCharSet(fn)) {
+            _ui->bigchar->repaint();
+            _ui->charsetview->repaint();
+        }
+    }
+
 }

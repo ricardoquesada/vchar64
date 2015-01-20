@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <QFile>
+#include <QFileInfo>
 
 static State *__instance = nullptr;
 
@@ -21,8 +22,6 @@ State::State()
     , _multiColor0(0)
     , _multiColor1(1)
 {
-    memset(_chars, 0, sizeof(_chars));
-
     loadCharSet(":/c64-chargen.bin");
 }
 
@@ -31,21 +30,35 @@ State::~State()
 
 }
 
-void State::loadCharSet(const std::string &filename)
+bool State::loadCharSet(const QString& filename)
 {
-    QFile file(QString::fromUtf8(filename.data(), filename.size()));
+    QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly))
-        return;
+        return false;
 
     auto size = file.size();
+
+    QFileInfo info(file);
+    if (info.suffix() == "64c") {
+        // ignore first 2 bytes
+        char buf[2];
+        file.read(buf,2);
+        size -= 2;
+    }
+
     int toRead = std::min((int)size, (int)sizeof(_chars));
+
+    // clean previous memory in case not all the chars are loaded
+    memset(_chars, 0, sizeof(_chars));
 
     auto total = file.read(_chars, toRead);
 
     Q_ASSERT(total == toRead && "Failed to read file");
 
     file.close();
+
+    return true;
 }
 
 void State::toggleBit(int charIndex, int bitIndex)

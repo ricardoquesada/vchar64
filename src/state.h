@@ -9,7 +9,7 @@ class State
 public:
     static State* getInstance();
 
-    void loadCharSet(const std::string &filename);
+    bool loadCharSet(const QString &filename);
 
     const char* getCharAtIndex(int index) {
         Q_ASSERT(index>=0 && index<256 && "Invalid index");
