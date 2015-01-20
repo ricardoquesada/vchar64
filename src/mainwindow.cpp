@@ -12,3 +12,8 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::on_bigchar_indexChanged(int index)
+{
+    //
+}

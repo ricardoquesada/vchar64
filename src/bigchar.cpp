@@ -13,6 +13,7 @@ static const int PIXEL_SIZE = 32;
 //! [0]
 BigChar::BigChar(QWidget *parent)
     : QWidget(parent)
+    , _index(0)
 {
     setFixedSize(PIXEL_SIZE * 8, PIXEL_SIZE * 8);
 }
@@ -28,9 +29,7 @@ void BigChar::paintEvent(QPaintEvent *event)
 
     painter.setBrush(QColor(0,0,0));
 
-    int index = 0;
-
-    const char *charPtr = State::getInstance()->getCharAtIndex(index);
+    const char *charPtr = State::getInstance()->getCharAtIndex(_index);
 
     for (int y=0; y<8; y++) {
         int letter = charPtr[y];
@@ -42,7 +41,15 @@ void BigChar::paintEvent(QPaintEvent *event)
         }
     }
 
-
     painter.end();
 }
+
+void BigChar::setIndex(int index)
+{
+    if (_index != index) {
+        _index = index;
+        emit indexChanged(_index);
+    }
+}
+
 //! [2]

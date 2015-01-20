@@ -21,6 +21,17 @@ CharSetView::CharSetView(QWidget *parent)
 }
 //! [0]
 
+void CharSetView::mousePressEvent(QMouseEvent * event)
+{
+    auto pos = event->localPos();
+
+    int x = pos.x() / PIXEL_SIZE / 8;
+    int y = pos.y() / PIXEL_SIZE / 8;
+    int index = x + y * COLUMNS;
+
+//    bigChar.setChar(index);
+}
+
 //! [2]
 void CharSetView::paintEvent(QPaintEvent *event)
 {
