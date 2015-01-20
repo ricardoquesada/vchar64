@@ -8,21 +8,16 @@
 
 //! [0]
 
-class BigChar : public QWidget
+class CharSetView : public QWidget
 {
     Q_OBJECT
 
 public:
-    BigChar(QWidget *parent);
-
-public slots:
-    void animate();
+    CharSetView(QWidget *parent);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
 
-private:
-    int elapsed;
 };
 //! [0]
 

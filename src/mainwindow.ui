@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>660</width>
-    <height>401</height>
+    <width>779</width>
+    <height>541</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,49 @@
    <widget class="BigChar" name="bigchar" native="true">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>30</y>
-      <width>331</width>
-      <height>271</height>
+      <x>10</x>
+      <y>10</y>
+      <width>256</width>
+      <height>256</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="spinBox">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>270</y>
+      <width>47</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>255</number>
+    </property>
+    <property name="displayIntegerBase">
+     <number>10</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>270</y>
+      <width>71</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Char Index</string>
+    </property>
+   </widget>
+   <widget class="CharSetView" name="charsetview" native="true">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>300</y>
+      <width>731</width>
+      <height>171</height>
      </rect>
     </property>
    </widget>
@@ -30,7 +69,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>660</width>
+     <width>779</width>
      <height>22</height>
     </rect>
    </property>
@@ -55,11 +94,12 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="separator"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionHello">
    <property name="text">
-    <string>Hello</string>
+    <string>Open Char</string>
    </property>
   </action>
  </widget>
@@ -69,6 +109,12 @@
    <class>BigChar</class>
    <extends>QWidget</extends>
    <header>bigchar.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CharSetView</class>
+   <extends>QWidget</extends>
+   <header>charsetview.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
