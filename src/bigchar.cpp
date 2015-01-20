@@ -3,6 +3,7 @@
 
 #include "bigchar.h"
 
+#include <algorithm>
 #include <QPainter>
 #include <QPaintEvent>
 
@@ -26,6 +27,9 @@ void BigChar::mousePressEvent(QMouseEvent * event)
 
     int x = pos.x() / PIXEL_SIZE;
     int y = pos.y() / PIXEL_SIZE;
+    if( x>=8 || y>=8)
+        return;
+
     int bitIndex = x + y * 8;
 
     State::getInstance()->toggleBit(_index, bitIndex);
@@ -39,6 +43,9 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
 
     int x = pos.x() / PIXEL_SIZE;
     int y = pos.y() / PIXEL_SIZE;
+    if( x>=8 || y>=8)
+        return;
+
     int bitIndex = x + y * 8;
 
     if (_selectedColor == -1) {
