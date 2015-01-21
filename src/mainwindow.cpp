@@ -43,3 +43,8 @@ void MainWindow::onActionOpen()
     }
 
 }
+
+void MainWindow::on_actionExit_triggered()
+{
+    QApplication::exit();
+}

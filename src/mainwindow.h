@@ -19,6 +19,8 @@ public:
 private slots:
     void onActionOpen();
 
+    void on_actionExit_triggered();
+
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;
