@@ -3,7 +3,7 @@
 
 #include <QFileDialog>
 #include <QFileInfo>
-#include <Qdir>
+#include <QDir>
 
 #include "state.h"
 
