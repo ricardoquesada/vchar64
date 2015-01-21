@@ -19,8 +19,6 @@ MainWindow::MainWindow(QWidget *parent)
 //    QObject::connect(ui->spinBox, &QSpinBox::valueChanged, _ui->bigchar, &BigChar::setIndex);
     QObject::connect(_ui->spinBox, SIGNAL(valueChanged(int)), _ui->bigchar, SLOT(setIndex(int)));
     QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->spinBox, &QSpinBox::setValue);
-
-    QObject::connect(_ui->action_Open, &QAction::triggered, this, &MainWindow::onActionOpen);
 }
 
 MainWindow::~MainWindow()
@@ -28,7 +26,12 @@ MainWindow::~MainWindow()
     delete _ui;
 }
 
-void MainWindow::onActionOpen()
+void MainWindow::on_actionExit_triggered()
+{
+    QApplication::exit();
+}
+
+void MainWindow::on_actionOpen_triggered()
 {
     auto fn = QFileDialog::getOpenFileName(this, "Select File", _lastDir);
 
@@ -42,9 +45,4 @@ void MainWindow::onActionOpen()
         }
     }
 
-}
-
-void MainWindow::on_actionExit_triggered()
-{
-    QApplication::exit();
 }

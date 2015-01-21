@@ -80,14 +80,14 @@
      <x>0</x>
      <y>0</y>
      <width>779</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="action_Open"/>
+    <addaction name="actionOpen"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -100,10 +100,10 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="action_Open"/>
+   <addaction name="actionOpen"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="action_Open">
+  <action name="actionOpen">
    <property name="icon">
     <iconset theme="document-open" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-open.png</normaloff>:/icons/22x22/actions/document-open.png</iconset>
@@ -117,7 +117,9 @@
   </action>
   <action name="actionExit">
    <property name="icon">
-    <iconset theme="exit"/>
+    <iconset theme="exit">
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Exit</string>

@@ -17,9 +17,9 @@ public:
     ~MainWindow();
 
 private slots:
-    void onActionOpen();
 
     void on_actionExit_triggered();
+    void on_actionOpen_triggered();
 
 private:
     Ui::MainWindow *_ui;
