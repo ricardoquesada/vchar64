@@ -92,6 +92,10 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action_Open">
+   <property name="icon">
+    <iconset theme="document-open" resource="../res/resources.qrc">
+     <normaloff>:/icons/22x22/actions/document-open.png</normaloff>:/icons/22x22/actions/document-open.png</iconset>
+   </property>
    <property name="text">
     <string>Open</string>
    </property>
@@ -115,6 +119,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../res/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
