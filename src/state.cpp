@@ -4,7 +4,11 @@
 #include <QFile>
 #include <QFileInfo>
 
+#include "import.h"
+
 static State *__instance = nullptr;
+
+const int State::CHAR_BUFFER_SIZE;
 
 State* State::getInstance()
 {
@@ -37,31 +41,26 @@ bool State::loadCharSet(const QString& filename)
     if (!file.open(QIODevice::ReadOnly))
         return false;
 
-    auto size = file.size();
+    qint64 length=0;
 
     QFileInfo info(file);
     if (info.suffix() == "64c")
     {
-        // ignore first 2 bytes
-        char buf[2];
-        file.read(buf,2);
-        size -= 2;
+        length = Import::load64C(file, this);
     }
     else if(info.suffix() == "ctm")
     {
-
+        length = Import::loadCTM(file, this);
+    }
+    else
+    {
+        length = Import::loadRaw(file, this);
     }
 
-    int toRead = std::min((int)size, (int)sizeof(_chars));
-
-    // clean previous memory in case not all the chars are loaded
-    memset(_chars, 0, sizeof(_chars));
-
-    auto total = file.read(_chars, toRead);
-
-    Q_ASSERT(total == toRead && "Failed to read file");
-
     file.close();
+
+    if(length<=0)
+        return false;
 
     return true;
 }
@@ -103,4 +102,14 @@ void State::setBit(int charIndex, int bitIndex, bool enabled)
         c &= ~mask;
 
     _chars[charIndex*8 + bitIndex/8] = c;
+}
+
+char* State::getCharsBuffer()
+{
+    return _chars;
+}
+
+void State::resetCharsBuffer()
+{
+    memset(_chars, 0, sizeof(_chars));
 }

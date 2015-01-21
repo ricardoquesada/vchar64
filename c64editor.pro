@@ -18,13 +18,13 @@ SOURCES += src/main.cpp\
     src/bigchar.cpp \
     src/charsetview.cpp \
     src/state.cpp \
-    src/importctm.cpp
+    src/import.cpp
 
 HEADERS  += src/mainwindow.h \
     src/bigchar.h \
     src/charsetview.h \
     src/state.h \
-    src/importctm.h
+    src/import.h
 
 FORMS    += src/mainwindow.ui
 

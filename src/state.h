@@ -7,6 +7,9 @@
 class State
 {
 public:
+    // only 256 chars at the time
+    const static int CHAR_BUFFER_SIZE = 8 * 256;
+
     static State* getInstance();
 
     bool loadCharSet(const QString &filename);
@@ -20,6 +23,9 @@ public:
     void setBit(int charIndex, int bitIndex, bool enabled);
     bool getBit(int charIndex, int bitIndex) const;
 
+    void resetCharsBuffer();
+    char* getCharsBuffer();
+
 protected:
     State();
     ~State();
@@ -27,7 +33,7 @@ protected:
     int _charIndex;
     int _totalChars;
 
-    char _chars[8 * 256];
+    char _chars[State::CHAR_BUFFER_SIZE];
     bool _multiColor;
 
     int _color;

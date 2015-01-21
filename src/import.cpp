@@ -1,4 +1,43 @@
-#include "importctm.h"
+#include "import.h"
+
+#include <algorithm>
+#include <QDebug>
+
+#include "state.h"
+
+qint64 Import::loadRaw(QFile& file, State* state)
+{
+    auto size = file.size() - file.pos();
+    if (size % 8 !=0) {
+        qDebug() << "File size not multiple of 8 (" << size << "). Characters might be incomplete";
+    }
+
+    int toRead = std::min((int)size, State::CHAR_BUFFER_SIZE);
+
+    // clean previous memory in case not all the chars are loaded
+    state->resetCharsBuffer();
+
+    auto total = file.read(state->getCharsBuffer(), toRead);
+
+    Q_ASSERT(total == toRead && "Failed to read file");
+
+    return total;
+}
+
+qint64 Import::load64C(QFile& file, State* state)
+{
+    auto size = file.size();
+    if (size < 10) { // 2 + 8 (at least one char)
+        qDebug() << "Error: File Size too small.";
+        return -1;
+    }
+
+    // ignore first 2 bytes
+    char buf[2];
+    file.read(buf,2);
+
+    return Import::loadRaw(file, state);
+}
 
 //
 // From CharPad documentation
@@ -97,7 +136,9 @@ TILE_ATTRIBS.   Size = NUM_TILES bytes (1 byte per tile = "RAM colour". only exi
 MAP_DATA.        Size =  MAP_WID x MAP_HEI bytes.
 */
 
-struct CTM
+#pragma pack(push)
+#pragma pack(1)
+struct CTMHeader
 {
     char id[3];                 // must be CTM
     char version;               // must be 4
@@ -117,14 +158,33 @@ struct CTM
 
     char expanded;              // Boolean flag, 1 = CHAR_DATA is in "Expanded" form (CELL_DATA is unnecessary and absent).
 
-    char reserved[4];
+    char reserved[4];           // Must be 24 bytes in total
 };
+#pragma pack(pop)
 
-ImportCTM::ImportCTM()
-{
-}
+static_assert (sizeof(CTMHeader) == 24, "Size is not correct");
 
-ImportCTM::~ImportCTM()
+
+qint64 Import::loadCTM(QFile& file, State *state)
 {
+    struct CTMHeader header;
+    auto size = file.size();
+    if (size<sizeof(header)) {
+        qDebug() << "Error. File size too small to be CTM (" << size << ").";
+        return -1;
+    }
+
+    size = file.read((char*)&header, sizeof(header));
+    if (size<sizeof(header))
+        return false;
+
+    int toRead = std::min((int)header.num_chars * 8, State::CHAR_BUFFER_SIZE);
+
+    // clean previous memory in case not all the chars are loaded
+    state->resetCharsBuffer();
+
+    auto total = file.read(state->getCharsBuffer(), toRead);
+
+    return total;
 }
 
