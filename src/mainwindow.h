@@ -21,6 +21,8 @@ private slots:
     void on_actionExit_triggered();
     void on_actionOpen_triggered();
 
+    void on_checkBox_toggled(bool checked);
+
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;

@@ -46,3 +46,9 @@ void MainWindow::on_actionOpen_triggered()
     }
 
 }
+
+void MainWindow::on_checkBox_toggled(bool checked)
+{
+    _ui->radioButton_3->setEnabled(checked);
+    _ui->radioButton_4->setEnabled(checked);
+}
