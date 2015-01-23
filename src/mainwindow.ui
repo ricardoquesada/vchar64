@@ -75,7 +75,7 @@
     <property name="title">
      <string>Colors</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -139,7 +139,7 @@
       <rect>
        <x>10</x>
        <y>160</y>
-       <width>131</width>
+       <width>141</width>
        <height>20</height>
       </rect>
      </property>
@@ -147,10 +147,6 @@
       <string>MultiColor Mode</string>
      </property>
     </widget>
-    <zorder></zorder>
-    <zorder>widget</zorder>
-    <zorder>checkBox</zorder>
-    <zorder>widget_2</zorder>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -159,7 +155,7 @@
      <x>0</x>
      <y>0</y>
      <width>779</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
