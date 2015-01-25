@@ -22,9 +22,7 @@ State::State()
     : _charIndex(0)
     , _totalChars(0)
     , _multiColor(false)
-    , _color(0)
-    , _multiColor0(0)
-    , _multiColor1(1)
+    , _colors{1,0,12,15}
 {
     loadCharSet(":/c64-chargen.bin");
 }

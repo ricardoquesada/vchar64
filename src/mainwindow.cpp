@@ -52,3 +52,27 @@ void MainWindow::on_checkBox_toggled(bool checked)
     _ui->radioButton_3->setEnabled(checked);
     _ui->radioButton_4->setEnabled(checked);
 }
+
+void MainWindow::on_radioButton_clicked()
+{
+    State *state = State::getInstance();
+    state->setSelectedColor(0);
+}
+
+void MainWindow::on_radioButton_2_clicked()
+{
+    State *state = State::getInstance();
+    state->setSelectedColor(1);
+}
+
+void MainWindow::on_radioButton_3_clicked()
+{
+    State *state = State::getInstance();
+    state->setSelectedColor(2);
+}
+
+void MainWindow::on_radioButton_4_clicked()
+{
+    State *state = State::getInstance();
+    state->setSelectedColor(3);
+}

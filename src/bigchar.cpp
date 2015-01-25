@@ -8,6 +8,7 @@
 #include <QPaintEvent>
 
 #include "state.h"
+#include "constants.h"
 
 static const int PIXEL_SIZE = 32;
 
@@ -15,7 +16,6 @@ static const int PIXEL_SIZE = 32;
 BigChar::BigChar(QWidget *parent)
     : QWidget(parent)
     , _index(0)
-    , _selectedColor(-1)
 {
     setFixedSize(PIXEL_SIZE * 8, PIXEL_SIZE * 8);
 }
@@ -32,7 +32,10 @@ void BigChar::mousePressEvent(QMouseEvent * event)
 
     int bitIndex = x + y * 8;
 
-    State::getInstance()->toggleBit(_index, bitIndex);
+    State *state = State::getInstance();
+    int selectedColor = state->getSelectedColor();
+    state->setBit(_index, bitIndex, selectedColor);
+
 
     repaint();
 }
@@ -48,30 +51,27 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
 
     int bitIndex = x + y * 8;
 
-    if (_selectedColor == -1) {
-        bool bitValue = State::getInstance()->getBit(_index, bitIndex);
-        _selectedColor = bitValue;
-    }
+    State *state = State::getInstance();
+    int selectedColor = state->getSelectedColor();
 
-    State::getInstance()->setBit(_index, bitIndex, _selectedColor);
+    state->setBit(_index, bitIndex, selectedColor);
 
     repaint();
 }
 
-void BigChar::mouseReleaseEvent(QMouseEvent * event)
-{
-    _selectedColor = -1;
-}
 
-//! [2]
 void BigChar::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
     painter.begin(this);
 
-    painter.fillRect(event->rect(), QBrush(QColor(255, 255, 255)));
+    State *state = State::getInstance();
 
-    painter.setBrush(QColor(0,0,0));
+    // background
+    painter.fillRect(event->rect(), Constants::CBMcolors[ state->getColor(0) ]);
+
+    // selected color
+    painter.setBrush( Constants::CBMcolors[ state->getColor(1) ] );
 
     const char *charPtr = State::getInstance()->getCharAtIndex(_index);
 
@@ -97,4 +97,3 @@ void BigChar::setIndex(int index)
     }
 }
 
-//! [2]

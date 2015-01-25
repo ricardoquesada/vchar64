@@ -19,14 +19,16 @@ SOURCES += src/main.cpp\
     src/charsetview.cpp \
     src/state.cpp \
     src/import.cpp \
-    src/colorpalette.cpp
+    src/colorpalette.cpp \
+    src/constants.cpp
 
 HEADERS  += src/mainwindow.h \
     src/bigchar.h \
     src/charsetview.h \
     src/state.h \
     src/import.h \
-    src/colorpalette.h
+    src/colorpalette.h \
+    src/constants.h
 
 FORMS    += src/mainwindow.ui
 

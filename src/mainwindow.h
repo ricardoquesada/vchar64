@@ -23,6 +23,14 @@ private slots:
 
     void on_checkBox_toggled(bool checked);
 
+    void on_radioButton_clicked();
+
+    void on_radioButton_2_clicked();
+
+    void on_radioButton_3_clicked();
+
+    void on_radioButton_4_clicked();
+
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;

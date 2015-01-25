@@ -26,6 +26,26 @@ public:
     void resetCharsBuffer();
     char* getCharsBuffer();
 
+    int getColor(int index) const {
+        Q_ASSERT(index >=0 && index < 4);
+        return _colors[index];
+    }
+
+    void setColor(int index, int color) {
+        Q_ASSERT(index >=0 && index < 4);
+        Q_ASSERT(color >=0 && color < 16);
+        _colors[index] = color;
+    }
+
+    int getSelectedColor() const {
+        return _selectedColor;
+    }
+
+    void setSelectedColor(int index) {
+        Q_ASSERT(index>=0 && index<4);
+        _selectedColor = index;
+    }
+
 protected:
     State();
     ~State();
@@ -34,11 +54,11 @@ protected:
     int _totalChars;
 
     char _chars[State::CHAR_BUFFER_SIZE];
+
     bool _multiColor;
 
-    int _color;
-    int _multiColor0;
-    int _multiColor1;
+    int _selectedColor;
+    int _colors[4];
 };
 
 #endif // STATE_H
