@@ -31,6 +31,11 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+protected:
+    void createActions();
+    void createMenus();
+    void about();
+
 private slots:
 
     void on_actionExit_triggered();
@@ -49,5 +54,10 @@ private slots:
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;
+
+    QMenu *_helpMenu;
+    QAction *_aboutAct;
+    QAction *_aboutQtAct;
+
 };
 

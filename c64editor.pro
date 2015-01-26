@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = c64editor
+TARGET = vchar64
 TEMPLATE = app
 
 CONFIG += c++11

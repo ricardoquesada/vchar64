@@ -20,6 +20,7 @@ limitations under the License.
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QDir>
+#include <QMessageBox>
 
 #include "state.h"
 
@@ -30,11 +31,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     _ui->setupUi(this);
 
-    QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->bigchar, &BigChar::setIndex);
-    // FIXME: Qt5 API doesn't compile. Using Qt4 API
-//    QObject::connect(ui->spinBox, &QSpinBox::valueChanged, _ui->bigchar, &BigChar::setIndex);
-    QObject::connect(_ui->spinBox, SIGNAL(valueChanged(int)), _ui->bigchar, SLOT(setIndex(int)));
-    QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->spinBox, &QSpinBox::setValue);
+    createActions();
+    createMenus();
 }
 
 MainWindow::~MainWindow()
@@ -42,6 +40,47 @@ MainWindow::~MainWindow()
     delete _ui;
 }
 
+void MainWindow::createActions()
+{
+    QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->bigchar, &BigChar::setIndex);
+    // FIXME: Qt5 API doesn't compile. Using Qt4 API
+//    QObject::connect(ui->spinBox, &QSpinBox::valueChanged, _ui->bigchar, &BigChar::setIndex);
+    QObject::connect(_ui->spinBox, SIGNAL(valueChanged(int)), _ui->bigchar, SLOT(setIndex(int)));
+    QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->spinBox, &QSpinBox::setValue);
+
+
+    // Manually adding "about" menus
+    _aboutAct = new QAction(tr("&About"), this);
+    _aboutAct->setStatusTip(tr("Show the application's About box"));
+    connect(_aboutAct, &QAction::triggered, this, &MainWindow::about);
+
+    _aboutQtAct = new QAction(tr("About &Qt"), this);
+    _aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
+    connect(_aboutQtAct, &QAction::triggered, qApp, &QApplication::aboutQt);
+}
+
+void MainWindow::createMenus()
+{
+    _helpMenu = menuBar()->addMenu(tr("&Help"));
+    _helpMenu->addAction(_aboutAct);
+    _helpMenu->addAction(_aboutQtAct);
+}
+
+//
+// Menu callbacks
+//
+void MainWindow::about()
+{
+   QMessageBox::about(this, tr("About Application"),
+            tr("The <b>Application</b> example demonstrates how to "
+               "write modern GUI applications using Qt, with a menu bar, "
+               "toolbars, and a status bar."));
+}
+
+
+//
+// Events
+//
 void MainWindow::on_actionExit_triggered()
 {
     QApplication::exit();
