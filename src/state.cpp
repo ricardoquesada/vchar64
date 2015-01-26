@@ -23,6 +23,7 @@ State::State()
     , _totalChars(0)
     , _multiColor(false)
     , _colors{1,0,12,15}
+    , _selectedColorIndex(1)
 {
     loadCharSet(":/c64-chargen.bin");
 }
