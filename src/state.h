@@ -19,31 +19,42 @@ public:
         return &_chars[index*8];
     }
 
-    void toggleBit(int charIndex, int bitIndex);
-    void setBit(int charIndex, int bitIndex, bool enabled);
-    bool getBit(int charIndex, int bitIndex) const;
+    void setCharColor(int charIndex, int bitIndex, int colorIndex);
+    int getCharColor(int charIndex, int bitIndex) const;
 
     void resetCharsBuffer();
     char* getCharsBuffer();
 
-    int getColor(int index) const {
+    int getColorAtIndex(int index) const {
         Q_ASSERT(index >=0 && index < 4);
         return _colors[index];
     }
 
-    void setColor(int index, int color) {
+    void setColorAtIndex(int index, int color) {
         Q_ASSERT(index >=0 && index < 4);
         Q_ASSERT(color >=0 && color < 16);
         _colors[index] = color;
     }
 
-    int getSelectedColor() const {
-        return _selectedColor;
+    int getCurrentColor() const {
+        return _colors[_selectedColorIndex];
     }
 
-    void setSelectedColor(int index) {
+    void setSelectedColorIndex(int index) {
         Q_ASSERT(index>=0 && index<4);
-        _selectedColor = index;
+        _selectedColorIndex = index;
+    }
+
+    int getSelectedColorIndex() const {
+        return _selectedColorIndex;
+    }
+
+    void setMultiColor(bool enabled) {
+        _multiColor = enabled;
+    }
+
+    bool isMultiColor() const {
+        return _multiColor;
     }
 
 protected:
@@ -57,7 +68,7 @@ protected:
 
     bool _multiColor;
 
-    int _selectedColor;
+    int _selectedColorIndex;
     int _colors[4];
 };
 

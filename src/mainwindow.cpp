@@ -51,28 +51,34 @@ void MainWindow::on_checkBox_toggled(bool checked)
 {
     _ui->radioButton_3->setEnabled(checked);
     _ui->radioButton_4->setEnabled(checked);
+
+    State *state = State::getInstance();
+    state->setMultiColor(checked);
+
+    _ui->bigchar->repaint();
 }
 
 void MainWindow::on_radioButton_clicked()
 {
     State *state = State::getInstance();
-    state->setSelectedColor(0);
+    state->setSelectedColorIndex(0);
 }
 
 void MainWindow::on_radioButton_2_clicked()
 {
     State *state = State::getInstance();
-    state->setSelectedColor(1);
+    state->setSelectedColorIndex(1);
 }
 
 void MainWindow::on_radioButton_3_clicked()
 {
     State *state = State::getInstance();
-    state->setSelectedColor(2);
+    state->setSelectedColorIndex(2);
 }
 
 void MainWindow::on_radioButton_4_clicked()
 {
     State *state = State::getInstance();
-    state->setSelectedColor(3);
+    state->setSelectedColorIndex(3);
 }
+

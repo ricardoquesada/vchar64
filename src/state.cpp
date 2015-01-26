@@ -63,17 +63,7 @@ bool State::loadCharSet(const QString& filename)
     return true;
 }
 
-void State::toggleBit(int charIndex, int bitIndex)
-{
-    Q_ASSERT(charIndex >=0 && charIndex < 256 && "Invalid charIndex. Valid range: 0,255");
-    Q_ASSERT(bitIndex >=0 && bitIndex < 64 && "Invalid bit. Valid range: 0,63");
-
-    bool bit = getBit(charIndex, bitIndex);
-    bit = !bit;
-    setBit(charIndex, bitIndex, bit);
-}
-
-bool State::getBit(int charIndex, int bitIndex) const
+int State::getCharColor(int charIndex, int bitIndex) const
 {
     Q_ASSERT(charIndex >=0 && charIndex < 256 && "Invalid charIndex. Valid range: 0,255");
     Q_ASSERT(bitIndex >=0 && bitIndex < 64 && "Invalid bit. Valid range: 0,63");
@@ -85,19 +75,42 @@ bool State::getBit(int charIndex, int bitIndex) const
    return (c & mask);
 }
 
-void State::setBit(int charIndex, int bitIndex, bool enabled)
+void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
 {
-    Q_ASSERT(charIndex >=0 && charIndex < 256 && "Invalid charIndex. Valid range: 0,255");
-    Q_ASSERT(bitIndex >=0 && bitIndex < 64 && "Invalid bit. Valid range: 0,63");
+    Q_ASSERT(charIndex >=0 && charIndex < 256 && "Invalid charIndex. Valid range: 0,256");
+    Q_ASSERT(bitIndex >=0 && bitIndex < 64 && "Invalid bit. Valid range: 0,64");
+    Q_ASSERT(colorIndex >=0 && colorIndex < 4 && "Invalid colorIndex. range: 0,4");
 
+//    if (_multiColor)
+    int bits_to_mask = 1;
+    int totalbits = 64;
+    int modulus = 8;
+
+    if (_multiColor) {
+        bits_to_mask = 3;
+        totalbits = 32;
+        modulus = 4;
+
+        // only care about even bits in multicolor
+        bitIndex &= 0xfe;
+    }
+
+
+    // get the needed line ignoring whether it is multicolor or not
     char c = _chars[charIndex*8 + bitIndex/8];
-    int b = bitIndex%8;
-    int mask = 1 << (7-b);
 
-    if (enabled)
-        c |= mask;
-    else
-        c &= ~mask;
+    // for multicolor, we need to get the modulus
+    // in different ways regarding it is multicolor or not
+
+    int factor = 64/totalbits;
+    int b = (bitIndex/factor) % modulus;
+    int mask = bits_to_mask << ((modulus-1)-b) * factor;
+
+    // turn off bits
+    c &= ~mask;
+
+    // and 'or' it with colorIndex
+    c |= colorIndex << ((modulus-1)-b) * factor;
 
     _chars[charIndex*8 + bitIndex/8] = c;
 }

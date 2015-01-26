@@ -33,9 +33,8 @@ void BigChar::mousePressEvent(QMouseEvent * event)
     int bitIndex = x + y * 8;
 
     State *state = State::getInstance();
-    int selectedColor = state->getSelectedColor();
-    state->setBit(_index, bitIndex, selectedColor);
-
+    int selectedColor = state->getSelectedColorIndex();
+    state->setCharColor(_index, bitIndex, selectedColor);
 
     repaint();
 }
@@ -52,9 +51,9 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
     int bitIndex = x + y * 8;
 
     State *state = State::getInstance();
-    int selectedColor = state->getSelectedColor();
+    int selectedColor = state->getSelectedColorIndex();
 
-    state->setBit(_index, bitIndex, selectedColor);
+    state->setCharColor(_index, bitIndex, selectedColor);
 
     repaint();
 }
@@ -65,23 +64,49 @@ void BigChar::paintEvent(QPaintEvent *event)
     QPainter painter;
     painter.begin(this);
 
+    painter.setPen(Qt::PenStyle::NoPen);
     State *state = State::getInstance();
 
     // background
-    painter.fillRect(event->rect(), Constants::CBMcolors[ state->getColor(0) ]);
+    painter.fillRect(event->rect(), QColor(204,204,204));
 
-    // selected color
-    painter.setBrush( Constants::CBMcolors[ state->getColor(1) ] );
 
     const char *charPtr = State::getInstance()->getCharAtIndex(_index);
 
+    int end_x = 8;
+    int pixel_size_x = PIXEL_SIZE;
+    int increment_x = 1;
+    int bits_to_mask = 1;
+
+    if (state->isMultiColor())
+    {
+        end_x = 4;
+        pixel_size_x = PIXEL_SIZE * 2;
+        increment_x = 2;
+        bits_to_mask = 3;
+    }
+
     for (int y=0; y<8; y++) {
-        int letter = charPtr[y];
-        for (int x=0; x<8; x++) {
-            int mask = 1 << (7-x);
-            if (letter & mask) {
-                painter.drawRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE-2, PIXEL_SIZE-2);
-            }
+
+        char letter = charPtr[y];
+
+        for (int x=0; x<end_x; x++) {
+
+            // Warning: Don't use 'char'. Instead use 'unsigned char'
+            // to prevent a bug in the compiler (or in my code???)
+
+            // only mask the bits are needed
+            unsigned char mask = bits_to_mask << (((end_x-1)-x) * increment_x);
+
+            unsigned char color = letter & mask;
+            // now transform those bits into values from 0-3 since those are the
+            // possible colors
+
+            int bits_to_shift = (((end_x-1)-x) * increment_x);
+            int color_index = color >> bits_to_shift;
+
+            painter.setBrush(Constants::CBMcolors[state->getColorAtIndex(color_index)]);
+            painter.drawRect(x * pixel_size_x, y * PIXEL_SIZE, pixel_size_x-1, PIXEL_SIZE-1);
         }
     }
 
