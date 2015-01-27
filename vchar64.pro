@@ -20,7 +20,8 @@ SOURCES += src/main.cpp\
     src/state.cpp \
     src/import.cpp \
     src/colorpalette.cpp \
-    src/constants.cpp
+    src/constants.cpp \
+    src/aboutdialog.cpp
 
 HEADERS  += src/mainwindow.h \
     src/bigchar.h \
@@ -28,9 +29,11 @@ HEADERS  += src/mainwindow.h \
     src/state.h \
     src/import.h \
     src/colorpalette.h \
-    src/constants.h
+    src/constants.h \
+    src/aboutdialog.h
 
-FORMS    += src/mainwindow.ui
+FORMS    += src/mainwindow.ui \
+    src/aboutdialog.ui
 
 INCLUDEPATH += src
 
