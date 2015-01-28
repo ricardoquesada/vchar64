@@ -16,7 +16,6 @@ public:
     ~AboutDialog();
 
 private slots:
-    void on_pushButton_clicked();
 
 private:
     Ui::AboutDialog *ui;
