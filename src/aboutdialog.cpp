@@ -15,7 +15,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
             "<p align=\"center\"><a href=\"http://towp8.com/\">http://towp8.com/</a></p>\n")
             .arg(QApplication::applicationVersion());
 
-    ui->webView->setHtml(html);
+    ui->textBrowser->setHtml(html);
 }
 
 AboutDialog::~AboutDialog()

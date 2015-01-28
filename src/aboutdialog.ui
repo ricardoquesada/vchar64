@@ -16,7 +16,7 @@
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>280</x>
+     <x>270</x>
      <y>260</y>
      <width>115</width>
      <height>32</height>
@@ -26,29 +26,17 @@
     <string>OK</string>
    </property>
   </widget>
-  <widget class="QWebView" name="webView">
+  <widget class="QTextBrowser" name="textBrowser">
    <property name="geometry">
     <rect>
-     <x>9</x>
-     <y>9</y>
-     <width>381</width>
+     <x>10</x>
+     <y>10</y>
+     <width>371</width>
      <height>241</height>
     </rect>
    </property>
-   <property name="url">
-    <url>
-     <string>about:blank</string>
-    </url>
-   </property>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QWebView</class>
-   <extends>QWidget</extends>
-   <header>QtWebKitWidgets/QWebView</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -15,8 +15,6 @@ DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 CONFIG += c++11
 
-QT += webkit webkitwidgets
-
 SOURCES += src/main.cpp\
         src/mainwindow.cpp \
     src/bigchar.cpp \
