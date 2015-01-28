@@ -10,8 +10,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = vchar64
 TEMPLATE = app
+VERSION = 0.0.1
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 CONFIG += c++11
+
+QT += webkit webkitwidgets
 
 SOURCES += src/main.cpp\
         src/mainwindow.cpp \

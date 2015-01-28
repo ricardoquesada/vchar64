@@ -23,6 +23,7 @@ limitations under the License.
 #include <QMessageBox>
 
 #include "state.h"
+#include "aboutdialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -71,10 +72,8 @@ void MainWindow::createMenus()
 //
 void MainWindow::about()
 {
-   QMessageBox::about(this, tr("About Application"),
-            tr("The <b>Application</b> example demonstrates how to "
-               "write modern GUI applications using Qt, with a menu bar, "
-               "toolbars, and a status bar."));
+    AboutDialog aboutDialog(this);
+    aboutDialog.exec();
 }
 
 
