@@ -27,6 +27,8 @@ class ColorPalette : public QWidget
 public:
     ColorPalette(QWidget *parent);
 
+signals:
+    void colorSelected();
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

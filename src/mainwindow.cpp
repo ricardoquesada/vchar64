@@ -141,4 +141,3 @@ void MainWindow::on_radioButton_4_clicked()
     State *state = State::getInstance();
     state->setSelectedColorIndex(3);
 }
-

@@ -46,7 +46,6 @@ int ColorRect::getColorIndex() const
     return _colorIndex;
 }
 
-
 void ColorRect::paintEvent(QPaintEvent *event)
 {
     QPainter painter;

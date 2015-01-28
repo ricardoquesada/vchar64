@@ -34,9 +34,24 @@ ColorPalette::ColorPalette(QWidget *parent)
 
 void ColorPalette::mousePressEvent(QMouseEvent * event)
 {
-//    auto pos = event->localPos();
+    auto pos = event->localPos();
 
-    repaint();
+    int x = pos.x() / PIXEL_SIZE;
+    int y = pos.y() / PIXEL_SIZE;
+
+    int color = 8 * y + x;
+
+    auto state = State::getInstance();
+
+    int index = state->getSelectedColorIndex();
+    int oldColor = state->getColorAtIndex(index);
+
+    if (oldColor != color) {
+        state->setColorAtIndex(index, color);
+        emit colorSelected();
+
+        repaint();
+    }
 }
 
 void ColorPalette::paintEvent(QPaintEvent *event)
@@ -56,3 +71,4 @@ void ColorPalette::paintEvent(QPaintEvent *event)
 
     painter.end();
 }
+
