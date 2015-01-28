@@ -58,6 +58,12 @@ void MainWindow::createActions()
     _aboutQtAct = new QAction(tr("About &Qt"), this);
     _aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
     connect(_aboutQtAct, &QAction::triggered, qApp, &QApplication::aboutQt);
+
+    // FIXME should be on a different method
+    _ui->colorRect_0->setColorIndex(0);
+    _ui->colorRect_1->setColorIndex(1);
+    _ui->colorRect_2->setColorIndex(2);
+    _ui->colorRect_3->setColorIndex(3);
 }
 
 void MainWindow::createMenus()

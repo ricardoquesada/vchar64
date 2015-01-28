@@ -23,7 +23,8 @@ SOURCES += src/main.cpp\
     src/import.cpp \
     src/colorpalette.cpp \
     src/constants.cpp \
-    src/aboutdialog.cpp
+    src/aboutdialog.cpp \
+    src/colorrect.cpp
 
 HEADERS  += src/mainwindow.h \
     src/bigchar.h \
@@ -32,7 +33,8 @@ HEADERS  += src/mainwindow.h \
     src/import.h \
     src/colorpalette.h \
     src/constants.h \
-    src/aboutdialog.h
+    src/aboutdialog.h \
+    src/colorrect.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui

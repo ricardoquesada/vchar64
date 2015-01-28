@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>398</width>
-    <height>338</height>
+    <width>412</width>
+    <height>247</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -65,8 +65,8 @@
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>340</x>
-     <y>335</y>
+     <x>359</x>
+     <y>218</y>
     </hint>
     <hint type="destinationlabel">
      <x>197</x>
