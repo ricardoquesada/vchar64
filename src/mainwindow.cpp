@@ -100,8 +100,16 @@ void MainWindow::on_actionOpen_triggered()
         _lastDir = info.absolutePath();
 
         if (State::getInstance()->loadCharSet(fn)) {
-            _ui->bigchar->repaint();
-            _ui->charsetview->repaint();
+            _ui->bigchar->update();
+            _ui->charsetview->update();
+            _ui->colorPalette->update();
+            _ui->colorRect_0->update();
+            _ui->colorRect_1->update();
+            _ui->colorRect_2->update();
+            _ui->colorRect_2->update();
+
+            auto state = State::getInstance();
+            _ui->checkBox->setChecked(state->isMultiColor());
         }
     }
 

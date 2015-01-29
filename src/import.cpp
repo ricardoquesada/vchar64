@@ -201,6 +201,11 @@ qint64 Import::loadCTM(QFile& file, State *state)
 
     auto total = file.read(state->getCharsBuffer(), toRead);
 
+    for (int i=0; i<4; i++)
+        state->setColorAtIndex(i, header.colors[i]);
+
+    state->setMultiColor(header.vic_res);
+
     return total;
 }
 
