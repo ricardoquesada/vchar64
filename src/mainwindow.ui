@@ -170,7 +170,7 @@
      <x>0</x>
      <y>0</y>
      <width>779</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -206,7 +206,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
    <property name="icon">
-    <iconset theme="document-open">
+    <iconset theme="document-open" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-open.png</normaloff>:/icons/22x22/actions/document-open.png</iconset>
    </property>
    <property name="text">
@@ -245,7 +245,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset>
+    <iconset resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-save.png</normaloff>:/icons/22x22/actions/document-save.png</iconset>
    </property>
    <property name="text">
@@ -260,8 +260,8 @@
   </action>
   <action name="actionCopy">
    <property name="icon">
-    <iconset resource="../../../src/tiled/src/tiled/tiled.qrc">
-     <normaloff>:/images/24x24/edit-copy.png</normaloff>:/images/24x24/edit-copy.png</iconset>
+    <iconset theme="edit-copy" resource="../res/resources.qrc">
+     <normaloff>:/icons/22x22/actions/edit-copy.png</normaloff>:/icons/22x22/actions/edit-copy.png</iconset>
    </property>
    <property name="text">
     <string>Copy</string>
@@ -275,7 +275,7 @@
   </action>
   <action name="actionPaste">
    <property name="icon">
-    <iconset resource="../../../src/tiled/src/tiled/tiled.qrc">
+    <iconset theme="edit-paste">
      <normaloff>:/images/24x24/edit-paste.png</normaloff>:/images/24x24/edit-paste.png</iconset>
    </property>
    <property name="text">
@@ -329,7 +329,9 @@
   <tabstop>spinBox</tabstop>
   <tabstop>charsetview</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../res/resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>colorPalette</sender>
