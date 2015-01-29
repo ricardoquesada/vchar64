@@ -24,20 +24,21 @@ limitations under the License.
 #include "constants.h"
 #include "state.h"
 
-static const int PIXEL_SIZE = 16;
+static const int PIXEL_SIZE_X = 24;
+static const int PIXEL_SIZE_Y = 16;
 
 ColorPalette::ColorPalette(QWidget *parent)
     : QWidget(parent)
 {
-    setFixedSize(PIXEL_SIZE * 8, PIXEL_SIZE * 2);
+    setFixedSize(PIXEL_SIZE_X * 8, PIXEL_SIZE_Y * 2);
 }
 
 void ColorPalette::mousePressEvent(QMouseEvent * event)
 {
     auto pos = event->localPos();
 
-    int x = pos.x() / PIXEL_SIZE;
-    int y = pos.y() / PIXEL_SIZE;
+    int x = pos.x() / PIXEL_SIZE_X;
+    int y = pos.y() / PIXEL_SIZE_Y;
 
     int color = 8 * y + x;
 
@@ -56,16 +57,32 @@ void ColorPalette::mousePressEvent(QMouseEvent * event)
 
 void ColorPalette::paintEvent(QPaintEvent *event)
 {
+    auto state = State::getInstance();
+
     QPainter painter;
     painter.begin(this);
 
     painter.fillRect(event->rect(), QBrush(QColor(255, 255, 255)));
 
+    int currentColor = state->getCurrentColor();
+
+
+    QPen pen;
+    pen.setColor(Qt::red);
+    pen.setWidth(3);
+    pen.setStyle(Qt::PenStyle::DotLine);
 
     for (int y=0; y<2; y++) {
         for (int x=0; x<8; x++) {
-            painter.setBrush( Constants::CBMcolors[8 * y + x]);
-            painter.drawRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+            int c = 8 * y + x;
+            painter.setBrush( Constants::CBMcolors[c]);
+            if (c==currentColor) {
+                painter.setPen(pen);
+            } else {
+                painter.setPen(Qt::PenStyle::NoPen);
+            }
+
+            painter.drawRect(x * PIXEL_SIZE_X, y * PIXEL_SIZE_Y, PIXEL_SIZE_X, PIXEL_SIZE_Y);
         }
     }
 

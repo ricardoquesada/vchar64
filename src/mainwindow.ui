@@ -81,9 +81,9 @@
     <widget class="ColorPalette" name="colorPalette" native="true">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>210</y>
-       <width>128</width>
+       <x>5</x>
+       <y>206</y>
+       <width>192</width>
        <height>32</height>
       </rect>
      </property>
@@ -279,9 +279,6 @@
    <extends>QWidget</extends>
    <header>colorrect.h</header>
    <container>1</container>
-   <slots>
-    <slot>doSomething()</slot>
-   </slots>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -373,6 +370,70 @@
     <hint type="destinationlabel">
      <x>440</x>
      <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton</sender>
+   <signal>clicked()</signal>
+   <receiver>colorPalette</receiver>
+   <slot>update()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>345</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>380</x>
+     <y>287</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>colorPalette</receiver>
+   <slot>update()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>345</x>
+     <y>133</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>380</x>
+     <y>287</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_3</sender>
+   <signal>clicked()</signal>
+   <receiver>colorPalette</receiver>
+   <slot>update()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>345</x>
+     <y>164</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>380</x>
+     <y>287</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_4</sender>
+   <signal>clicked()</signal>
+   <receiver>colorPalette</receiver>
+   <slot>update()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>345</x>
+     <y>195</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>380</x>
+     <y>287</y>
     </hint>
    </hints>
   </connection>
