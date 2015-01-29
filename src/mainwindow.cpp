@@ -61,9 +61,9 @@ void MainWindow::createActions()
 
     // FIXME should be on a different method
     _ui->colorRect_0->setColorIndex(0);
-    _ui->colorRect_1->setColorIndex(1);
-    _ui->colorRect_2->setColorIndex(2);
-    _ui->colorRect_3->setColorIndex(3);
+    _ui->colorRect_1->setColorIndex(3);
+    _ui->colorRect_2->setColorIndex(1);
+    _ui->colorRect_3->setColorIndex(2);
 }
 
 void MainWindow::createMenus()

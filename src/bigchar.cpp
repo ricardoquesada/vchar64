@@ -118,6 +118,8 @@ void BigChar::paintEvent(QPaintEvent *event)
             int bits_to_shift = (((end_x-1)-x) * increment_x);
             int color_index = color >> bits_to_shift;
 
+            if (!state->isMultiColor() && color_index )
+                color_index = 3;
             painter.setBrush(Constants::CBMcolors[state->getColorAtIndex(color_index)]);
             painter.drawRect(x * pixel_size_x, y * PIXEL_SIZE, pixel_size_x-1, PIXEL_SIZE-1);
         }
