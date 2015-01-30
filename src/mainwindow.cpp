@@ -29,11 +29,13 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
     , _lastDir(QDir::homePath())
+    , _settings()
 {
     _ui->setupUi(this);
 
     createActions();
     createMenus();
+    createDefaults();
 }
 
 MainWindow::~MainWindow()
@@ -73,6 +75,11 @@ void MainWindow::createMenus()
     _helpMenu->addAction(_aboutQtAct);
 }
 
+void MainWindow::createDefaults()
+{
+    _lastDir = _settings.value("dir/lastdir", _lastDir).toString();
+}
+
 //
 // Menu callbacks
 //
@@ -91,29 +98,49 @@ void MainWindow::on_actionExit_triggered()
     QApplication::exit();
 }
 
+void MainWindow::on_actionNew_Project_triggered()
+{
+    auto state = State::getInstance();
+    state->reset();
+
+    update();
+}
+
 void MainWindow::on_actionOpen_triggered()
+{
+    auto fn = QFileDialog::getOpenFileName(this, "Select File", _lastDir, "*.vchar64proj");
+
+    if (fn.length()> 0) {
+        QFileInfo info(fn);
+        _lastDir = info.absolutePath();
+        _settings.setValue("dir/lastdir", _lastDir);
+
+        if (State::getInstance()->loadCharSet(fn)) {
+            update();
+            auto state = State::getInstance();
+            _ui->checkBox->setChecked(state->isMultiColor());
+        }
+    }
+}
+
+void MainWindow::on_actionImport_triggered()
 {
     auto fn = QFileDialog::getOpenFileName(this, "Select File", _lastDir);
 
     if (fn.length()> 0) {
         QFileInfo info(fn);
         _lastDir = info.absolutePath();
+        _settings.setValue("dir/lastdir", _lastDir);
 
         if (State::getInstance()->loadCharSet(fn)) {
-            _ui->bigchar->update();
-            _ui->charsetview->update();
-            _ui->colorPalette->update();
-            _ui->colorRect_0->update();
-            _ui->colorRect_1->update();
-            _ui->colorRect_2->update();
-            _ui->colorRect_2->update();
+            update();
 
             auto state = State::getInstance();
             _ui->checkBox->setChecked(state->isMultiColor());
         }
     }
-
 }
+
 
 void MainWindow::on_checkBox_toggled(bool checked)
 {
@@ -135,17 +162,17 @@ void MainWindow::on_radioButton_clicked()
 void MainWindow::on_radioButton_2_clicked()
 {
     State *state = State::getInstance();
-    state->setSelectedColorIndex(1);
+    state->setSelectedColorIndex(3);
 }
 
 void MainWindow::on_radioButton_3_clicked()
 {
     State *state = State::getInstance();
-    state->setSelectedColorIndex(2);
+    state->setSelectedColorIndex(1);
 }
 
 void MainWindow::on_radioButton_4_clicked()
 {
     State *state = State::getInstance();
-    state->setSelectedColorIndex(3);
+    state->setSelectedColorIndex(2);
 }

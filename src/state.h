@@ -27,6 +27,8 @@ public:
 
     static State* getInstance();
 
+    void reset();
+
     bool loadCharSet(const QString &filename);
 
     const char* getCharAtIndex(int index) {

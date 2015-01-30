@@ -51,7 +51,7 @@ void ColorPalette::mousePressEvent(QMouseEvent * event)
         state->setColorAtIndex(index, color);
         emit colorSelected();
 
-        repaint();
+        update();
     }
 }
 

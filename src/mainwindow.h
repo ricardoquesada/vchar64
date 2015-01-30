@@ -18,6 +18,7 @@ limitations under the License.
 
 #include <QMainWindow>
 #include <QString>
+#include <QSettings>
 
 namespace Ui {
 class MainWindow;
@@ -34,6 +35,7 @@ public:
 protected:
     void createActions();
     void createMenus();
+    void createDefaults();
     void about();
 
 private slots:
@@ -51,6 +53,10 @@ private slots:
 
     void on_radioButton_4_clicked();
 
+    void on_actionImport_triggered();
+
+    void on_actionNew_Project_triggered();
+
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;
@@ -59,5 +65,6 @@ private:
     QAction *_aboutAct;
     QAction *_aboutQtAct;
 
+    QSettings _settings;
 };
 

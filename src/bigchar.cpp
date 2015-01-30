@@ -47,9 +47,13 @@ void BigChar::mousePressEvent(QMouseEvent * event)
 
     State *state = State::getInstance();
     int selectedColor = state->getSelectedColorIndex();
+
+    if (!state->isMultiColor() && selectedColor)
+        selectedColor = 1;
+
     state->setCharColor(_index, bitIndex, selectedColor);
 
-    repaint();
+    update();
 }
 
 void BigChar::mouseMoveEvent(QMouseEvent * event)
@@ -66,9 +70,12 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
     State *state = State::getInstance();
     int selectedColor = state->getSelectedColorIndex();
 
+    if (!state->isMultiColor() && selectedColor)
+        selectedColor = 1;
+
     state->setCharColor(_index, bitIndex, selectedColor);
 
-    repaint();
+    update();
 }
 
 
@@ -133,7 +140,7 @@ void BigChar::setIndex(int index)
     if (_index != index) {
         _index = index;
         emit indexChanged(_index);
-        repaint();
+        update();
     }
 }
 

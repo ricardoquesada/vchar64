@@ -49,6 +49,20 @@ State::~State()
 
 }
 
+void State::reset()
+{
+    _charIndex = 0;
+    _totalChars = 0;
+    _multiColor = false;
+    _selectedColorIndex = 3;
+    _colors[0] = 1;
+    _colors[1] = 12;
+    _colors[2] = 15;
+    _colors[3] = 0;
+
+    loadCharSet(":/c64-chargen.bin");
+}
+
 bool State::loadCharSet(const QString& filename)
 {
     QFile file(filename);
