@@ -298,6 +298,9 @@
    <property name="toolTip">
     <string>Import</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
   </action>
   <action name="actionSave_As">
    <property name="icon">
