@@ -21,6 +21,7 @@ limitations under the License.
 #include <QFileInfo>
 #include <QDir>
 #include <QMessageBox>
+#include <QDebug>
 
 #include "state.h"
 #include "aboutdialog.h"
@@ -175,4 +176,17 @@ void MainWindow::on_radioButton_4_clicked()
 {
     State *state = State::getInstance();
     state->setSelectedColorIndex(2);
+}
+
+void MainWindow::on_actionSave_As_triggered()
+{
+    QString dir = _lastDir + "/untitled.vchar64proj";
+    auto name = QFileDialog::getSaveFileName(this, tr("Save Project"),
+                                             dir,
+                                             tr("VChar64 project(*.vchar64proj)"));
+
+    qDebug() << name;
+    if (name.length() != 0) {
+
+    }
 }

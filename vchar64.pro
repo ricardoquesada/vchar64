@@ -20,21 +20,23 @@ SOURCES += src/main.cpp\
     src/bigchar.cpp \
     src/charsetview.cpp \
     src/state.cpp \
-    src/import.cpp \
     src/colorpalette.cpp \
     src/constants.cpp \
     src/aboutdialog.cpp \
-    src/colorrect.cpp
+    src/colorrect.cpp \
+    src/stateimport.cpp \
+    src/stateexport.cpp
 
 HEADERS  += src/mainwindow.h \
     src/bigchar.h \
     src/charsetview.h \
     src/state.h \
-    src/import.h \
     src/colorpalette.h \
     src/constants.h \
     src/aboutdialog.h \
-    src/colorrect.h
+    src/colorrect.h \
+    src/stateimport.h \
+    src/stateexport.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui

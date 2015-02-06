@@ -57,6 +57,8 @@ private slots:
 
     void on_actionNew_Project_triggered();
 
+    void on_actionSave_As_triggered();
+
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;

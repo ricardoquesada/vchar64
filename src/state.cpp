@@ -20,7 +20,7 @@ limitations under the License.
 #include <QFile>
 #include <QFileInfo>
 
-#include "import.h"
+#include "stateimport.h"
 
 static State *__instance = nullptr;
 
@@ -75,21 +75,27 @@ bool State::loadCharSet(const QString& filename)
     QFileInfo info(file);
     if (info.suffix() == "64c")
     {
-        length = Import::load64C(file, this);
+        length = StateImport::load64C(file, this);
     }
     else if(info.suffix() == "ctm")
     {
-        length = Import::loadCTM(file, this);
+        length = StateImport::loadCTM(file, this);
     }
     else
     {
-        length = Import::loadRaw(file, this);
+        length = StateImport::loadRaw(file, this);
     }
 
     file.close();
 
     if(length<=0)
         return false;
+
+    return true;
+}
+
+bool State::save(const QString &filename)
+{
 
     return true;
 }

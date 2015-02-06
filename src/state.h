@@ -31,6 +31,8 @@ public:
 
     bool loadCharSet(const QString &filename);
 
+    bool save(const QString &filename);
+
     const char* getCharAtIndex(int index) {
         Q_ASSERT(index>=0 && index<256 && "Invalid index");
         return &_chars[index*8];
