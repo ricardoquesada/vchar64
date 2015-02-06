@@ -89,5 +89,7 @@ protected:
 
     int _selectedColorIndex;
     int _colors[4];
+
+    QString _name;
 };
 

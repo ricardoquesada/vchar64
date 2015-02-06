@@ -25,6 +25,7 @@ limitations under the License.
 
 #include "state.h"
 #include "aboutdialog.h"
+#include "exportdialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -126,7 +127,13 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionImport_triggered()
 {
-    auto fn = QFileDialog::getOpenFileName(this, "Select File", _lastDir);
+    QString file = "Any files";
+    auto fn = QFileDialog::getOpenFileName(this,
+                                           tr("Select File"),
+                                           _lastDir,
+                                           "Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;CharPad files (*.ctm);;Any files (*)",
+                                           &file
+                                           /*,QFileDialog::DontUseNativeDialog*/);
 
     if (fn.length()> 0) {
         QFileInfo info(fn);
@@ -181,12 +188,23 @@ void MainWindow::on_radioButton_4_clicked()
 void MainWindow::on_actionSave_As_triggered()
 {
     QString dir = _lastDir + "/untitled.vchar64proj";
-    auto name = QFileDialog::getSaveFileName(this, tr("Save Project"),
+    auto filename = QFileDialog::getSaveFileName(this, tr("Save Project"),
                                              dir,
                                              tr("VChar64 project(*.vchar64proj)"));
 
-    qDebug() << name;
-    if (name.length() != 0) {
-
+    if (filename.length() > 0) {
+        auto state = State::getInstance();
+        state->save(filename);
     }
+}
+
+void MainWindow::on_actionSave_triggered()
+{
+    auto state = State::getInstance();
+}
+
+void MainWindow::on_actionExport_triggered()
+{
+    ExportDialog dialog(this);
+    dialog.exec();
 }

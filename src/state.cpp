@@ -21,6 +21,7 @@ limitations under the License.
 #include <QFileInfo>
 
 #include "stateimport.h"
+#include "stateexport.h"
 
 static State *__instance = nullptr;
 
@@ -73,13 +74,17 @@ bool State::loadCharSet(const QString& filename)
     qint64 length=0;
 
     QFileInfo info(file);
-    if (info.suffix() == "64c")
+    if ((info.suffix() == "64c") || (info.suffix() == "prg"))
     {
-        length = StateImport::load64C(file, this);
+        length = StateImport::loadPRG(file, this);
     }
     else if(info.suffix() == "ctm")
     {
         length = StateImport::loadCTM(file, this);
+    }
+    else if(info.suffix() == "vchar64proj")
+    {
+        length = StateImport::loadVChar64(file, this);
     }
     else
     {
@@ -96,6 +101,19 @@ bool State::loadCharSet(const QString& filename)
 
 bool State::save(const QString &filename)
 {
+    QFile file(filename);
+
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+        return false;
+
+    qint64 length=0;
+
+    length = StateExport::saveVChar64(file, this);
+
+    file.close();
+
+    if(length<=0)
+        return false;
 
     return true;
 }

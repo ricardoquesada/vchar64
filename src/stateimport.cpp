@@ -18,6 +18,7 @@ limitations under the License.
 
 #include <algorithm>
 #include <QDebug>
+#include <QtEndian>
 
 #include "state.h"
 
@@ -40,7 +41,7 @@ qint64 StateImport::loadRaw(QFile& file, State* state)
     return total;
 }
 
-qint64 StateImport::load64C(QFile& file, State* state)
+qint64 StateImport::loadPRG(QFile& file, State* state)
 {
     auto size = file.size();
     if (size < 10) { // 2 + 8 (at least one char)
@@ -68,7 +69,8 @@ qint64 StateImport::loadCTM(QFile& file, State *state)
     if (size<sizeof(header))
         return false;
 
-    int toRead = std::min((int)header.num_chars * 8, State::CHAR_BUFFER_SIZE);
+    int num_chars = qFromLittleEndian((int)header.num_chars);
+    int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
 
     // clean previous memory in case not all the chars are loaded
     state->resetCharsBuffer();
@@ -85,5 +87,29 @@ qint64 StateImport::loadCTM(QFile& file, State *state)
 
 qint64 StateImport::loadVChar64(QFile& file, State *state)
 {
-    return loadCTM(file, state);
+    struct VChar64Header header;
+    auto size = file.size();
+    if (size<sizeof(header)) {
+        qDebug() << "Error. File size too small to be VChar64 (" << size << ").";
+        return -1;
+    }
+
+    size = file.read((char*)&header, sizeof(header));
+    if (size<sizeof(header))
+        return false;
+
+    int num_chars = qFromLittleEndian((int)header.num_chars);
+    int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
+
+    // clean previous memory in case not all the chars are loaded
+    state->resetCharsBuffer();
+
+    auto total = file.read(state->getCharsBuffer(), toRead);
+
+    for (int i=0; i<4; i++)
+        state->setColorAtIndex(i, header.colors[i]);
+
+    state->setMultiColor(header.vic_res);
+
+    return total;
 }

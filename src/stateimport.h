@@ -25,8 +25,8 @@ namespace StateImport
     // loads a raw file
     qint64 loadRaw(QFile& file, State* state);
 
-    // loads a 64C file. Same a raw, but the first 2 characters are ignored
-    qint64 load64C(QFile& file, State* state);
+    // loads a PRG / 64C file. Same a raw, but the first 2 characters are ignored
+    qint64 loadPRG(QFile& file, State* state);
 
     // loads a CharPad project file
     qint64 loadCTM(QFile& file, State* state);
@@ -158,8 +158,25 @@ namespace StateImport
         char reserved[4];           // Must be 24 bytes in total
     };
     #pragma pack(pop)
-
     static_assert (sizeof(CTMHeader) == 24, "Size is not correct");
+
+
+    #pragma pack(push)
+    #pragma pack(1)
+    struct VChar64Header
+    {
+        char id[5];                 // must be VChar
+        char version;               // must be 1
+        char colors[4];             // BGR, MC1, MC2, RAM.
+        char vic_res;               // 0 = Hi Resolution, 1 = Multicolour.
+
+        unsigned short num_chars;   // 16-bits, Number of chars - 1 (low, high).
+
+        char reserved[3];           // Must be 16 bytes in total
+    };
+    #pragma pack(pop)
+
+    static_assert (sizeof(VChar64Header) == 16, "Size is not correct");
 }
 
 

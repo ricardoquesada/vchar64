@@ -25,7 +25,8 @@ SOURCES += src/main.cpp\
     src/aboutdialog.cpp \
     src/colorrect.cpp \
     src/stateimport.cpp \
-    src/stateexport.cpp
+    src/stateexport.cpp \
+    src/exportdialog.cpp
 
 HEADERS  += src/mainwindow.h \
     src/bigchar.h \
@@ -36,10 +37,12 @@ HEADERS  += src/mainwindow.h \
     src/aboutdialog.h \
     src/colorrect.h \
     src/stateimport.h \
-    src/stateexport.h
+    src/stateexport.h \
+    src/exportdialog.h
 
 FORMS    += src/mainwindow.ui \
-    src/aboutdialog.ui
+    src/aboutdialog.ui \
+    src/exportdialog.ui
 
 INCLUDEPATH += src
 
