@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="groupBoxPRG">
      <property name="title">
       <string>Location</string>
      </property>
@@ -26,15 +26,15 @@
          <string>Name</string>
         </property>
         <property name="buddy">
-         <cstring>lineEdit</cstring>
+         <cstring>editFilename</cstring>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEdit"/>
+       <widget class="QLineEdit" name="editFilename"/>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="pushBrowse">
         <property name="text">
          <string>Browse...</string>
         </property>
@@ -50,7 +50,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QRadioButton" name="radioButton">
+       <widget class="QRadioButton" name="radioRaw">
         <property name="text">
          <string>Raw Format</string>
         </property>
@@ -62,14 +62,14 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QRadioButton" name="radioButton_2">
+         <widget class="QRadioButton" name="radioPRG">
           <property name="text">
            <string>PRG Format</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="spinBox">
+         <widget class="QSpinBox" name="spinPRGAddress">
           <property name="prefix">
            <string>$</string>
           </property>

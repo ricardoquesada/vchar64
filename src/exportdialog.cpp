@@ -4,6 +4,10 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <QDir>
+#include <QDebug>
+
+#include "stateexport.h"
+#include "state.h"
 
 ExportDialog::ExportDialog(QWidget *parent) :
     QDialog(parent),
@@ -14,7 +18,7 @@ ExportDialog::ExportDialog(QWidget *parent) :
 
     auto lastDir = _settings.value("dir/lastdir", QDir::homePath()).toString();
     lastDir += "/untitled.bin";
-    ui->lineEdit->setText(lastDir);
+    ui->editFilename->setText(lastDir);
 }
 
 ExportDialog::~ExportDialog()
@@ -26,18 +30,37 @@ void ExportDialog::on_pushButton_clicked()
 {
     auto filename = QFileDialog::getSaveFileName(this,
                                                  tr("Select filename"),
-                                                 ui->lineEdit->text(),
+                                                 ui->editFilename->text(),
                                                  tr("Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;Any file (*)"),
                                                  nullptr,
                                                  QFileDialog::DontConfirmOverwrite);
 
     if (!filename.isEmpty())
-        ui->lineEdit->setText(filename);
+        ui->editFilename->setText(filename);
 }
 
 void ExportDialog::accept()
 {
-    auto filename = ui->lineEdit->text();
+    auto filename = ui->editFilename->text();
+
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate)) {
+        qDebug() << "Error opening file: " << filename;
+    } else {
+        auto state = State::getInstance();
+        if (ui->radioRaw->isChecked())
+        {
+            StateExport::saveRaw(file, state);
+        }
+        else
+        {
+            StateExport::savePRG(file, state, ui->spinPRGAddress->value());
+        }
+
+        QFileInfo info(filename);
+        auto dir = info.absolutePath();
+        _settings.setValue("dir/lastdir", dir);
+    }
 
     // do something
     QDialog::accept();
