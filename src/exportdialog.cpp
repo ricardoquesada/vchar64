@@ -60,6 +60,8 @@ void ExportDialog::accept()
         QFileInfo info(filename);
         auto dir = info.absolutePath();
         _settings.setValue("dir/lastdir", dir);
+
+        qDebug() << "File saved correctly file: " << filename;
     }
 
     // do something
