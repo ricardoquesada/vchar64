@@ -110,7 +110,11 @@ void MainWindow::on_actionNew_Project_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    auto fn = QFileDialog::getOpenFileName(this, "Select File", _lastDir, "*.vchar64proj");
+    auto fn = QFileDialog::getOpenFileName(this,
+                                           tr("Select File"),
+                                           _lastDir,
+                                           tr("VChar64 Project (*.vchar64proj")
+                                           );
 
     if (fn.length()> 0) {
         QFileInfo info(fn);
@@ -131,7 +135,7 @@ void MainWindow::on_actionImport_triggered()
     auto fn = QFileDialog::getOpenFileName(this,
                                            tr("Select File"),
                                            _lastDir,
-                                           "Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;CharPad files (*.ctm);;Any files (*)",
+                                           tr("Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;CharPad files (*.ctm);;Any file (*)"),
                                            &file
                                            /*,QFileDialog::DontUseNativeDialog*/);
 

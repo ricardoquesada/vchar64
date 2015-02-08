@@ -25,6 +25,9 @@
         <property name="text">
          <string>Name</string>
         </property>
+        <property name="buddy">
+         <cstring>lineEdit</cstring>
+        </property>
        </widget>
       </item>
       <item>
@@ -107,10 +110,46 @@
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Save</set>
      </property>
+     <property name="centerButtons">
+      <bool>false</bool>
+     </property>
     </widget>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>ExportDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>212</x>
+     <y>219</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>212</x>
+     <y>119</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>ExportDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>212</x>
+     <y>219</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>212</x>
+     <y>119</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
