@@ -41,8 +41,9 @@ State::State()
     , _multiColor(false)
     , _selectedColorIndex(3)
     , _colors{1,12,15,0}
+    , _filename("")
 {
-    loadCharSet(":/c64-chargen.bin");
+    import(":/c64-chargen.bin");
 }
 
 State::~State()
@@ -60,11 +61,30 @@ void State::reset()
     _colors[1] = 12;
     _colors[2] = 15;
     _colors[3] = 0;
+    _filename = "";
 
-    loadCharSet(":/c64-chargen.bin");
+    import(":/c64-chargen.bin");
 }
 
-bool State::loadCharSet(const QString& filename)
+bool State::exportRaw(const QString& filename)
+{
+    QFile file(filename);
+
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+        return false;
+    return StateExport::saveRaw(file, this);
+}
+
+bool State::exportPRG(const QString& filename, u_int16_t address)
+{
+    QFile file(filename);
+
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+        return false;
+    return StateExport::savePRG(file, this, address);
+}
+
+bool State::import(const QString& filename)
 {
     QFile file(filename);
 
@@ -82,10 +102,6 @@ bool State::loadCharSet(const QString& filename)
     {
         length = StateImport::loadCTM(file, this);
     }
-    else if(info.suffix() == "vchar64proj")
-    {
-        length = StateImport::loadVChar64(file, this);
-    }
     else
     {
         length = StateImport::loadRaw(file, this);
@@ -95,6 +111,25 @@ bool State::loadCharSet(const QString& filename)
 
     if(length<=0)
         return false;
+
+    return true;
+}
+
+bool State::load(const QString& filename)
+{
+    QFile file(filename);
+
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+
+    auto length = StateImport::loadVChar64(file, this);
+
+    file.close();
+
+    if(length<=0)
+        return false;
+
+    _filename = filename;
 
     return true;
 }
@@ -114,6 +149,8 @@ bool State::save(const QString &filename)
 
     if(length<=0)
         return false;
+
+    _filename = filename;
 
     return true;
 }

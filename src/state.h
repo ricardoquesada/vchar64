@@ -29,9 +29,12 @@ public:
 
     void reset();
 
-    bool loadCharSet(const QString &filename);
-
+    bool load(const QString &filename);
     bool save(const QString &filename);
+
+    bool import(const QString& filename);
+    bool exportRaw(const QString& filename);
+    bool exportPRG(const QString& filename, u_int16_t address);
 
     const char* getCharAtIndex(int index) {
         Q_ASSERT(index>=0 && index<256 && "Invalid index");
@@ -76,6 +79,10 @@ public:
         return _multiColor;
     }
 
+    QString getFilename() const {
+        return _filename;
+    }
+
 protected:
     State();
     ~State();
@@ -90,6 +97,6 @@ protected:
     int _selectedColorIndex;
     int _colors[4];
 
-    QString _name;
+    QString _filename;
 };
 

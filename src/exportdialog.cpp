@@ -5,8 +5,8 @@
 #include <QSettings>
 #include <QDir>
 #include <QDebug>
+#include <QFileInfo>
 
-#include "stateexport.h"
 #include "state.h"
 
 ExportDialog::ExportDialog(QWidget *parent) :
@@ -41,29 +41,55 @@ void ExportDialog::on_pushButton_clicked()
 
 void ExportDialog::accept()
 {
+    bool ok = false;
     auto filename = ui->editFilename->text();
+    auto state = State::getInstance();
 
-    QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate)) {
-        qDebug() << "Error opening file: " << filename;
-    } else {
-        auto state = State::getInstance();
-        if (ui->radioRaw->isChecked())
-        {
-            StateExport::saveRaw(file, state);
-        }
-        else
-        {
-            StateExport::savePRG(file, state, ui->spinPRGAddress->value());
-        }
+    if (ui->radioRaw->isChecked())
+    {
+        ok = state->exportRaw(filename);
+    }
+    else
+    {
+        ok = state->exportPRG(filename, ui->spinPRGAddress->value());
+    }
 
+    if (ok) {
         QFileInfo info(filename);
         auto dir = info.absolutePath();
         _settings.setValue("dir/lastdir", dir);
 
         qDebug() << "File saved correctly file: " << filename;
     }
+    else
+    {
+        qDebug() << "Error saving file: " << filename;
+    }
 
     // do something
     QDialog::accept();
+}
+
+void ExportDialog::on_radioRaw_clicked()
+{
+    auto filename = ui->editFilename->text();
+
+    QFileInfo finfo(filename);
+    auto extension = finfo.suffix();
+
+    filename.chop(extension.length()+1);
+    filename += ".bin";
+    ui->editFilename->setText(filename);
+}
+
+void ExportDialog::on_radioPRG_clicked()
+{
+    auto filename = ui->editFilename->text();
+
+    QFileInfo finfo(filename);
+    auto extension = finfo.suffix();
+
+    filename.chop(extension.length()+1);
+    filename += ".prg";
+    ui->editFilename->setText(filename);
 }

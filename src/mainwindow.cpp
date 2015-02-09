@@ -45,6 +45,11 @@ MainWindow::~MainWindow()
     delete _ui;
 }
 
+void MainWindow::setTitle(const QString &title)
+{
+    emit setWindowTitle(title + " - VChar64");
+}
+
 void MainWindow::createActions()
 {
     QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->bigchar, &BigChar::setIndex);
@@ -80,6 +85,7 @@ void MainWindow::createMenus()
 void MainWindow::createDefaults()
 {
     _lastDir = _settings.value("dir/lastdir", _lastDir).toString();
+    setTitle("[untitled]");
 }
 
 //
@@ -106,6 +112,8 @@ void MainWindow::on_actionNew_Project_triggered()
     state->reset();
 
     update();
+
+    setTitle("[untitled]");
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -113,7 +121,7 @@ void MainWindow::on_actionOpen_triggered()
     auto fn = QFileDialog::getOpenFileName(this,
                                            tr("Select File"),
                                            _lastDir,
-                                           tr("VChar64 Project (*.vchar64proj")
+                                           tr("VChar64 Project (*.vchar64proj)")
                                            );
 
     if (fn.length()> 0) {
@@ -121,10 +129,12 @@ void MainWindow::on_actionOpen_triggered()
         _lastDir = info.absolutePath();
         _settings.setValue("dir/lastdir", _lastDir);
 
-        if (State::getInstance()->loadCharSet(fn)) {
+        if (State::getInstance()->load(fn)) {
             update();
             auto state = State::getInstance();
             _ui->checkBox->setChecked(state->isMultiColor());
+
+            setTitle(info.baseName());
         }
     }
 }
@@ -144,7 +154,7 @@ void MainWindow::on_actionImport_triggered()
         _lastDir = info.absolutePath();
         _settings.setValue("dir/lastdir", _lastDir);
 
-        if (State::getInstance()->loadCharSet(fn)) {
+        if (State::getInstance()->import(fn)) {
             update();
 
             auto state = State::getInstance();
@@ -191,20 +201,31 @@ void MainWindow::on_radioButton_4_clicked()
 
 void MainWindow::on_actionSave_As_triggered()
 {
-    QString dir = _lastDir + "/untitled.vchar64proj";
+    auto state = State::getInstance();
+    auto fn = state->getFilename();
+    if (fn.length() == 0)
+        fn = _lastDir + "/untitled.vchar64proj";
     auto filename = QFileDialog::getSaveFileName(this, tr("Save Project"),
-                                             dir,
+                                             fn,
                                              tr("VChar64 project(*.vchar64proj)"));
 
     if (filename.length() > 0) {
         auto state = State::getInstance();
         state->save(filename);
     }
+
+    QFileInfo fi(filename);
+    setTitle(fi.baseName());
 }
 
 void MainWindow::on_actionSave_triggered()
 {
     auto state = State::getInstance();
+    auto filename = state->getFilename();
+    if (filename.length() > 0)
+        state->save(filename);
+    else
+        on_actionSave_As_triggered();
 }
 
 void MainWindow::on_actionExport_triggered()

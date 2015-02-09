@@ -32,6 +32,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    void setTitle(const QString& title);
+
 protected:
     void createActions();
     void createMenus();
