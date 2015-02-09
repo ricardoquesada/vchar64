@@ -17,11 +17,11 @@ public:
     ~ExportDialog();
 
 private slots:
-    void on_pushButton_clicked();
-
     void on_radioRaw_clicked();
 
     void on_radioPRG_clicked();
+
+    void on_pushBrowse_clicked();
 
 private:
     void accept();

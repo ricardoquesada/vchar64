@@ -26,7 +26,7 @@ ExportDialog::~ExportDialog()
     delete ui;
 }
 
-void ExportDialog::on_pushButton_clicked()
+void ExportDialog::on_pushBrowse_clicked()
 {
     auto filename = QFileDialog::getSaveFileName(this,
                                                  tr("Select filename"),
