@@ -26,6 +26,9 @@ class BigChar : public QWidget
 
 public:
     BigChar(QWidget *parent);
+    int getIndex() const {
+        return _index;
+    }
 
 public slots:
     void setIndex(int index);

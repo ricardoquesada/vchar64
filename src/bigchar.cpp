@@ -53,7 +53,7 @@ void BigChar::mousePressEvent(QMouseEvent * event)
 
     state->setCharColor(_index, bitIndex, selectedColor);
 
-    update();
+    static_cast<QWidget*>(parent())->update();
 }
 
 void BigChar::mouseMoveEvent(QMouseEvent * event)
@@ -75,7 +75,7 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
 
     state->setCharColor(_index, bitIndex, selectedColor);
 
-    update();
+    static_cast<QWidget*>(parent())->update();
 }
 
 

@@ -36,7 +36,7 @@ public:
     bool exportRaw(const QString& filename);
     bool exportPRG(const QString& filename, u_int16_t address);
 
-    const char* getCharAtIndex(int index) {
+    char* getCharAtIndex(int index) {
         Q_ASSERT(index>=0 && index<256 && "Invalid index");
         return &_chars[index*8];
     }

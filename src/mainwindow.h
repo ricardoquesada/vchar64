@@ -65,6 +65,8 @@ private slots:
 
     void on_actionExport_triggered();
 
+    void on_actionInvert_triggered();
+
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;

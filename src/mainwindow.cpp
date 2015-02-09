@@ -212,10 +212,10 @@ void MainWindow::on_actionSave_As_triggered()
     if (filename.length() > 0) {
         auto state = State::getInstance();
         state->save(filename);
-    }
 
-    QFileInfo fi(filename);
-    setTitle(fi.baseName());
+        QFileInfo fi(filename);
+        setTitle(fi.baseName());
+    }
 }
 
 void MainWindow::on_actionSave_triggered()
@@ -232,4 +232,18 @@ void MainWindow::on_actionExport_triggered()
 {
     ExportDialog dialog(this);
     dialog.exec();
+}
+
+void MainWindow::on_actionInvert_triggered()
+{
+    auto state = State::getInstance();
+
+    int index = _ui->bigchar->getIndex();
+
+    char* buffer = state->getCharAtIndex(index);
+    for (int i=0; i<8; i++) {
+        buffer[i] = ~buffer[i];
+    }
+
+    update();
 }
