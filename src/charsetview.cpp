@@ -75,7 +75,7 @@ void CharSetView::paintEvent(QPaintEvent *event)
         for (int h=0; h<ROWS; h++) {
 
             int index = w + h * COLUMNS;
-            char* charPtr = state->getCharAtIndex(index);
+            u_int8_t* charPtr = state->getCharAtIndex(index);
 
             for (int y=0; y<8; y++) {
 

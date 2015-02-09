@@ -67,6 +67,18 @@ private slots:
 
     void on_actionInvert_triggered();
 
+    void on_actionFlip_Horizontally_triggered();
+
+    void on_actionFlip_Vertically_triggered();
+
+    void on_actionRotate_triggered();
+
+    void on_actionClear_Character_triggered();
+
+    void on_actionShift_Left_triggered();
+
+    void on_actionShift_Right_triggered();
+
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;

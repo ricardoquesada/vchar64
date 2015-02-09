@@ -44,8 +44,8 @@ qint64 StateExport::saveVChar64(QFile& file, State* state)
     auto total = file.write(arrayHeader);
 
 
-    const char* buffer = state->getCharsBuffer();
-    QByteArray arrayData(buffer, state->CHAR_BUFFER_SIZE);
+    auto buffer = state->getCharsBuffer();
+    QByteArray arrayData((char*)buffer, state->CHAR_BUFFER_SIZE);
     total += file.write(arrayData);
 
     file.flush();
@@ -56,8 +56,8 @@ qint64 StateExport::saveVChar64(QFile& file, State* state)
 qint64 StateExport::saveRaw(QFile& file, State* state)
 {
     int total = 0;
-    const char* buffer = state->getCharsBuffer();
-    QByteArray arrayData(buffer, state->CHAR_BUFFER_SIZE);
+    auto buffer = state->getCharsBuffer();
+    QByteArray arrayData((char*)buffer, state->CHAR_BUFFER_SIZE);
     total += file.write(arrayData);
     file.flush();
 
@@ -75,8 +75,8 @@ qint64 StateExport::savePRG(QFile& file, State* state, u_int16_t address)
     total += file.write(arrayAddress);
 
     // data
-    const char* buffer = state->getCharsBuffer();
-    QByteArray arrayData(buffer, state->CHAR_BUFFER_SIZE);
+    auto buffer = state->getCharsBuffer();
+    QByteArray arrayData((char*)buffer, state->CHAR_BUFFER_SIZE);
     total += file.write(arrayData);
     file.flush();
 

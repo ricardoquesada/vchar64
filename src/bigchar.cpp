@@ -91,7 +91,7 @@ void BigChar::paintEvent(QPaintEvent *event)
     painter.fillRect(event->rect(), QColor(204,204,204));
 
 
-    const char *charPtr = State::getInstance()->getCharAtIndex(_index);
+    u_int8_t* charPtr = State::getInstance()->getCharAtIndex(_index);
 
     int end_x = 8;
     int pixel_size_x = PIXEL_SIZE;

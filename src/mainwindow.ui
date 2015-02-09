@@ -196,7 +196,13 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <addaction name="actionClear_Character"/>
     <addaction name="actionInvert"/>
+    <addaction name="actionFlip_Horizontally"/>
+    <addaction name="actionFlip_Vertically"/>
+    <addaction name="actionRotate"/>
+    <addaction name="actionShift_Left"/>
+    <addaction name="actionShift_Right"/>
     <addaction name="separator"/>
    </widget>
    <addaction name="menu_File"/>
@@ -211,6 +217,8 @@
    </attribute>
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
+   <addaction name="separator"/>
+   <addaction name="actionInvert"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
@@ -344,6 +352,64 @@
    </property>
    <property name="toolTip">
     <string>Invert character</string>
+   </property>
+  </action>
+  <action name="actionFlip_Horizontally">
+   <property name="text">
+    <string>Flip Horizontally</string>
+   </property>
+   <property name="toolTip">
+    <string>Flip Character horizontally</string>
+   </property>
+  </action>
+  <action name="actionFlip_Vertically">
+   <property name="text">
+    <string>Flip Vertically</string>
+   </property>
+   <property name="toolTip">
+    <string>Flip character vertically</string>
+   </property>
+  </action>
+  <action name="actionRotate">
+   <property name="icon">
+    <iconset resource="../res/resources.qrc">
+     <normaloff>:/icons/16x16/actions/document-properties.png</normaloff>:/icons/16x16/actions/document-properties.png</iconset>
+   </property>
+   <property name="text">
+    <string>Rotate</string>
+   </property>
+   <property name="toolTip">
+    <string>Rotate Character 90 degrees</string>
+   </property>
+  </action>
+  <action name="actionClear_Character">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear Character</string>
+   </property>
+  </action>
+  <action name="actionShift_Left">
+   <property name="text">
+    <string>Shift Left</string>
+   </property>
+   <property name="toolTip">
+    <string>Shift one bit to the left</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Left</string>
+   </property>
+  </action>
+  <action name="actionShift_Right">
+   <property name="text">
+    <string>Shift Right</string>
+   </property>
+   <property name="toolTip">
+    <string>Shift one bit to the right</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Right</string>
    </property>
   </action>
  </widget>

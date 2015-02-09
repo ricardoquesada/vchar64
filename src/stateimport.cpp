@@ -34,7 +34,7 @@ qint64 StateImport::loadRaw(QFile& file, State* state)
     // clean previous memory in case not all the chars are loaded
     state->resetCharsBuffer();
 
-    auto total = file.read(state->getCharsBuffer(), toRead);
+    auto total = file.read((char*)state->getCharsBuffer(), toRead);
 
     Q_ASSERT(total == toRead && "Failed to read file");
 
@@ -75,7 +75,7 @@ qint64 StateImport::loadCTM(QFile& file, State *state)
     // clean previous memory in case not all the chars are loaded
     state->resetCharsBuffer();
 
-    auto total = file.read(state->getCharsBuffer(), toRead);
+    auto total = file.read((char*)state->getCharsBuffer(), toRead);
 
     for (int i=0; i<4; i++)
         state->setColorAtIndex(i, header.colors[i]);
@@ -104,7 +104,7 @@ qint64 StateImport::loadVChar64(QFile& file, State *state)
     // clean previous memory in case not all the chars are loaded
     state->resetCharsBuffer();
 
-    auto total = file.read(state->getCharsBuffer(), toRead);
+    auto total = file.read((char*)state->getCharsBuffer(), toRead);
 
     for (int i=0; i<4; i++)
         state->setColorAtIndex(i, header.colors[i]);

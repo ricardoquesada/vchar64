@@ -240,9 +240,111 @@ void MainWindow::on_actionInvert_triggered()
 
     int index = _ui->bigchar->getIndex();
 
-    char* buffer = state->getCharAtIndex(index);
+    auto buffer = state->getCharAtIndex(index);
     for (int i=0; i<8; i++) {
         buffer[i] = ~buffer[i];
+    }
+
+    update();
+}
+
+void MainWindow::on_actionFlip_Horizontally_triggered()
+{
+    auto state = State::getInstance();
+
+    int index = _ui->bigchar->getIndex();
+
+    auto buffer = state->getCharAtIndex(index);
+    for (int i=0; i<8; i++) {
+        char tmp = 0;
+        for (int j=0; j<8; j++) {
+            if (buffer[i] & (1<<j))
+                tmp |= 1 << (7-j);
+        }
+        buffer[i] = tmp;
+    }
+
+    update();
+}
+
+void MainWindow::on_actionFlip_Vertically_triggered()
+{
+    auto state = State::getInstance();
+
+    int index = _ui->bigchar->getIndex();
+
+    auto buffer = state->getCharAtIndex(index);
+    for (int i=0; i<4; i++) {
+        std::swap(buffer[i], buffer[7-i]);
+    }
+
+    update();
+}
+
+void MainWindow::on_actionRotate_triggered()
+{
+    auto state = State::getInstance();
+
+    int index = _ui->bigchar->getIndex();
+
+    u_int8_t tmp[8];
+    memset(tmp, 0, sizeof(tmp));
+
+    auto buffer = state->getCharAtIndex(index);
+    for (int i=0; i<8; i++) {
+        for (int j=0; j<8; j++) {
+            if (buffer[i] & (1<<(7-j)))
+                tmp[j] |= (1<<i);
+        }
+    }
+
+    for (int i=0; i<8; i++)
+        buffer[i] = tmp[i];
+
+    update();
+}
+
+void MainWindow::on_actionClear_Character_triggered()
+{
+    auto state = State::getInstance();
+
+    int index = _ui->bigchar->getIndex();
+
+    auto buffer = state->getCharAtIndex(index);
+    for (int i=0; i<8; i++)
+        buffer[i] = 0;
+
+    update();
+}
+
+void MainWindow::on_actionShift_Left_triggered()
+{
+    auto state = State::getInstance();
+
+    int index = _ui->bigchar->getIndex();
+
+    auto buffer = state->getCharAtIndex(index);
+    for (int i=0; i<8; i++) {
+        bool highbit = buffer[i] & (1<<7);
+        buffer[i] <<= 1;
+        buffer[i] |= highbit;
+    }
+
+    update();
+}
+
+void MainWindow::on_actionShift_Right_triggered()
+{
+    auto state = State::getInstance();
+
+    int index = _ui->bigchar->getIndex();
+
+    auto buffer = state->getCharAtIndex(index);
+    for (int i=0; i<8; i++) {
+        bool lowbit = buffer[i] & (1<<0);
+        buffer[i] >>= 1;
+        if (lowbit)
+        buffer[i] |= (1<<7);
     }
 
     update();

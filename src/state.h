@@ -36,7 +36,7 @@ public:
     bool exportRaw(const QString& filename);
     bool exportPRG(const QString& filename, u_int16_t address);
 
-    char* getCharAtIndex(int index) {
+    u_int8_t* getCharAtIndex(int index) {
         Q_ASSERT(index>=0 && index<256 && "Invalid index");
         return &_chars[index*8];
     }
@@ -45,7 +45,7 @@ public:
     int getCharColor(int charIndex, int bitIndex) const;
 
     void resetCharsBuffer();
-    char* getCharsBuffer();
+    u_int8_t* getCharsBuffer();
 
     int getColorAtIndex(int index) const {
         Q_ASSERT(index >=0 && index < 4);
@@ -90,7 +90,7 @@ protected:
     int _charIndex;
     int _totalChars;
 
-    char _chars[State::CHAR_BUFFER_SIZE];
+    u_int8_t _chars[State::CHAR_BUFFER_SIZE];
 
     bool _multiColor;
 

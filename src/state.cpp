@@ -207,7 +207,7 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     _chars[charIndex*8 + bitIndex/8] = c;
 }
 
-char* State::getCharsBuffer()
+u_int8_t* State::getCharsBuffer()
 {
     return _chars;
 }
