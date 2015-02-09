@@ -28,3 +28,7 @@ $ git clone https://github.com/ricardoquesada/vchar64.git
 ## Download binaries
 
 * No binaries available yet. Just clone the repo and compile it
+
+## License
+
+* Apache v2
