@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>779</width>
-    <height>541</height>
+    <width>531</width>
+    <height>513</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,51 +18,19 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>10</y>
+      <y>20</y>
       <width>256</width>
       <height>256</height>
      </rect>
     </property>
    </widget>
-   <widget class="QSpinBox" name="spinBox">
-    <property name="geometry">
-     <rect>
-      <x>216</x>
-      <y>270</y>
-      <width>51</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="maximum">
-     <number>255</number>
-    </property>
-    <property name="displayIntegerBase">
-     <number>10</number>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>270</y>
-      <width>71</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Char Index</string>
-    </property>
-    <property name="buddy">
-     <cstring>spinBox</cstring>
-    </property>
-   </widget>
    <widget class="CharSetView" name="charsetview" native="true">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>300</y>
-      <width>731</width>
-      <height>171</height>
+      <x>10</x>
+      <y>290</y>
+      <width>512</width>
+      <height>128</height>
      </rect>
     </property>
    </widget>
@@ -72,7 +40,7 @@
       <x>280</x>
       <y>0</y>
       <width>201</width>
-      <height>251</height>
+      <height>241</height>
      </rect>
     </property>
     <property name="title">
@@ -82,10 +50,16 @@
      <property name="geometry">
       <rect>
        <x>5</x>
-       <y>206</y>
+       <y>200</y>
        <width>192</width>
        <height>32</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>192</width>
+       <height>32</height>
+      </size>
      </property>
     </widget>
     <widget class="QCheckBox" name="checkBox">
@@ -163,13 +137,45 @@
      </layout>
     </widget>
    </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>250</y>
+      <width>201</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Char. Index</string>
+       </property>
+       <property name="buddy">
+        <cstring>spinBox</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="spinBox">
+       <property name="maximum">
+        <number>255</number>
+       </property>
+       <property name="displayIntegerBase">
+        <number>10</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>779</width>
+     <width>531</width>
      <height>22</height>
     </rect>
    </property>
@@ -190,10 +196,8 @@
     <property name="title">
      <string>Edit</string>
     </property>
-    <addaction name="actionCopy"/>
-    <addaction name="actionPaste"/>
-    <addaction name="separator"/>
     <addaction name="actionInvert"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuEdit"/>
@@ -257,7 +261,7 @@
     <string>Save Project</string>
    </property>
    <property name="toolTip">
-    <string>Save</string>
+    <string>Save VChar64 project</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -313,7 +317,7 @@
     <string>Save Project As...</string>
    </property>
    <property name="toolTip">
-    <string>Save Project As</string>
+    <string>Save VChar64 Project As</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -328,7 +332,7 @@
     <string>New Project</string>
    </property>
    <property name="toolTip">
-    <string>New Project</string>
+    <string>New VChar64 Project</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
