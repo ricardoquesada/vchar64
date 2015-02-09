@@ -172,7 +172,7 @@ void MainWindow::on_checkBox_toggled(bool checked)
     State *state = State::getInstance();
     state->setMultiColor(checked);
 
-    _ui->bigchar->repaint();
+    update();
 }
 
 void MainWindow::on_radioButton_clicked()

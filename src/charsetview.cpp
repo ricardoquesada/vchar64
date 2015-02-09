@@ -19,6 +19,7 @@ limitations under the License.
 #include <QPainter>
 #include <QPaintEvent>
 
+#include "constants.h"
 #include "state.h"
 
 static const int PIXEL_SIZE = 2;
@@ -48,30 +49,62 @@ void CharSetView::mousePressEvent(QMouseEvent * event)
 void CharSetView::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
-    painter.begin(this);
 
-    painter.fillRect(event->rect(), QBrush(QColor(255, 255, 255)));
+    painter.begin(this);
+//    painter.fillRect(event->rect(), QBrush(QColor(255, 255, 255)));
+    painter.fillRect(event->rect(), QColor(204,204,204));
 
     painter.setBrush(QColor(0,0,0));
 
+    auto state = State::getInstance();
+
+    int end_x = 8;
+    int pixel_size_x = PIXEL_SIZE;
+    int increment_x = 1;
+    int bits_to_mask = 1;
+
+    if (state->isMultiColor())
+    {
+        end_x = 4;
+        pixel_size_x = PIXEL_SIZE * 2;
+        increment_x = 2;
+        bits_to_mask = 3;
+    }
+
     for (int w=0; w<COLUMNS; w++) {
         for (int h=0; h<ROWS; h++) {
+
+            int index = w + h * COLUMNS;
+            char* charPtr = state->getCharAtIndex(index);
+
             for (int y=0; y<8; y++) {
 
-                int index = w + h * COLUMNS;
-                const char* letter = State::getInstance()->getCharAtIndex(index);
+                char letter = charPtr[y];
 
-                for (int x=0; x<8; x++) {
+                for (int x=0; x<end_x; x++) {
 
-                    int mask = 1 << (7-x);
-                    if (letter[y] & mask) {
-                        painter.drawRect((w*8+x) * PIXEL_SIZE, (h*8+y) * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
-                    }
+                    // Warning: Don't use 'char'. Instead use 'unsigned char'
+                    // to prevent a bug in the compiler (or in my code???)
+
+                    // only mask the bits are needed
+                    unsigned char mask = bits_to_mask << (((end_x-1)-x) * increment_x);
+
+                    unsigned char color = letter & mask;
+                    // now transform those bits into values from 0-3 since those are the
+                    // possible colors
+
+                    int bits_to_shift = (((end_x-1)-x) * increment_x);
+                    int color_index = color >> bits_to_shift;
+
+                    if (!state->isMultiColor() && color_index )
+                        color_index = 3;
+                    painter.setBrush(Constants::CBMcolors[state->getColorAtIndex(color_index)]);
+                    painter.setPen(Qt::NoPen);
+                    painter.drawRect((w*end_x+x) * pixel_size_x, (h*8+y) * PIXEL_SIZE, pixel_size_x, PIXEL_SIZE);
                 }
             }
         }
     }
-
 
     painter.end();
 }

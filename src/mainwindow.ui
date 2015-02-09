@@ -356,6 +356,9 @@
    <extends>QWidget</extends>
    <header>charsetview.h</header>
    <container>1</container>
+   <slots>
+    <slot>slot1()</slot>
+   </slots>
   </customwidget>
   <customwidget>
    <class>ColorPalette</class>
@@ -528,6 +531,22 @@
     <hint type="destinationlabel">
      <x>380</x>
      <y>287</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>colorPalette</sender>
+   <signal>colorSelected()</signal>
+   <receiver>charsetview</receiver>
+   <slot>update()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>427</x>
+     <y>294</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>434</x>
+     <y>422</y>
     </hint>
    </hints>
   </connection>
