@@ -223,7 +223,6 @@
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
    <addaction name="separator"/>
-   <addaction name="actionInvert"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
@@ -263,6 +262,9 @@
    </property>
    <property name="toolTip">
     <string>Export</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
    </property>
   </action>
   <action name="actionSave">
@@ -359,7 +361,7 @@
     <string>Invert character</string>
    </property>
    <property name="shortcut">
-    <string>Alt+O</string>
+    <string>Ctrl+Shift+I</string>
    </property>
   </action>
   <action name="actionFlip_Horizontally">
@@ -370,7 +372,7 @@
     <string>Flip Character horizontally</string>
    </property>
    <property name="shortcut">
-    <string>Alt+X</string>
+    <string>Ctrl+Shift+X</string>
    </property>
   </action>
   <action name="actionFlip_Vertically">
@@ -381,14 +383,10 @@
     <string>Flip character vertically</string>
    </property>
    <property name="shortcut">
-    <string>Alt+Y</string>
+    <string>Ctrl+Shift+Y</string>
    </property>
   </action>
   <action name="actionRotate">
-   <property name="icon">
-    <iconset resource="../res/resources.qrc">
-     <normaloff>:/icons/16x16/actions/document-properties.png</normaloff>:/icons/16x16/actions/document-properties.png</iconset>
-   </property>
    <property name="text">
     <string>Rotate</string>
    </property>
@@ -396,7 +394,7 @@
     <string>Rotate Character 90 degrees</string>
    </property>
    <property name="shortcut">
-    <string>Alt+R</string>
+    <string>Ctrl+Shift+R</string>
    </property>
   </action>
   <action name="actionClear_Character">
@@ -407,7 +405,7 @@
     <string>Clear Character</string>
    </property>
    <property name="shortcut">
-    <string>Alt+C</string>
+    <string>Ctrl+Shift+C</string>
    </property>
   </action>
   <action name="actionShift_Left">
@@ -418,7 +416,7 @@
     <string>Shift one bit to the left</string>
    </property>
    <property name="shortcut">
-    <string>Alt+Left</string>
+    <string>Ctrl+Shift+Left</string>
    </property>
   </action>
   <action name="actionShift_Right">
@@ -429,7 +427,7 @@
     <string>Shift one bit to the right</string>
    </property>
    <property name="shortcut">
-    <string>Alt+Right</string>
+    <string>Ctrl+Shift+Right</string>
    </property>
   </action>
   <action name="actionShift_Up">
@@ -440,7 +438,7 @@
     <string>Shift Character Up</string>
    </property>
    <property name="shortcut">
-    <string>Alt+Up</string>
+    <string>Ctrl+Shift+Up</string>
    </property>
   </action>
   <action name="actionShift_Down">
@@ -451,7 +449,7 @@
     <string>Shift Character Down</string>
    </property>
    <property name="shortcut">
-    <string>Alt+Down</string>
+    <string>Ctrl+Shift+Down</string>
    </property>
   </action>
  </widget>
