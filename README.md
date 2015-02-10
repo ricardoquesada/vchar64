@@ -47,7 +47,10 @@ $ git clone https://github.com/ricardoquesada/vchar64.git
 
 ## Download binaries
 
-* No binaries available yet. Just clone the repo and compile it
+No binaries available yet, so:
+
+* Just clone the github repository
+* Or download the source code from [here](https://github.com/ricardoquesada/vchar64/releases)
 
 ## License
 
