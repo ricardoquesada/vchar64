@@ -55,6 +55,7 @@ void CharSetView::paintEvent(QPaintEvent *event)
     painter.fillRect(event->rect(), QColor(204,204,204));
 
     painter.setBrush(QColor(0,0,0));
+    painter.setPen(Qt::NoPen);
 
     auto state = State::getInstance();
 
@@ -99,7 +100,6 @@ void CharSetView::paintEvent(QPaintEvent *event)
                     if (!state->isMultiColor() && color_index )
                         color_index = 3;
                     painter.setBrush(Constants::CBMcolors[state->getColorAtIndex(color_index)]);
-                    painter.setPen(Qt::NoPen);
                     painter.drawRect((w*end_x+x) * pixel_size_x, (h*8+y) * PIXEL_SIZE, pixel_size_x, PIXEL_SIZE);
                 }
             }
