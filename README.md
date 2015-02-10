@@ -34,7 +34,7 @@ In no particular order:
 $ git clone https://github.com/ricardoquesada/vchar64.git
 ```
 
-* Download Qt Creator 5.3 or newer (might work on older versions but not tested)
+* Download [Qt Creator Community Edition 5.3](http://www.qt.io/download/) or newer (might work on older versions but not tested)
 * Open `vchar64.pro` file with Qt Creator
 * Configure the project for "Desktop"
 * Build & Run
