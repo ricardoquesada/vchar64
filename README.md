@@ -2,9 +2,27 @@
 
 ## About
 
-It is a Character editor, Tile editor, and perhaps something more, for the Commodore 64/128.
+And editor for the Commodore 64/128
 
 Tailored for my own needs, but feel free to send patches, open bugs, etc.
+
+## Roadmap
+
+In no particular order:
+
+* Images support
+   * Import images and convert them to charset + color
+* Tilemap editor (similar to CharPad but with Tiled look & feel)
+   * Tile free
+   * Map + tile editing
+   * Character / Tile animation support
+   * Add mini-character / mini-tile view
+* Color palettes
+   * PAL, NTSC, VICE, Monochrome
+* Sprite
+   * Sprite editing
+   * Sprite animation
+* Level editor
 
 ## How to compile it
 
@@ -31,4 +49,4 @@ $ git clone https://github.com/ricardoquesada/vchar64.git
 
 ## License
 
-* Apache v2
+* [Apache v2](http://www.apache.org/licenses/LICENSE-2.0)

@@ -1,3 +1,8 @@
-0.0.1 (9 February 2015)
+0.0.1 (10 February 2015)
 
 * Initial public release
+* Contains a basic character editor with support for
+   * Multicolor - Hires
+   * Imports raw, PRG and CharPad files
+   * Exports to raw or PRG
+   * Editing character functionality: rotate, invert, shift
