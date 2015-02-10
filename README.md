@@ -4,7 +4,7 @@
 
 ## About
 
-And editor for the Commodore 64/128
+An editor for the Commodore 64/128
 
 Tailored for my own needs, but feel free to send patches, open bugs, etc.
 
