@@ -79,6 +79,10 @@ private slots:
 
     void on_actionShift_Right_triggered();
 
+    void on_actionShift_Up_triggered();
+
+    void on_actionShift_Down_triggered();
+
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;

@@ -349,3 +349,41 @@ void MainWindow::on_actionShift_Right_triggered()
 
     update();
 }
+
+void MainWindow::on_actionShift_Up_triggered()
+{
+    auto state = State::getInstance();
+
+    int index = _ui->bigchar->getIndex();
+
+    auto buffer = state->getCharAtIndex(index);
+
+    auto tmp = buffer[0];
+
+    for (int i=0; i<7; i++) {
+        buffer[i] = buffer[i+1];
+    }
+
+    buffer[7] = tmp;
+
+    update();
+}
+
+void MainWindow::on_actionShift_Down_triggered()
+{
+    auto state = State::getInstance();
+
+    int index = _ui->bigchar->getIndex();
+
+    auto buffer = state->getCharAtIndex(index);
+
+    auto tmp = buffer[7];
+
+    for (int i=6; i>=0; i--) {
+        buffer[i+1] = buffer[i];
+    }
+
+    buffer[0] = tmp;
+
+    update();
+}
