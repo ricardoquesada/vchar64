@@ -26,13 +26,11 @@ static const int PIXEL_SIZE = 2;
 static const int COLUMNS = 32;
 static const int ROWS = 8;
 
-//! [0]
 CharSetView::CharSetView(QWidget *parent)
     : QWidget(parent)
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8, PIXEL_SIZE * ROWS * 8);
 }
-//! [0]
 
 void CharSetView::mousePressEvent(QMouseEvent * event)
 {
@@ -45,7 +43,6 @@ void CharSetView::mousePressEvent(QMouseEvent * event)
     emit charSelected(index);
 }
 
-//! [2]
 void CharSetView::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
@@ -108,4 +105,3 @@ void CharSetView::paintEvent(QPaintEvent *event)
 
     painter.end();
 }
-//! [2]

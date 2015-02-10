@@ -1,5 +1,7 @@
 # VChar64
 
+<img src="https://lh6.googleusercontent.com/-Oi4KQjCYhKY/VNpNGmcVlnI/AAAAAAABQc8/Lp3oHhWBKso/s640/Screen%2520Shot%25202015-02-10%2520at%25209.18.16%2520AM.png" width=640>
+
 ## About
 
 And editor for the Commodore 64/128
