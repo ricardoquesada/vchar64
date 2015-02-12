@@ -28,6 +28,7 @@ static const int ROWS = 8;
 
 CharSetView::CharSetView(QWidget *parent)
     : QWidget(parent)
+    , _cursorPos({0,0})
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8, PIXEL_SIZE * ROWS * 8);
 }
@@ -41,6 +42,31 @@ void CharSetView::mousePressEvent(QMouseEvent * event)
     int index = x + y * COLUMNS;
 
     emit charSelected(index);
+}
+
+void CharSetView::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+    case Qt::Key_Left:
+        _cursorPos += {-1,0};
+        break;
+    case Qt::Key_Right:
+        _cursorPos += {+1,0};
+        break;
+    case Qt::Key_Down:
+        _cursorPos += {0,+1};
+        break;
+    case Qt::Key_Up:
+        _cursorPos += {0,-1};
+        break;
+    default:
+        QWidget::keyPressEvent(event);
+    }
+    _cursorPos = {qBound(0, _cursorPos.x(), COLUMNS-1),
+                  qBound(0, _cursorPos.y(), ROWS-1)};
+
+    update();
+    emit charSelected(_cursorPos.x() + _cursorPos.y() * COLUMNS);
 }
 
 void CharSetView::paintEvent(QPaintEvent *event)
@@ -68,6 +94,14 @@ void CharSetView::paintEvent(QPaintEvent *event)
         increment_x = 2;
         bits_to_mask = 3;
     }
+
+    QPen pen;
+    pen.setColor({128,128,255});
+    if (hasFocus())
+        pen.setWidth(3);
+    else
+        pen.setWidth(1);
+    pen.setStyle(Qt::PenStyle::SolidLine);
 
     for (int w=0; w<COLUMNS; w++) {
         for (int h=0; h<ROWS; h++) {
@@ -100,8 +134,27 @@ void CharSetView::paintEvent(QPaintEvent *event)
                     painter.drawRect((w*end_x+x) * pixel_size_x, (h*8+y) * PIXEL_SIZE, pixel_size_x, PIXEL_SIZE);
                 }
             }
+
+            if (w==_cursorPos.x() && h==_cursorPos.y()) {
+                painter.setPen(pen);
+                painter.setBrush(QColor(128,0,0,0));
+                painter.drawRect(w*8*PIXEL_SIZE, h*8*PIXEL_SIZE, PIXEL_SIZE*8, PIXEL_SIZE*8);
+            }
+            painter.setPen(Qt::NoPen);
         }
     }
 
     painter.end();
+}
+
+void CharSetView::setIndex(int index)
+{
+    QPoint p;
+    p.setX(index % COLUMNS);
+    p.setY(index / COLUMNS);
+
+    if (_cursorPos != p) {
+        _cursorPos = p;
+        update();
+    }
 }

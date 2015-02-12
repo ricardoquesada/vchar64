@@ -17,6 +17,7 @@ limitations under the License.
 #pragma once
 
 #include <QWidget>
+#include <QPoint>
 
 //! [0]
 
@@ -40,8 +41,12 @@ protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+
+    void paintPixel(int x, int y);
 
     int _index;
+    QPoint _cursorPos;
 };
 //! [0]
 

@@ -53,9 +53,6 @@ void MainWindow::setTitle(const QString &title)
 void MainWindow::createActions()
 {
     QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->bigchar, &BigChar::setIndex);
-    // FIXME: Qt5 API doesn't compile. Using Qt4 API
-//    QObject::connect(ui->spinBox, &QSpinBox::valueChanged, _ui->bigchar, &BigChar::setIndex);
-    QObject::connect(_ui->spinBox, SIGNAL(valueChanged(int)), _ui->bigchar, SLOT(setIndex(int)));
     QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->spinBox, &QSpinBox::setValue);
 
 

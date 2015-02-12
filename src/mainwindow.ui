@@ -36,6 +36,9 @@
       <height>128</height>
      </rect>
     </property>
+    <property name="focusPolicy">
+     <enum>Qt::WheelFocus</enum>
+    </property>
    </widget>
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
@@ -75,7 +78,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>MultiColor Mode</string>
+      <string>&amp;MultiColor Mode</string>
      </property>
     </widget>
     <widget class="QWidget" name="gridLayoutWidget">
@@ -94,7 +97,7 @@
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Multi Color #1</string>
+         <string>Multi Color #&amp;1</string>
         </property>
        </widget>
       </item>
@@ -104,21 +107,21 @@
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Multi Color #2</string>
+         <string>Multi Color #&amp;2</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QRadioButton" name="radioButton">
         <property name="text">
-         <string>Background</string>
+         <string>&amp;Background</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QRadioButton" name="radioButton_2">
         <property name="text">
-         <string>Foreground</string>
+         <string>&amp;Foreground</string>
         </property>
         <property name="checked">
          <bool>true</bool>
@@ -460,6 +463,9 @@
    <extends>QWidget</extends>
    <header>bigchar.h</header>
    <container>1</container>
+   <slots>
+    <slot>setIndex(int)</slot>
+   </slots>
   </customwidget>
   <customwidget>
    <class>CharSetView</class>
@@ -467,7 +473,7 @@
    <header>charsetview.h</header>
    <container>1</container>
    <slots>
-    <slot>slot1()</slot>
+    <slot>setIndex(int)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -657,6 +663,38 @@
     <hint type="destinationlabel">
      <x>434</x>
      <y>422</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>bigchar</receiver>
+   <slot>setIndex(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>412</x>
+     <y>330</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>176</x>
+     <y>314</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>charsetview</receiver>
+   <slot>setIndex(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>445</x>
+     <y>338</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>460</x>
+     <y>400</y>
     </hint>
    </hints>
   </connection>

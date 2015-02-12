@@ -25,24 +25,16 @@ limitations under the License.
 
 static const int PIXEL_SIZE = 32;
 
-//! [0]
 BigChar::BigChar(QWidget *parent)
     : QWidget(parent)
     , _index(0)
+    , _cursorPos({0,0})
 {
     setFixedSize(PIXEL_SIZE * 8, PIXEL_SIZE * 8);
 }
-//! [0]
 
-void BigChar::mousePressEvent(QMouseEvent * event)
+void BigChar::paintPixel(int x, int y)
 {
-    auto pos = event->localPos();
-
-    int x = pos.x() / PIXEL_SIZE;
-    int y = pos.y() / PIXEL_SIZE;
-    if( x>=8 || y>=8)
-        return;
-
     int bitIndex = x + y * 8;
 
     State *state = State::getInstance();
@@ -53,7 +45,21 @@ void BigChar::mousePressEvent(QMouseEvent * event)
 
     state->setCharColor(_index, bitIndex, selectedColor);
 
-    static_cast<QWidget*>(parent())->update();
+    dynamic_cast<QWidget*>(parent())->update();
+}
+
+void BigChar::mousePressEvent(QMouseEvent * event)
+{
+    auto pos = event->localPos();
+
+    int x = pos.x() / PIXEL_SIZE;
+    int y = pos.y() / PIXEL_SIZE;
+    if( x>=8 || y>=8)
+        return;
+
+    _cursorPos = {x,y};
+
+    paintPixel(x, y);
 }
 
 void BigChar::mouseMoveEvent(QMouseEvent * event)
@@ -65,17 +71,38 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
     if( x>=8 || y>=8)
         return;
 
-    int bitIndex = x + y * 8;
+    _cursorPos = {x,y};
 
-    State *state = State::getInstance();
-    int selectedColor = state->getSelectedColorIndex();
+    paintPixel(x, y);
+}
 
-    if (!state->isMultiColor() && selectedColor)
-        selectedColor = 1;
+void BigChar::keyPressEvent(QKeyEvent *event)
+{
+    auto state = State::getInstance();
+    int increment_x = state->isMultiColor() ? 2 : 1;
 
-    state->setCharColor(_index, bitIndex, selectedColor);
-
-    static_cast<QWidget*>(parent())->update();
+    switch (event->key()) {
+    case Qt::Key_Left:
+        _cursorPos += {-increment_x,0};
+        break;
+    case Qt::Key_Right:
+        _cursorPos += {+increment_x,0};
+        break;
+    case Qt::Key_Down:
+        _cursorPos += {0,+1};
+        break;
+    case Qt::Key_Up:
+        _cursorPos += {0,-1};
+        break;
+    case Qt::Key_Space:
+        paintPixel(_cursorPos.x(), _cursorPos.y());
+        break;
+    default:
+        QWidget::keyPressEvent(event);
+    }
+    _cursorPos = {qBound(0, _cursorPos.x(), 7),
+                  qBound(0, _cursorPos.y(), 7)};
+    update();
 }
 
 
@@ -84,7 +111,6 @@ void BigChar::paintEvent(QPaintEvent *event)
     QPainter painter;
     painter.begin(this);
 
-    painter.setPen(Qt::PenStyle::NoPen);
     State *state = State::getInstance();
 
     // background
@@ -105,6 +131,11 @@ void BigChar::paintEvent(QPaintEvent *event)
         increment_x = 2;
         bits_to_mask = 3;
     }
+
+    QPen pen;
+    pen.setColor({128,128,255});
+    pen.setWidth(3);
+    pen.setStyle(Qt::PenStyle::SolidLine);
 
     for (int y=0; y<8; y++) {
 
@@ -128,6 +159,12 @@ void BigChar::paintEvent(QPaintEvent *event)
             if (!state->isMultiColor() && color_index )
                 color_index = 3;
             painter.setBrush(Constants::CBMcolors[state->getColorAtIndex(color_index)]);
+
+            if (hasFocus() && y==_cursorPos.y() && x==_cursorPos.x()/increment_x)
+                painter.setPen(pen);
+            else
+                painter.setPen(Qt::PenStyle::NoPen);
+
             painter.drawRect(x * pixel_size_x, y * PIXEL_SIZE, pixel_size_x-1, PIXEL_SIZE-1);
         }
     }
