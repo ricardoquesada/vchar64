@@ -78,7 +78,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>&amp;MultiColor Mode</string>
+      <string>MultiColor Mode</string>
      </property>
     </widget>
     <widget class="QWidget" name="gridLayoutWidget">
@@ -97,7 +97,7 @@
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Multi Color #&amp;1</string>
+         <string>Multi Color #1</string>
         </property>
        </widget>
       </item>
@@ -107,21 +107,21 @@
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Multi Color #&amp;2</string>
+         <string>Multi Color #2</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QRadioButton" name="radioButton">
         <property name="text">
-         <string>&amp;Background</string>
+         <string>Background</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QRadioButton" name="radioButton_2">
         <property name="text">
-         <string>&amp;Foreground</string>
+         <string>Foreground</string>
         </property>
         <property name="checked">
          <bool>true</bool>

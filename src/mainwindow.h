@@ -33,6 +33,9 @@ public:
     ~MainWindow();
 
     void setTitle(const QString& title);
+    Ui::MainWindow* getUi() const {
+        return _ui;
+    }
 
 protected:
     void createActions();

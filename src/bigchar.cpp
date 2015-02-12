@@ -22,6 +22,8 @@ limitations under the License.
 
 #include "state.h"
 #include "constants.h"
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 static const int PIXEL_SIZE = 32;
 
@@ -78,6 +80,9 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
 
 void BigChar::keyPressEvent(QKeyEvent *event)
 {
+    MainWindow *window = dynamic_cast<MainWindow*>(qApp->activeWindow());
+    Ui::MainWindow *ui = window->getUi();
+
     auto state = State::getInstance();
     int increment_x = state->isMultiColor() ? 2 : 1;
 
@@ -96,6 +101,21 @@ void BigChar::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Space:
         paintPixel(_cursorPos.x(), _cursorPos.y());
+        break;
+    case Qt::Key_1:
+        ui->radioButton->click();
+        break;
+    case Qt::Key_2:
+        ui->radioButton_2->click();
+        break;
+    case Qt::Key_3:
+        ui->radioButton_3->click();
+        break;
+    case Qt::Key_4:
+        ui->radioButton_4->click();
+        break;
+    case Qt::Key_M:
+        ui->checkBox->click();
         break;
     default:
         QWidget::keyPressEvent(event);
