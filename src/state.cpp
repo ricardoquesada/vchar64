@@ -36,13 +36,13 @@ State* State::getInstance()
 }
 
 State::State()
-    : _charIndex(0)
-    , _totalChars(0)
+    : _totalChars(0)
     , _multiColor(false)
     , _selectedColorIndex(3)
     , _colors{1,12,15,0}
     , _filename("")
 {
+    memset(_copyChar, 0, sizeof(_copyChar));
     import(":/c64-chargen.bin");
 }
 
@@ -53,7 +53,6 @@ State::~State()
 
 void State::reset()
 {
-    _charIndex = 0;
     _totalChars = 0;
     _multiColor = false;
     _selectedColorIndex = 3;
@@ -153,6 +152,18 @@ bool State::save(const QString &filename)
     _filename = filename;
 
     return true;
+}
+
+void State::copyChar(int index)
+{
+    Q_ASSERT(index>=0 && index<CHAR_BUFFER_SIZE && "invalid index value");
+    memcpy(_copyChar, &_chars[index*8], sizeof(_copyChar));
+}
+
+void State::pasteChar(int index)
+{
+    Q_ASSERT(index>=0 && index<CHAR_BUFFER_SIZE && "invalid index value");
+    memcpy(&_chars[index*8], _copyChar, sizeof(_copyChar));
 }
 
 int State::getCharColor(int charIndex, int bitIndex) const

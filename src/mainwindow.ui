@@ -202,6 +202,9 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <addaction name="actionCopy"/>
+    <addaction name="actionPaste"/>
+    <addaction name="separator"/>
     <addaction name="actionClear_Character"/>
     <addaction name="actionInvert"/>
     <addaction name="actionFlip_Horizontally"/>

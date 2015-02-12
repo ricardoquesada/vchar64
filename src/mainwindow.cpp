@@ -384,3 +384,16 @@ void MainWindow::on_actionShift_Down_triggered()
 
     update();
 }
+
+void MainWindow::on_actionCopy_triggered()
+{
+    auto state = State::getInstance();
+    state->copyChar(_ui->bigchar->getIndex());
+}
+
+void MainWindow::on_actionPaste_triggered()
+{
+    auto state = State::getInstance();
+    state->pasteChar(_ui->bigchar->getIndex());
+    update();
+}

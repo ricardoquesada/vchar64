@@ -117,6 +117,12 @@ void BigChar::keyPressEvent(QKeyEvent *event)
     case Qt::Key_M:
         ui->checkBox->click();
         break;
+    case Qt::Key_Minus:
+        ui->spinBox->setValue(ui->spinBox->value() - 1);
+        break;
+    case Qt::Key_Plus:
+        ui->spinBox->setValue(ui->spinBox->value() + 1);
+        break;
     default:
         QWidget::keyPressEvent(event);
     }

@@ -83,11 +83,13 @@ public:
         return _filename;
     }
 
+    void copyChar(int index);
+    void pasteChar(int index);
+
 protected:
     State();
     ~State();
 
-    int _charIndex;
     int _totalChars;
 
     u_int8_t _chars[State::CHAR_BUFFER_SIZE];
@@ -98,5 +100,7 @@ protected:
     int _colors[4];
 
     QString _filename;
+
+    u_int8_t _copyChar[8];
 };
 
