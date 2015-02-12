@@ -22,6 +22,7 @@ limitations under the License.
 #include <QDir>
 #include <QMessageBox>
 #include <QDebug>
+#include <QDesktopServices>
 
 #include "state.h"
 #include "aboutdialog.h"
@@ -396,4 +397,9 @@ void MainWindow::on_actionPaste_triggered()
     auto state = State::getInstance();
     state->pasteChar(_ui->bigchar->getIndex());
     update();
+}
+
+void MainWindow::on_actionReport_Bug_triggered()
+{
+    QDesktopServices::openUrl(QUrl("https://github.com/ricardoquesada/vchar64/issues"));
 }

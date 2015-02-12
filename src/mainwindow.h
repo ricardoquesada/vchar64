@@ -90,6 +90,8 @@ private slots:
 
     void on_actionPaste_triggered();
 
+    void on_actionReport_Bug_triggered();
+
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;
