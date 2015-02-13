@@ -56,16 +56,6 @@ void MainWindow::createActions()
     QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->bigchar, &BigChar::setIndex);
     QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->spinBox, &QSpinBox::setValue);
 
-
-    // Manually adding "about" menus
-    _aboutAct = new QAction(tr("&About"), this);
-    _aboutAct->setStatusTip(tr("Show the application's About box"));
-    connect(_aboutAct, &QAction::triggered, this, &MainWindow::about);
-
-    _aboutQtAct = new QAction(tr("About &Qt"), this);
-    _aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
-    connect(_aboutQtAct, &QAction::triggered, qApp, &QApplication::aboutQt);
-
     // FIXME should be on a different method
     _ui->colorRect_0->setColorIndex(0);
     _ui->colorRect_1->setColorIndex(3);
@@ -75,10 +65,6 @@ void MainWindow::createActions()
 
 void MainWindow::createMenus()
 {
-    _helpMenu = menuBar()->addMenu(tr("&Help"));
-    _helpMenu->addAction(_aboutAct);
-    _helpMenu->addAction(_aboutQtAct);
-    _helpMenu->addAction(_ui->actionReport_Bug);
 }
 
 void MainWindow::createDefaults()
@@ -86,16 +72,6 @@ void MainWindow::createDefaults()
     _lastDir = _settings.value("dir/lastdir", _lastDir).toString();
     setTitle("[untitled]");
 }
-
-//
-// Menu callbacks
-//
-void MainWindow::about()
-{
-    AboutDialog aboutDialog(this);
-    aboutDialog.exec();
-}
-
 
 //
 // Events
@@ -403,4 +379,15 @@ void MainWindow::on_actionPaste_triggered()
 void MainWindow::on_actionReport_Bug_triggered()
 {
     QDesktopServices::openUrl(QUrl("https://github.com/ricardoquesada/vchar64/issues"));
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    AboutDialog aboutDialog(this);
+    aboutDialog.exec();
+}
+
+void MainWindow::on_actionAbout_Qt_triggered()
+{
+    QApplication::aboutQt();
 }

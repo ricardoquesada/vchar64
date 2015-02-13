@@ -41,7 +41,6 @@ protected:
     void createActions();
     void createMenus();
     void createDefaults();
-    void about();
 
 private slots:
 
@@ -92,13 +91,13 @@ private slots:
 
     void on_actionReport_Bug_triggered();
 
+    void on_actionAbout_triggered();
+
+    void on_actionAbout_Qt_triggered();
+
 private:
     Ui::MainWindow *_ui;
     QString _lastDir;
-
-    QMenu *_helpMenu;
-    QAction *_aboutAct;
-    QAction *_aboutQtAct;
 
     QSettings _settings;
 };

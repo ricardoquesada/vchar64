@@ -194,7 +194,7 @@
      <x>0</x>
      <y>0</y>
      <width>531</width>
-     <height>25</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -228,8 +228,17 @@
     <addaction name="actionShift_Down"/>
     <addaction name="separator"/>
    </widget>
+   <widget class="QMenu" name="menu_Help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAbout_Qt"/>
+    <addaction name="actionReport_Bug"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menuEdit"/>
+   <addaction name="menu_Help"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -461,6 +470,22 @@
   <action name="actionReport_Bug">
    <property name="text">
     <string>Report Bug</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+   <property name="toolTip">
+    <string>Show the application's About box</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+   <property name="toolTip">
+    <string>Show the Qt library's About box</string>
    </property>
   </action>
  </widget>
