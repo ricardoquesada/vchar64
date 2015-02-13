@@ -78,6 +78,7 @@ void MainWindow::createMenus()
     _helpMenu = menuBar()->addMenu(tr("&Help"));
     _helpMenu->addAction(_aboutAct);
     _helpMenu->addAction(_aboutQtAct);
+    _helpMenu->addAction(_ui->actionReport_Bug);
 }
 
 void MainWindow::createDefaults()
