@@ -28,6 +28,8 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    static constexpr int MAX_RECENT_FILES=8;
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -42,62 +44,45 @@ protected:
     void createMenus();
     void createDefaults();
 
+    void updateRecentFiles();
+    void setRecentFile(const QString& fileName);
+    QStringList recentFiles() const;
+
 private slots:
 
     void on_actionExit_triggered();
     void on_actionOpen_triggered();
-
     void on_checkBox_toggled(bool checked);
-
     void on_radioButton_1_clicked();
-
     void on_radioButton_2_clicked();
-
     void on_radioButton_3_clicked();
-
     void on_radioButton_4_clicked();
-
     void on_actionImport_triggered();
-
     void on_actionNewProject_triggered();
-
     void on_actionSaveAs_triggered();
-
     void on_actionSave_triggered();
-
     void on_actionExport_triggered();
-
     void on_actionInvert_triggered();
-
     void on_actionFlipHorizontally_triggered();
-
     void on_actionFlipVertically_triggered();
-
     void on_actionRotate_triggered();
-
     void on_actionClearCharacter_triggered();
-
     void on_actionShiftLeft_triggered();
-
     void on_actionShiftRight_triggered();
-
     void on_actionShiftUp_triggered();
-
     void on_actionShiftDown_triggered();
-
     void on_actionCopy_triggered();
-
     void on_actionPaste_triggered();
-
     void on_actionReportBug_triggered();
-
     void on_actionAbout_triggered();
-
     void on_actionAboutQt_triggered();
-
     void on_actionClearRecentFiles_triggered();
+    void on_openRecentFile_triggered();
 
 private:
+
+    QAction* _recentFiles[MAX_RECENT_FILES];
+
     Ui::MainWindow *_ui;
     QString _lastDir;
 

@@ -28,6 +28,8 @@ limitations under the License.
 #include "aboutdialog.h"
 #include "exportdialog.h"
 
+constexpr int MainWindow::MAX_RECENT_FILES;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
@@ -65,6 +67,15 @@ void MainWindow::createActions()
 
 void MainWindow::createMenus()
 {
+    // Add recent file actions to the recent files menu
+    for (int i=0; i<MAX_RECENT_FILES; ++i)
+    {
+         _recentFiles[i] = new QAction(this);
+         _ui->menuRecentFiles->insertAction(_ui->actionClearRecentFiles, _recentFiles[i]);
+         _recentFiles[i]->setVisible(false);
+         connect(_recentFiles[i], SIGNAL(triggered()), this, SLOT(on_openRecentFile_triggered()));
+    }
+    _ui->menuRecentFiles->insertSeparator(_ui->actionClearRecentFiles);
 }
 
 void MainWindow::createDefaults()
@@ -73,8 +84,52 @@ void MainWindow::createDefaults()
     setTitle("[untitled]");
 }
 
+void MainWindow::updateRecentFiles()
+{
+    QStringList files = recentFiles();
+    const int numRecentFiles = qMin(files.size(), MAX_RECENT_FILES);
+
+    for (int i = 0; i < numRecentFiles; ++i)
+    {
+        _recentFiles[i]->setText(QFileInfo(files[i]).fileName());
+        _recentFiles[i]->setData(files[i]);
+        _recentFiles[i]->setVisible(true);
+    }
+    for (int j=numRecentFiles; j<MAX_RECENT_FILES; ++j)
+    {
+        _recentFiles[j]->setVisible(false);
+    }
+    _ui->menuRecentFiles->setEnabled(numRecentFiles > 0);
+}
+
+void MainWindow::setRecentFile(const QString& fileName)
+{
+    // Remember the file by its canonical file path
+    const QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+
+    if (canonicalFilePath.isEmpty())
+        return;
+
+    QStringList files = recentFiles();
+    files.removeAll(canonicalFilePath);
+    files.prepend(canonicalFilePath);
+    while (files.size() > MAX_RECENT_FILES)
+        files.removeLast();
+
+    _settings.beginGroup(QLatin1String("recentFiles"));
+    _settings.setValue(QLatin1String("fileNames"), files);
+    _settings.endGroup();
+    updateRecentFiles();
+}
+
+QStringList MainWindow::recentFiles() const
+{
+    QVariant v = _settings.value(QLatin1String("recentFiles/fileNames"));
+    return v.toStringList();
+}
+
 //
-// Events
+// MARK - Slots / Events / Callbacks
 //
 void MainWindow::on_actionExit_triggered()
 {
@@ -392,60 +447,17 @@ void MainWindow::on_actionAboutQt_triggered()
     QApplication::aboutQt();
 }
 
-//void MainWindow::updateRecentFiles()
-//{
-//    QStringList files = recentFiles();
-//    const int numRecentFiles = qMin(files.size(), (int) MaxRecentFiles);
-
-//    for (int i = 0; i < numRecentFiles; ++i)
-//    {
-//        _recentFiles[i]->setText(QFileInfo(files[i]).fileName());
-//        _recentFiles[i]->setData(files[i]);
-//        _recentFiles[i]->setVisible(true);
-//    }
-//    for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
-//    {
-//        _recentFiles[j]->setVisible(false);
-//    }
-//    _ui->menuRecentFiles->setEnabled(numRecentFiles > 0);
-//}
-
-//void MainWindow::setRecentFile(const QString& fileName)
-//{
-//    // Remember the file by its canonical file path
-//    const QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-
-//    if (canonicalFilePath.isEmpty())
-//        return;
-
-//    QStringList files = recentFiles();
-//    files.removeAll(canonicalFilePath);
-//    files.prepend(canonicalFilePath);
-//    while (files.size() > MaxRecentFiles)
-//        files.removeLast();
-
-//    _settings.beginGroup(QLatin1String("recentFiles"));
-//    _settings.setValue(QLatin1String("fileNames"), files);
-//    _settings.endGroup();
-//    updateRecentFiles();
-//}
-
-//void MainWindow::on_actionClear_recent_files_triggered()
-//{
-//    _settings.beginGroup(QLatin1String("recentFiles"));
-//    _settings.setValue(QLatin1String("fileNames"), QStringList());
-//    _settings.endGroup();
-//    updateRecentFiles();
-//}
-
-//QStringList MainWindow::recentFiles() const
-//{
-//    QVariant v = _settings.value(QLatin1String("recentFiles/fileNames"));
-//    return v.toStringList();
-//}
-
-
 void MainWindow::on_actionClearRecentFiles_triggered()
 {
+    _settings.beginGroup(QLatin1String("recentFiles"));
+    _settings.setValue(QLatin1String("fileNames"), QStringList());
+    _settings.endGroup();
+    updateRecentFiles();
+}
 
+void MainWindow::on_openRecentFile_triggered()
+{
+//    QAction *action = qobject_cast<QAction *>(sender());
+//    if (action)
+//        openFile(action->data().toString());
 }
