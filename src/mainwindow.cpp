@@ -165,16 +165,24 @@ void MainWindow::on_actionNewProject_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString file = "VChar64 Project";
+    QString filter = _settings.value("dir/lastUsedOpenFilter", "All supported files").toString();
     auto fn = QFileDialog::getOpenFileName(this,
                                            tr("Select File"),
                                            _lastDir,
-                                           tr("VChar64 Project (*.vchar64proj);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;CharPad files (*.ctm);;Any file (*)"),
-                                           &file
+                                           tr(
+                                               "All files (*);;" \
+                                               "All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;" \
+                                               "VChar64 Project (*.vchar64proj);;" \
+                                               "Raw (*.raw *.bin);;" \
+                                               "PRG (*.prg *.64c);;" \
+                                               "CharPad (*.ctm);;"
+                                           ),
+                                           &filter
                                            /*,QFileDialog::DontUseNativeDialog*/
                                            );
 
     if (fn.length()> 0) {
+        _settings.setValue("dir/lastUsedOpenFilter", filter);
         openFile(fn);
     }
 }

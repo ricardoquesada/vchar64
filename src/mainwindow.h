@@ -49,6 +49,9 @@ protected:
     QStringList recentFiles() const;
     void openFile(const QString& fileName);
 
+    // XXX If declared as "slot" it will raise a runtime warning. uh?
+    void on_openRecentFile_triggered();
+
 private slots:
 
     void on_actionExit_triggered();
@@ -77,7 +80,6 @@ private slots:
     void on_actionAbout_triggered();
     void on_actionAboutQt_triggered();
     void on_actionClearRecentFiles_triggered();
-    void on_openRecentFile_triggered();
 
 private:
 
