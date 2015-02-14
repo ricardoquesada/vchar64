@@ -49,7 +49,7 @@ private slots:
 
     void on_checkBox_toggled(bool checked);
 
-    void on_radioButton_clicked();
+    void on_radioButton_1_clicked();
 
     void on_radioButton_2_clicked();
 
@@ -59,9 +59,9 @@ private slots:
 
     void on_actionImport_triggered();
 
-    void on_actionNew_Project_triggered();
+    void on_actionNewProject_triggered();
 
-    void on_actionSave_As_triggered();
+    void on_actionSaveAs_triggered();
 
     void on_actionSave_triggered();
 
@@ -69,31 +69,33 @@ private slots:
 
     void on_actionInvert_triggered();
 
-    void on_actionFlip_Horizontally_triggered();
+    void on_actionFlipHorizontally_triggered();
 
-    void on_actionFlip_Vertically_triggered();
+    void on_actionFlipVertically_triggered();
 
     void on_actionRotate_triggered();
 
-    void on_actionClear_Character_triggered();
+    void on_actionClearCharacter_triggered();
 
-    void on_actionShift_Left_triggered();
+    void on_actionShiftLeft_triggered();
 
-    void on_actionShift_Right_triggered();
+    void on_actionShiftRight_triggered();
 
-    void on_actionShift_Up_triggered();
+    void on_actionShiftUp_triggered();
 
-    void on_actionShift_Down_triggered();
+    void on_actionShiftDown_triggered();
 
     void on_actionCopy_triggered();
 
     void on_actionPaste_triggered();
 
-    void on_actionReport_Bug_triggered();
+    void on_actionReportBug_triggered();
 
     void on_actionAbout_triggered();
 
-    void on_actionAbout_Qt_triggered();
+    void on_actionAboutQt_triggered();
+
+    void on_actionClearRecentFiles_triggered();
 
 private:
     Ui::MainWindow *_ui;

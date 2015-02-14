@@ -112,7 +112,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QRadioButton" name="radioButton">
+       <widget class="QRadioButton" name="radioButton_1">
         <property name="text">
          <string>Background</string>
         </property>
@@ -201,10 +201,17 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionNew_Project"/>
+    <widget class="QMenu" name="menuRecentFiles">
+     <property name="title">
+      <string>Recent Files</string>
+     </property>
+     <addaction name="actionClearRecentFiles"/>
+    </widget>
+    <addaction name="actionNewProject"/>
     <addaction name="actionOpen"/>
+    <addaction name="menuRecentFiles"/>
     <addaction name="actionSave"/>
-    <addaction name="actionSave_As"/>
+    <addaction name="actionSaveAs"/>
     <addaction name="actionImport"/>
     <addaction name="actionExport"/>
     <addaction name="separator"/>
@@ -217,28 +224,28 @@
     <addaction name="actionCopy"/>
     <addaction name="actionPaste"/>
     <addaction name="separator"/>
-    <addaction name="actionClear_Character"/>
+    <addaction name="actionClearCharacter"/>
     <addaction name="actionInvert"/>
-    <addaction name="actionFlip_Horizontally"/>
-    <addaction name="actionFlip_Vertically"/>
+    <addaction name="actionFlipHorizontally"/>
+    <addaction name="actionFlipVertically"/>
     <addaction name="actionRotate"/>
-    <addaction name="actionShift_Left"/>
-    <addaction name="actionShift_Right"/>
-    <addaction name="actionShift_Up"/>
-    <addaction name="actionShift_Down"/>
+    <addaction name="actionShiftLeft"/>
+    <addaction name="actionShiftRight"/>
+    <addaction name="actionShiftUp"/>
+    <addaction name="actionShiftDown"/>
     <addaction name="separator"/>
    </widget>
-   <widget class="QMenu" name="menu_Help">
+   <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
-    <addaction name="actionAbout_Qt"/>
-    <addaction name="actionReport_Bug"/>
+    <addaction name="actionAboutQt"/>
+    <addaction name="actionReportBug"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuEdit"/>
-   <addaction name="menu_Help"/>
+   <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -338,7 +345,7 @@
     <string>Ctrl+I</string>
    </property>
   </action>
-  <action name="actionSave_As">
+  <action name="actionSaveAs">
    <property name="icon">
     <iconset theme="document-save" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-save.png</normaloff>:/icons/22x22/actions/document-save.png</iconset>
@@ -353,7 +360,7 @@
     <string>Ctrl+Shift+S</string>
    </property>
   </action>
-  <action name="actionNew_Project">
+  <action name="actionNewProject">
    <property name="icon">
     <iconset theme="document-new" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-new.png</normaloff>:/icons/22x22/actions/document-new.png</iconset>
@@ -379,7 +386,7 @@
     <string>Ctrl+Shift+I</string>
    </property>
   </action>
-  <action name="actionFlip_Horizontally">
+  <action name="actionFlipHorizontally">
    <property name="text">
     <string>Flip Horizontally</string>
    </property>
@@ -390,7 +397,7 @@
     <string>Ctrl+Shift+X</string>
    </property>
   </action>
-  <action name="actionFlip_Vertically">
+  <action name="actionFlipVertically">
    <property name="text">
     <string>Flip Vertically</string>
    </property>
@@ -412,7 +419,7 @@
     <string>Ctrl+Shift+R</string>
    </property>
   </action>
-  <action name="actionClear_Character">
+  <action name="actionClearCharacter">
    <property name="text">
     <string>Clear</string>
    </property>
@@ -423,7 +430,7 @@
     <string>Ctrl+Shift+C</string>
    </property>
   </action>
-  <action name="actionShift_Left">
+  <action name="actionShiftLeft">
    <property name="text">
     <string>Shift Left</string>
    </property>
@@ -434,7 +441,7 @@
     <string>Ctrl+Shift+Left</string>
    </property>
   </action>
-  <action name="actionShift_Right">
+  <action name="actionShiftRight">
    <property name="text">
     <string>Shift Right</string>
    </property>
@@ -445,7 +452,7 @@
     <string>Ctrl+Shift+Right</string>
    </property>
   </action>
-  <action name="actionShift_Up">
+  <action name="actionShiftUp">
    <property name="text">
     <string>Shift Up</string>
    </property>
@@ -456,7 +463,7 @@
     <string>Ctrl+Shift+Up</string>
    </property>
   </action>
-  <action name="actionShift_Down">
+  <action name="actionShiftDown">
    <property name="text">
     <string>Shift Down</string>
    </property>
@@ -467,7 +474,7 @@
     <string>Ctrl+Shift+Down</string>
    </property>
   </action>
-  <action name="actionReport_Bug">
+  <action name="actionReportBug">
    <property name="text">
     <string>Report Bug</string>
    </property>
@@ -480,12 +487,17 @@
     <string>Show the application's About box</string>
    </property>
   </action>
-  <action name="actionAbout_Qt">
+  <action name="actionAboutQt">
    <property name="text">
     <string>About Qt</string>
    </property>
    <property name="toolTip">
     <string>Show the Qt library's About box</string>
+   </property>
+  </action>
+  <action name="actionClearRecentFiles">
+   <property name="text">
+    <string>Clear Recent Files</string>
    </property>
   </action>
  </widget>
@@ -527,7 +539,7 @@
  </customwidgets>
  <tabstops>
   <tabstop>bigchar</tabstop>
-  <tabstop>radioButton</tabstop>
+  <tabstop>radioButton_1</tabstop>
   <tabstop>radioButton_2</tabstop>
   <tabstop>radioButton_3</tabstop>
   <tabstop>radioButton_4</tabstop>
@@ -620,7 +632,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>radioButton</sender>
+   <sender>radioButton_1</sender>
    <signal>clicked()</signal>
    <receiver>colorPalette</receiver>
    <slot>update()</slot>

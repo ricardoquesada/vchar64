@@ -103,7 +103,7 @@ void BigChar::keyPressEvent(QKeyEvent *event)
         paintPixel(_cursorPos.x(), _cursorPos.y());
         break;
     case Qt::Key_1:
-        ui->radioButton->click();
+        ui->radioButton_1->click();
         break;
     case Qt::Key_2:
         ui->radioButton_2->click();

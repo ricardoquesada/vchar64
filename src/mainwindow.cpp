@@ -81,7 +81,7 @@ void MainWindow::on_actionExit_triggered()
     QApplication::exit();
 }
 
-void MainWindow::on_actionNew_Project_triggered()
+void MainWindow::on_actionNewProject_triggered()
 {
     auto state = State::getInstance();
     state->reset();
@@ -150,7 +150,7 @@ void MainWindow::on_checkBox_toggled(bool checked)
     update();
 }
 
-void MainWindow::on_radioButton_clicked()
+void MainWindow::on_radioButton_1_clicked()
 {
     State *state = State::getInstance();
     state->setSelectedColorIndex(0);
@@ -174,7 +174,7 @@ void MainWindow::on_radioButton_4_clicked()
     state->setSelectedColorIndex(2);
 }
 
-void MainWindow::on_actionSave_As_triggered()
+void MainWindow::on_actionSaveAs_triggered()
 {
     auto state = State::getInstance();
     auto fn = state->getFilename();
@@ -200,7 +200,7 @@ void MainWindow::on_actionSave_triggered()
     if (filename.length() > 0)
         state->save(filename);
     else
-        on_actionSave_As_triggered();
+        on_actionSaveAs_triggered();
 }
 
 void MainWindow::on_actionExport_triggered()
@@ -223,7 +223,7 @@ void MainWindow::on_actionInvert_triggered()
     update();
 }
 
-void MainWindow::on_actionFlip_Horizontally_triggered()
+void MainWindow::on_actionFlipHorizontally_triggered()
 {
     auto state = State::getInstance();
 
@@ -242,7 +242,7 @@ void MainWindow::on_actionFlip_Horizontally_triggered()
     update();
 }
 
-void MainWindow::on_actionFlip_Vertically_triggered()
+void MainWindow::on_actionFlipVertically_triggered()
 {
     auto state = State::getInstance();
 
@@ -279,7 +279,7 @@ void MainWindow::on_actionRotate_triggered()
     update();
 }
 
-void MainWindow::on_actionClear_Character_triggered()
+void MainWindow::on_actionClearCharacter_triggered()
 {
     auto state = State::getInstance();
 
@@ -292,7 +292,7 @@ void MainWindow::on_actionClear_Character_triggered()
     update();
 }
 
-void MainWindow::on_actionShift_Left_triggered()
+void MainWindow::on_actionShiftLeft_triggered()
 {
     auto state = State::getInstance();
 
@@ -308,7 +308,7 @@ void MainWindow::on_actionShift_Left_triggered()
     update();
 }
 
-void MainWindow::on_actionShift_Right_triggered()
+void MainWindow::on_actionShiftRight_triggered()
 {
     auto state = State::getInstance();
 
@@ -325,7 +325,7 @@ void MainWindow::on_actionShift_Right_triggered()
     update();
 }
 
-void MainWindow::on_actionShift_Up_triggered()
+void MainWindow::on_actionShiftUp_triggered()
 {
     auto state = State::getInstance();
 
@@ -344,7 +344,7 @@ void MainWindow::on_actionShift_Up_triggered()
     update();
 }
 
-void MainWindow::on_actionShift_Down_triggered()
+void MainWindow::on_actionShiftDown_triggered()
 {
     auto state = State::getInstance();
 
@@ -376,7 +376,7 @@ void MainWindow::on_actionPaste_triggered()
     update();
 }
 
-void MainWindow::on_actionReport_Bug_triggered()
+void MainWindow::on_actionReportBug_triggered()
 {
     QDesktopServices::openUrl(QUrl("https://github.com/ricardoquesada/vchar64/issues"));
 }
@@ -387,7 +387,65 @@ void MainWindow::on_actionAbout_triggered()
     aboutDialog.exec();
 }
 
-void MainWindow::on_actionAbout_Qt_triggered()
+void MainWindow::on_actionAboutQt_triggered()
 {
     QApplication::aboutQt();
+}
+
+//void MainWindow::updateRecentFiles()
+//{
+//    QStringList files = recentFiles();
+//    const int numRecentFiles = qMin(files.size(), (int) MaxRecentFiles);
+
+//    for (int i = 0; i < numRecentFiles; ++i)
+//    {
+//        _recentFiles[i]->setText(QFileInfo(files[i]).fileName());
+//        _recentFiles[i]->setData(files[i]);
+//        _recentFiles[i]->setVisible(true);
+//    }
+//    for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
+//    {
+//        _recentFiles[j]->setVisible(false);
+//    }
+//    _ui->menuRecentFiles->setEnabled(numRecentFiles > 0);
+//}
+
+//void MainWindow::setRecentFile(const QString& fileName)
+//{
+//    // Remember the file by its canonical file path
+//    const QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+
+//    if (canonicalFilePath.isEmpty())
+//        return;
+
+//    QStringList files = recentFiles();
+//    files.removeAll(canonicalFilePath);
+//    files.prepend(canonicalFilePath);
+//    while (files.size() > MaxRecentFiles)
+//        files.removeLast();
+
+//    _settings.beginGroup(QLatin1String("recentFiles"));
+//    _settings.setValue(QLatin1String("fileNames"), files);
+//    _settings.endGroup();
+//    updateRecentFiles();
+//}
+
+//void MainWindow::on_actionClear_recent_files_triggered()
+//{
+//    _settings.beginGroup(QLatin1String("recentFiles"));
+//    _settings.setValue(QLatin1String("fileNames"), QStringList());
+//    _settings.endGroup();
+//    updateRecentFiles();
+//}
+
+//QStringList MainWindow::recentFiles() const
+//{
+//    QVariant v = _settings.value(QLatin1String("recentFiles/fileNames"));
+//    return v.toStringList();
+//}
+
+
+void MainWindow::on_actionClearRecentFiles_triggered()
+{
+
 }
