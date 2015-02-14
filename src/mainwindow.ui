@@ -210,9 +210,9 @@
     <addaction name="actionNewProject"/>
     <addaction name="actionOpen"/>
     <addaction name="menuRecentFiles"/>
+    <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
-    <addaction name="actionImport"/>
     <addaction name="actionExport"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -253,7 +253,7 @@
      <normaloff>:/icons/22x22/actions/document-open.png</normaloff>:/icons/22x22/actions/document-open.png</iconset>
    </property>
    <property name="text">
-    <string>Open Project...</string>
+    <string>Open File or Project...</string>
    </property>
    <property name="toolTip">
     <string>Open VChar64 project</string>
@@ -332,17 +332,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
-   </property>
-  </action>
-  <action name="actionImport">
-   <property name="text">
-    <string>Import...</string>
-   </property>
-   <property name="toolTip">
-    <string>Import</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+I</string>
    </property>
   </action>
   <action name="actionSaveAs">
@@ -539,13 +528,13 @@
  </customwidgets>
  <tabstops>
   <tabstop>bigchar</tabstop>
+  <tabstop>charsetview</tabstop>
   <tabstop>radioButton_1</tabstop>
   <tabstop>radioButton_2</tabstop>
   <tabstop>radioButton_3</tabstop>
   <tabstop>radioButton_4</tabstop>
   <tabstop>checkBox</tabstop>
   <tabstop>spinBox</tabstop>
-  <tabstop>charsetview</tabstop>
  </tabstops>
  <resources>
   <include location="../res/resources.qrc"/>

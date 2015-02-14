@@ -43,7 +43,7 @@ State::State()
     , _filename("")
 {
     memset(_copyChar, 0, sizeof(_copyChar));
-    import(":/c64-chargen.bin");
+    openFile(":/c64-chargen.bin");
 }
 
 State::~State()
@@ -62,7 +62,7 @@ void State::reset()
     _colors[3] = 0;
     _filename = "";
 
-    import(":/c64-chargen.bin");
+    openFile(":/c64-chargen.bin");
 }
 
 bool State::exportRaw(const QString& filename)
@@ -83,7 +83,7 @@ bool State::exportPRG(const QString& filename, u_int16_t address)
     return StateExport::savePRG(file, this, address);
 }
 
-bool State::import(const QString& filename)
+bool State::openFile(const QString& filename)
 {
     QFile file(filename);
 
@@ -93,7 +93,12 @@ bool State::import(const QString& filename)
     qint64 length=0;
 
     QFileInfo info(file);
-    if ((info.suffix() == "64c") || (info.suffix() == "prg"))
+    if (info.suffix() == "vchar64proj")
+    {
+        length = StateImport::loadVChar64(file, this);
+        _filename = filename;
+    }
+    else if ((info.suffix() == "64c") || (info.suffix() == "prg"))
     {
         length = StateImport::loadPRG(file, this);
     }
@@ -110,25 +115,6 @@ bool State::import(const QString& filename)
 
     if(length<=0)
         return false;
-
-    return true;
-}
-
-bool State::load(const QString& filename)
-{
-    QFile file(filename);
-
-    if (!file.open(QIODevice::ReadOnly))
-        return false;
-
-    auto length = StateImport::loadVChar64(file, this);
-
-    file.close();
-
-    if(length<=0)
-        return false;
-
-    _filename = filename;
 
     return true;
 }

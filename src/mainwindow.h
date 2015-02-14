@@ -47,6 +47,7 @@ protected:
     void updateRecentFiles();
     void setRecentFile(const QString& fileName);
     QStringList recentFiles() const;
+    void openFile(const QString& fileName);
 
 private slots:
 
@@ -57,7 +58,6 @@ private slots:
     void on_radioButton_2_clicked();
     void on_radioButton_3_clicked();
     void on_radioButton_4_clicked();
-    void on_actionImport_triggered();
     void on_actionNewProject_triggered();
     void on_actionSaveAs_triggered();
     void on_actionSave_triggered();

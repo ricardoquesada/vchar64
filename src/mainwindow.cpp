@@ -55,8 +55,8 @@ void MainWindow::setTitle(const QString &title)
 
 void MainWindow::createActions()
 {
-    QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->bigchar, &BigChar::setIndex);
-    QObject::connect(_ui->charsetview, &CharSetView::charSelected, _ui->spinBox, &QSpinBox::setValue);
+    connect(_ui->charsetview, &CharSetView::charSelected, _ui->bigchar, &BigChar::setIndex);
+    connect(_ui->charsetview, &CharSetView::charSelected, _ui->spinBox, &QSpinBox::setValue);
 
     // FIXME should be on a different method
     _ui->colorRect_0->setColorIndex(0);
@@ -73,9 +73,10 @@ void MainWindow::createMenus()
          _recentFiles[i] = new QAction(this);
          _ui->menuRecentFiles->insertAction(_ui->actionClearRecentFiles, _recentFiles[i]);
          _recentFiles[i]->setVisible(false);
-         connect(_recentFiles[i], SIGNAL(triggered()), this, SLOT(on_openRecentFile_triggered()));
+         connect(_recentFiles[i], &QAction::triggered, this, &MainWindow::on_openRecentFile_triggered);
     }
     _ui->menuRecentFiles->insertSeparator(_ui->actionClearRecentFiles);
+    updateRecentFiles();
 }
 
 void MainWindow::createDefaults()
@@ -116,9 +117,7 @@ void MainWindow::setRecentFile(const QString& fileName)
     while (files.size() > MAX_RECENT_FILES)
         files.removeLast();
 
-    _settings.beginGroup(QLatin1String("recentFiles"));
-    _settings.setValue(QLatin1String("fileNames"), files);
-    _settings.endGroup();
+    _settings.setValue(QLatin1String("recentFiles/fileNames"), files);
     updateRecentFiles();
 }
 
@@ -126,6 +125,24 @@ QStringList MainWindow::recentFiles() const
 {
     QVariant v = _settings.value(QLatin1String("recentFiles/fileNames"));
     return v.toStringList();
+}
+
+void MainWindow::openFile(const QString& fileName)
+{
+    QFileInfo info(fileName);
+    _lastDir = info.absolutePath();
+    _settings.setValue("dir/lastdir", _lastDir);
+
+    if (State::getInstance()->openFile(fileName)) {
+
+        setRecentFile(fileName);
+
+        update();
+        auto state = State::getInstance();
+        _ui->checkBox->setChecked(state->isMultiColor());
+
+        setTitle(info.baseName());
+    }
 }
 
 //
@@ -148,51 +165,19 @@ void MainWindow::on_actionNewProject_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
+    QString file = "VChar64 Project";
     auto fn = QFileDialog::getOpenFileName(this,
                                            tr("Select File"),
                                            _lastDir,
-                                           tr("VChar64 Project (*.vchar64proj)")
+                                           tr("VChar64 Project (*.vchar64proj);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;CharPad files (*.ctm);;Any file (*)"),
+                                           &file
+                                           /*,QFileDialog::DontUseNativeDialog*/
                                            );
 
     if (fn.length()> 0) {
-        QFileInfo info(fn);
-        _lastDir = info.absolutePath();
-        _settings.setValue("dir/lastdir", _lastDir);
-
-        if (State::getInstance()->load(fn)) {
-            update();
-            auto state = State::getInstance();
-            _ui->checkBox->setChecked(state->isMultiColor());
-
-            setTitle(info.baseName());
-        }
+        openFile(fn);
     }
 }
-
-void MainWindow::on_actionImport_triggered()
-{
-    QString file = "Any files";
-    auto fn = QFileDialog::getOpenFileName(this,
-                                           tr("Select File"),
-                                           _lastDir,
-                                           tr("Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;CharPad files (*.ctm);;Any file (*)"),
-                                           &file
-                                           /*,QFileDialog::DontUseNativeDialog*/);
-
-    if (fn.length()> 0) {
-        QFileInfo info(fn);
-        _lastDir = info.absolutePath();
-        _settings.setValue("dir/lastdir", _lastDir);
-
-        if (State::getInstance()->import(fn)) {
-            update();
-
-            auto state = State::getInstance();
-            _ui->checkBox->setChecked(state->isMultiColor());
-        }
-    }
-}
-
 
 void MainWindow::on_checkBox_toggled(bool checked)
 {
@@ -449,15 +434,13 @@ void MainWindow::on_actionAboutQt_triggered()
 
 void MainWindow::on_actionClearRecentFiles_triggered()
 {
-    _settings.beginGroup(QLatin1String("recentFiles"));
-    _settings.setValue(QLatin1String("fileNames"), QStringList());
-    _settings.endGroup();
+    _settings.setValue(QLatin1String("recentFiles/fileNames"), QStringList());
     updateRecentFiles();
 }
 
 void MainWindow::on_openRecentFile_triggered()
 {
-//    QAction *action = qobject_cast<QAction *>(sender());
-//    if (action)
-//        openFile(action->data().toString());
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (action)
+        openFile(action->data().toString());
 }

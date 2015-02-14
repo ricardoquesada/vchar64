@@ -29,10 +29,8 @@ public:
 
     void reset();
 
-    bool load(const QString &filename);
+    bool openFile(const QString &filename);
     bool save(const QString &filename);
-
-    bool import(const QString& filename);
     bool exportRaw(const QString& filename);
     bool exportPRG(const QString& filename, u_int16_t address);
 
