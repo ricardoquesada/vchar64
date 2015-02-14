@@ -1,3 +1,19 @@
+0.0.2 (14 February 2015)
+
+* Added keyboard support for the Bigchar
+    * 'm' toggles multi-color
+    * '1' selects background color
+    * '2' selects foreground color
+    * '3' selects multicolor #1 color
+    * '4' selects multicolor #2 color
+    * cursor keys move the cursor
+    * space paints the cell
+* Added keyboard support for CharfontView
+    * cursor keys move the cursor to select a new char
+* Added "Recent Files" in the File menu
+* Import and Open Project merged into "Open File or Project..."
+* Remembers the used filter in "Open File or Project..."
+
 0.0.1 (10 February 2015)
 
 * Initial public release
