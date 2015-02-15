@@ -6,6 +6,7 @@
     * '2' selects foreground color
     * '3' selects multicolor #1 color
     * '4' selects multicolor #2 color
+    * '+' and '-': selects next/prev char
     * cursor keys move the cursor
     * space paints the cell
 * Added keyboard support for CharfontView
@@ -13,6 +14,7 @@
 * Added "Recent Files" in the File menu
 * Import and Open Project merged into "Open File or Project..."
 * Remembers the used filter in "Open File or Project..."
+* Added New Empty project
 
 0.0.1 (10 February 2015)
 

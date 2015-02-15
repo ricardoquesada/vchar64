@@ -83,6 +83,9 @@ void MainWindow::createDefaults()
 {
     _lastDir = _settings.value("dir/lastdir", _lastDir).toString();
     setTitle("[untitled]");
+
+    auto state = State::getInstance();
+    state->openFile(":/c64-chargen.bin");
 }
 
 void MainWindow::updateRecentFiles()
@@ -153,13 +156,19 @@ void MainWindow::on_actionExit_triggered()
     QApplication::exit();
 }
 
-void MainWindow::on_actionNewProject_triggered()
+void MainWindow::on_actionEmptyProject_triggered()
 {
     auto state = State::getInstance();
     state->reset();
-
     update();
+    setTitle("[untitled]");
+}
 
+void MainWindow::on_actionC64Default_triggered()
+{
+    auto state = State::getInstance();
+    state->openFile(":/c64-chargen.bin");
+    update();
     setTitle("[untitled]");
 }
 

@@ -61,7 +61,6 @@ private slots:
     void on_radioButton_2_clicked();
     void on_radioButton_3_clicked();
     void on_radioButton_4_clicked();
-    void on_actionNewProject_triggered();
     void on_actionSaveAs_triggered();
     void on_actionSave_triggered();
     void on_actionExport_triggered();
@@ -80,6 +79,10 @@ private slots:
     void on_actionAbout_triggered();
     void on_actionAboutQt_triggered();
     void on_actionClearRecentFiles_triggered();
+
+    void on_actionEmptyProject_triggered();
+
+    void on_actionC64Default_triggered();
 
 private:
 

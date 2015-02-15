@@ -43,7 +43,6 @@ State::State()
     , _filename("")
 {
     memset(_copyChar, 0, sizeof(_copyChar));
-    openFile(":/c64-chargen.bin");
 }
 
 State::~State()
@@ -62,7 +61,7 @@ void State::reset()
     _colors[3] = 0;
     _filename = "";
 
-    openFile(":/c64-chargen.bin");
+    memset(_chars, 0, sizeof(_chars));
 }
 
 bool State::exportRaw(const QString& filename)

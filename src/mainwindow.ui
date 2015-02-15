@@ -207,7 +207,14 @@
      </property>
      <addaction name="actionClearRecentFiles"/>
     </widget>
-    <addaction name="actionNewProject"/>
+    <widget class="QMenu" name="menuNew">
+     <property name="title">
+      <string>New</string>
+     </property>
+     <addaction name="actionEmptyProject"/>
+     <addaction name="actionC64Default"/>
+    </widget>
+    <addaction name="menuNew"/>
     <addaction name="actionOpen"/>
     <addaction name="menuRecentFiles"/>
     <addaction name="separator"/>
@@ -349,21 +356,6 @@
     <string>Ctrl+Shift+S</string>
    </property>
   </action>
-  <action name="actionNewProject">
-   <property name="icon">
-    <iconset theme="document-new" resource="../res/resources.qrc">
-     <normaloff>:/icons/22x22/actions/document-new.png</normaloff>:/icons/22x22/actions/document-new.png</iconset>
-   </property>
-   <property name="text">
-    <string>New Project</string>
-   </property>
-   <property name="toolTip">
-    <string>New VChar64 Project</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N</string>
-   </property>
-  </action>
   <action name="actionInvert">
    <property name="text">
     <string>Invert</string>
@@ -487,6 +479,23 @@
   <action name="actionClearRecentFiles">
    <property name="text">
     <string>Clear Recent Files</string>
+   </property>
+  </action>
+  <action name="actionEmptyProject">
+   <property name="icon">
+    <iconset theme="document-new" resource="../res/resources.qrc">
+     <normaloff>:/icons/22x22/actions/document-new.png</normaloff>:/icons/22x22/actions/document-new.png</iconset>
+   </property>
+   <property name="text">
+    <string>Empty Project</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionC64Default">
+   <property name="text">
+    <string>C64 Default Charset</string>
    </property>
   </action>
  </widget>
