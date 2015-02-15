@@ -21,6 +21,8 @@ limitations under the License.
 
 #include "constants.h"
 #include "state.h"
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 static const int PIXEL_SIZE = 2;
 static const int COLUMNS = 32;
@@ -46,6 +48,9 @@ void CharSetView::mousePressEvent(QMouseEvent * event)
 
 void CharSetView::keyPressEvent(QKeyEvent *event)
 {
+    MainWindow *window = dynamic_cast<MainWindow*>(qApp->activeWindow());
+    Ui::MainWindow *ui = window->getUi();
+
     switch (event->key()) {
     case Qt::Key_Left:
         _cursorPos += {-1,0};
@@ -58,6 +63,9 @@ void CharSetView::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_Up:
         _cursorPos += {0,-1};
+        break;
+    case Qt::Key_M:
+        ui->checkBox->click();
         break;
     default:
         QWidget::keyPressEvent(event);
