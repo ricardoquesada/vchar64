@@ -25,14 +25,14 @@ limitations under the License.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-static const int PIXEL_SIZE = 32;
-
 BigChar::BigChar(QWidget *parent)
     : QWidget(parent)
     , _index(0)
     , _cursorPos({0,0})
+    , _tileSize({2,2})
+    , _pixelSize({16,16})
 {
-    setFixedSize(PIXEL_SIZE * 8, PIXEL_SIZE * 8);
+    setFixedSize(_pixelSize.width() * _tileSize.width() * 8, _pixelSize.height() * _tileSize.height() * 8);
 }
 
 void BigChar::paintPixel(int x, int y)
@@ -54,8 +54,8 @@ void BigChar::mousePressEvent(QMouseEvent * event)
 {
     auto pos = event->localPos();
 
-    int x = pos.x() / PIXEL_SIZE;
-    int y = pos.y() / PIXEL_SIZE;
+    int x = pos.x() / _pixelSize.width();
+    int y = pos.y() / _pixelSize.height();
     if( x>=8 || y>=8)
         return;
 
@@ -68,8 +68,8 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
 {
     auto pos = event->localPos();
 
-    int x = pos.x() / PIXEL_SIZE;
-    int y = pos.y() / PIXEL_SIZE;
+    int x = pos.x() / _pixelSize.width();
+    int y = pos.y() / _pixelSize.height();
     if( x>=8 || y>=8)
         return;
 
@@ -126,8 +126,8 @@ void BigChar::keyPressEvent(QKeyEvent *event)
     default:
         QWidget::keyPressEvent(event);
     }
-    _cursorPos = {qBound(0, _cursorPos.x(), 7),
-                  qBound(0, _cursorPos.y(), 7)};
+    _cursorPos = {qBound(0, _cursorPos.x(), 8*_tileSize.width()-1),
+                  qBound(0, _cursorPos.y(), 8*_tileSize.height()-1)};
     update();
 }
 
@@ -137,31 +137,46 @@ void BigChar::paintEvent(QPaintEvent *event)
     QPainter painter;
     painter.begin(this);
 
-    State *state = State::getInstance();
-
     // background
     painter.fillRect(event->rect(), QColor(204,204,204));
 
+    QPen pen;
+    pen.setColor({128,128,255});
+    pen.setWidth(3);
+    pen.setStyle(Qt::PenStyle::SolidLine);
 
-    u_int8_t* charPtr = State::getInstance()->getCharAtIndex(_index);
+    State *state = State::getInstance();
+    u_int8_t* charPtr = state->getCharAtIndex(_index);
+
+    for (int y=0; y<_tileSize.height(); y++) {
+        for (int x=0; x<_tileSize.width(); x++) {
+            QPoint tileToDraw(x,y);
+
+            paintChar(painter, pen, charPtr, tileToDraw);
+            // chars are 64 chars away from each other
+            charPtr += 64 * 8;
+        }
+    }
+
+    painter.end();
+}
+
+void BigChar::paintChar(QPainter& painter, const QPen& pen, u_int8_t* charPtr, const QPoint& tileToDraw)
+{
+    State *state = State::getInstance();
 
     int end_x = 8;
-    int pixel_size_x = PIXEL_SIZE;
+    int pixel_size_x = _pixelSize.width();
     int increment_x = 1;
     int bits_to_mask = 1;
 
     if (state->isMultiColor())
     {
         end_x = 4;
-        pixel_size_x = PIXEL_SIZE * 2;
+        pixel_size_x = _pixelSize.width() * 2;
         increment_x = 2;
         bits_to_mask = 3;
     }
-
-    QPen pen;
-    pen.setColor({128,128,255});
-    pen.setWidth(3);
-    pen.setStyle(Qt::PenStyle::SolidLine);
 
     for (int y=0; y<8; y++) {
 
@@ -186,16 +201,20 @@ void BigChar::paintEvent(QPaintEvent *event)
                 color_index = 3;
             painter.setBrush(Constants::CBMcolors[state->getColorAtIndex(color_index)]);
 
-            if (hasFocus() && y==_cursorPos.y() && x==_cursorPos.x()/increment_x)
+            if (hasFocus()
+                    && x+tileToDraw.x()*8/increment_x==_cursorPos.x()/increment_x
+                    && y+tileToDraw.y()*8==_cursorPos.y()
+                    )
                 painter.setPen(pen);
             else
                 painter.setPen(Qt::PenStyle::NoPen);
 
-            painter.drawRect(x * pixel_size_x, y * PIXEL_SIZE, pixel_size_x-1, PIXEL_SIZE-1);
+            painter.drawRect(x * pixel_size_x + _pixelSize.width() * 8 * tileToDraw.x(),
+                             y * _pixelSize.height() + _pixelSize.height() * 8 * tileToDraw.y(),
+                             pixel_size_x-1,
+                             _pixelSize.height()-1);
         }
     }
-
-    painter.end();
 }
 
 void BigChar::setIndex(int index)
@@ -205,5 +224,10 @@ void BigChar::setIndex(int index)
         emit indexChanged(_index);
         update();
     }
+}
+
+void BigChar::setTileSize(const QSize& tileSize)
+{
+    _tileSize = tileSize;
 }
 

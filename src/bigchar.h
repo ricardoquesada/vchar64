@@ -18,6 +18,7 @@ limitations under the License.
 
 #include <QWidget>
 #include <QPoint>
+#include <QSize>
 
 //! [0]
 
@@ -31,8 +32,13 @@ public:
         return _index;
     }
 
+    QSize getTileSize() const {
+        return _tileSize;
+    }
+
 public slots:
     void setIndex(int index);
+    void setTileSize(const QSize& tileSize);
 
 signals:
     void indexChanged(int index);
@@ -43,10 +49,15 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
+    void paintChar(QPainter& painter, const QPen& pen, u_int8_t* charPtr, const QPoint& tileToDraw);
     void paintPixel(int x, int y);
 
     int _index;
     QPoint _cursorPos;
+
+    // in chars (bytes), not bits
+    QSize _tileSize;
+    QSize _pixelSize;
 };
 //! [0]
 
