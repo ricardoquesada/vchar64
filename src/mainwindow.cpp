@@ -27,6 +27,8 @@ limitations under the License.
 #include "state.h"
 #include "aboutdialog.h"
 #include "exportdialog.h"
+#include "tilepropertiesdialog.h"
+#include "bigchar.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 
@@ -460,4 +462,12 @@ void MainWindow::on_openRecentFile_triggered()
     QAction *action = qobject_cast<QAction *>(sender());
     if (action)
         openFile(action->data().toString());
+}
+
+void MainWindow::on_actionTilesProperties_triggered()
+{
+    TilePropertiesDialog dialog(this);
+
+    connect(&dialog, &TilePropertiesDialog::tilePropertiesChanged, _ui->bigchar, &BigChar::updateTileProperties);
+    dialog.exec();
 }

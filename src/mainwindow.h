@@ -84,6 +84,8 @@ private slots:
 
     void on_actionC64Default_triggered();
 
+    void on_actionTilesProperties_triggered();
+
 private:
 
     QAction* _recentFiles[MAX_RECENT_FILES];

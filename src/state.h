@@ -17,6 +17,8 @@ limitations under the License.
 #pragma once
 
 #include <QString>
+#include <QSize>
+
 #include <string>
 
 class State
@@ -81,6 +83,16 @@ public:
         return _filename;
     }
 
+    void setTileSize(const QSize& tileSize);
+    QSize getTileSize() const {
+        return _tileSize;
+    }
+
+    void setCharInterleaved(int interleaved);
+    int getCharInterleaved() const {
+        return _charInterleaved;
+    }
+
     void copyChar(int index);
     void pasteChar(int index);
 
@@ -96,9 +108,10 @@ protected:
 
     int _selectedColorIndex;
     int _colors[4];
+    QSize _tileSize;
+    int _charInterleaved;
 
     QString _filename;
-
     u_int8_t _copyChar[8];
 };
 

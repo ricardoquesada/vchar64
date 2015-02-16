@@ -40,6 +40,8 @@ State::State()
     , _multiColor(false)
     , _selectedColorIndex(3)
     , _colors{1,12,15,0}
+    , _tileSize{1,1}
+    , _charInterleaved(1)
     , _filename("")
 {
     memset(_copyChar, 0, sizeof(_copyChar));
@@ -59,6 +61,8 @@ void State::reset()
     _colors[1] = 12;
     _colors[2] = 15;
     _colors[3] = 0;
+    _tileSize = {1,1};
+    _charInterleaved = 1;
     _filename = "";
 
     memset(_chars, 0, sizeof(_chars));
@@ -201,6 +205,16 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     c |= colorIndex << ((modulus-1)-b) * factor;
 
     _chars[charIndex*8 + bitIndex/8] = c;
+}
+
+void State::setTileSize(const QSize& tileSize)
+{
+    _tileSize = tileSize;
+}
+
+void State::setCharInterleaved(int charInterleaved)
+{
+    _charInterleaved = charInterleaved;
 }
 
 u_int8_t* State::getCharsBuffer()

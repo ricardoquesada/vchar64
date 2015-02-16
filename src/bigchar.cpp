@@ -25,14 +25,18 @@ limitations under the License.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+static const int WIDGET_WIDTH = 256;
+static const int WIDGET_HEIGHT = 256;
+
 BigChar::BigChar(QWidget *parent)
     : QWidget(parent)
     , _index(0)
     , _cursorPos({0,0})
-    , _tileSize({2,2})
-    , _pixelSize({16,16})
+    , _tileSize({1,1})
+    , _charInterleaved(1)
+    , _pixelSize({32,32})
 {
-    setFixedSize(_pixelSize.width() * _tileSize.width() * 8, _pixelSize.height() * _tileSize.height() * 8);
+    setFixedSize(WIDGET_WIDTH, WIDGET_HEIGHT);
 }
 
 void BigChar::paintPixel(int x, int y)
@@ -45,7 +49,7 @@ void BigChar::paintPixel(int x, int y)
     if (!state->isMultiColor() && selectedColor)
         selectedColor = 1;
 
-    int charIndex = _index + (x/8) * 64 + (y/8) * 128;
+    int charIndex = _index + (x/8) * _charInterleaved + (y/8) * _charInterleaved * _tileSize.width();
     state->setCharColor(charIndex, bitIndex, selectedColor);
 
     dynamic_cast<QWidget*>(parent())->update();
@@ -155,7 +159,7 @@ void BigChar::paintEvent(QPaintEvent *event)
 
             paintChar(painter, pen, charPtr, tileToDraw);
             // chars are 64 chars away from each other
-            charPtr += 64 * 8;
+            charPtr += _charInterleaved * 8;
         }
     }
 
@@ -227,8 +231,13 @@ void BigChar::setIndex(int index)
     }
 }
 
-void BigChar::setTileSize(const QSize& tileSize)
+void BigChar::updateTileProperties()
 {
-    _tileSize = tileSize;
+    auto state = State::getInstance();
+    _tileSize = state->getTileSize();
+    _charInterleaved = state->getCharInterleaved();
+    _pixelSize.setWidth(WIDGET_WIDTH/(8*_tileSize.width()));
+    _pixelSize.setHeight(WIDGET_HEIGHT/(8*_tileSize.height()));
+    update();
 }
 

@@ -25,7 +25,6 @@ int main(int argc, char *argv[])
     a.setApplicationName(QLatin1String("VChar64"));
     a.setApplicationVersion(QLatin1String(APP_VERSION));
 
-
 #ifdef Q_OS_MAC
     a.setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif

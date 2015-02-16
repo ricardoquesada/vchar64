@@ -38,7 +38,7 @@ public:
 
 public slots:
     void setIndex(int index);
-    void setTileSize(const QSize& tileSize);
+    void updateTileProperties();
 
 signals:
     void indexChanged(int index);
@@ -57,6 +57,7 @@ protected:
 
     // in chars (bytes), not bits
     QSize _tileSize;
+    int _charInterleaved;
     QSize _pixelSize;
 };
 //! [0]

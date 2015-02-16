@@ -172,11 +172,15 @@ namespace StateImport
 
         unsigned short num_chars;   // 16-bits, Number of chars - 1 (low, high).
 
-        char reserved[3];           // Must be 16 bytes in total
+        char tile_width;            // between 1-5
+        char tile_height;           // between 1-5
+        char char_interleaved;      // between 1-128
+
+        char reserved[16];           // Must be 32 bytes in total
     };
     #pragma pack(pop)
 
-    static_assert (sizeof(VChar64Header) == 16, "Size is not correct");
+    static_assert (sizeof(VChar64Header) == 32, "Size is not correct");
 }
 
 

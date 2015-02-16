@@ -26,7 +26,8 @@ SOURCES += src/main.cpp\
     src/colorrect.cpp \
     src/stateimport.cpp \
     src/stateexport.cpp \
-    src/exportdialog.cpp
+    src/exportdialog.cpp \
+    src/tilepropertiesdialog.cpp
 
 HEADERS  += src/mainwindow.h \
     src/bigchar.h \
@@ -38,11 +39,13 @@ HEADERS  += src/mainwindow.h \
     src/colorrect.h \
     src/stateimport.h \
     src/stateexport.h \
-    src/exportdialog.h
+    src/exportdialog.h \
+    src/tilepropertiesdialog.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui \
-    src/exportdialog.ui
+    src/exportdialog.ui \
+    src/tilepropertiesdialog.ui
 
 INCLUDEPATH += src
 

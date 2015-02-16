@@ -241,6 +241,7 @@
     <addaction name="actionShiftUp"/>
     <addaction name="actionShiftDown"/>
     <addaction name="separator"/>
+    <addaction name="actionTilesProperties"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -496,6 +497,14 @@
   <action name="actionC64Default">
    <property name="text">
     <string>C64 Default Charset</string>
+   </property>
+  </action>
+  <action name="actionTilesProperties">
+   <property name="text">
+    <string>Tiles Properties</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
    </property>
   </action>
  </widget>
