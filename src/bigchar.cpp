@@ -37,7 +37,7 @@ BigChar::BigChar(QWidget *parent)
 
 void BigChar::paintPixel(int x, int y)
 {
-    int bitIndex = x + y * 8;
+    int bitIndex = (x%8) + (y%8) * 8;
 
     State *state = State::getInstance();
     int selectedColor = state->getSelectedColorIndex();
@@ -45,7 +45,8 @@ void BigChar::paintPixel(int x, int y)
     if (!state->isMultiColor() && selectedColor)
         selectedColor = 1;
 
-    state->setCharColor(_index, bitIndex, selectedColor);
+    int charIndex = _index + (x/8) * 64 + (y/8) * 128;
+    state->setCharColor(charIndex, bitIndex, selectedColor);
 
     dynamic_cast<QWidget*>(parent())->update();
 }
@@ -56,7 +57,7 @@ void BigChar::mousePressEvent(QMouseEvent * event)
 
     int x = pos.x() / _pixelSize.width();
     int y = pos.y() / _pixelSize.height();
-    if( x>=8 || y>=8)
+    if( x>=8*_tileSize.width() || y>=8*_tileSize.height())
         return;
 
     _cursorPos = {x,y};
@@ -70,7 +71,7 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
 
     int x = pos.x() / _pixelSize.width();
     int y = pos.y() / _pixelSize.height();
-    if( x>=8 || y>=8)
+    if( x>=8*_tileSize.width() || y>=8*_tileSize.height())
         return;
 
     _cursorPos = {x,y};
