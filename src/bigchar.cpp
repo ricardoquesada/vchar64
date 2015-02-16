@@ -207,8 +207,8 @@ void BigChar::paintChar(QPainter& painter, const QPen& pen, u_int8_t* charPtr, c
             painter.setBrush(Constants::CBMcolors[state->getColorAtIndex(color_index)]);
 
             if (hasFocus()
-                    && x+tileToDraw.x()*8/increment_x==_cursorPos.x()/increment_x
-                    && y+tileToDraw.y()*8==_cursorPos.y()
+                    && (x + tileToDraw.x() * 8 / increment_x) == _cursorPos.x() / increment_x
+                    && (y + tileToDraw.y( ) * 8) == _cursorPos.y()
                     )
                 painter.setPen(pen);
             else
@@ -225,7 +225,11 @@ void BigChar::paintChar(QPainter& painter, const QPen& pen, u_int8_t* charPtr, c
 void BigChar::setIndex(int index)
 {
     if (_index != index) {
-        _index = index;
+        int charsPerTile = _tileSize.width() * _tileSize.height();
+        if (_charInterleaved == 1)
+            _index = index * charsPerTile;
+        else
+            _index = index;
         emit indexChanged(_index);
         update();
     }
@@ -236,8 +240,8 @@ void BigChar::updateTileProperties()
     auto state = State::getInstance();
     _tileSize = state->getTileSize();
     _charInterleaved = state->getCharInterleaved();
-    _pixelSize.setWidth(WIDGET_WIDTH/(8*_tileSize.width()));
-    _pixelSize.setHeight(WIDGET_HEIGHT/(8*_tileSize.height()));
+    _pixelSize.setWidth(WIDGET_WIDTH / (8*_tileSize.width()));
+    _pixelSize.setHeight(WIDGET_HEIGHT / (8*_tileSize.height()));
     update();
 }
 

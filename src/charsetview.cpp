@@ -157,6 +157,12 @@ void CharSetView::paintEvent(QPaintEvent *event)
 
 void CharSetView::setIndex(int index)
 {
+    auto state = State::getInstance();
+    auto tileSize = state->getTileSize();
+    int charsPerTile = tileSize.width() * tileSize.height();
+    if (state->getCharInterleaved() == 1)
+        index = index * charsPerTile;
+
     QPoint p;
     p.setX(index % COLUMNS);
     p.setY(index / COLUMNS);

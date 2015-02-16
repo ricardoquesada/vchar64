@@ -470,4 +470,9 @@ void MainWindow::on_actionTilesProperties_triggered()
 
     connect(&dialog, &TilePropertiesDialog::tilePropertiesChanged, _ui->bigchar, &BigChar::updateTileProperties);
     dialog.exec();
+
+    // update max tile index
+    auto state = State::getInstance();
+    QSize s = state->getTileSize();
+    _ui->spinBox->setMaximum((256 / (s.width()*s.height()))-1);
 }
