@@ -29,7 +29,7 @@ class BigChar : public QWidget
 public:
     BigChar(QWidget *parent);
     int getIndex() const {
-        return _index;
+        return _charIndex;
     }
 
     QSize getTileSize() const {
@@ -37,7 +37,7 @@ public:
     }
 
 public slots:
-    void setIndex(int index);
+    void setIndex(int tileIndex);
     void updateTileProperties();
 
 signals:
@@ -52,7 +52,7 @@ protected:
     void paintChar(QPainter& painter, const QPen& pen, u_int8_t* charPtr, const QPoint& tileToDraw);
     void paintPixel(int x, int y);
 
-    int _index;
+    int _charIndex;
     QPoint _cursorPos;
 
     // in chars (bytes), not bits

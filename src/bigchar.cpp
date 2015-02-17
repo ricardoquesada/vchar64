@@ -30,7 +30,7 @@ static const int WIDGET_HEIGHT = 256;
 
 BigChar::BigChar(QWidget *parent)
     : QWidget(parent)
-    , _index(0)
+    , _charIndex(0)
     , _cursorPos({0,0})
     , _tileSize({1,1})
     , _charInterleaved(1)
@@ -49,7 +49,7 @@ void BigChar::paintPixel(int x, int y)
     if (!state->isMultiColor() && selectedColor)
         selectedColor = 1;
 
-    int charIndex = _index + (x/8) * _charInterleaved + (y/8) * _charInterleaved * _tileSize.width();
+    int charIndex = _charIndex + (x/8) * _charInterleaved + (y/8) * _charInterleaved * _tileSize.width();
     state->setCharColor(charIndex, bitIndex, selectedColor);
 
     dynamic_cast<QWidget*>(parent())->update();
@@ -151,7 +151,7 @@ void BigChar::paintEvent(QPaintEvent *event)
     pen.setStyle(Qt::PenStyle::SolidLine);
 
     State *state = State::getInstance();
-    u_int8_t* charPtr = state->getCharAtIndex(_index);
+    u_int8_t* charPtr = state->getCharAtIndex(_charIndex);
 
     for (int y=0; y<_tileSize.height(); y++) {
         for (int x=0; x<_tileSize.width(); x++) {
@@ -222,15 +222,14 @@ void BigChar::paintChar(QPainter& painter, const QPen& pen, u_int8_t* charPtr, c
     }
 }
 
-void BigChar::setIndex(int index)
+void BigChar::setIndex(int tileIndex)
 {
-    if (_index != index) {
-        int charsPerTile = _tileSize.width() * _tileSize.height();
-        if (_charInterleaved == 1)
-            _index = index * charsPerTile;
-        else
-            _index = index;
-        emit indexChanged(_index);
+    auto state = State::getInstance();
+    int charIndex = state->charIndexFromTileIndex(tileIndex);
+
+    if (_charIndex != charIndex) {
+        _charIndex = charIndex;
+        emit indexChanged(_charIndex);
         update();
     }
 }
