@@ -28,7 +28,7 @@ public:
     CharSetView(QWidget *parent);
 
 public slots:
-    void setIndex(int index);
+    void setIndex(int tileIndex);
 
 signals:
     void charSelected(int index);

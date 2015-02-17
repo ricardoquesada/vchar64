@@ -226,3 +226,25 @@ void State::resetCharsBuffer()
 {
     memset(_chars, 0, sizeof(_chars));
 }
+
+// helper functions
+int State::charIndexFromTileIndex(int tileIndex) const
+{
+    int charIndex = tileIndex;
+    if (_charInterleaved==1) {
+        charIndex *= (_tileSize.width() * _tileSize.height());
+    }
+
+    return charIndex;
+}
+
+int State::tileIndexFromCharIndex(int charIndex) const
+{
+    int tileIndex = charIndex;
+    if (_charInterleaved==1) {
+        tileIndex /= (_tileSize.width() * _tileSize.height());
+    }
+
+    return tileIndex;
+}
+

@@ -93,6 +93,9 @@ public:
         return _charInterleaved;
     }
 
+    int charIndexFromTileIndex(int tileIndex) const;
+    int tileIndexFromCharIndex(int charIndex) const;
+
     void copyChar(int index);
     void pasteChar(int index);
 
