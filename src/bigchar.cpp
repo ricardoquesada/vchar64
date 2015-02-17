@@ -239,8 +239,11 @@ void BigChar::updateTileProperties()
     auto state = State::getInstance();
     _tileSize = state->getTileSize();
     _charInterleaved = state->getCharInterleaved();
-    _pixelSize.setWidth(WIDGET_WIDTH / (8*_tileSize.width()));
-    _pixelSize.setHeight(WIDGET_HEIGHT / (8*_tileSize.height()));
+
+    // keep aspect ratio
+    int max = qMax(_tileSize.width(), _tileSize.height());
+    _pixelSize.setWidth(WIDGET_WIDTH / (8*max));
+    _pixelSize.setHeight(WIDGET_HEIGHT / (8*max));
     update();
 }
 

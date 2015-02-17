@@ -475,4 +475,7 @@ void MainWindow::on_actionTilesProperties_triggered()
     auto state = State::getInstance();
     QSize s = state->getTileSize();
     _ui->spinBox->setMaximum((256 / (s.width()*s.height()))-1);
+
+    // rotate only enable if witdh==height
+    _ui->actionRotate->setEnabled(s.width() == s.height());
 }
