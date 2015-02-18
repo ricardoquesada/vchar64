@@ -270,7 +270,7 @@ void MainWindow::on_actionInvert_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-    state->invertTile(tileIndex);
+    state->tileInvert(tileIndex);
 
     update();
 }
@@ -284,15 +284,7 @@ void MainWindow::on_actionFlipHorizontally_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-//    auto buffer = state->getCharAtIndex(index);
-//    for (int i=0; i<8; i++) {
-//        char tmp = 0;
-//        for (int j=0; j<8; j++) {
-//            if (buffer[i] & (1<<j))
-//                tmp |= 1 << (7-j);
-//        }
-//        buffer[i] = tmp;
-//    }
+    state->tileFlipHorizontally(tileIndex);
 
     update();
 }
@@ -302,10 +294,7 @@ void MainWindow::on_actionFlipVertically_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-//    auto buffer = state->getCharAtIndex(index);
-//    for (int i=0; i<4; i++) {
-//        std::swap(buffer[i], buffer[7-i]);
-//    }
+    state->tileFlipVertically(tileIndex);
 
     update();
 }
@@ -315,19 +304,7 @@ void MainWindow::on_actionRotate_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-//    u_int8_t tmp[8];
-//    memset(tmp, 0, sizeof(tmp));
-
-//    auto buffer = state->getCharAtIndex(index);
-//    for (int i=0; i<8; i++) {
-//        for (int j=0; j<8; j++) {
-//            if (buffer[i] & (1<<(7-j)))
-//                tmp[j] |= (1<<i);
-//        }
-//    }
-
-//    for (int i=0; i<8; i++)
-//        buffer[i] = tmp[i];
+    state->tileRotate(tileIndex);
 
     update();
 }
@@ -336,7 +313,7 @@ void MainWindow::on_actionClearCharacter_triggered()
 {
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
-    state->clearTile(tileIndex);
+    state->tileClear(tileIndex);
 
     update();
 }
@@ -411,13 +388,13 @@ void MainWindow::on_actionShiftDown_triggered()
 void MainWindow::on_actionCopy_triggered()
 {
     auto state = State::getInstance();
-    state->copyTile(_ui->bigchar->getTileIndex());
+    state->tileCopy(_ui->bigchar->getTileIndex());
 }
 
 void MainWindow::on_actionPaste_triggered()
 {
     auto state = State::getInstance();
-    state->pasteTile(_ui->bigchar->getTileIndex());
+    state->tilePaste(_ui->bigchar->getTileIndex());
     update();
 }
 

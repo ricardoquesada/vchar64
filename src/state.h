@@ -96,10 +96,17 @@ public:
     int charIndexFromTileIndex(int tileIndex) const;
     int tileIndexFromCharIndex(int charIndex) const;
 
-    void copyTile(int tileIndex);
-    void pasteTile(int tileIndex);
-    void invertTile(int tileIndex);
-    void clearTile(int tileIndex);
+    void tileCopy(int tileIndex);
+    void tilePaste(int tileIndex);
+    void tileInvert(int tileIndex);
+    void tileClear(int tileIndex);
+    void tileFlipHorizontally(int tileIndex);
+    void tileFlipVertically(int tileIndex);
+    void tileRotate(int tileIndex);
+    void tileShiftLeft(int tileIndex);
+    void tileShiftRight(int tileIndex);
+    void tileShiftUp(int tileIndex);
+    void tileShiftDown(int tileIndex);
 
 protected:
     State();
