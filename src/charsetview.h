@@ -28,10 +28,10 @@ public:
     CharSetView(QWidget *parent);
 
 public slots:
-    void setIndex(int tileIndex);
+    void setTileIndex(int tileIndex);
 
 signals:
-    void charSelected(int index);
+    void tileSelected(int tileIndex);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

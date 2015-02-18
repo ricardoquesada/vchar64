@@ -44,7 +44,7 @@ State::State()
     , _charInterleaved(1)
     , _filename("")
 {
-    memset(_copyChar, 0, sizeof(_copyChar));
+    memset(_copyTile, 0, sizeof(_copyTile));
 }
 
 State::~State()
@@ -143,18 +143,6 @@ bool State::save(const QString &filename)
     return true;
 }
 
-void State::copyChar(int index)
-{
-    Q_ASSERT(index>=0 && index<CHAR_BUFFER_SIZE && "invalid index value");
-    memcpy(_copyChar, &_chars[index*8], sizeof(_copyChar));
-}
-
-void State::pasteChar(int index)
-{
-    Q_ASSERT(index>=0 && index<CHAR_BUFFER_SIZE && "invalid index value");
-    memcpy(&_chars[index*8], _copyChar, sizeof(_copyChar));
-}
-
 int State::getCharColor(int charIndex, int bitIndex) const
 {
     Q_ASSERT(charIndex >=0 && charIndex < 256 && "Invalid charIndex. Valid range: 0,255");
@@ -246,5 +234,31 @@ int State::tileIndexFromCharIndex(int charIndex) const
     }
 
     return tileIndex;
+}
+
+
+// tile manipulation
+void State::copyTile(int tileIndex)
+{
+    int tileSize = _tileSize.width() * _tileSize.height() * 8;
+    Q_ASSERT(tileIndex>=0 && tileIndex<tileIndexFromCharIndex(256) && "invalid index value");
+    memcpy(_copyTile, &_chars[tileIndex*tileSize], tileSize);
+}
+
+void State::pasteTile(int tileIndex)
+{
+    int tileSize = _tileSize.width() * _tileSize.height() * 8;
+    Q_ASSERT(tileIndex>=0 && tileIndex<tileIndexFromCharIndex(256) && "invalid index value");
+    memcpy(&_chars[tileIndex*tileSize], _copyTile, tileSize);
+}
+
+void State::invertTile(int tileIndex)
+{
+
+}
+
+void State::clearTile(int tileIndex)
+{
+
 }
 

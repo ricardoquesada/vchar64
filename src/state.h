@@ -96,8 +96,10 @@ public:
     int charIndexFromTileIndex(int tileIndex) const;
     int tileIndexFromCharIndex(int charIndex) const;
 
-    void copyChar(int index);
-    void pasteChar(int index);
+    void copyTile(int tileIndex);
+    void pasteTile(int tileIndex);
+    void invertTile(int tileIndex);
+    void clearTile(int tileIndex);
 
 protected:
     State();
@@ -115,6 +117,8 @@ protected:
     int _charInterleaved;
 
     QString _filename;
-    u_int8_t _copyChar[8];
+
+    // max size of tile: 5 x 5
+    u_int8_t _copyTile[8 * 5 * 5];
 };
 

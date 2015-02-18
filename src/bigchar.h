@@ -28,8 +28,8 @@ class BigChar : public QWidget
 
 public:
     BigChar(QWidget *parent);
-    int getIndex() const {
-        return _charIndex;
+    int getTileIndex() const {
+        return _tileIndex;
     }
 
     QSize getTileSize() const {
@@ -37,11 +37,8 @@ public:
     }
 
 public slots:
-    void setIndex(int tileIndex);
+    void setTileIndex(int tileIndex);
     void updateTileProperties();
-
-signals:
-    void indexChanged(int index);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
@@ -52,6 +49,7 @@ protected:
     void paintChar(QPainter& painter, const QPen& pen, u_int8_t* charPtr, const QPoint& tileToDraw);
     void paintPixel(int x, int y);
 
+    int _tileIndex;
     int _charIndex;
     QPoint _cursorPos;
 

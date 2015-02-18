@@ -30,6 +30,7 @@ static const int WIDGET_HEIGHT = 256;
 
 BigChar::BigChar(QWidget *parent)
     : QWidget(parent)
+    , _tileIndex(0)
     , _charIndex(0)
     , _cursorPos({0,0})
     , _tileSize({1,1})
@@ -222,14 +223,13 @@ void BigChar::paintChar(QPainter& painter, const QPen& pen, u_int8_t* charPtr, c
     }
 }
 
-void BigChar::setIndex(int tileIndex)
+void BigChar::setTileIndex(int tileIndex)
 {
     auto state = State::getInstance();
-    int charIndex = state->charIndexFromTileIndex(tileIndex);
 
-    if (_charIndex != charIndex) {
-        _charIndex = charIndex;
-        emit indexChanged(_charIndex);
+    if (_tileIndex != tileIndex) {
+        _tileIndex = tileIndex;
+        _charIndex = state->charIndexFromTileIndex(_tileIndex);
         update();
     }
 }

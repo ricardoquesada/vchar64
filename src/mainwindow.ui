@@ -516,7 +516,7 @@
    <header>bigchar.h</header>
    <container>1</container>
    <slots>
-    <slot>setIndex(int)</slot>
+    <slot>setTileIndex(int)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -525,7 +525,8 @@
    <header>charsetview.h</header>
    <container>1</container>
    <slots>
-    <slot>setIndex(int)</slot>
+    <signal>tileSelected(int)</signal>
+    <slot>setTileIndex(int)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -722,7 +723,7 @@
    <sender>spinBox</sender>
    <signal>valueChanged(int)</signal>
    <receiver>bigchar</receiver>
-   <slot>setIndex(int)</slot>
+   <slot>setTileIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>412</x>
@@ -738,7 +739,7 @@
    <sender>spinBox</sender>
    <signal>valueChanged(int)</signal>
    <receiver>charsetview</receiver>
-   <slot>setIndex(int)</slot>
+   <slot>setTileIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>445</x>
@@ -747,6 +748,22 @@
     <hint type="destinationlabel">
      <x>460</x>
      <y>400</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>charsetview</sender>
+   <signal>tileSelected(int)</signal>
+   <receiver>spinBox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>383</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>394</x>
+     <y>329</y>
     </hint>
    </hints>
   </connection>
