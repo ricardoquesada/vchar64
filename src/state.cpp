@@ -254,11 +254,29 @@ void State::pasteTile(int tileIndex)
 
 void State::invertTile(int tileIndex)
 {
+    int charIndex = charIndexFromTileIndex(tileIndex);
+    u_int8_t* charPtr = getCharAtIndex(charIndex);
 
+    for (int y=0; y<_tileSize.height(); y++) {
+        for (int x=0; x<_tileSize.width(); x++) {
+            for (int i=0; i<8; i++) {
+                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] = ~charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved];
+            }
+        }
+    }
 }
 
 void State::clearTile(int tileIndex)
 {
+    int charIndex = charIndexFromTileIndex(tileIndex);
+    u_int8_t* charPtr = getCharAtIndex(charIndex);
 
+    for (int y=0; y<_tileSize.height(); y++) {
+        for (int x=0; x<_tileSize.width(); x++) {
+            for (int i=0; i<8; i++) {
+                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] = 0;
+            }
+        }
+    }
 }
 

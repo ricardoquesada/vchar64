@@ -270,14 +270,14 @@ void MainWindow::on_actionInvert_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-//    auto buffer = state->getCharAtIndex(index);
-//    for (int i=0; i<8; i++) {
-//        buffer[i] = ~buffer[i];
-//    }
     state->invertTile(tileIndex);
 
     update();
 }
+
+//
+// Tile editing callbacks
+//
 
 void MainWindow::on_actionFlipHorizontally_triggered()
 {
@@ -336,10 +336,7 @@ void MainWindow::on_actionClearCharacter_triggered()
 {
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
-
-//    auto buffer = state->getCharAtIndex(index);
-//    for (int i=0; i<8; i++)
-//        buffer[i] = 0;
+    state->clearTile(tileIndex);
 
     update();
 }

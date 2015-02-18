@@ -159,7 +159,7 @@ void BigChar::paintEvent(QPaintEvent *event)
             QPoint tileToDraw(x,y);
 
             paintChar(painter, pen, charPtr, tileToDraw);
-            // chars are 64 chars away from each other
+            // chars could be 64 chars away from each other
             charPtr += _charInterleaved * 8;
         }
     }
