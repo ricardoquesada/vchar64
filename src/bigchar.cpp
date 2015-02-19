@@ -152,7 +152,7 @@ void BigChar::paintEvent(QPaintEvent *event)
     pen.setStyle(Qt::PenStyle::SolidLine);
 
     State *state = State::getInstance();
-    uint8_t* charPtr = state->getCharAtIndex(_charIndex);
+    quint8* charPtr = state->getCharAtIndex(_charIndex);
 
     for (int y=0; y<_tileSize.height(); y++) {
         for (int x=0; x<_tileSize.width(); x++) {
@@ -167,7 +167,7 @@ void BigChar::paintEvent(QPaintEvent *event)
     painter.end();
 }
 
-void BigChar::paintChar(QPainter& painter, const QPen& pen, uint8_t *charPtr, const QPoint& tileToDraw)
+void BigChar::paintChar(QPainter& painter, const QPen& pen, quint8 *charPtr, const QPoint& tileToDraw)
 {
     State *state = State::getInstance();
 

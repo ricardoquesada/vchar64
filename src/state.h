@@ -34,9 +34,9 @@ public:
     bool openFile(const QString &filename);
     bool save(const QString &filename);
     bool exportRaw(const QString& filename);
-    bool exportPRG(const QString& filename, uint16_t address);
+    bool exportPRG(const QString& filename, quint16 address);
 
-    uint8_t* getCharAtIndex(int index) {
+    quint8* getCharAtIndex(int index) {
         Q_ASSERT(index>=0 && index<256 && "Invalid index");
         return &_chars[index*8];
     }
@@ -45,7 +45,7 @@ public:
     int getCharColor(int charIndex, int bitIndex) const;
 
     void resetCharsBuffer();
-    uint8_t* getCharsBuffer();
+    quint8* getCharsBuffer();
 
     int getColorAtIndex(int index) const {
         Q_ASSERT(index >=0 && index < 4);
@@ -114,7 +114,7 @@ protected:
 
     int _totalChars;
 
-    uint8_t _chars[State::CHAR_BUFFER_SIZE];
+    quint8 _chars[State::CHAR_BUFFER_SIZE];
 
     bool _multiColor;
 
@@ -126,6 +126,6 @@ protected:
     QString _filename;
 
     // max size of tile: 5 x 5
-    uint8_t _copyTile[8 * 5 * 5];
+    quint8 _copyTile[8 * 5 * 5];
 };
 

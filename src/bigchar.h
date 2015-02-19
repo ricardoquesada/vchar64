@@ -48,7 +48,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
-    void paintChar(QPainter& painter, const QPen& pen, uint8_t* charPtr, const QPoint& tileToDraw);
+    void paintChar(QPainter& painter, const QPen& pen, quint8* charPtr, const QPoint& tileToDraw);
     void paintPixel(int x, int y);
 
     int _tileIndex;

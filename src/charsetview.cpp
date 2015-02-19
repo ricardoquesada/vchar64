@@ -124,7 +124,7 @@ void CharSetView::paintEvent(QPaintEvent *event)
         for (int h=0; h<ROWS; h++) {
 
             int index = w + h * COLUMNS;
-            uint8_t* charPtr = state->getCharAtIndex(index);
+            quint8* charPtr = state->getCharAtIndex(index);
 
             for (int y=0; y<8; y++) {
 
