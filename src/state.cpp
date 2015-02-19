@@ -405,3 +405,115 @@ void State::tileRotate(int tileIndex)
         }
     }
 }
+void State::tileShiftLeft(int tileIndex)
+{
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
+    quint8* charPtr = getCharAtIndex(charIndex);
+
+
+    // top tile first
+    for (int y=0; y<_tileSize.height(); y++) {
+
+        // top byte of
+        for (int i=0; i<8; i++) {
+
+            bool leftBit, prevLeftBit = false;
+
+            for (int x=_tileSize.width()-1; x>=0; x--) {
+                leftBit = charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] & (1<<7);
+
+                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] <<= 1;
+
+                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] &= 254;
+                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] |= prevLeftBit;
+
+                prevLeftBit = leftBit;
+            }
+            charPtr[i+(_tileSize.width()-1+y*_tileSize.width())*8*_charInterleaved] &= 254;
+            charPtr[i+(_tileSize.width()-1+y*_tileSize.width())*8*_charInterleaved] |= leftBit;
+        }
+    }
+}
+
+void State::tileShiftRight(int tileIndex)
+{
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
+    quint8* charPtr = getCharAtIndex(charIndex);
+
+
+    // top tile first
+    for (int y=0; y<_tileSize.height(); y++) {
+
+        // top byte of
+        for (int i=0; i<8; i++) {
+
+            bool rightBit, prevRightBit = false;
+
+            for (int x=0; x<_tileSize.width(); x++) {
+                rightBit = charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] & (1<<0);
+
+                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] >>= 1;
+
+                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] &= 127;
+                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] |= (prevRightBit<<7);
+
+                prevRightBit = rightBit;
+            }
+            charPtr[i+(0+y*_tileSize.width())*8*_charInterleaved] &= 127;
+            charPtr[i+(0+y*_tileSize.width())*8*_charInterleaved] |= (rightBit<<7);
+        }
+    }
+}
+
+void State::tileShiftUp(int tileIndex)
+{
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
+    quint8* charPtr = getCharAtIndex(charIndex);
+
+    for (int x=0; x<_tileSize.width(); x++) {
+
+        // bottom byte of bottom
+        qint8 topByte, prevTopByte = 0;
+
+        for (int y=_tileSize.height()-1; y>=0; y--) {
+
+            topByte = charPtr[0+(x+y*_tileSize.width())*8*_charInterleaved];
+
+            for (int i=0; i<7; i++) {
+                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] = charPtr[i+1+(x+y*_tileSize.width())*8*_charInterleaved];
+            }
+
+            charPtr[7+(x+y*_tileSize.width())*8*_charInterleaved] = prevTopByte;
+            prevTopByte = topByte;
+        }
+        // replace bottom byte (y=height-1) with top byte
+        charPtr[7+(x+(_tileSize.height()-1)*_tileSize.width())*8*_charInterleaved] = prevTopByte;
+    }
+}
+
+void State::tileShiftDown(int tileIndex)
+{
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
+    quint8* charPtr = getCharAtIndex(charIndex);
+
+    for (int x=0; x<_tileSize.width(); x++) {
+
+        // bottom byte of bottom
+        qint8 bottomByte, prevBottomByte = 0;
+
+        for (int y=0; y<_tileSize.height(); y++) {
+
+            bottomByte = charPtr[7+(x+y*_tileSize.width())*8*_charInterleaved];
+
+            for (int i=6; i>=0; i--) {
+                charPtr[i+1+(x+y*_tileSize.width())*8*_charInterleaved] = charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved];
+            }
+
+            charPtr[0+(x+y*_tileSize.width())*8*_charInterleaved] = prevBottomByte;
+            prevBottomByte = bottomByte;
+        }
+        // replace top byte (y=0) with bottom byte
+        charPtr[x*8*_charInterleaved] = prevBottomByte;
+    }
+}
+

@@ -323,12 +323,7 @@ void MainWindow::on_actionShiftLeft_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-//    auto buffer = state->getCharAtIndex(index);
-//    for (int i=0; i<8; i++) {
-//        bool highbit = buffer[i] & (1<<7);
-//        buffer[i] <<= 1;
-//        buffer[i] |= highbit;
-//    }
+    state->tileShiftLeft(tileIndex);
 
     update();
 }
@@ -338,13 +333,7 @@ void MainWindow::on_actionShiftRight_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-//    auto buffer = state->getCharAtIndex(index);
-//    for (int i=0; i<8; i++) {
-//        bool lowbit = buffer[i] & (1<<0);
-//        buffer[i] >>= 1;
-//        if (lowbit)
-//        buffer[i] |= (1<<7);
-//    }
+    state->tileShiftRight(tileIndex);
 
     update();
 }
@@ -354,15 +343,7 @@ void MainWindow::on_actionShiftUp_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-//    auto buffer = state->getCharAtIndex(index);
-
-//    auto tmp = buffer[0];
-
-//    for (int i=0; i<7; i++) {
-//        buffer[i] = buffer[i+1];
-//    }
-
-//    buffer[7] = tmp;
+    state->tileShiftUp(tileIndex);
 
     update();
 }
@@ -372,15 +353,7 @@ void MainWindow::on_actionShiftDown_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-//    auto buffer = state->getCharAtIndex(index);
-
-//    auto tmp = buffer[7];
-
-//    for (int i=6; i>=0; i--) {
-//        buffer[i+1] = buffer[i];
-//    }
-
-//    buffer[0] = tmp;
+    state->tileShiftDown(tileIndex);
 
     update();
 }
