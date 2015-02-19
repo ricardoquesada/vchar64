@@ -64,7 +64,7 @@ qint64 StateExport::saveRaw(QFile& file, State* state)
     return total;
 }
 
-qint64 StateExport::savePRG(QFile& file, State* state, u_int16_t address)
+qint64 StateExport::savePRG(QFile& file, State* state, uint16_t address)
 {
     int total = 0;
 

@@ -77,7 +77,7 @@ bool State::exportRaw(const QString& filename)
     return StateExport::saveRaw(file, this);
 }
 
-bool State::exportPRG(const QString& filename, u_int16_t address)
+bool State::exportPRG(const QString& filename, uint16_t address)
 {
     QFile file(filename);
 
@@ -205,7 +205,7 @@ void State::setCharInterleaved(int charInterleaved)
     _charInterleaved = charInterleaved;
 }
 
-u_int8_t* State::getCharsBuffer()
+uint8_t* State::getCharsBuffer()
 {
     return _chars;
 }
@@ -255,7 +255,7 @@ void State::tilePaste(int tileIndex)
 void State::tileInvert(int tileIndex)
 {
     int charIndex = charIndexFromTileIndex(tileIndex);
-    u_int8_t* charPtr = getCharAtIndex(charIndex);
+    uint8_t* charPtr = getCharAtIndex(charIndex);
 
     for (int y=0; y<_tileSize.height(); y++) {
         for (int x=0; x<_tileSize.width(); x++) {
@@ -269,7 +269,7 @@ void State::tileInvert(int tileIndex)
 void State::tileClear(int tileIndex)
 {
     int charIndex = charIndexFromTileIndex(tileIndex);
-    u_int8_t* charPtr = getCharAtIndex(charIndex);
+    uint8_t* charPtr = getCharAtIndex(charIndex);
 
     for (int y=0; y<_tileSize.height(); y++) {
         for (int x=0; x<_tileSize.width(); x++) {
@@ -283,7 +283,7 @@ void State::tileClear(int tileIndex)
 void State::tileFlipHorizontally(int tileIndex)
 {
     int charIndex = charIndexFromTileIndex(tileIndex);
-    u_int8_t* charPtr = getCharAtIndex(charIndex);
+    uint8_t* charPtr = getCharAtIndex(charIndex);
 
     // flip bits
     for (int y=0; y<_tileSize.height(); y++) {
@@ -314,7 +314,7 @@ void State::tileFlipHorizontally(int tileIndex)
 void State::tileFlipVertically(int tileIndex)
 {
     int charIndex = charIndexFromTileIndex(tileIndex);
-    u_int8_t* charPtr = getCharAtIndex(charIndex);
+    uint8_t* charPtr = getCharAtIndex(charIndex);
 
     // flip bits
     for (int y=0; y<_tileSize.height(); y++) {
@@ -343,14 +343,14 @@ void State::tileRotate(int tileIndex)
     Q_ASSERT(_tileSize.width() == _tileSize.height() && "Only square tiles can be rotated");
 
     int charIndex = charIndexFromTileIndex(tileIndex);
-    u_int8_t* charPtr = getCharAtIndex(charIndex);
+    uint8_t* charPtr = getCharAtIndex(charIndex);
 
 
     // rotate each char individually
     for (int y=0; y<_tileSize.height(); y++) {
         for (int x=0; x<_tileSize.width(); x++) {
 
-            u_int8_t tmp[8];
+            uint8_t tmp[8];
             memset(tmp, 0, sizeof(tmp));
 
             for (int i=0; i<8; i++) {
@@ -368,7 +368,7 @@ void State::tileRotate(int tileIndex)
 
     // avoid uneened copy&paste + rotation if size is 1x1
     if (_tileSize.width()>1) {
-        u_int8_t *tmp = (u_int8_t*) alloca(_tileSize.width()*_tileSize.height()*8);
+        uint8_t *tmp = (uint8_t*) alloca(_tileSize.width()*_tileSize.height()*8);
 
         // place the rotated chars in a rotated tmp buffer
         for (int y=0; y<_tileSize.height(); y++) {
