@@ -49,3 +49,15 @@ void TilePropertiesDialog::on_buttonBox_accepted()
 
     emit tilePropertiesChanged();
 }
+
+void TilePropertiesDialog::on_spinBoxSizeX_editingFinished()
+{
+    int x = ui->spinBoxSizeX->value();
+    int y = ui->spinBoxSizeY->value();
+    ui->spinBoxInterleaved->setMaximum(256/(x*y));
+}
+
+void TilePropertiesDialog::on_spinBoxSizeY_editingFinished()
+{
+    on_spinBoxSizeX_editingFinished();
+}

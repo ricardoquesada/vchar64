@@ -36,6 +36,10 @@ signals:
 private slots:
     void on_buttonBox_accepted();
 
+    void on_spinBoxSizeX_editingFinished();
+
+    void on_spinBoxSizeY_editingFinished();
+
 private:
     Ui::TilePropertiesDialog *ui;
 };

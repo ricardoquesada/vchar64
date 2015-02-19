@@ -24,6 +24,11 @@ limitations under the License.
 class State
 {
 public:
+    union Char {
+        quint64 _char64;
+        quint8 _char8[8];
+    };
+
     // only 256 chars at the time
     const static int CHAR_BUFFER_SIZE = 8 * 256;
 
@@ -36,9 +41,9 @@ public:
     bool exportRaw(const QString& filename);
     bool exportPRG(const QString& filename, quint16 address);
 
-    quint8* getCharAtIndex(int index) {
-        Q_ASSERT(index>=0 && index<256 && "Invalid index");
-        return &_chars[index*8];
+    quint8* getCharAtIndex(int charIndex) {
+        Q_ASSERT(charIndex>=0 && charIndex<256 && "Invalid index");
+        return &_chars[charIndex*8];
     }
 
     void setCharColor(int charIndex, int bitIndex, int colorIndex);
@@ -52,10 +57,10 @@ public:
         return _colors[index];
     }
 
-    void setColorAtIndex(int index, int color) {
-        Q_ASSERT(index >=0 && index < 4);
+    void setColorAtIndex(int colorIndex, int color) {
+        Q_ASSERT(colorIndex >=0 && colorIndex < 4);
         Q_ASSERT(color >=0 && color < 16);
-        _colors[index] = color;
+        _colors[colorIndex] = color;
     }
 
     int getCurrentColor() const {
@@ -96,6 +101,9 @@ public:
     int charIndexFromTileIndex(int tileIndex) const;
     int tileIndexFromCharIndex(int charIndex) const;
 
+    Char getCharFromTile(int tileIndex, int x, int y) const;
+    void setCharForTile(int tileIndex, int x, int y, const Char& chr);
+
     void tileCopy(int tileIndex);
     void tilePaste(int tileIndex);
     void tileInvert(int tileIndex);
@@ -108,7 +116,7 @@ public:
     void tileShiftUp(int tileIndex);
     void tileShiftDown(int tileIndex);
 
-protected:
+protected:    
     State();
     ~State();
 

@@ -236,6 +236,26 @@ int State::tileIndexFromCharIndex(int charIndex) const
     return tileIndex;
 }
 
+State::Char State::getCharFromTile(int tileIndex, int x, int y) const
+{
+    Char ret;
+    int charIndex = charIndexFromTileIndex(tileIndex);
+
+    for (int i=0; i<8; i++) {
+        ret._char8[i] = _chars[charIndex*8+i+(x+y*_tileSize.width())*8*_charInterleaved];
+    }
+    return ret;
+}
+
+void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
+{
+    int charIndex = charIndexFromTileIndex(tileIndex);
+
+    for (int i=0; i<8; i++) {
+        _chars[charIndex*8+i+(x+y*_tileSize.width())*8*_charInterleaved] = chr._char8[i];
+    }
+}
+
 
 // tile manipulation
 void State::tileCopy(int tileIndex)
@@ -350,45 +370,37 @@ void State::tileRotate(int tileIndex)
     for (int y=0; y<_tileSize.height(); y++) {
         for (int x=0; x<_tileSize.width(); x++) {
 
-            quint8 tmp[8];
-            memset(tmp, 0, sizeof(tmp));
+            Char tmpchr;
+            memset(tmpchr._char8, 0, sizeof(tmpchr));
 
             for (int i=0; i<8; i++) {
                 for (int j=0; j<8; j++) {
                     if (charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] & (1<<(7-j)))
-                        tmp[j] |= (1<<i);
+                        tmpchr._char8[j] |= (1<<i);
                 }
             }
 
-            for (int i=0; i<8; i++)
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] = tmp[i];
+            setCharForTile(tileIndex, x, y, tmpchr);
         }
     }
 
 
     // replace the chars in the correct order.
     if (_tileSize.width()>1) {
-        quint8 *tmp = (quint8*) alloca(_tileSize.width()*_tileSize.height()*8);
+        Char tmpchars[_tileSize.width()*_tileSize.height()];
 
         // place the rotated chars in a rotated tmp buffer
         for (int y=0; y<_tileSize.height(); y++) {
             for (int x=0; x<_tileSize.width(); x++) {
-
-                for (int i=0; i<8; i++) {
-                    // tmp[y,width-1-x] = tile[x,y];
-                    tmp[i+(y+(_tileSize.width()-1-x)*_tileSize.width())*8] = charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved];
-                }
+                // rotate them: tmpchars[w-y-1,x] = tile[x,y];
+                tmpchars[(_tileSize.width()-1-y) + x * _tileSize.width()] = getCharFromTile(tileIndex, x, y);
             }
         }
 
         // place the rotated tmp buffer in the final position
         for (int y=0; y<_tileSize.height(); y++) {
             for (int x=0; x<_tileSize.width(); x++) {
-
-                for (int i=0; i<8; i++) {
-                    // tile[x,y] = tmp[x,y]
-                    charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] = tmp[i+(x+y*_tileSize.width())*8];
-                }
+                    setCharForTile(tileIndex, x, y, tmpchars[x + _tileSize.width() * y]);
             }
         }
     }
