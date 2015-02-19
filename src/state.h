@@ -49,9 +49,6 @@ public:
     void setCharColor(int charIndex, int bitIndex, int colorIndex);
     int getCharColor(int charIndex, int bitIndex) const;
 
-    void resetCharsBuffer();
-    quint8* getCharsBuffer();
-
     int getColorAtIndex(int index) const {
         Q_ASSERT(index >=0 && index < 4);
         return _colors[index];
@@ -98,11 +95,17 @@ public:
         return _charInterleaved;
     }
 
-    int charIndexFromTileIndex(int tileIndex) const;
-    int tileIndexFromCharIndex(int charIndex) const;
+    //
+    int getCharIndexFromTileIndex(int tileIndex) const;
+    int getTileIndexFromCharIndex(int charIndex) const;
+
+    void resetCharsBuffer();
+    quint8* getCharsBuffer();
 
     Char getCharFromTile(int tileIndex, int x, int y) const;
     void setCharForTile(int tileIndex, int x, int y, const Char& chr);
+
+    //
 
     void tileCopy(int tileIndex);
     void tilePaste(int tileIndex);

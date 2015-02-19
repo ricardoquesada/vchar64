@@ -44,7 +44,7 @@ void CharSetView::mousePressEvent(QMouseEvent * event)
     int charIndex = x + y * COLUMNS;
 
     auto state = State::getInstance();
-    int tileIndex = state->tileIndexFromCharIndex(charIndex);
+    int tileIndex = state->getTileIndexFromCharIndex(charIndex);
 
     emit tileSelected(tileIndex);
 }
@@ -81,7 +81,7 @@ void CharSetView::keyPressEvent(QKeyEvent *event)
     // reverse calculation. From char index to tile index
     int charIndex = _cursorPos.x() + _cursorPos.y() * COLUMNS;
     auto state = State::getInstance();
-    int tileIndex = state->tileIndexFromCharIndex(charIndex);
+    int tileIndex = state->getTileIndexFromCharIndex(charIndex);
 
     emit tileSelected(tileIndex);
 }
@@ -167,7 +167,7 @@ void CharSetView::paintEvent(QPaintEvent *event)
 void CharSetView::setTileIndex(int tileIndex)
 {
     auto state = State::getInstance();
-    int charIndex = state->charIndexFromTileIndex(tileIndex);
+    int charIndex = state->getCharIndexFromTileIndex(tileIndex);
 
     QPoint p;
     p.setX(charIndex % COLUMNS);

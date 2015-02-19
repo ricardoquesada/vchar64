@@ -229,7 +229,7 @@ void BigChar::setTileIndex(int tileIndex)
 
     if (_tileIndex != tileIndex) {
         _tileIndex = tileIndex;
-        _charIndex = state->charIndexFromTileIndex(_tileIndex);
+        _charIndex = state->getCharIndexFromTileIndex(_tileIndex);
         update();
     }
 }

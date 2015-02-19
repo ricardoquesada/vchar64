@@ -216,7 +216,7 @@ void State::resetCharsBuffer()
 }
 
 // helper functions
-int State::charIndexFromTileIndex(int tileIndex) const
+int State::getCharIndexFromTileIndex(int tileIndex) const
 {
     int charIndex = tileIndex;
     if (_charInterleaved==1) {
@@ -226,7 +226,7 @@ int State::charIndexFromTileIndex(int tileIndex) const
     return charIndex;
 }
 
-int State::tileIndexFromCharIndex(int charIndex) const
+int State::getTileIndexFromCharIndex(int charIndex) const
 {
     int tileIndex = charIndex;
     if (_charInterleaved==1) {
@@ -239,7 +239,7 @@ int State::tileIndexFromCharIndex(int charIndex) const
 State::Char State::getCharFromTile(int tileIndex, int x, int y) const
 {
     Char ret;
-    int charIndex = charIndexFromTileIndex(tileIndex);
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
 
     for (int i=0; i<8; i++) {
         ret._char8[i] = _chars[charIndex*8+i+(x+y*_tileSize.width())*8*_charInterleaved];
@@ -249,7 +249,7 @@ State::Char State::getCharFromTile(int tileIndex, int x, int y) const
 
 void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
 {
-    int charIndex = charIndexFromTileIndex(tileIndex);
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
 
     for (int i=0; i<8; i++) {
         _chars[charIndex*8+i+(x+y*_tileSize.width())*8*_charInterleaved] = chr._char8[i];
@@ -261,20 +261,20 @@ void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
 void State::tileCopy(int tileIndex)
 {
     int tileSize = _tileSize.width() * _tileSize.height() * 8;
-    Q_ASSERT(tileIndex>=0 && tileIndex<tileIndexFromCharIndex(256) && "invalid index value");
+    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(_copyTile, &_chars[tileIndex*tileSize], tileSize);
 }
 
 void State::tilePaste(int tileIndex)
 {
     int tileSize = _tileSize.width() * _tileSize.height() * 8;
-    Q_ASSERT(tileIndex>=0 && tileIndex<tileIndexFromCharIndex(256) && "invalid index value");
+    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(&_chars[tileIndex*tileSize], _copyTile, tileSize);
 }
 
 void State::tileInvert(int tileIndex)
 {
-    int charIndex = charIndexFromTileIndex(tileIndex);
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
     for (int y=0; y<_tileSize.height(); y++) {
@@ -288,7 +288,7 @@ void State::tileInvert(int tileIndex)
 
 void State::tileClear(int tileIndex)
 {
-    int charIndex = charIndexFromTileIndex(tileIndex);
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
     for (int y=0; y<_tileSize.height(); y++) {
@@ -302,7 +302,7 @@ void State::tileClear(int tileIndex)
 
 void State::tileFlipHorizontally(int tileIndex)
 {
-    int charIndex = charIndexFromTileIndex(tileIndex);
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
     // flip bits
@@ -333,7 +333,7 @@ void State::tileFlipHorizontally(int tileIndex)
 
 void State::tileFlipVertically(int tileIndex)
 {
-    int charIndex = charIndexFromTileIndex(tileIndex);
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
     // flip bits
@@ -362,7 +362,7 @@ void State::tileRotate(int tileIndex)
 {
     Q_ASSERT(_tileSize.width() == _tileSize.height() && "Only square tiles can be rotated");
 
-    int charIndex = charIndexFromTileIndex(tileIndex);
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
 
