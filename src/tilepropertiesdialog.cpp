@@ -41,7 +41,7 @@ void TilePropertiesDialog::on_buttonBox_accepted()
 {
     int w = ui->spinBoxSizeX->value();
     int h = ui->spinBoxSizeY->value();
-    int interleaved =  ui->spinBoxInterleaved->value();
+    int interleaved = ui->spinBoxInterleaved->value();
 
     auto state = State::getInstance();
     state->setTileSize(QSize(w,h));

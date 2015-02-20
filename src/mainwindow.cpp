@@ -85,6 +85,9 @@ void MainWindow::createDefaults()
 
     auto state = State::getInstance();
     state->openFile(":/c64-chargen.bin");
+    state->setTileSize({1,1});
+    state->setCharInterleaved(1);
+    state->setMultiColor(false);
 }
 
 void MainWindow::updateRecentFiles()
@@ -167,6 +170,10 @@ void MainWindow::on_actionC64Default_triggered()
 {
     auto state = State::getInstance();
     state->openFile(":/c64-chargen.bin");
+    state->setTileSize({1,1});
+    state->setCharInterleaved(1);
+    state->setMultiColor(false);
+
     update();
     setTitle("[untitled]");
 }

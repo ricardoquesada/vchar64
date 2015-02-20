@@ -38,6 +38,11 @@ qint64 StateExport::saveVChar64(QFile& file, State* state)
     chars = qToLittleEndian(chars);
     header.num_chars = chars;
 
+    auto tileSize = state->getTileSize();
+    header.tile_width = tileSize.width();
+    header.tile_height = tileSize.height();
+    header.char_interleaved = state->getCharInterleaved();
+
     header.vic_res = state->isMultiColor();
 
     QByteArray arrayHeader((const char*)&header, sizeof(header));

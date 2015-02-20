@@ -67,7 +67,7 @@ qint64 StateImport::loadCTM(QFile& file, State *state)
 
     size = file.read((char*)&header, sizeof(header));
     if (size<sizeof(header))
-        return false;
+        return -1;
 
     int num_chars = qFromLittleEndian((int)header.num_chars);
     int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
@@ -96,7 +96,7 @@ qint64 StateImport::loadVChar64(QFile& file, State *state)
 
     size = file.read((char*)&header, sizeof(header));
     if (size<sizeof(header))
-        return false;
+        return -1;
 
     int num_chars = qFromLittleEndian((int)header.num_chars);
     int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
@@ -110,6 +110,8 @@ qint64 StateImport::loadVChar64(QFile& file, State *state)
         state->setColorAtIndex(i, header.colors[i]);
 
     state->setMultiColor(header.vic_res);
+    state->setTileSize(QSize(header.tile_height, header.tile_height));
+    state->setCharInterleaved(header.char_interleaved);
 
     return total;
 }
