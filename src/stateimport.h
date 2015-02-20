@@ -24,16 +24,16 @@ class StateImport
 {
 public:
     // loads a raw file
-    static qint64 loadRaw(QFile& file, State* state);
+    static qint64 loadRaw(State* state, QFile& file);
 
     // loads a PRG / 64C file. Same a raw, but the first 2 characters are ignored
-    static qint64 loadPRG(QFile& file, State* state);
+    static qint64 loadPRG(State* state, QFile& file);
 
     // loads a CharPad project file
-    static qint64 loadCTM(QFile& file, State* state);
+    static qint64 loadCTM(State* state, QFile& file);
 
     // loads a VChar64 project file
-    static qint64 loadVChar64(QFile& file, State* state);
+    static qint64 loadVChar64(State* state, QFile& file);
 
 
 

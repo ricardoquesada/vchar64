@@ -22,7 +22,7 @@ limitations under the License.
 
 #include "state.h"
 
-qint64 StateImport::loadRaw(QFile& file, State* state)
+qint64 StateImport::loadRaw(State* state, QFile& file)
 {
     auto size = file.size() - file.pos();
     if (size % 8 !=0) {
@@ -41,7 +41,7 @@ qint64 StateImport::loadRaw(QFile& file, State* state)
     return total;
 }
 
-qint64 StateImport::loadPRG(QFile& file, State* state)
+qint64 StateImport::loadPRG(State *state, QFile& file)
 {
     auto size = file.size();
     if (size < 10) { // 2 + 8 (at least one char)
@@ -53,10 +53,10 @@ qint64 StateImport::loadPRG(QFile& file, State* state)
     char buf[2];
     file.read(buf,2);
 
-    return StateImport::loadRaw(file, state);
+    return StateImport::loadRaw(state, file);
 }
 
-qint64 StateImport::loadCTM(QFile& file, State *state)
+qint64 StateImport::loadCTM(State *state, QFile& file)
 {
     struct CTMHeader header;
     auto size = file.size();
@@ -85,7 +85,7 @@ qint64 StateImport::loadCTM(QFile& file, State *state)
     return total;
 }
 
-qint64 StateImport::loadVChar64(QFile& file, State *state)
+qint64 StateImport::loadVChar64(State *state, QFile& file)
 {
     struct VChar64Header header;
     auto size = file.size();

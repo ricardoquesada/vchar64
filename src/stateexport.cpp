@@ -22,7 +22,7 @@ limitations under the License.
 #include "stateimport.h"
 #include "state.h"
 
-qint64 StateExport::saveVChar64(QFile& file, State* state)
+qint64 StateExport::saveVChar64(State* state, QFile& file)
 {
     StateImport::VChar64Header header;
 
@@ -58,7 +58,7 @@ qint64 StateExport::saveVChar64(QFile& file, State* state)
     return total;
 }
 
-qint64 StateExport::saveRaw(QFile& file, State* state)
+qint64 StateExport::saveRaw(State* state, QFile& file)
 {
     int total = 0;
     auto buffer = state->getCharsBuffer();
@@ -69,7 +69,7 @@ qint64 StateExport::saveRaw(QFile& file, State* state)
     return total;
 }
 
-qint64 StateExport::savePRG(QFile& file, State* state, quint16 address)
+qint64 StateExport::savePRG(State* state, QFile& file, quint16 address)
 {
     int total = 0;
 

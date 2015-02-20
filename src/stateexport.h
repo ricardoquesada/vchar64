@@ -20,9 +20,10 @@ limitations under the License.
 
 class State;
 
-namespace StateExport
+class StateExport
 {
-    qint64 saveVChar64(QFile& file, State* state);
-    qint64 saveRaw(QFile &file, State* state);
-    qint64 savePRG(QFile &file, State* state, quint16 address);
-}
+public:
+    static qint64 saveVChar64(State* state, QFile& file);
+    static qint64 saveRaw(State* state, QFile &file);
+    static qint64 savePRG(State* state, QFile &file, quint16 address);
+};

@@ -77,7 +77,7 @@ bool State::exportRaw(const QString& filename)
 
     if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
         return false;
-    return StateExport::saveRaw(file, this);
+    return StateExport::saveRaw(this, file);
 }
 
 bool State::exportPRG(const QString& filename, quint16 address)
@@ -86,7 +86,7 @@ bool State::exportPRG(const QString& filename, quint16 address)
 
     if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
         return false;
-    return StateExport::savePRG(file, this, address);
+    return StateExport::savePRG(this, file, address);
 }
 
 bool State::openFile(const QString& filename)
@@ -101,20 +101,20 @@ bool State::openFile(const QString& filename)
     QFileInfo info(file);
     if (info.suffix() == "vchar64proj")
     {
-        length = StateImport::loadVChar64(file, this);
+        length = StateImport::loadVChar64(this, file);
         _filename = filename;
     }
     else if ((info.suffix() == "64c") || (info.suffix() == "prg"))
     {
-        length = StateImport::loadPRG(file, this);
+        length = StateImport::loadPRG(this, file);
     }
     else if(info.suffix() == "ctm")
     {
-        length = StateImport::loadCTM(file, this);
+        length = StateImport::loadCTM(this, file);
     }
     else
     {
-        length = StateImport::loadRaw(file, this);
+        length = StateImport::loadRaw(this, file);
     }
 
     file.close();
@@ -136,7 +136,7 @@ bool State::save(const QString &filename)
 
     qint64 length=0;
 
-    length = StateExport::saveVChar64(file, this);
+    length = StateExport::saveVChar64(this, file);
 
     file.close();
 
