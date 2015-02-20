@@ -46,7 +46,6 @@ public:
     static State* getInstance();
 
     void reset();
-
     bool openFile(const QString &filename);
     bool save(const QString &filename);
     bool exportRaw(const QString& filename);
@@ -109,11 +108,7 @@ public:
     quint8* getCharsBuffer();
     void resetCharsBuffer();
 
-    Char getCharFromTile(int tileIndex, int x, int y) const;
-    void setCharForTile(int tileIndex, int x, int y, const Char& chr);
-
     //
-
     void tileCopy(int tileIndex);
     void tilePaste(int tileIndex);
     void tileInvert(int tileIndex);
@@ -144,6 +139,10 @@ public slots:
 protected:    
     State();
     virtual ~State();
+
+    Char getCharFromTile(int tileIndex, int x, int y) const;
+    void setCharForTile(int tileIndex, int x, int y, const Char& chr);
+
 
     int _totalChars;
 

@@ -197,7 +197,11 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     // and 'or' it with colorIndex
     c |= colorIndex << ((modulus-1)-b) * factor;
 
-    _chars[charIndex*8 + bitIndex/8] = c;
+    quint8 oldValue = _chars[charIndex*8 + bitIndex/8];
+    if (oldValue != c) {
+        _chars[charIndex*8 + bitIndex/8] = c;
+        emit tileUpdated();
+    }
 }
 
 void State::setTileProperties(const TileProperties &properties)
@@ -239,26 +243,6 @@ int State::getTileIndexFromCharIndex(int charIndex) const
     return tileIndex;
 }
 
-State::Char State::getCharFromTile(int tileIndex, int x, int y) const
-{
-    Char ret;
-    int charIndex = getCharIndexFromTileIndex(tileIndex);
-
-    for (int i=0; i<8; i++) {
-        ret._char8[i] = _chars[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
-    }
-    return ret;
-}
-
-void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
-{
-    int charIndex = getCharIndexFromTileIndex(tileIndex);
-
-    for (int i=0; i<8; i++) {
-        _chars[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = chr._char8[i];
-    }
-}
-
 
 // tile manipulation
 void State::tileCopy(int tileIndex)
@@ -266,6 +250,8 @@ void State::tileCopy(int tileIndex)
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(_copyTile, &_chars[tileIndex*tileSize], tileSize);
+
+    emit tileUpdated();
 }
 
 void State::tilePaste(int tileIndex)
@@ -287,6 +273,8 @@ void State::tileInvert(int tileIndex)
             }
         }
     }
+
+    emit tileUpdated();
 }
 
 void State::tileClear(int tileIndex)
@@ -301,6 +289,8 @@ void State::tileClear(int tileIndex)
             }
         }
     }
+
+    emit tileUpdated();
 }
 
 void State::tileFlipHorizontally(int tileIndex)
@@ -332,6 +322,8 @@ void State::tileFlipHorizontally(int tileIndex)
             }
         }
     }
+
+    emit tileUpdated();
 }
 
 void State::tileFlipVertically(int tileIndex)
@@ -359,6 +351,8 @@ void State::tileFlipVertically(int tileIndex)
             }
         }
     }
+
+    emit tileUpdated();
 }
 
 void State::tileRotate(int tileIndex)
@@ -407,6 +401,8 @@ void State::tileRotate(int tileIndex)
             }
         }
     }
+
+    emit tileUpdated();
 }
 void State::tileShiftLeft(int tileIndex)
 {
@@ -436,6 +432,8 @@ void State::tileShiftLeft(int tileIndex)
             charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= leftBit;
         }
     }
+
+    emit tileUpdated();
 }
 
 void State::tileShiftRight(int tileIndex)
@@ -466,6 +464,8 @@ void State::tileShiftRight(int tileIndex)
             charPtr[i+(0+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (rightBit<<7);
         }
     }
+
+    emit tileUpdated();
 }
 
 void State::tileShiftUp(int tileIndex)
@@ -492,6 +492,8 @@ void State::tileShiftUp(int tileIndex)
         // replace bottom byte (y=height-1) with top byte
         charPtr[7+(x+(_tileProperties.size.height()-1)*_tileProperties.size.width())*8*_tileProperties.interleaved] = prevTopByte;
     }
+
+    emit tileUpdated();
 }
 
 void State::tileShiftDown(int tileIndex)
@@ -517,6 +519,33 @@ void State::tileShiftDown(int tileIndex)
         }
         // replace top byte (y=0) with bottom byte
         charPtr[x*8*_tileProperties.interleaved] = prevBottomByte;
+    }
+
+    emit tileUpdated();
+}
+
+
+//
+// Helpers
+// They must not emit signals
+//
+State::Char State::getCharFromTile(int tileIndex, int x, int y) const
+{
+    Char ret;
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
+
+    for (int i=0; i<8; i++) {
+        ret._char8[i] = _chars[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
+    }
+    return ret;
+}
+
+void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
+{
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
+
+    for (int i=0; i<8; i++) {
+        _chars[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = chr._char8[i];
     }
 }
 
