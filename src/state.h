@@ -16,17 +16,28 @@ limitations under the License.
 
 #pragma once
 
+#include <QObject>
 #include <QString>
 #include <QSize>
 
 #include <string>
+#include "stateimport.h"
 
-class State
+class State : public QObject
 {
+    Q_OBJECT
+
+    friend class StateImport;
+
 public:
     union Char {
         quint64 _char64;
         quint8 _char8[8];
+    };
+
+    struct TileProperties {
+        QSize size;
+        int interleaved;
     };
 
     // only 256 chars at the time
@@ -46,8 +57,8 @@ public:
         return &_chars[charIndex*8];
     }
 
-    void setCharColor(int charIndex, int bitIndex, int colorIndex);
     int getCharColor(int charIndex, int bitIndex) const;
+    void setCharColor(int charIndex, int bitIndex, int colorIndex);
 
     int getColorAtIndex(int index) const {
         Q_ASSERT(index >=0 && index < 4);
@@ -85,22 +96,18 @@ public:
         return _filename;
     }
 
-    void setTileSize(const QSize& tileSize);
-    QSize getTileSize() const {
-        return _tileSize;
-    }
-
-    void setCharInterleaved(int interleaved);
-    int getCharInterleaved() const {
-        return _charInterleaved;
+    // tile properties
+    void setTileProperties(const TileProperties &properties);
+    TileProperties getTileProperties() const {
+        return _tileProperties;
     }
 
     //
     int getCharIndexFromTileIndex(int tileIndex) const;
     int getTileIndexFromCharIndex(int charIndex) const;
 
-    void resetCharsBuffer();
     quint8* getCharsBuffer();
+    void resetCharsBuffer();
 
     Char getCharFromTile(int tileIndex, int x, int y) const;
     void setCharForTile(int tileIndex, int x, int y, const Char& chr);
@@ -119,9 +126,24 @@ public:
     void tileShiftUp(int tileIndex);
     void tileShiftDown(int tileIndex);
 
+signals:
+    // file loaded, or new project
+    void fileLoaded();
+
+    // when tile size or interleaved changes
+    void tilePropertiesUpdated();
+
+    // at least one pixel changes in the tile
+    void tileUpdated();
+
+    // multi-color / hires or new colors
+    void colorPropertiesUpdated();
+
+public slots:
+
 protected:    
     State();
-    ~State();
+    virtual ~State();
 
     int _totalChars;
 
@@ -131,8 +153,8 @@ protected:
 
     int _selectedColorIndex;
     int _colors[4];
-    QSize _tileSize;
-    int _charInterleaved;
+
+    TileProperties _tileProperties;
 
     QString _filename;
 

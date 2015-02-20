@@ -30,9 +30,6 @@ public:
     explicit TilePropertiesDialog(QWidget *parent = 0);
     ~TilePropertiesDialog();
 
-signals:
-    void tilePropertiesChanged();
-
 private slots:
     void on_buttonBox_accepted();
 

@@ -33,8 +33,7 @@ BigChar::BigChar(QWidget *parent)
     , _tileIndex(0)
     , _charIndex(0)
     , _cursorPos({0,0})
-    , _tileSize({1,1})
-    , _charInterleaved(1)
+    , _tileProperties({{1,1},1})
     , _pixelSize({32,32})
 {
     setFixedSize(WIDGET_WIDTH, WIDGET_HEIGHT);
@@ -50,7 +49,7 @@ void BigChar::paintPixel(int x, int y)
     if (!state->isMultiColor() && selectedColor)
         selectedColor = 1;
 
-    int charIndex = _charIndex + (x/8) * _charInterleaved + (y/8) * _charInterleaved * _tileSize.width();
+    int charIndex = _charIndex + (x/8) * _tileProperties.interleaved + (y/8) * _tileProperties.interleaved * _tileProperties.size.width();
     state->setCharColor(charIndex, bitIndex, selectedColor);
 
     dynamic_cast<QWidget*>(parent())->update();
@@ -62,7 +61,7 @@ void BigChar::mousePressEvent(QMouseEvent * event)
 
     int x = pos.x() / _pixelSize.width();
     int y = pos.y() / _pixelSize.height();
-    if( x>=8*_tileSize.width() || y>=8*_tileSize.height())
+    if( x>=8*_tileProperties.size.width() || y>=8*_tileProperties.size.height())
         return;
 
     _cursorPos = {x,y};
@@ -76,7 +75,7 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
 
     int x = pos.x() / _pixelSize.width();
     int y = pos.y() / _pixelSize.height();
-    if( x>=8*_tileSize.width() || y>=8*_tileSize.height())
+    if( x>=8*_tileProperties.size.width() || y>=8*_tileProperties.size.height())
         return;
 
     _cursorPos = {x,y};
@@ -132,8 +131,8 @@ void BigChar::keyPressEvent(QKeyEvent *event)
     default:
         QWidget::keyPressEvent(event);
     }
-    _cursorPos = {qBound(0, _cursorPos.x(), 8*_tileSize.width()-1),
-                  qBound(0, _cursorPos.y(), 8*_tileSize.height()-1)};
+    _cursorPos = {qBound(0, _cursorPos.x(), 8*_tileProperties.size.width()-1),
+                  qBound(0, _cursorPos.y(), 8*_tileProperties.size.height()-1)};
     update();
 }
 
@@ -154,13 +153,13 @@ void BigChar::paintEvent(QPaintEvent *event)
     State *state = State::getInstance();
     quint8* charPtr = state->getCharAtIndex(_charIndex);
 
-    for (int y=0; y<_tileSize.height(); y++) {
-        for (int x=0; x<_tileSize.width(); x++) {
+    for (int y=0; y<_tileProperties.size.height(); y++) {
+        for (int x=0; x<_tileProperties.size.width(); x++) {
             QPoint tileToDraw(x,y);
 
             paintChar(painter, pen, charPtr, tileToDraw);
             // chars could be 64 chars away from each other
-            charPtr += _charInterleaved * 8;
+            charPtr +=  _tileProperties.interleaved * 8;
         }
     }
 
@@ -237,11 +236,10 @@ void BigChar::setTileIndex(int tileIndex)
 void BigChar::updateTileProperties()
 {
     auto state = State::getInstance();
-    _tileSize = state->getTileSize();
-    _charInterleaved = state->getCharInterleaved();
+    _tileProperties = state->getTileProperties();
 
     // keep aspect ratio
-    int max = qMax(_tileSize.width(), _tileSize.height());
+    int max = qMax(_tileProperties.size.width(), _tileProperties.size.height());
     _pixelSize.setWidth(WIDGET_WIDTH / (8*max));
     _pixelSize.setHeight(WIDGET_HEIGHT / (8*max));
     update();

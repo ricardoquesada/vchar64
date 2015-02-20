@@ -41,7 +41,6 @@ MainWindow::MainWindow(QWidget *parent)
     _ui->setupUi(this);
 
     createActions();
-    createMenus();
     createDefaults();
 }
 
@@ -57,15 +56,9 @@ void MainWindow::setTitle(const QString &title)
 
 void MainWindow::createActions()
 {
-    // FIXME should be on a different method
-    _ui->colorRect_0->setColorIndex(0);
-    _ui->colorRect_1->setColorIndex(3);
-    _ui->colorRect_2->setColorIndex(1);
-    _ui->colorRect_3->setColorIndex(2);
-}
+    auto state = State::getInstance();
+    connect(state, &State::tilePropertiesUpdated, _ui->bigchar, &BigChar::updateTileProperties);
 
-void MainWindow::createMenus()
-{
     // Add recent file actions to the recent files menu
     for (int i=0; i<MAX_RECENT_FILES; ++i)
     {
@@ -76,6 +69,13 @@ void MainWindow::createMenus()
     }
     _ui->menuRecentFiles->insertSeparator(_ui->actionClearRecentFiles);
     updateRecentFiles();
+
+
+    // FIXME should be on a different method
+    _ui->colorRect_0->setColorIndex(0);
+    _ui->colorRect_1->setColorIndex(3);
+    _ui->colorRect_2->setColorIndex(1);
+    _ui->colorRect_3->setColorIndex(2);
 }
 
 void MainWindow::createDefaults()
@@ -85,8 +85,12 @@ void MainWindow::createDefaults()
 
     auto state = State::getInstance();
     state->openFile(":/c64-chargen.bin");
-    state->setTileSize({1,1});
-    state->setCharInterleaved(1);
+
+    State::TileProperties properties;
+    properties.size = {1,1};
+    properties.interleaved = 1;
+    state->setTileProperties(properties);
+
     state->setMultiColor(false);
 }
 
@@ -170,8 +174,10 @@ void MainWindow::on_actionC64Default_triggered()
 {
     auto state = State::getInstance();
     state->openFile(":/c64-chargen.bin");
-    state->setTileSize({1,1});
-    state->setCharInterleaved(1);
+    State::TileProperties properties;
+    properties.size = {1,1};
+    properties.interleaved = 1;
+    state->setTileProperties(properties);
     state->setMultiColor(false);
 
     update();
@@ -411,12 +417,11 @@ void MainWindow::on_actionTilesProperties_triggered()
 {
     TilePropertiesDialog dialog(this);
 
-    connect(&dialog, &TilePropertiesDialog::tilePropertiesChanged, _ui->bigchar, &BigChar::updateTileProperties);
     dialog.exec();
 
     // update max tile index
     auto state = State::getInstance();
-    QSize s = state->getTileSize();
+    QSize s = state->getTileProperties().size;
     _ui->spinBox->setMaximum((256 / (s.width()*s.height()))-1);
 
     // rotate only enable if witdh==height

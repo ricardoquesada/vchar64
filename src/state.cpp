@@ -16,6 +16,8 @@ limitations under the License.
 
 #include "state.h"
 
+#include <string.h>
+
 #include <algorithm>
 #include <QFile>
 #include <QFileInfo>
@@ -40,8 +42,7 @@ State::State()
     , _multiColor(false)
     , _selectedColorIndex(3)
     , _colors{1,12,15,0}
-    , _tileSize{1,1}
-    , _charInterleaved(1)
+    , _tileProperties{{1,1},1}
     , _filename("")
 {
     memset(_copyTile, 0, sizeof(_copyTile));
@@ -61,11 +62,13 @@ void State::reset()
     _colors[1] = 12;
     _colors[2] = 15;
     _colors[3] = 0;
-    _tileSize = {1,1};
-    _charInterleaved = 1;
+    _tileProperties.size = {1,1};
+    _tileProperties.interleaved = 1;
     _filename = "";
 
     memset(_chars, 0, sizeof(_chars));
+
+    emit fileLoaded();
 }
 
 bool State::exportRaw(const QString& filename)
@@ -118,6 +121,8 @@ bool State::openFile(const QString& filename)
 
     if(length<=0)
         return false;
+
+    emit fileLoaded();
 
     return true;
 }
@@ -195,14 +200,12 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     _chars[charIndex*8 + bitIndex/8] = c;
 }
 
-void State::setTileSize(const QSize& tileSize)
+void State::setTileProperties(const TileProperties &properties)
 {
-    _tileSize = tileSize;
-}
-
-void State::setCharInterleaved(int charInterleaved)
-{
-    _charInterleaved = charInterleaved;
+    if (memcmp(&_tileProperties, &properties, sizeof(_tileProperties)) != 0) {
+        _tileProperties = properties;
+        emit tilePropertiesUpdated();
+    }
 }
 
 quint8* State::getCharsBuffer()
@@ -219,8 +222,8 @@ void State::resetCharsBuffer()
 int State::getCharIndexFromTileIndex(int tileIndex) const
 {
     int charIndex = tileIndex;
-    if (_charInterleaved==1) {
-        charIndex *= (_tileSize.width() * _tileSize.height());
+    if (_tileProperties.interleaved==1) {
+        charIndex *= (_tileProperties.size.width() * _tileProperties.size.height());
     }
 
     return charIndex;
@@ -229,8 +232,8 @@ int State::getCharIndexFromTileIndex(int tileIndex) const
 int State::getTileIndexFromCharIndex(int charIndex) const
 {
     int tileIndex = charIndex;
-    if (_charInterleaved==1) {
-        tileIndex /= (_tileSize.width() * _tileSize.height());
+    if (_tileProperties.interleaved==1) {
+        tileIndex /= (_tileProperties.size.width() * _tileProperties.size.height());
     }
 
     return tileIndex;
@@ -242,7 +245,7 @@ State::Char State::getCharFromTile(int tileIndex, int x, int y) const
     int charIndex = getCharIndexFromTileIndex(tileIndex);
 
     for (int i=0; i<8; i++) {
-        ret._char8[i] = _chars[charIndex*8+i+(x+y*_tileSize.width())*8*_charInterleaved];
+        ret._char8[i] = _chars[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
     }
     return ret;
 }
@@ -252,7 +255,7 @@ void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
 
     for (int i=0; i<8; i++) {
-        _chars[charIndex*8+i+(x+y*_tileSize.width())*8*_charInterleaved] = chr._char8[i];
+        _chars[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = chr._char8[i];
     }
 }
 
@@ -260,14 +263,14 @@ void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
 // tile manipulation
 void State::tileCopy(int tileIndex)
 {
-    int tileSize = _tileSize.width() * _tileSize.height() * 8;
+    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(_copyTile, &_chars[tileIndex*tileSize], tileSize);
 }
 
 void State::tilePaste(int tileIndex)
 {
-    int tileSize = _tileSize.width() * _tileSize.height() * 8;
+    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(&_chars[tileIndex*tileSize], _copyTile, tileSize);
 }
@@ -277,10 +280,10 @@ void State::tileInvert(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
-    for (int y=0; y<_tileSize.height(); y++) {
-        for (int x=0; x<_tileSize.width(); x++) {
+    for (int y=0; y<_tileProperties.size.height(); y++) {
+        for (int x=0; x<_tileProperties.size.width(); x++) {
             for (int i=0; i<8; i++) {
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] = ~charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved];
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = ~charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
             }
         }
     }
@@ -291,10 +294,10 @@ void State::tileClear(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
-    for (int y=0; y<_tileSize.height(); y++) {
-        for (int x=0; x<_tileSize.width(); x++) {
+    for (int y=0; y<_tileProperties.size.height(); y++) {
+        for (int x=0; x<_tileProperties.size.width(); x++) {
             for (int i=0; i<8; i++) {
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] = 0;
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = 0;
             }
         }
     }
@@ -306,26 +309,26 @@ void State::tileFlipHorizontally(int tileIndex)
     quint8* charPtr = getCharAtIndex(charIndex);
 
     // flip bits
-    for (int y=0; y<_tileSize.height(); y++) {
-        for (int x=0; x<_tileSize.width(); x++) {
+    for (int y=0; y<_tileProperties.size.height(); y++) {
+        for (int x=0; x<_tileProperties.size.width(); x++) {
 
             for (int i=0; i<8; i++) {
                 char tmp = 0;
                 for (int j=0; j<8; j++) {
-                    if (charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] & (1<<j))
+                    if (charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<j))
                         tmp |= 1 << (7-j);
                 }
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] = tmp;
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = tmp;
             }
         }
     }
 
     // swap the chars
-    for (int y=0; y<_tileSize.height(); y++) {
-        for (int x=0; x<_tileSize.width()/2; x++) {
+    for (int y=0; y<_tileProperties.size.height(); y++) {
+        for (int x=0; x<_tileProperties.size.width()/2; x++) {
             for (int i=0; i<8; i++) {
-                std::swap(charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved],
-                        charPtr[i+(_tileSize.width()-1-x+y*_tileSize.width())*8*_charInterleaved]);
+                std::swap(charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved],
+                        charPtr[i+(_tileProperties.size.width()-1-x+y*_tileProperties.size.width())*8*_tileProperties.interleaved]);
             }
         }
     }
@@ -337,22 +340,22 @@ void State::tileFlipVertically(int tileIndex)
     quint8* charPtr = getCharAtIndex(charIndex);
 
     // flip bits
-    for (int y=0; y<_tileSize.height(); y++) {
-        for (int x=0; x<_tileSize.width(); x++) {
+    for (int y=0; y<_tileProperties.size.height(); y++) {
+        for (int x=0; x<_tileProperties.size.width(); x++) {
 
             for (int i=0; i<4; i++) {
-                std::swap(charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved],
-                        charPtr[7-i+(x+y*_tileSize.width())*8*_charInterleaved]);
+                std::swap(charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved],
+                        charPtr[7-i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved]);
             }
         }
     }
 
     // swap the chars
-    for (int y=0; y<_tileSize.height()/2; y++) {
-        for (int x=0; x<_tileSize.width(); x++) {
+    for (int y=0; y<_tileProperties.size.height()/2; y++) {
+        for (int x=0; x<_tileProperties.size.width(); x++) {
             for (int i=0; i<8; i++) {
-                std::swap(charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved],
-                        charPtr[i+(x+(_tileSize.height()-1-y)*_tileSize.width())*8*_charInterleaved]);
+                std::swap(charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved],
+                        charPtr[i+(x+(_tileProperties.size.height()-1-y)*_tileProperties.size.width())*8*_tileProperties.interleaved]);
             }
         }
     }
@@ -360,22 +363,22 @@ void State::tileFlipVertically(int tileIndex)
 
 void State::tileRotate(int tileIndex)
 {
-    Q_ASSERT(_tileSize.width() == _tileSize.height() && "Only square tiles can be rotated");
+    Q_ASSERT(_tileProperties.size.width() == _tileProperties.size.height() && "Only square tiles can be rotated");
 
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
 
     // rotate each char (its bits) individually
-    for (int y=0; y<_tileSize.height(); y++) {
-        for (int x=0; x<_tileSize.width(); x++) {
+    for (int y=0; y<_tileProperties.size.height(); y++) {
+        for (int x=0; x<_tileProperties.size.width(); x++) {
 
             Char tmpchr;
             memset(tmpchr._char8, 0, sizeof(tmpchr));
 
             for (int i=0; i<8; i++) {
                 for (int j=0; j<8; j++) {
-                    if (charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] & (1<<(7-j)))
+                    if (charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<(7-j)))
                         tmpchr._char8[j] |= (1<<i);
                 }
             }
@@ -386,21 +389,21 @@ void State::tileRotate(int tileIndex)
 
 
     // replace the chars in the correct order.
-    if (_tileSize.width()>1) {
-        Char tmpchars[_tileSize.width()*_tileSize.height()];
+    if (_tileProperties.size.width()>1) {
+        Char tmpchars[_tileProperties.size.width()*_tileProperties.size.height()];
 
         // place the rotated chars in a rotated tmp buffer
-        for (int y=0; y<_tileSize.height(); y++) {
-            for (int x=0; x<_tileSize.width(); x++) {
+        for (int y=0; y<_tileProperties.size.height(); y++) {
+            for (int x=0; x<_tileProperties.size.width(); x++) {
                 // rotate them: tmpchars[w-y-1,x] = tile[x,y];
-                tmpchars[(_tileSize.width()-1-y) + x * _tileSize.width()] = getCharFromTile(tileIndex, x, y);
+                tmpchars[(_tileProperties.size.width()-1-y) + x * _tileProperties.size.width()] = getCharFromTile(tileIndex, x, y);
             }
         }
 
         // place the rotated tmp buffer in the final position
-        for (int y=0; y<_tileSize.height(); y++) {
-            for (int x=0; x<_tileSize.width(); x++) {
-                    setCharForTile(tileIndex, x, y, tmpchars[x + _tileSize.width() * y]);
+        for (int y=0; y<_tileProperties.size.height(); y++) {
+            for (int x=0; x<_tileProperties.size.width(); x++) {
+                    setCharForTile(tileIndex, x, y, tmpchars[x + _tileProperties.size.width() * y]);
             }
         }
     }
@@ -412,25 +415,25 @@ void State::tileShiftLeft(int tileIndex)
 
 
     // top tile first
-    for (int y=0; y<_tileSize.height(); y++) {
+    for (int y=0; y<_tileProperties.size.height(); y++) {
 
         // top byte of
         for (int i=0; i<8; i++) {
 
             bool leftBit, prevLeftBit = false;
 
-            for (int x=_tileSize.width()-1; x>=0; x--) {
-                leftBit = charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] & (1<<7);
+            for (int x=_tileProperties.size.width()-1; x>=0; x--) {
+                leftBit = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<7);
 
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] <<= 1;
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] <<= 1;
 
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] &= 254;
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] |= prevLeftBit;
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 254;
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= prevLeftBit;
 
                 prevLeftBit = leftBit;
             }
-            charPtr[i+(_tileSize.width()-1+y*_tileSize.width())*8*_charInterleaved] &= 254;
-            charPtr[i+(_tileSize.width()-1+y*_tileSize.width())*8*_charInterleaved] |= leftBit;
+            charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 254;
+            charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= leftBit;
         }
     }
 }
@@ -442,25 +445,25 @@ void State::tileShiftRight(int tileIndex)
 
 
     // top tile first
-    for (int y=0; y<_tileSize.height(); y++) {
+    for (int y=0; y<_tileProperties.size.height(); y++) {
 
         // top byte of
         for (int i=0; i<8; i++) {
 
             bool rightBit, prevRightBit = false;
 
-            for (int x=0; x<_tileSize.width(); x++) {
-                rightBit = charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] & (1<<0);
+            for (int x=0; x<_tileProperties.size.width(); x++) {
+                rightBit = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<0);
 
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] >>= 1;
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] >>= 1;
 
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] &= 127;
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] |= (prevRightBit<<7);
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 127;
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (prevRightBit<<7);
 
                 prevRightBit = rightBit;
             }
-            charPtr[i+(0+y*_tileSize.width())*8*_charInterleaved] &= 127;
-            charPtr[i+(0+y*_tileSize.width())*8*_charInterleaved] |= (rightBit<<7);
+            charPtr[i+(0+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 127;
+            charPtr[i+(0+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (rightBit<<7);
         }
     }
 }
@@ -470,24 +473,24 @@ void State::tileShiftUp(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
-    for (int x=0; x<_tileSize.width(); x++) {
+    for (int x=0; x<_tileProperties.size.width(); x++) {
 
         // bottom byte of bottom
         qint8 topByte, prevTopByte = 0;
 
-        for (int y=_tileSize.height()-1; y>=0; y--) {
+        for (int y=_tileProperties.size.height()-1; y>=0; y--) {
 
-            topByte = charPtr[0+(x+y*_tileSize.width())*8*_charInterleaved];
+            topByte = charPtr[0+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
 
             for (int i=0; i<7; i++) {
-                charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved] = charPtr[i+1+(x+y*_tileSize.width())*8*_charInterleaved];
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = charPtr[i+1+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
             }
 
-            charPtr[7+(x+y*_tileSize.width())*8*_charInterleaved] = prevTopByte;
+            charPtr[7+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = prevTopByte;
             prevTopByte = topByte;
         }
         // replace bottom byte (y=height-1) with top byte
-        charPtr[7+(x+(_tileSize.height()-1)*_tileSize.width())*8*_charInterleaved] = prevTopByte;
+        charPtr[7+(x+(_tileProperties.size.height()-1)*_tileProperties.size.width())*8*_tileProperties.interleaved] = prevTopByte;
     }
 }
 
@@ -496,24 +499,24 @@ void State::tileShiftDown(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
-    for (int x=0; x<_tileSize.width(); x++) {
+    for (int x=0; x<_tileProperties.size.width(); x++) {
 
         // bottom byte of bottom
         qint8 bottomByte, prevBottomByte = 0;
 
-        for (int y=0; y<_tileSize.height(); y++) {
+        for (int y=0; y<_tileProperties.size.height(); y++) {
 
-            bottomByte = charPtr[7+(x+y*_tileSize.width())*8*_charInterleaved];
+            bottomByte = charPtr[7+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
 
             for (int i=6; i>=0; i--) {
-                charPtr[i+1+(x+y*_tileSize.width())*8*_charInterleaved] = charPtr[i+(x+y*_tileSize.width())*8*_charInterleaved];
+                charPtr[i+1+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
             }
 
-            charPtr[0+(x+y*_tileSize.width())*8*_charInterleaved] = prevBottomByte;
+            charPtr[0+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = prevBottomByte;
             prevBottomByte = bottomByte;
         }
         // replace top byte (y=0) with bottom byte
-        charPtr[x*8*_charInterleaved] = prevBottomByte;
+        charPtr[x*8*_tileProperties.interleaved] = prevBottomByte;
     }
 }
 

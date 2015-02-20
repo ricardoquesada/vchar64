@@ -110,8 +110,10 @@ qint64 StateImport::loadVChar64(QFile& file, State *state)
         state->setColorAtIndex(i, header.colors[i]);
 
     state->setMultiColor(header.vic_res);
-    state->setTileSize(QSize(header.tile_height, header.tile_height));
-    state->setCharInterleaved(header.char_interleaved);
+    State::TileProperties properties;
+    properties.size = {header.tile_width, header.tile_height};
+    properties.interleaved = header.char_interleaved;
+    state->setTileProperties(properties);
 
     return total;
 }

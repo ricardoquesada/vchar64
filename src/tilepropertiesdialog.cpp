@@ -26,10 +26,10 @@ TilePropertiesDialog::TilePropertiesDialog(QWidget *parent) :
     ui->setupUi(this);
 
     auto state = State::getInstance();
-    QSize tileSize = state->getTileSize();
-    ui->spinBoxSizeX->setValue(tileSize.width());
-    ui->spinBoxSizeY->setValue(tileSize.height());
-    ui->spinBoxInterleaved->setValue(state->getCharInterleaved());
+    auto properties = state->getTileProperties();
+    ui->spinBoxSizeX->setValue(properties.size.width());
+    ui->spinBoxSizeY->setValue(properties.size.height());
+    ui->spinBoxInterleaved->setValue(properties.interleaved);
 }
 
 TilePropertiesDialog::~TilePropertiesDialog()
@@ -44,10 +44,10 @@ void TilePropertiesDialog::on_buttonBox_accepted()
     int interleaved = ui->spinBoxInterleaved->value();
 
     auto state = State::getInstance();
-    state->setTileSize(QSize(w,h));
-    state->setCharInterleaved(interleaved);
-
-    emit tilePropertiesChanged();
+    State::TileProperties properties;
+    properties.size = {w,h};
+    properties.interleaved = interleaved;
+    state->setTileProperties(properties);
 }
 
 void TilePropertiesDialog::on_spinBoxSizeX_editingFinished()

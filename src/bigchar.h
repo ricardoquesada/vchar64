@@ -21,6 +21,7 @@ limitations under the License.
 #include <QSize>
 
 #include <stdint.h>
+#include "state.h"
 
 //! [0]
 
@@ -35,7 +36,7 @@ public:
     }
 
     QSize getTileSize() const {
-        return _tileSize;
+        return _tileProperties.size;
     }
 
 public slots:
@@ -55,9 +56,8 @@ protected:
     int _charIndex;
     QPoint _cursorPos;
 
-    // in chars (bytes), not bits
-    QSize _tileSize;
-    int _charInterleaved;
+    State::TileProperties _tileProperties;
+
     QSize _pixelSize;
 };
 //! [0]

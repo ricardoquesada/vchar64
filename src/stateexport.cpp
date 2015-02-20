@@ -38,10 +38,10 @@ qint64 StateExport::saveVChar64(QFile& file, State* state)
     chars = qToLittleEndian(chars);
     header.num_chars = chars;
 
-    auto tileSize = state->getTileSize();
-    header.tile_width = tileSize.width();
-    header.tile_height = tileSize.height();
-    header.char_interleaved = state->getCharInterleaved();
+    auto properties = state->getTileProperties();
+    header.tile_width = properties.size.width();
+    header.tile_height = properties.size.height();
+    header.char_interleaved = properties.interleaved;
 
     header.vic_res = state->isMultiColor();
 

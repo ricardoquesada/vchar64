@@ -41,7 +41,6 @@ public:
 
 protected:
     void createActions();
-    void createMenus();
     void createDefaults();
 
     void updateRecentFiles();

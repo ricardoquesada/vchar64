@@ -20,19 +20,20 @@ limitations under the License.
 
 class State;
 
-namespace StateImport
+class StateImport
 {
+public:
     // loads a raw file
-    qint64 loadRaw(QFile& file, State* state);
+    static qint64 loadRaw(QFile& file, State* state);
 
     // loads a PRG / 64C file. Same a raw, but the first 2 characters are ignored
-    qint64 loadPRG(QFile& file, State* state);
+    static qint64 loadPRG(QFile& file, State* state);
 
     // loads a CharPad project file
-    qint64 loadCTM(QFile& file, State* state);
+    static qint64 loadCTM(QFile& file, State* state);
 
     // loads a VChar64 project file
-    qint64 loadVChar64(QFile& file, State* state);
+    static qint64 loadVChar64(QFile& file, State* state);
 
 
 
@@ -181,6 +182,6 @@ namespace StateImport
     #pragma pack(pop)
 
     static_assert (sizeof(VChar64Header) == 32, "Size is not correct");
-}
+};
 
 
