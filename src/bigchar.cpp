@@ -146,7 +146,7 @@ void BigChar::paintEvent(QPaintEvent *event)
     painter.fillRect(event->rect(), QColor(204,204,204));
 
     QPen pen;
-    pen.setColor({128,128,255});
+    pen.setColor({149,195,244,255});
     pen.setWidth(3);
     pen.setStyle(Qt::PenStyle::SolidLine);
 
@@ -163,8 +163,59 @@ void BigChar::paintEvent(QPaintEvent *event)
         }
     }
 
+    paintSeparators(painter);
+    paintFocus(painter);
+
     painter.end();
 }
+
+void BigChar::paintSeparators(QPainter &painter)
+{
+    QPen pen;
+    pen.setColor({128,128,128,196});
+    pen.setWidth(2);
+    pen.setStyle(Qt::PenStyle::SolidLine);
+
+    painter.setPen(pen);
+
+    for (int x=1; x<=_tileProperties.size.width()-1; x++)
+    {
+        painter.drawLine(x*_pixelSize.width()*8, 0,
+                         x*_pixelSize.width()*8, _pixelSize.height()*_tileProperties.size.height()*8);
+    }
+    for (int y=1; y<=_tileProperties.size.height()-1; y++)
+    {
+        painter.drawLine(0, y*_pixelSize.height()*8,
+                        _pixelSize.width()*_tileProperties.size.width()*8, y*_pixelSize.height()*8);
+    }
+
+}
+
+void BigChar::paintFocus(QPainter &painter)
+{
+    if (hasFocus())
+    {
+        QPen pen;
+        pen.setColor({149,195,244,255});
+        pen.setWidth(3);
+        pen.setStyle(Qt::PenStyle::SolidLine);
+
+        painter.setPen(pen);
+
+        // vertical lines
+        painter.drawLine(0, 0,
+                         0, _tileProperties.size.width() * _pixelSize.width() * 8);
+        painter.drawLine(_tileProperties.size.width() * _pixelSize.width() * 8, 0,
+                         _tileProperties.size.width() * _pixelSize.width() * 8, _tileProperties.size.height() * _pixelSize.height() * 8);
+
+        // horizontal lines
+        painter.drawLine(0, 0,
+                         _tileProperties.size.width() * _pixelSize.width() * 8 * 8, 0);
+        painter.drawLine(0, _tileProperties.size.height() * _pixelSize.height() * 8,
+                         _tileProperties.size.width() * _pixelSize.width() * 8 * 8, _tileProperties.size.height() * _pixelSize.height() * 8);
+    }
+}
+
 
 void BigChar::paintChar(QPainter& painter, const QPen& pen, quint8 *charPtr, const QPoint& tileToDraw)
 {

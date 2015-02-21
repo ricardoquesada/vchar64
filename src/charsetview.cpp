@@ -113,7 +113,7 @@ void CharSetView::paintEvent(QPaintEvent *event)
     }
 
     QPen pen;
-    pen.setColor({128,128,255});
+    pen.setColor({149,195,244,255});
     if (hasFocus())
         pen.setWidth(3);
     else
@@ -161,7 +161,33 @@ void CharSetView::paintEvent(QPaintEvent *event)
         }
     }
 
+    paintFocus(painter);
     painter.end();
+}
+
+void CharSetView::paintFocus(QPainter &painter)
+{
+    if (hasFocus())
+    {
+        QPen pen;
+        pen.setColor({149,195,244,255});
+        pen.setWidth(3);
+        pen.setStyle(Qt::PenStyle::SolidLine);
+
+        painter.setPen(pen);
+
+        // vertical lines
+        painter.drawLine(0, 0,
+                         0, ROWS * PIXEL_SIZE * 8);
+        painter.drawLine(COLUMNS * PIXEL_SIZE * 8, 0,
+                         COLUMNS * PIXEL_SIZE * 8, ROWS * PIXEL_SIZE * 8);
+
+        // horizontal lines
+        painter.drawLine(0, 0,
+                         COLUMNS * PIXEL_SIZE * 8, 0);
+        painter.drawLine(0, ROWS * PIXEL_SIZE * 8,
+                         COLUMNS * PIXEL_SIZE * 8, ROWS * PIXEL_SIZE * 8);
+    }
 }
 
 void CharSetView::setTileIndex(int tileIndex)

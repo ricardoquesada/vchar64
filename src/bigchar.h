@@ -50,6 +50,9 @@ protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
     void paintChar(QPainter& painter, const QPen& pen, quint8* charPtr, const QPoint& tileToDraw);
+    void paintSeparators(QPainter &painter);
+    void paintFocus(QPainter &painter);
+
     void paintPixel(int x, int y);
 
     int _tileIndex;

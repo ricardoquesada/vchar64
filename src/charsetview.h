@@ -38,6 +38,8 @@ protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
+    void paintFocus(QPainter &painter);
+
     QPoint _cursorPos;
 };
 //! [0]
