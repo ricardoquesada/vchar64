@@ -135,8 +135,6 @@ void BigChar::keyPressEvent(QKeyEvent *event)
 
 void BigChar::paintEvent(QPaintEvent *event)
 {
-    QSize size = this->size();
-    qDebug("yeah!!! %d x %d", size.width(), size.height());
     QPainter painter;
     painter.begin(this);
 
@@ -202,15 +200,15 @@ void BigChar::paintFocus(QPainter &painter)
 
         // vertical lines
         painter.drawLine(0, 0,
-                         0, _tileProperties.size.width() * _pixelSize.width() * 8);
+                         0, _tileProperties.size.height() * _pixelSize.height() * 8);
         painter.drawLine(_tileProperties.size.width() * _pixelSize.width() * 8, 0,
                          _tileProperties.size.width() * _pixelSize.width() * 8, _tileProperties.size.height() * _pixelSize.height() * 8);
 
         // horizontal lines
         painter.drawLine(0, 0,
-                         _tileProperties.size.width() * _pixelSize.width() * 8 * 8, 0);
+                         _tileProperties.size.width() * _pixelSize.width() * 8, 0);
         painter.drawLine(0, _tileProperties.size.height() * _pixelSize.height() * 8,
-                         _tileProperties.size.width() * _pixelSize.width() * 8 * 8, _tileProperties.size.height() * _pixelSize.height() * 8);
+                         _tileProperties.size.width() * _pixelSize.width() * 8, _tileProperties.size.height() * _pixelSize.height() * 8);
     }
 }
 
@@ -288,19 +286,26 @@ void BigChar::updateTileProperties()
     _tileProperties = state->getTileProperties();
 
     // keep aspect ratio
-//    int max = qMax(_tileProperties.size.width(), _tileProperties.size.height());
-//    _pixelSize.setWidth(size().width() / (8*max));
-//    _pixelSize.setHeight(size().height() / (8*max));
+    int maxTileSize = qMax(_tileProperties.size.width(), _tileProperties.size.height());
+    int minWidgetSize = qMin(size().width(), size().height());
+    _pixelSize.setWidth(minWidgetSize / (8*maxTileSize));
+    _pixelSize.setHeight(minWidgetSize / (8*maxTileSize));
 
-    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
-    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
+//    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
+//    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
 
     update();
 }
 
 void BigChar::resizeEvent(QResizeEvent *event)
 {
-    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
-    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
+    // keep aspect ratio
+    int maxTileSize = qMax(_tileProperties.size.width(), _tileProperties.size.height());
+    int minWidgetSize = qMin(size().width(), size().height());
+    _pixelSize.setWidth(minWidgetSize / (8*maxTileSize));
+    _pixelSize.setHeight(minWidgetSize / (8*maxTileSize));
+
+//    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
+//    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
 }
 
