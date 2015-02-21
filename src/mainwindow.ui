@@ -6,175 +6,182 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>531</width>
-    <height>513</height>
+    <width>536</width>
+    <height>527</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>VChar64</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="BigChar" name="bigchar" native="true">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>256</width>
-      <height>256</height>
-     </rect>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::StrongFocus</enum>
-    </property>
-   </widget>
-   <widget class="CharSetView" name="charsetview" native="true">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>290</y>
-      <width>512</width>
-      <height>128</height>
-     </rect>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::WheelFocus</enum>
-    </property>
-   </widget>
-   <widget class="QGroupBox" name="groupBox">
-    <property name="geometry">
-     <rect>
-      <x>280</x>
-      <y>0</y>
-      <width>201</width>
-      <height>241</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Colors</string>
-    </property>
-    <widget class="ColorPalette" name="colorPalette" native="true">
-     <property name="geometry">
-      <rect>
-       <x>5</x>
-       <y>200</y>
-       <width>192</width>
-       <height>32</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>192</width>
-       <height>32</height>
-      </size>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>160</y>
-       <width>141</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>MultiColor Mode</string>
-     </property>
-    </widget>
-    <widget class="QWidget" name="gridLayoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>181</width>
-       <height>131</height>
-      </rect>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="2" column="1">
-       <widget class="QRadioButton" name="radioButton_3">
-        <property name="enabled">
-         <bool>false</bool>
+   <layout class="QVBoxLayout" name="verticalLayout_4">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="BigChar" name="bigchar" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>256</width>
+          <height>256</height>
+         </size>
         </property>
-        <property name="text">
-         <string>Multi Color #1</string>
+        <property name="focusPolicy">
+         <enum>Qt::StrongFocus</enum>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QRadioButton" name="radioButton_4">
-        <property name="enabled">
-         <bool>false</bool>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
-        <property name="text">
-         <string>Multi Color #2</string>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
         </property>
-       </widget>
+       </spacer>
       </item>
-      <item row="0" column="1">
-       <widget class="QRadioButton" name="radioButton_1">
-        <property name="text">
-         <string>Background</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QRadioButton" name="radioButton_2">
-        <property name="text">
-         <string>Foreground</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="ColorRect" name="colorRect_0" native="true"/>
-      </item>
-      <item row="1" column="2">
-       <widget class="ColorRect" name="colorRect_1" native="true"/>
-      </item>
-      <item row="2" column="2">
-       <widget class="ColorRect" name="colorRect_2" native="true"/>
-      </item>
-      <item row="3" column="2">
-       <widget class="ColorRect" name="colorRect_3" native="true"/>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string>Colors</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <layout class="QGridLayout" name="gridLayout">
+             <property name="verticalSpacing">
+              <number>16</number>
+             </property>
+             <item row="2" column="1">
+              <widget class="QRadioButton" name="radioButton_3">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>Multi Color #1</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QRadioButton" name="radioButton_4">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>Multi Color #2</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QRadioButton" name="radioButton_1">
+               <property name="text">
+                <string>Background</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QRadioButton" name="radioButton_2">
+               <property name="text">
+                <string>Foreground</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="ColorRect" name="colorRect_0" native="true"/>
+             </item>
+             <item row="1" column="2">
+              <widget class="ColorRect" name="colorRect_1" native="true"/>
+             </item>
+             <item row="2" column="2">
+              <widget class="ColorRect" name="colorRect_2" native="true"/>
+             </item>
+             <item row="3" column="2">
+              <widget class="ColorRect" name="colorRect_3" native="true"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox">
+             <property name="text">
+              <string>MultiColor Mode</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="ColorPalette" name="colorPalette" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>192</width>
+               <height>32</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Tile. Index</string>
+            </property>
+            <property name="buddy">
+             <cstring>spinBox</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="spinBox">
+            <property name="maximum">
+             <number>255</number>
+            </property>
+            <property name="displayIntegerBase">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </item>
      </layout>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>280</x>
-      <y>250</y>
-      <width>201</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Tile. Index</string>
-       </property>
-       <property name="buddy">
-        <cstring>spinBox</cstring>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="spinBox">
-       <property name="maximum">
-        <number>255</number>
-       </property>
-       <property name="displayIntegerBase">
-        <number>10</number>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>6</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="CharSetView" name="charsetview" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>512</width>
+        <height>128</height>
+       </size>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::WheelFocus</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -193,7 +200,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>531</width>
+     <width>536</width>
      <height>22</height>
     </rect>
    </property>
