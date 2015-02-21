@@ -10,6 +10,9 @@
     <height>527</height>
    </rect>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::WheelFocus</enum>
+  </property>
   <property name="windowTitle">
    <string>VChar64</string>
   </property>
@@ -19,10 +22,22 @@
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="BigChar" name="bigchar" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+          <horstretch>32</horstretch>
+          <verstretch>32</verstretch>
+         </sizepolicy>
+        </property>
         <property name="minimumSize">
          <size>
           <width>256</width>
           <height>256</height>
+         </size>
+        </property>
+        <property name="sizeIncrement">
+         <size>
+          <width>0</width>
+          <height>0</height>
          </size>
         </property>
         <property name="focusPolicy">
@@ -163,7 +178,7 @@
       <property name="sizeHint" stdset="0">
        <size>
         <width>20</width>
-        <height>6</height>
+        <height>11</height>
        </size>
       </property>
      </spacer>
@@ -177,7 +192,7 @@
        </size>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::WheelFocus</enum>
+       <enum>Qt::StrongFocus</enum>
       </property>
      </widget>
     </item>

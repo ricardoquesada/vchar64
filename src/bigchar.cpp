@@ -25,9 +25,6 @@ limitations under the License.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-static const int WIDGET_WIDTH = 256;
-static const int WIDGET_HEIGHT = 256;
-
 BigChar::BigChar(QWidget *parent)
     : QWidget(parent)
     , _tileIndex(0)
@@ -36,7 +33,6 @@ BigChar::BigChar(QWidget *parent)
     , _tileProperties({{1,1},1})
     , _pixelSize({32,32})
 {
-    setFixedSize(WIDGET_WIDTH, WIDGET_HEIGHT);
 }
 
 void BigChar::paintPixel(int x, int y)
@@ -139,6 +135,8 @@ void BigChar::keyPressEvent(QKeyEvent *event)
 
 void BigChar::paintEvent(QPaintEvent *event)
 {
+    QSize size = this->size();
+    qDebug("yeah!!! %d x %d", size.width(), size.height());
     QPainter painter;
     painter.begin(this);
 
@@ -290,9 +288,19 @@ void BigChar::updateTileProperties()
     _tileProperties = state->getTileProperties();
 
     // keep aspect ratio
-    int max = qMax(_tileProperties.size.width(), _tileProperties.size.height());
-    _pixelSize.setWidth(WIDGET_WIDTH / (8*max));
-    _pixelSize.setHeight(WIDGET_HEIGHT / (8*max));
+//    int max = qMax(_tileProperties.size.width(), _tileProperties.size.height());
+//    _pixelSize.setWidth(size().width() / (8*max));
+//    _pixelSize.setHeight(size().height() / (8*max));
+
+    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
+    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
+
     update();
+}
+
+void BigChar::resizeEvent(QResizeEvent *event)
+{
+    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
+    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
 }
 
