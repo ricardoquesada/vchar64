@@ -256,8 +256,6 @@
     <addaction name="actionShiftRight"/>
     <addaction name="actionShiftUp"/>
     <addaction name="actionShiftDown"/>
-    <addaction name="separator"/>
-    <addaction name="actionTilesProperties"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -267,8 +265,15 @@
     <addaction name="actionAboutQt"/>
     <addaction name="actionReportBug"/>
    </widget>
+   <widget class="QMenu" name="menuTile">
+    <property name="title">
+     <string>Tile</string>
+    </property>
+    <addaction name="actionTilesProperties"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuTile"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpen">
