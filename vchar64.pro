@@ -27,7 +27,8 @@ SOURCES += src/main.cpp\
     src/stateimport.cpp \
     src/stateexport.cpp \
     src/exportdialog.cpp \
-    src/tilepropertiesdialog.cpp
+    src/tilepropertiesdialog.cpp \
+    src/preview.cpp
 
 HEADERS  += src/mainwindow.h \
     src/bigchar.h \
@@ -40,7 +41,8 @@ HEADERS  += src/mainwindow.h \
     src/stateimport.h \
     src/stateexport.h \
     src/exportdialog.h \
-    src/tilepropertiesdialog.h
+    src/tilepropertiesdialog.h \
+    src/preview.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui \
@@ -53,3 +55,8 @@ DISTFILES +=
 
 RESOURCES += \
     res/resources.qrc
+
+unix|win32: LIBS += -L$$PWD/../xlink/ -lxlink
+
+INCLUDEPATH += $$PWD/../xlink
+DEPENDPATH += $$PWD/../xlink

@@ -51,6 +51,8 @@ public:
     bool exportRaw(const QString& filename);
     bool exportPRG(const QString& filename, quint16 address);
 
+    quint8* getChars();
+
     quint8* getCharAtIndex(int charIndex) {
         Q_ASSERT(charIndex>=0 && charIndex<256 && "Invalid index");
         return &_chars[charIndex*8];
@@ -129,7 +131,7 @@ signals:
     void tilePropertiesUpdated();
 
     // at least one pixel changes in the tile
-    void tileUpdated();
+    void tileUpdated(int);
 
     // multi-color / hires or new colors
     void colorPropertiesUpdated();

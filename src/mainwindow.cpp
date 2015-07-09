@@ -25,6 +25,7 @@ limitations under the License.
 #include <QDesktopServices>
 
 #include "state.h"
+#include "preview.h"
 #include "aboutdialog.h"
 #include "exportdialog.h"
 #include "tilepropertiesdialog.h"
@@ -76,6 +77,9 @@ void MainWindow::createActions()
     _ui->colorRect_1->setColorIndex(3);
     _ui->colorRect_2->setColorIndex(1);
     _ui->colorRect_3->setColorIndex(2);
+
+    connect(State::getInstance(), SIGNAL(fileLoaded()), Preview::getInstance(), SLOT(fileLoaded()));
+    connect(State::getInstance(), SIGNAL(tileUpdated(int)), Preview::getInstance(), SLOT(tileUpdated(int)));
 }
 
 void MainWindow::createDefaults()

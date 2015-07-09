@@ -89,6 +89,11 @@ bool State::exportPRG(const QString& filename, quint16 address)
     return StateExport::savePRG(this, file, address);
 }
 
+quint8 *State::getChars()
+{
+    return _chars;
+}
+
 bool State::openFile(const QString& filename)
 {
     QFile file(filename);
@@ -200,7 +205,7 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     quint8 oldValue = _chars[charIndex*8 + bitIndex/8];
     if (oldValue != c) {
         _chars[charIndex*8 + bitIndex/8] = c;
-        emit tileUpdated();
+        emit tileUpdated(charIndex); // this is not the tile index, right?
     }
 }
 
@@ -251,7 +256,7 @@ void State::tileCopy(int tileIndex)
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(_copyTile, &_chars[tileIndex*tileSize], tileSize);
 
-    emit tileUpdated();
+    emit tileUpdated(tileIndex);
 }
 
 void State::tilePaste(int tileIndex)
@@ -274,7 +279,7 @@ void State::tileInvert(int tileIndex)
         }
     }
 
-    emit tileUpdated();
+    emit tileUpdated(tileIndex);
 }
 
 void State::tileClear(int tileIndex)
@@ -290,7 +295,7 @@ void State::tileClear(int tileIndex)
         }
     }
 
-    emit tileUpdated();
+    emit tileUpdated(tileIndex);
 }
 
 void State::tileFlipHorizontally(int tileIndex)
@@ -323,7 +328,7 @@ void State::tileFlipHorizontally(int tileIndex)
         }
     }
 
-    emit tileUpdated();
+    emit tileUpdated(tileIndex);
 }
 
 void State::tileFlipVertically(int tileIndex)
@@ -352,7 +357,7 @@ void State::tileFlipVertically(int tileIndex)
         }
     }
 
-    emit tileUpdated();
+    emit tileUpdated(tileIndex);
 }
 
 void State::tileRotate(int tileIndex)
@@ -402,7 +407,7 @@ void State::tileRotate(int tileIndex)
         }
     }
 
-    emit tileUpdated();
+    emit tileUpdated(tileIndex);
 }
 void State::tileShiftLeft(int tileIndex)
 {
@@ -433,7 +438,7 @@ void State::tileShiftLeft(int tileIndex)
         }
     }
 
-    emit tileUpdated();
+    emit tileUpdated(tileIndex);
 }
 
 void State::tileShiftRight(int tileIndex)
@@ -465,7 +470,7 @@ void State::tileShiftRight(int tileIndex)
         }
     }
 
-    emit tileUpdated();
+    emit tileUpdated(tileIndex);
 }
 
 void State::tileShiftUp(int tileIndex)
@@ -493,7 +498,7 @@ void State::tileShiftUp(int tileIndex)
         charPtr[7+(x+(_tileProperties.size.height()-1)*_tileProperties.size.width())*8*_tileProperties.interleaved] = prevTopByte;
     }
 
-    emit tileUpdated();
+    emit tileUpdated(tileIndex);
 }
 
 void State::tileShiftDown(int tileIndex)
@@ -521,7 +526,7 @@ void State::tileShiftDown(int tileIndex)
         charPtr[x*8*_tileProperties.interleaved] = prevBottomByte;
     }
 
-    emit tileUpdated();
+    emit tileUpdated(tileIndex);
 }
 
 
