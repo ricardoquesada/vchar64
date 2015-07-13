@@ -55,8 +55,3 @@ DISTFILES +=
 
 RESOURCES += \
     res/resources.qrc
-
-unix|win32: LIBS += -L$$PWD/../xlink/ -lxlink
-
-INCLUDEPATH += $$PWD/../xlink
-DEPENDPATH += $$PWD/../xlink
