@@ -205,7 +205,7 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     quint8 oldValue = _chars[charIndex*8 + bitIndex/8];
     if (oldValue != c) {
         _chars[charIndex*8 + bitIndex/8] = c;
-        emit tileUpdated(charIndex); // this is not the tile index, right?
+        emit tileUpdated(getTileIndexFromCharIndex(charIndex));
     }
 }
 

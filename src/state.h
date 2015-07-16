@@ -87,6 +87,7 @@ public:
 
     void setMultiColor(bool enabled) {
         _multiColor = enabled;
+        emit colorPropertiesUpdated();
     }
 
     bool isMultiColor() const {

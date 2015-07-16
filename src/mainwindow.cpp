@@ -78,8 +78,11 @@ void MainWindow::createActions()
     _ui->colorRect_2->setColorIndex(1);
     _ui->colorRect_3->setColorIndex(2);
 
-    connect(State::getInstance(), SIGNAL(fileLoaded()), Preview::getInstance(), SLOT(fileLoaded()));
-    connect(State::getInstance(), SIGNAL(tileUpdated(int)), Preview::getInstance(), SLOT(tileUpdated(int)));
+    auto preview = Preview::getInstance();
+    connect(state, SIGNAL(fileLoaded()), preview, SLOT(fileLoaded()));
+    connect(state, SIGNAL(tileUpdated(int)), preview, SLOT(tileUpdated(int)));
+    connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(colorPropertiesUpdated()));
+    connect(_ui->colorPalette, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
 }
 
 void MainWindow::createDefaults()
