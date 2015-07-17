@@ -646,5 +646,6 @@
         <file>icons/32x32/status/weather-showers.png</file>
         <file>icons/32x32/status/weather-snow.png</file>
         <file>icons/32x32/status/weather-storm.png</file>
+        <file>c64-screen.bin</file>
     </qresource>
 </RCC>

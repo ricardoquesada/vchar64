@@ -15,6 +15,13 @@ class Preview : public QObject
 {
     Q_OBJECT
 
+    void updateBackgroundColor();
+    void updateForegroundColor();
+    void updateMulticolor1();
+    void updateMulticolor2();
+    void updateColorMode();
+    void updateCharset();
+    bool updateScreen(const QString &filename);
 public:
     static Preview* getInstance();
 
@@ -41,5 +48,5 @@ protected:
     xlink_poke_t xlink_poke;
     xlink_fill_t xlink_fill;
 
-    void updateColors();
+    void updateColorProperties();
 };
