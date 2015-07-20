@@ -21,7 +21,7 @@ Tailored for my own needs, but feel free to send patches, open bugs, etc.
     * Custom Distance in chars between tiles
 * Imports CharPad 1.8 projects
 * Exports to Raw and Prg
-* [xlink] support. Video showing xlink in action: https://www.youtube.com/watch?v=ZaSR_mxRfmo
+* [xlink](http://henning-bekel.de/xlink/) support. Video showing xlink in action: https://www.youtube.com/watch?v=ZaSR_mxRfmo
 
 ## Roadmap
 
