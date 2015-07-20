@@ -15,26 +15,36 @@ Preview* Preview::getInstance()
 }
 
 Preview::Preview()
+    : xlink_ping(nullptr)
+    , xlink_load(nullptr)
+    , xlink_peek(nullptr)
+    , xlink_poke(nullptr)
+    , xlink_fill(nullptr)
 {
-    xlink = new QLibrary("xlink");
-    xlink->load();
-
-    if(xlink->isLoaded()) {
-        xlink_ping = (xlink_ping_t) xlink->resolve("xlink_ping");
-        xlink_load = (xlink_load_t) xlink->resolve("xlink_load");
-        xlink_poke = (xlink_poke_t) xlink->resolve("xlink_poke");
-        xlink_peek = (xlink_peek_t) xlink->resolve("xlink_peek");
-        xlink_fill = (xlink_fill_t) xlink->resolve("xlink_fill");
+    _xlink = new QLibrary("xlink");
+    _xlink->load();
+    if(_xlink->isLoaded()) {
+        xlink_ping = (xlink_ping_t) _xlink->resolve("xlink_ping");
+        xlink_load = (xlink_load_t) _xlink->resolve("xlink_load");
+        xlink_poke = (xlink_poke_t) _xlink->resolve("xlink_poke");
+        xlink_peek = (xlink_peek_t) _xlink->resolve("xlink_peek");
+        xlink_fill = (xlink_fill_t) _xlink->resolve("xlink_fill");
     }
 }
 
-void Preview::updateBackgroundColor() {
+void Preview::updateBackgroundColor()
+{
+    if(!_xlink->isLoaded()) return;
+
     auto state = State::getInstance();
     xlink_poke(0x37, 0x00, 0xd020, (uchar) state->getColorAtIndex(0));
     xlink_poke(0x37, 0x00, 0xd021, (uchar) state->getColorAtIndex(0));
 }
 
-void Preview::updateForegroundColor() {
+void Preview::updateForegroundColor()
+{
+    if(!_xlink->isLoaded()) return;
+
     auto state = State::getInstance();
     uchar foreground = state->getColorAtIndex(3);
     foreground |= state->isMultiColor() ? 8 : 0;
@@ -43,17 +53,25 @@ void Preview::updateForegroundColor() {
     xlink_poke(0x37, 0x00, 0x0286, foreground);
 }
 
-void Preview::updateMulticolor1() {
+void Preview::updateMulticolor1()
+{
+    if(!_xlink->isLoaded()) return;
+
     auto state = State::getInstance();
     xlink_poke(0x37, 0x00, 0xd022, (uchar) state->getColorAtIndex(1));
 }
 
-void Preview::updateMulticolor2() {
+void Preview::updateMulticolor2()
+{
+    if(!_xlink->isLoaded()) return;
+
     auto state = State::getInstance();
     xlink_poke(0x37, 0x00, 0xd023, (uchar) state->getColorAtIndex(2));
 }
 
-void Preview::updateColorMode() {
+void Preview::updateColorMode()
+{
+    if(!_xlink->isLoaded()) return;
 
     auto state = State::getInstance();
     uchar control = 0x08;
@@ -72,15 +90,18 @@ void Preview::updateColorProperties()
     updateColorMode(); // also updates foreground color
 }
 
-void Preview::updateCharset() {
+void Preview::updateCharset()
+{
+    if(!_xlink->isLoaded()) return;
+
     auto state = State::getInstance();
 
     xlink_load(0xb7, 0x00, 0x3000, (uchar*) state->getChars(), State::CHAR_BUFFER_SIZE);
     xlink_poke(0x37, 0x00, 0xd018, 0x1c);
 }
 
-bool Preview::updateScreen(const QString& filename) {
-
+bool Preview::updateScreen(const QString& filename)
+{
     QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly))
@@ -100,7 +121,7 @@ bool Preview::updateScreen(const QString& filename) {
 
 void Preview::fileLoaded()
 {
-    if(!xlink->isLoaded()) return;
+    if(!_xlink->isLoaded()) return;
     if(!xlink_ping()) return;
 
     updateScreen(":/c64-screen.bin");
@@ -110,7 +131,7 @@ void Preview::fileLoaded()
 
 void Preview::tileUpdated(int tileIndex)
 {
-    if(!xlink->isLoaded()) return;
+    if(!_xlink->isLoaded()) return;
     if(!xlink_ping()) return;
 
     auto state = State::getInstance();
@@ -131,9 +152,9 @@ void Preview::tileUpdated(int tileIndex)
     }
 }
 
-void Preview::colorSelected() {
-
-    if(!xlink->isLoaded()) return;
+void Preview::colorSelected()
+{
+    if(!_xlink->isLoaded()) return;
     if(!xlink_ping()) return;
 
     auto state = State::getInstance();
@@ -146,5 +167,10 @@ void Preview::colorSelected() {
     }
 }
 
-void Preview::colorPropertiesUpdated() { updateColorMode(); }
+void Preview::colorPropertiesUpdated()
+{
+    if(!_xlink->isLoaded()) return;
+
+    updateColorMode();
+}
 

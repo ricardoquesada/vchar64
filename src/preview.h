@@ -40,13 +40,12 @@ public slots:
 
 protected:
     Preview();
+    void updateColorProperties();
 
-    QLibrary *xlink;    
+    QLibrary *_xlink;
     xlink_ping_t xlink_ping;
     xlink_load_t xlink_load;
     xlink_peek_t xlink_peek;
     xlink_poke_t xlink_poke;
     xlink_fill_t xlink_fill;
-
-    void updateColorProperties();
 };
