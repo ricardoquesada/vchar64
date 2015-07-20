@@ -281,6 +281,21 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionExport_triggered()
 {
+    auto state = State::getInstance();
+    auto exportedFilename = state->getExportedFilename();
+    if (exportedFilename.length()==0)
+    {
+        ExportDialog dialog(this);
+        dialog.exec();
+    }
+    else
+    {
+        state->export_();
+    }
+}
+
+void MainWindow::on_actionExportAs_triggered()
+{
     ExportDialog dialog(this);
     dialog.exec();
 }

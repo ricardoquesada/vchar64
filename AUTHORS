@@ -1,4 +1,10 @@
 VChar64 contributors
 --------------------
 
-Main author: Ricardo Quesada
+Main author:
+Ricardo Quesada (http://towp8.com)
+
+
+Contributors:
+Henning Bekel (http://henning-bekel.de):
+    - Added xlink support

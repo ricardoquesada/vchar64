@@ -18,6 +18,7 @@ limitations under the License.
 
 #include <QtEndian>
 #include <QByteArray>
+#include <QDebug>
 
 #include "stateimport.h"
 #include "state.h"
@@ -66,6 +67,9 @@ qint64 StateExport::saveRaw(State* state, QFile& file)
     total += file.write(arrayData);
     file.flush();
 
+    qDebug() << "File exported as RAW successfully:" << file.fileName();
+
+
     return total;
 }
 
@@ -84,6 +88,8 @@ qint64 StateExport::savePRG(State* state, QFile& file, quint16 address)
     QByteArray arrayData((char*)buffer, state->CHAR_BUFFER_SIZE);
     total += file.write(arrayData);
     file.flush();
+
+    qDebug() << "File exported as PRG successfully: " << file.fileName();
 
     return total;
 }

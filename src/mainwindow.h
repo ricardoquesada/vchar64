@@ -63,6 +63,7 @@ private slots:
     void on_actionSaveAs_triggered();
     void on_actionSave_triggered();
     void on_actionExport_triggered();
+    void on_actionExportAs_triggered();
     void on_actionInvert_triggered();
     void on_actionFlipHorizontally_triggered();
     void on_actionFlipVertically_triggered();

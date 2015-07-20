@@ -1,3 +1,9 @@
+0.0.4 ()
+
+* Added xlink support. For more info: http://henning-bekel.de/xlink/
+* Added Export As...
+* Export will export the current project with the previous exported values
+
 0.0.3 ()
 
 * Added Tile support

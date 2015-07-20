@@ -50,6 +50,7 @@ public:
     bool save(const QString &filename);
     bool exportRaw(const QString& filename);
     bool exportPRG(const QString& filename, quint16 address);
+    bool export_();
 
     quint8* getChars();
 
@@ -96,6 +97,10 @@ public:
 
     QString getFilename() const {
         return _filename;
+    }
+
+    QString getExportedFilename() const {
+        return _exportedFilename;
     }
 
     // tile properties
@@ -159,6 +164,11 @@ protected:
     TileProperties _tileProperties;
 
     QString _filename;
+
+    QString _exportedFilename;
+    // -1 for "raw", otherwise it will be a "prg" and the value will have the address
+    int _exportedAddress;
+
 
     // max size of tile: 5 x 5
     quint8 _copyTile[8 * 5 * 5];
