@@ -19,11 +19,9 @@ Tailored for my own needs, but feel free to send patches, open bugs, etc.
 * Tile support:
     * From 1x1 to 5x5.
     * Custom Distance in chars between tiles
-* Multi-color / Single color support
 * Imports CharPad 1.8 projects
 * Exports to Raw and Prg
-* [xlink](http://henning-bekel.de/xlink/)
-* Runs on Mac, Windows and Linux
+* [xlink] support. Video showing xlink in action: https://www.youtube.com/watch?v=ZaSR_mxRfmo
 
 ## Roadmap
 
