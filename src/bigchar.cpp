@@ -35,17 +35,17 @@ BigChar::BigChar(QWidget *parent)
 {
 }
 
-void BigChar::paintPixel(int x, int y)
+void BigChar::paintPixel(int x, int y, int selectedColor)
 {
     int bitIndex = (x%8) + (y%8) * 8;
 
-    State *state = State::getInstance();
-    int selectedColor = state->getSelectedColorIndex();
-
+    auto&& state = State::getInstance();
     if (!state->isMultiColor() && selectedColor)
         selectedColor = 1;
 
-    int charIndex = _charIndex + (x/8) * _tileProperties.interleaved + (y/8) * _tileProperties.interleaved * _tileProperties.size.width();
+    int charIndex = _charIndex
+            + (x/8) * _tileProperties.interleaved
+            + (y/8) * _tileProperties.interleaved * _tileProperties.size.width();
     state->setCharColor(charIndex, bitIndex, selectedColor);
 
     dynamic_cast<QWidget*>(parent())->update();
@@ -62,7 +62,13 @@ void BigChar::mousePressEvent(QMouseEvent * event)
 
     _cursorPos = {x,y};
 
-    paintPixel(x, y);
+    auto&& state = State::getInstance();
+    int selectedColor = state->getSelectedColorIndex();
+
+    if (event->button() == Qt::LeftButton)
+        paintPixel(x, y, selectedColor);
+    else if(event->button() == Qt::RightButton)
+        paintPixel(x, y, 0);
 }
 
 void BigChar::mouseMoveEvent(QMouseEvent * event)
@@ -76,7 +82,14 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
 
     _cursorPos = {x,y};
 
-    paintPixel(x, y);
+    auto&& state = State::getInstance();
+    int selectedColor = state->getSelectedColorIndex();
+
+    auto&& button = event->buttons();
+    if (button == Qt::LeftButton)
+        paintPixel(x, y, selectedColor);
+    else if(button == Qt::RightButton)
+        paintPixel(x, y, 0);
 }
 
 void BigChar::keyPressEvent(QKeyEvent *event)
@@ -84,7 +97,7 @@ void BigChar::keyPressEvent(QKeyEvent *event)
     MainWindow *window = dynamic_cast<MainWindow*>(qApp->activeWindow());
     Ui::MainWindow *ui = window->getUi();
 
-    auto state = State::getInstance();
+    auto&& state = State::getInstance();
     int increment_x = state->isMultiColor() ? 2 : 1;
 
     switch (event->key()) {
@@ -101,7 +114,7 @@ void BigChar::keyPressEvent(QKeyEvent *event)
         _cursorPos += {0,-1};
         break;
     case Qt::Key_Space:
-        paintPixel(_cursorPos.x(), _cursorPos.y());
+        paintPixel(_cursorPos.x(), _cursorPos.y(), state->getSelectedColorIndex());
         break;
     case Qt::Key_1:
         ui->radioButton_1->click();

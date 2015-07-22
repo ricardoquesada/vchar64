@@ -54,7 +54,7 @@ protected:
     void paintSeparators(QPainter &painter);
     void paintFocus(QPainter &painter);
 
-    void paintPixel(int x, int y);
+    void paintPixel(int x, int y, int selectedColor);
 
     int _tileIndex;
     int _charIndex;

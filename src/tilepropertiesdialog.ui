@@ -51,7 +51,7 @@
            <number>1</number>
           </property>
           <property name="maximum">
-           <number>5</number>
+           <number>8</number>
           </property>
          </widget>
         </item>
@@ -64,7 +64,7 @@
            <number>1</number>
           </property>
           <property name="maximum">
-           <number>5</number>
+           <number>8</number>
           </property>
          </widget>
         </item>
@@ -118,8 +118,6 @@
        </spacer>
       </item>
      </layout>
-     <zorder>label_2</zorder>
-     <zorder>label_2</zorder>
     </widget>
    </item>
    <item>
