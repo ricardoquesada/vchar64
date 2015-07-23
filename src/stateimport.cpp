@@ -17,6 +17,7 @@ limitations under the License.
 #include "stateimport.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <QDebug>
 #include <QtEndian>
 
@@ -60,13 +61,13 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
 {
     struct CTMHeader header;
     auto size = file.size();
-    if (size<sizeof(header)) {
+    if ((std::size_t)size<sizeof(header)) {
         qDebug() << "Error. File size too small to be CTM (" << size << ").";
         return -1;
     }
 
     size = file.read((char*)&header, sizeof(header));
-    if (size<sizeof(header))
+    if ((std::size_t)size<sizeof(header))
         return -1;
 
     int num_chars = qFromLittleEndian((int)header.num_chars);
@@ -89,13 +90,13 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
 {
     struct VChar64Header header;
     auto size = file.size();
-    if (size<sizeof(header)) {
+    if ((std::size_t)size<sizeof(header)) {
         qDebug() << "Error. File size too small to be VChar64 (" << size << ").";
         return -1;
     }
 
     size = file.read((char*)&header, sizeof(header));
-    if (size<sizeof(header))
+    if ((std::size_t)size<sizeof(header))
         return -1;
 
     int num_chars = qFromLittleEndian((int)header.num_chars);

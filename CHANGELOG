@@ -2,6 +2,7 @@
 
 * Max tile size is 8x8 (previous was 5x5)
 * Right click works as paiting with background color
+* Fixed compiler warnings
 
 0.0.4 (19 July 2015)
 

@@ -250,7 +250,7 @@ void BigChar::paintChar(QPainter& painter, const QPen& pen, quint8 *charPtr, con
         for (int x=0; x<end_x; x++) {
 
             // Warning: Don't use 'char'. Instead use 'unsigned char'
-            // to prevent a bug in the compiler (or in my code???)
+            // 'char' doesn't work Ok with << and >>
 
             // only mask the bits are needed
             unsigned char mask = bits_to_mask << (((end_x-1)-x) * increment_x);
@@ -310,8 +310,10 @@ void BigChar::updateTileProperties()
     update();
 }
 
-void BigChar::resizeEvent(QResizeEvent *event)
+void BigChar::resizeEvent(QResizeEvent* event)
 {
+    (void)event;
+
     // keep aspect ratio
     int maxTileSize = qMax(_tileProperties.size.width(), _tileProperties.size.height());
     int minWidgetSize = qMin(size().width(), size().height());

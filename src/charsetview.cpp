@@ -132,9 +132,8 @@ void CharSetView::paintEvent(QPaintEvent *event)
 
                 for (int x=0; x<end_x; x++) {
 
-                    // Warning: Don't use 'char'. Instead use 'unsigned char'
-                    // to prevent a bug in the compiler (or in my code???)
-
+                    // Warning: Don't use 'char'. Instead use 'unsigned char'.
+                    // 'char' doesn't work Ok with << and >>
                     // only mask the bits are needed
                     unsigned char mask = bits_to_mask << (((end_x-1)-x) * increment_x);
 
