@@ -31,6 +31,9 @@ class Preview : public QObject
 {
     Q_OBJECT
 
+    bool _available;
+    bool _connected;
+
     void updateBackgroundColor();
     void updateForegroundColor();
     void updateMulticolor1();
@@ -38,15 +41,29 @@ class Preview : public QObject
     void updateColorMode();
     void updateCharset();
     bool updateScreen(const QString &filename);
+    void updateColorProperties();
+    void install();
+
 public:
     static Preview* getInstance();
+    bool isConnected();
+    bool isAvailable() { return _available; }
+    bool connect();
+    void disconnect();
+
+signals:
+    void previewConnected();
+    void previewDisconnected();
 
 public slots:
     // file loaded, or new project
     void fileLoaded();
 
-    // at least one pixel changes in the tile
-    void tileUpdated(int tileIndex);
+    // when one byte in a part of the tile changes
+    void byteUpdated(int);
+
+    // when the whole tile changes
+    void tileUpdated(int);
 
     // multi-color / hires or new colors
     void colorPropertiesUpdated();
@@ -56,7 +73,6 @@ public slots:
 
 protected:
     Preview();
-    void updateColorProperties();
 
     QLibrary *_xlink;
     xlink_ping_t xlink_ping;

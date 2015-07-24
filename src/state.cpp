@@ -237,6 +237,8 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     Q_ASSERT(bitIndex >=0 && bitIndex < 64 && "Invalid bit. Valid range: 0,64");
     Q_ASSERT(colorIndex >=0 && colorIndex < 4 && "Invalid colorIndex. range: 0,4");
 
+    int byteIndex = charIndex*8 + bitIndex/8;
+
 //    if (_multiColor)
     int bits_to_mask = 1;
     int totalbits = 64;
@@ -253,7 +255,7 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
 
 
     // get the needed line ignoring whether it is multicolor or not
-    char c = _chars[charIndex*8 + bitIndex/8];
+    quint8 c = _chars[byteIndex];
 
     // for multicolor, we need to get the modulus
     // in different ways regarding it is multicolor or not
@@ -268,10 +270,10 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     // and 'or' it with colorIndex
     c |= colorIndex << ((modulus-1)-b) * factor;
 
-    quint8 oldValue = _chars[charIndex*8 + bitIndex/8];
+    quint8 oldValue = _chars[byteIndex];
     if (oldValue != c) {
-        _chars[charIndex*8 + bitIndex/8] = c;
-        emit tileUpdated(getTileIndexFromCharIndex(charIndex));
+        _chars[byteIndex] = c;
+        emit byteUpdated(byteIndex);
     }
 }
 
