@@ -253,16 +253,28 @@ void MainWindow::on_radioButton_4_clicked()
 void MainWindow::on_actionSaveAs_triggered()
 {
     auto state = State::getInstance();
-    auto fn = state->getFilename();
+    auto fn = state->getSavedFilename();
     if (fn.length() == 0)
+        fn = state->getLoadedFilename();
+    if (fn.length() != 0)
+    {
+        QFileInfo fileInfo(fn);
+        auto suffix = fileInfo.suffix();
+        if (suffix != "vchar64proj") {
+            fn = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName() + ".vchar64proj";
+        }
+    }
+    else
+    {
         fn = _lastDir + "/untitled.vchar64proj";
+    }
     auto filename = QFileDialog::getSaveFileName(this, tr("Save Project"),
                                              fn,
                                              tr("VChar64 project(*.vchar64proj)"));
 
     if (filename.length() > 0) {
         auto state = State::getInstance();
-        state->save(filename);
+        state->saveProject(filename);
 
         QFileInfo fi(filename);
         setTitle(fi.baseName());
@@ -272,9 +284,9 @@ void MainWindow::on_actionSaveAs_triggered()
 void MainWindow::on_actionSave_triggered()
 {
     auto state = State::getInstance();
-    auto filename = state->getFilename();
+    auto filename = state->getSavedFilename();
     if (filename.length() > 0)
-        state->save(filename);
+        state->saveProject(filename);
     else
         on_actionSaveAs_triggered();
 }

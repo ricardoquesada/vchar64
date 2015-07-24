@@ -46,10 +46,11 @@ public:
     static State* getInstance();
 
     void reset();
-    bool openFile(const QString &filename);
-    bool save(const QString &filename);
+    bool openFile(const QString& filename);
+    bool saveProject(const QString& filename);
     bool exportRaw(const QString& filename);
     bool exportPRG(const QString& filename, quint16 address);
+    // export is a defined keyword, so we use export_ instead
     bool export_();
 
     quint8* getChars();
@@ -95,8 +96,12 @@ public:
         return _multiColor;
     }
 
-    QString getFilename() const {
-        return _filename;
+    QString getLoadedFilename() const {
+        return _loadedFilename;
+    }
+
+    QString getSavedFilename() const {
+        return _savedFilename;
     }
 
     QString getExportedFilename() const {
@@ -104,7 +109,7 @@ public:
     }
 
     // tile properties
-    void setTileProperties(const TileProperties &properties);
+    void setTileProperties(const TileProperties& properties);
     TileProperties getTileProperties() const {
         return _tileProperties;
     }
@@ -163,14 +168,19 @@ protected:
 
     TileProperties _tileProperties;
 
-    QString _filename;
+    // filename of the loaded file
+    // each time a new file is loaded, "exported" and "saved" are reset
+    QString _loadedFilename;
 
+    // filename of the saved file (.vcharproj)
+    QString _savedFilename;
+
+    // filename of the exported file (.raw, .prg)
     QString _exportedFilename;
     // -1 for "raw", otherwise it will be a "prg" and the value will have the address
     int _exportedAddress;
 
-
-    // max size of tile: 5 x 5
-    quint8 _copyTile[8 * 5 * 5];
+    // max size of tile: 8 x 8
+    quint8 _copyTile[8 * 8 * 8];
 };
 

@@ -43,7 +43,8 @@ State::State()
     , _selectedColorIndex(3)
     , _colors{1,12,15,0}
     , _tileProperties{{1,1},1}
-    , _filename("")
+    , _loadedFilename("")
+    , _savedFilename("")
     , _exportedFilename("")
     , _exportedAddress(-1)
 {
@@ -66,7 +67,8 @@ void State::reset()
     _colors[3] = 0;
     _tileProperties.size = {1,1};
     _tileProperties.interleaved = 1;
-    _filename = "";
+    _loadedFilename = "";
+    _savedFilename = "";
     _exportedFilename = "";
     _exportedAddress = -1;
 
@@ -135,7 +137,6 @@ bool State::openFile(const QString& filename)
     if (info.suffix() == "vchar64proj")
     {
         length = StateImport::loadVChar64(this, file);
-        _filename = filename;
     }
     else if ((info.suffix() == "64c") || (info.suffix() == "prg"))
     {
@@ -157,14 +158,19 @@ bool State::openFile(const QString& filename)
 
     emit fileLoaded();
 
-    // if a new file is loaded, then reset the exported values
-    _exportedAddress = -1;
+    // built-in resources are not saved
+    if (filename[0] != ':')
+        _loadedFilename = filename;
+
+    // if a new file is loaded, then reset the exported and saved values
+    _savedFilename = "";
     _exportedFilename = "";
+    _exportedAddress = -1;
 
     return true;
 }
 
-bool State::save(const QString &filename)
+bool State::saveProject(const QString& filename)
 {
     QFile file(filename);
 
@@ -180,7 +186,7 @@ bool State::save(const QString &filename)
     if(length<=0)
         return false;
 
-    _filename = filename;
+    _savedFilename = filename;
 
     return true;
 }
@@ -241,7 +247,7 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     }
 }
 
-void State::setTileProperties(const TileProperties &properties)
+void State::setTileProperties(const TileProperties& properties)
 {
     if (memcmp(&_tileProperties, &properties, sizeof(_tileProperties)) != 0) {
         _tileProperties = properties;

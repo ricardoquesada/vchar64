@@ -33,8 +33,16 @@ ExportDialog::ExportDialog(QWidget *parent) :
     ui->setupUi(this);
 
     auto lastDir = _settings.value("dir/lastdir", QDir::homePath()).toString();
-    lastDir += "/untitled.bin";
-    ui->editFilename->setText(lastDir);
+    auto state = State::getInstance();
+
+    auto fn = state->getExportedFilename();
+    if (fn.length() == 0) {
+        fn = state->getLoadedFilename();
+    }
+    if (fn.length() == 0)
+        fn = lastDir + "/" + "untitled.bin";
+
+    ui->editFilename->setText(fn);
 }
 
 ExportDialog::~ExportDialog()
