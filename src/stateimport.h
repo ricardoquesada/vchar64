@@ -35,8 +35,6 @@ public:
     // loads a VChar64 project file
     static qint64 loadVChar64(State* state, QFile& file);
 
-
-
     //
     // From CharPad documentation
     //
@@ -136,7 +134,7 @@ public:
 
     #pragma pack(push)
     #pragma pack(1)
-    struct CTMHeader
+    struct CTMHeader4
     {
         char id[3];                 // must be CTM
         char version;               // must be 4
@@ -159,7 +157,115 @@ public:
         char reserved[4];           // Must be 24 bytes in total
     };
     #pragma pack(pop)
-    static_assert (sizeof(CTMHeader) == 24, "Size is not correct");
+    static_assert (sizeof(CTMHeader4) == 24, "Size is not correct");
+
+    /*
+    CTM files begins with a 20 byte header...
+
+
+    file_id       [00-02]   3 bytes : file identification string ("CTM" in ASCII).
+    version       [03]      1 byte  : File version number (5).
+
+    colours       [04-07]   4 bytes : Project colours (only the low nybbles are of interest).
+                                      [04] = Background/transparent colour.
+                                      [05] = Character multi-colour 1.
+                                      [06] = Character multi-colour 2.
+                                      [07] = Character colour. (primarily for 'Global' colouring mode).
+
+    colour_method [08]      1 byte  : Character colouring method (values 0-2 are valid).
+                                      (0 = Global, 1 = Per Tile, 2 = Per Character).
+
+    flags         [09]      1 byte  : Various project flags:-
+
+                                      bit 0 : Tile System (1 = Enabled).
+                                      bit 1 : Expanded Data (1 = Yes).
+                                      bit 2 : Multi-colour Mode (1 = Enabled).
+
+                                      Remaining bits (3-7) are unused.
+
+    num_chars-1   [10,11]   2 bytes : Number of characters -1 (low byte, high byte).
+    num_tiles-1   [12,13]   2 bytes : Number of tiles -1 (low byte, high byte).
+    tile_wid      [14]      1 byte  : Tile width (currently values of 1-8 are valid).
+    tile_hei      [15]      1 byte  : Tile height (currently values of 1-8 are valid).
+    map_wid       [16,17]   2 bytes : Map width (low byte, high byte).
+    map_hei       [18,19]   2 bytes : Map height (low byte, high byte).
+
+
+
+
+    Then come the data blocks...
+
+
+    char_data       The character set. (size = num_chars * 8 bytes).
+
+                    Each byte in this block represents the pixels of one row (of 8) for each character
+                    definition, the sequence should be interpreted as groups of eight bytes where the
+                    first byte in a group represents the topmost row of pixels in a character with the
+                    following seven bytes representing each further row.
+
+
+
+    char_attribs    The character attributes. (size = num_chars bytes).
+
+                    Each byte should be interpreted as an "MMMMCCCC" bit pattern where 'M' is one of four
+                    material bits and 'C' is one of four colour bits.
+
+                    The colour attribute nybbles are only useful when colour_method = 2 (Per character)
+                    and they should all read zero if any other character colouring method is used.
+
+
+
+    tile_data       The tile data. (size = num_tiles * tile_wid * tile_hei bytes * 2 bytes).
+
+                    This block only exists if the 'Expanded Data' flag is clear. (see header).
+
+                    Tile_data is a stream of (16-bit) character codes to be arranged left-to-right,
+                    top-to-bottom for each tile.
+
+                    The character code values in this block should not exceed num_chars-1.
+
+                    In the case that the 'Expanded Data' flag is set, the tile_data block will be absent
+                    as it's contents would just be an ascending series starting at 0.
+
+                    The format of each (16 bit) character code is Low Byte, High Byte.
+
+
+
+    tile_colours    The tile colours. (size = num_tiles bytes).
+
+                    one byte per tile, the lower nybbles indicate "char colour" (0-15) for the whole tile
+                    and the upper nybbles are unused.
+
+                    This block only exists if colour_method = 1 (Per tile).
+
+
+    map_data        The map data. (size =  map_wid * map_hei * 2 bytes).
+
+                    Each byte in this block is a (16 bit) tile code, the sequence should be interpreted as
+                    running left-to-right for each map row starting with the topmost and moving down.
+    */
+    #pragma pack(push)
+    #pragma pack(1)
+    struct CTMHeader5
+    {
+        char id[3];                 // must be CTM
+        char version;               // must be 5
+        char colors[4];             // BGR, MC1, MC2, RAM.
+        char color_mode;            // 0 = Global, 1 = Per Tile, 2 = Per Tile Cell.
+        char flags;                 // bit 0 : Tile System (1 = Enabled), bit 1 : Expanded Data (1 = Yes), bit 2 : Multi-colour Mode (1 = Enabled).
+
+        quint16 num_chars;          // 16-bits, Number of chars - 1 (low, high).
+
+        quint16 num_tiles;          // Number of tiles - 1.
+
+        unsigned char tile_width;   // Tile Width: 1-8
+        unsigned char tile_height;  // Tile Height: 1-8
+
+        quint16 map_width;          // 16-bit Map width (low, high).
+        quint16 map_height;         // 16-bit Map height (low, high).
+    };
+    #pragma pack(pop)
+    static_assert (sizeof(CTMHeader5) == 20, "Size is not correct");
 
 
     #pragma pack(push)
@@ -171,17 +277,22 @@ public:
         char colors[4];             // BGR, MC1, MC2, RAM.
         char vic_res;               // 0 = Hi Resolution, 1 = Multicolour.
 
-        unsigned short num_chars;   // 16-bits, Number of chars - 1 (low, high).
+        quint16 num_chars;          // 16-bits, Number of chars - 1 (low, high).
 
-        char tile_width;            // between 1-5
-        char tile_height;           // between 1-5
+        char tile_width;            // between 1-8
+        char tile_height;           // between 1-8
         char char_interleaved;      // between 1-128
 
-        char reserved[16];           // Must be 32 bytes in total
+        char reserved[16];          // Must be 32 bytes in total
     };
     #pragma pack(pop)
 
     static_assert (sizeof(VChar64Header) == 32, "Size is not correct");
+
+protected:
+    static qint64 loadCTM4(State *state, QFile& file, struct CTMHeader4* v5header);
+    static qint64 loadCTM5(State *state, QFile& file, struct CTMHeader5* v5header);
+
 };
 
 

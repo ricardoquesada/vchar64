@@ -4,6 +4,7 @@
 * Right click works as paiting with background color
 * Fixed compiler warnings
 * Better name suggestions when saving and exporting files
+* Adds support for importing CharPad 2.0 files
 
 0.0.4 (19 July 2015)
 

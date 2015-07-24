@@ -61,9 +61,63 @@ qint64 StateImport::loadPRG(State *state, QFile& file, quint16* outAddress)
     return StateImport::loadRaw(state, file);
 }
 
+qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4header)
+{
+    // only 20 bytes were read, but v4 headers has 24 bytes.
+    // but the 4 remaing bytes are not important.
+    char ignore[4];
+    file.read(ignore, sizeof(ignore));
+
+    int num_chars = qFromLittleEndian(v4header->num_chars);
+    int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
+
+    // clean previous memory in case not all the chars are loaded
+    state->resetCharsBuffer();
+
+    auto total = file.read((char*)state->getCharsBuffer(), toRead);
+
+    for (int i=0; i<4; i++)
+        state->setColorAtIndex(i, v4header->colors[i]);
+
+    state->setMultiColor(v4header->vic_res);
+
+    State::TileProperties tp;
+    tp.interleaved = 1;
+    tp.size.setWidth(v4header->tile_width);
+    tp.size.setHeight(v4header->tile_height);
+    state->setTileProperties(tp);
+
+    return total;
+}
+
+qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5header)
+{
+    int num_chars = qFromLittleEndian(v5header->num_chars);
+    int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
+
+    // clean previous memory in case not all the chars are loaded
+    state->resetCharsBuffer();
+
+    auto total = file.read((char*)state->getCharsBuffer(), toRead);
+
+    for (int i=0; i<4; i++)
+        state->setColorAtIndex(i, v5header->colors[i]);
+
+    state->setMultiColor(v5header->flags & 0b00000100);
+
+    State::TileProperties tp;
+    tp.interleaved = 1;
+    // some files reports size == 0. Bug in CTMv5?
+    tp.size.setWidth(qMax((int)v5header->tile_width,1));
+    tp.size.setHeight(qMax((int)v5header->tile_height,1));
+    state->setTileProperties(tp);
+
+    return total;
+}
+
 qint64 StateImport::loadCTM(State *state, QFile& file)
 {
-    struct CTMHeader header;
+    struct CTMHeader5 header;
     auto size = file.size();
     if ((std::size_t)size<sizeof(header)) {
         qDebug() << "Error. File size too small to be CTM (" << size << ").";
@@ -74,20 +128,20 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
     if ((std::size_t)size<sizeof(header))
         return -1;
 
-    int num_chars = qFromLittleEndian((int)header.num_chars);
-    int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
+    // check header
+    if (header.id[0] != 'C' || header.id[1] != 'T' || header.id[2] != 'M') {
+        qDebug() << "Not a valid CTM file";
+        return -1;
+    }
 
-    // clean previous memory in case not all the chars are loaded
-    state->resetCharsBuffer();
-
-    auto total = file.read((char*)state->getCharsBuffer(), toRead);
-
-    for (int i=0; i<4; i++)
-        state->setColorAtIndex(i, header.colors[i]);
-
-    state->setMultiColor(header.vic_res);
-
-    return total;
+    // check version
+    if (header.version == 4) {
+        return loadCTM4(state, file, (struct CTMHeader4*)&header);
+    } else if (header.version == 5) {
+        return loadCTM5(state, file, &header);
+    }
+    qDebug() << "Invalid CTM version: " << header.version;
+    return -1;
 }
 
 qint64 StateImport::loadVChar64(State *state, QFile& file)
