@@ -15,6 +15,9 @@ class Preview : public QObject
 {
     Q_OBJECT
 
+    bool _available;
+    bool _connected;
+
     void updateBackgroundColor();
     void updateForegroundColor();
     void updateMulticolor1();
@@ -22,8 +25,19 @@ class Preview : public QObject
     void updateColorMode();
     void updateCharset();
     bool updateScreen(const QString &filename);
+    void updateColorProperties();
+    void install();
+
 public:
     static Preview* getInstance();
+    bool isConnected();
+    bool isAvailable() { return _available; }
+    bool connect();
+    void disconnect();
+
+signals:
+    void previewConnected();
+    void previewDisconnected();
 
 public slots:
     // file loaded, or new project
@@ -43,7 +57,6 @@ public slots:
 
 protected:
     Preview();
-    void updateColorProperties();
 
     QLibrary *_xlink;
     xlink_ping_t xlink_ping;

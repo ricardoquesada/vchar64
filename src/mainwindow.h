@@ -39,6 +39,10 @@ public:
         return _ui;
     }
 
+public slots:
+    void previewConnected();
+    void previewDisconnected();
+
 protected:
     void createActions();
     void createDefaults();
@@ -79,12 +83,10 @@ private slots:
     void on_actionAbout_triggered();
     void on_actionAboutQt_triggered();
     void on_actionClearRecentFiles_triggered();
-
     void on_actionEmptyProject_triggered();
-
     void on_actionC64Default_triggered();
-
     void on_actionTilesProperties_triggered();
+    void on_actionXlinkConnection_triggered();
 
 private:
 

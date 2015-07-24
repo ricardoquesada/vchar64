@@ -13,8 +13,38 @@ Preview* Preview::getInstance()
     return __instance;
 }
 
+bool Preview::isConnected()
+{
+    if(!_available) return false;
+    if(!_connected) return false;
+
+    if(!xlink_ping()) {
+        _connected = false;
+        emit previewDisconnected();
+        return false;
+    }
+    return true;
+}
+
+bool Preview::connect()
+{
+    if((_connected = xlink_ping())) {
+        fileLoaded();
+        emit previewConnected();
+    }
+    return _connected;
+}
+
+void Preview::disconnect()
+{
+    _connected = false;
+    emit previewDisconnected();
+}
+
 Preview::Preview()
-    : xlink_ping(nullptr)
+    : _available(false)
+    , _connected(false)
+    , xlink_ping(nullptr)
     , xlink_load(nullptr)
     , xlink_peek(nullptr)
     , xlink_poke(nullptr)
@@ -28,6 +58,9 @@ Preview::Preview()
         xlink_poke = (xlink_poke_t) _xlink->resolve("xlink_poke");
         xlink_peek = (xlink_peek_t) _xlink->resolve("xlink_peek");
         xlink_fill = (xlink_fill_t) _xlink->resolve("xlink_fill");
+
+        _available = true;
+        connect();
     }
 }
 
@@ -42,7 +75,7 @@ void Preview::updateBackgroundColor()
 
 void Preview::updateForegroundColor()
 {
-    if(!_xlink->isLoaded()) return;
+    if(!isConnected()) return;
 
     auto state = State::getInstance();
     uchar foreground = state->getColorAtIndex(3);
@@ -54,7 +87,7 @@ void Preview::updateForegroundColor()
 
 void Preview::updateMulticolor1()
 {
-    if(!_xlink->isLoaded()) return;
+    if(!isConnected()) return;
 
     auto state = State::getInstance();
     xlink_poke(0x37, 0x00, 0xd022, (uchar) state->getColorAtIndex(1));
@@ -62,7 +95,7 @@ void Preview::updateMulticolor1()
 
 void Preview::updateMulticolor2()
 {
-    if(!_xlink->isLoaded()) return;
+    if(!isConnected()) return;
 
     auto state = State::getInstance();
     xlink_poke(0x37, 0x00, 0xd023, (uchar) state->getColorAtIndex(2));
@@ -70,7 +103,7 @@ void Preview::updateMulticolor2()
 
 void Preview::updateColorMode()
 {
-    if(!_xlink->isLoaded()) return;
+    if(!isConnected()) return;
 
     auto state = State::getInstance();
     uchar control = 0x08;
@@ -91,7 +124,7 @@ void Preview::updateColorProperties()
 
 void Preview::updateCharset()
 {
-    if(!_xlink->isLoaded()) return;
+    if(!isConnected()) return;
 
     auto state = State::getInstance();
 
@@ -101,6 +134,8 @@ void Preview::updateCharset()
 
 bool Preview::updateScreen(const QString& filename)
 {
+    if(!isConnected()) return false;
+
     QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly))
@@ -118,19 +153,23 @@ bool Preview::updateScreen(const QString& filename)
     return true;
 }
 
-void Preview::fileLoaded()
+void Preview::install()
 {
-    if(!_xlink->isLoaded()) return;
-    if(!xlink_ping()) return;
-
     updateScreen(":/c64-screen.bin");
     updateCharset();
     updateColorProperties();
 }
 
+void Preview::fileLoaded()
+{
+    if(!isConnected()) return;
+
+    install();
+}
+
 void Preview::byteUpdated(int byteIndex)
 {
-    if(!_xlink->isLoaded()) return;
+    if(!isConnected()) return;
 
     auto state = State::getInstance();
     xlink_poke(0xb7, 0x00, 0x3000 + byteIndex, state->getChars()[byteIndex]);
@@ -138,8 +177,7 @@ void Preview::byteUpdated(int byteIndex)
 
 void Preview::tileUpdated(int tileIndex)
 {
-    if(!_xlink->isLoaded()) return;
-    if(!xlink_ping()) return;
+    if(!isConnected()) return;
 
     auto state = State::getInstance();
 
@@ -161,8 +199,7 @@ void Preview::tileUpdated(int tileIndex)
 
 void Preview::colorSelected()
 {
-    if(!_xlink->isLoaded()) return;
-    if(!xlink_ping()) return;
+    if(!isConnected()) return;
 
     auto state = State::getInstance();
 
@@ -176,7 +213,7 @@ void Preview::colorSelected()
 
 void Preview::colorPropertiesUpdated()
 {
-    if(!_xlink->isLoaded()) return;
+    if(!isConnected()) return;
 
     updateColorMode();
 }

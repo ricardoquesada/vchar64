@@ -210,7 +210,7 @@
      <x>0</x>
      <y>0</y>
      <width>536</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -272,9 +272,16 @@
     </property>
     <addaction name="actionTilesProperties"/>
    </widget>
+   <widget class="QMenu" name="menuPreview">
+    <property name="title">
+     <string>Xlink</string>
+    </property>
+    <addaction name="actionXlinkConnection"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menuEdit"/>
    <addaction name="menuTile"/>
+   <addaction name="menuPreview"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpen">
@@ -535,6 +542,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionXlinkConnection">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Connect</string>
    </property>
   </action>
  </widget>
