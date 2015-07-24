@@ -1,4 +1,3 @@
-#include <QDebug>
 #include <QFile>
 #include <QFileInfo>
 
@@ -127,6 +126,14 @@ void Preview::fileLoaded()
     updateScreen(":/c64-screen.bin");
     updateCharset();
     updateColorProperties();
+}
+
+void Preview::byteUpdated(int byteIndex)
+{
+    if(!_xlink->isLoaded()) return;
+
+    auto state = State::getInstance();
+    xlink_poke(0xb7, 0x00, 0x3000 + byteIndex, state->getChars()[byteIndex]);
 }
 
 void Preview::tileUpdated(int tileIndex)

@@ -29,8 +29,11 @@ public slots:
     // file loaded, or new project
     void fileLoaded();
 
-    // at least one pixel changes in the tile
-    void tileUpdated(int tileIndex);
+    // when one byte in a part of the tile changes
+    void byteUpdated(int);
+
+    // when the whole tile changes
+    void tileUpdated(int);
 
     // multi-color / hires or new colors
     void colorPropertiesUpdated();
