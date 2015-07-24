@@ -55,6 +55,16 @@ void MainWindow::setTitle(const QString &title)
     emit setWindowTitle(title + " - VChar64");
 }
 
+void MainWindow::previewConnected()
+{
+    _ui->actionXlinkConnection->setText("Disconnect");
+}
+
+void MainWindow::previewDisconnected()
+{
+    _ui->actionXlinkConnection->setText("Connect");
+}
+
 void MainWindow::createActions()
 {
     auto state = State::getInstance();
@@ -80,9 +90,18 @@ void MainWindow::createActions()
 
     auto preview = Preview::getInstance();
     connect(state, SIGNAL(fileLoaded()), preview, SLOT(fileLoaded()));
+    connect(state, SIGNAL(byteUpdated(int)), preview, SLOT(byteUpdated(int)));
     connect(state, SIGNAL(tileUpdated(int)), preview, SLOT(tileUpdated(int)));
     connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(colorPropertiesUpdated()));
     connect(_ui->colorPalette, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
+    connect(preview, SIGNAL(previewConnected()), this, SLOT(previewConnected()));
+    connect(preview, SIGNAL(previewDisconnected()), this, SLOT(previewDisconnected()));
+
+    _ui->menuPreview->setEnabled(preview->isAvailable());
+
+     if(preview->isConnected()) {
+          previewConnected();
+    }
 }
 
 void MainWindow::createDefaults()
@@ -460,4 +479,16 @@ void MainWindow::on_actionTilesProperties_triggered()
 
     // rotate only enable if witdh==height
     _ui->actionRotate->setEnabled(s.width() == s.height());
+}
+
+void MainWindow::on_actionXlinkConnection_triggered()
+{
+    auto preview = Preview::getInstance();
+    if(preview->isConnected())
+        preview->disconnect();
+    else
+        if(!preview->connect()) {
+            QMessageBox msgBox(QMessageBox::Warning, "", "Could not connect to remote C64", 0, this);
+            msgBox.exec();
+        }
 }
