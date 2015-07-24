@@ -132,23 +132,37 @@ bool State::openFile(const QString& filename)
         return false;
 
     qint64 length=0;
+    quint16 loadedAddress;
+
+    enum {
+        FILETYPE_VCHAR64,
+        FILETYPE_PRG,
+        FILETYPE_RAW,
+        FILETYPE_CTM
+    };
+    int filetype = FILETYPE_RAW;
+
 
     QFileInfo info(file);
     if (info.suffix() == "vchar64proj")
     {
         length = StateImport::loadVChar64(this, file);
+        filetype = FILETYPE_VCHAR64;
     }
     else if ((info.suffix() == "64c") || (info.suffix() == "prg"))
     {
-        length = StateImport::loadPRG(this, file);
+        length = StateImport::loadPRG(this, file, &loadedAddress);
+        filetype = FILETYPE_PRG;
     }
     else if(info.suffix() == "ctm")
     {
         length = StateImport::loadCTM(this, file);
+        filetype = FILETYPE_CTM;
     }
     else
     {
         length = StateImport::loadRaw(this, file);
+        filetype = FILETYPE_RAW;
     }
 
     file.close();
@@ -156,16 +170,30 @@ bool State::openFile(const QString& filename)
     if(length<=0)
         return false;
 
-    emit fileLoaded();
-
-    // built-in resources are not saved
-    if (filename[0] != ':')
-        _loadedFilename = filename;
-
     // if a new file is loaded, then reset the exported and saved values
     _savedFilename = "";
     _exportedFilename = "";
     _exportedAddress = -1;
+
+    // built-in resources are not saved
+    if (filename[0] != ':')
+    {
+        _loadedFilename = filename;
+
+        if (filetype == FILETYPE_VCHAR64)
+        {
+            _savedFilename = filename;
+        }
+        else if (filetype == FILETYPE_RAW || filetype == FILETYPE_PRG)
+        {
+            _exportedFilename = filename;
+            if (filetype == FILETYPE_PRG) {
+                _exportedAddress = loadedAddress;
+            }
+        }
+    }
+
+    emit fileLoaded();
 
     return true;
 }

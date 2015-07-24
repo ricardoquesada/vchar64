@@ -27,7 +27,7 @@ public:
     static qint64 loadRaw(State* state, QFile& file);
 
     // loads a PRG / 64C file. Same a raw, but the first 2 characters are ignored
-    static qint64 loadPRG(State* state, QFile& file);
+    static qint64 loadPRG(State* state, QFile& file, quint16* outAddress);
 
     // loads a CharPad project file
     static qint64 loadCTM(State* state, QFile& file);

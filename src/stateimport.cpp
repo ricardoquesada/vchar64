@@ -42,7 +42,7 @@ qint64 StateImport::loadRaw(State* state, QFile& file)
     return total;
 }
 
-qint64 StateImport::loadPRG(State *state, QFile& file)
+qint64 StateImport::loadPRG(State *state, QFile& file, quint16* outAddress)
 {
     auto size = file.size();
     if (size < 10) { // 2 + 8 (at least one char)
@@ -51,8 +51,12 @@ qint64 StateImport::loadPRG(State *state, QFile& file)
     }
 
     // ignore first 2 bytes
-    char buf[2];
-    file.read(buf,2);
+    quint16 address;
+    file.read((char*)&address, 2);
+
+    if (outAddress) {
+        *outAddress = qFromLittleEndian(address);
+    }
 
     return StateImport::loadRaw(state, file);
 }
