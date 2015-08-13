@@ -47,6 +47,7 @@ State::State()
     , _savedFilename("")
     , _exportedFilename("")
     , _exportedAddress(-1)
+    , _dirty(false)
 {
     memset(_copyTile, 0, sizeof(_copyTile));
 }
@@ -71,6 +72,7 @@ void State::reset()
     _savedFilename = "";
     _exportedFilename = "";
     _exportedAddress = -1;
+    _dirty = false;
 
     memset(_chars, 0, sizeof(_chars));
 
@@ -324,7 +326,6 @@ void State::tileCopy(int tileIndex)
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(_copyTile, &_chars[tileIndex*tileSize], tileSize);
 
-    emit tileUpdated(tileIndex);
 }
 
 void State::tilePaste(int tileIndex)
@@ -332,6 +333,8 @@ void State::tilePaste(int tileIndex)
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(&_chars[tileIndex*tileSize], _copyTile, tileSize);
+
+    emit tileUpdated(tileIndex);
 }
 
 void State::tileInvert(int tileIndex)
@@ -477,6 +480,7 @@ void State::tileRotate(int tileIndex)
 
     emit tileUpdated(tileIndex);
 }
+
 void State::tileShiftLeft(int tileIndex)
 {
     int charIndex = getCharIndexFromTileIndex(tileIndex);

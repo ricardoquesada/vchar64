@@ -65,6 +65,11 @@ void MainWindow::previewDisconnected()
     _ui->actionXlinkConnection->setText("Connect");
 }
 
+void MainWindow::stateIsDirty(bool isDirty)
+{
+
+}
+
 void MainWindow::createActions()
 {
     auto state = State::getInstance();
@@ -93,6 +98,8 @@ void MainWindow::createActions()
     connect(state, SIGNAL(byteUpdated(int)), preview, SLOT(byteUpdated(int)));
     connect(state, SIGNAL(tileUpdated(int)), preview, SLOT(tileUpdated(int)));
     connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(colorPropertiesUpdated()));
+    connect(state, SIGNAL(stateIsDirty(bool)), this, SLOT(stateIsDirty(bool)));
+
     connect(_ui->colorPalette, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
     connect(preview, SIGNAL(previewConnected()), this, SLOT(previewConnected()));
     connect(preview, SIGNAL(previewDisconnected()), this, SLOT(previewDisconnected()));
@@ -176,7 +183,7 @@ void MainWindow::openFile(const QString& fileName)
         auto state = State::getInstance();
         _ui->checkBox->setChecked(state->isMultiColor());
 
-        setTitle(info.baseName());
+        setTitle(info.fileName());
     }
 }
 

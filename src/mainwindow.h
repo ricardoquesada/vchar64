@@ -42,6 +42,7 @@ public:
 public slots:
     void previewConnected();
     void previewDisconnected();
+    void stateIsDirty(bool isDirty);
 
 protected:
     void createActions();

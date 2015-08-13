@@ -150,7 +150,12 @@ signals:
     // multi-color / hires or new colors
     void colorPropertiesUpdated();
 
+    // when the state is dirty, or non-dirty.
+    // only emmited when the dirty-state changes
+    void stateIsDirty(bool);
+
 public slots:
+
 
 protected:    
     State();
@@ -185,5 +190,8 @@ protected:
 
     // max size of tile: 8 x 8
     quint8 _copyTile[8 * 8 * 8];
+
+    // whether or not the state is dirty
+    bool _dirty;
 };
 
