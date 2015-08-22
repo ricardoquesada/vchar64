@@ -17,9 +17,9 @@ Tailored for my own needs, but feel free to send patches, open bugs, etc.
     * Rotate
     * Shift Up, Down, Left, Right
 * Tile support:
-    * From 1x1 to 5x5.
+    * From 1x1 to 8x8
     * Custom Distance in chars between tiles
-* Imports CharPad 1.8 projects
+* Imports CharPad 1.8 and 2.0 projects
 * Exports to Raw and Prg
 * [xlink](http://henning-bekel.de/xlink/) support. Video showing xlink in action: https://www.youtube.com/watch?v=ZaSR_mxRfmo
 
