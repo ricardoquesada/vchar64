@@ -55,3 +55,7 @@ DISTFILES +=
 
 RESOURCES += \
     res/resources.qrc
+
+mac {
+    ICON = res/vchar64.icns
+}

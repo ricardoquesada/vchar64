@@ -43,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     createActions();
     createDefaults();
+
+    QApplication::setWindowIcon(QIcon(":/logo512.png"));
 }
 
 MainWindow::~MainWindow()
