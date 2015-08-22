@@ -13,9 +13,6 @@
   <property name="focusPolicy">
    <enum>Qt::WheelFocus</enum>
   </property>
-  <property name="windowTitle">
-   <string>VChar64</string>
-  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_4">
     <item>

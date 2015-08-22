@@ -19,23 +19,27 @@ limitations under the License.
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    Q_INIT_RESOURCE(resources);
 
-    a.setOrganizationDomain(QLatin1String("vchar64.org"));
-    a.setApplicationName(QLatin1String("VChar64"));
-    a.setApplicationVersion(QLatin1String(APP_VERSION));
+    QApplication app(argc, argv);
+
+    app.setOrganizationDomain(QLatin1String("vchar64.org"));
+    app.setApplicationName(QLatin1String("VChar64"));
+    app.setApplicationVersion(QLatin1String(APP_VERSION));
 
 #ifdef Q_OS_MAC
-    a.setAttribute(Qt::AA_DontShowIconsInMenus);
+    app.setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif
 
 #if QT_VERSION >= 0x050100
     // Enable support for highres images (added in Qt 5.1, but off by default)
-    a.setAttribute(Qt::AA_UseHighDpiPixmaps);
+    app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
-    MainWindow w;
-    w.show();
+    QApplication::setWindowIcon(QIcon(":/logo512.png"));
 
-    return a.exec();
+    MainWindow mainWin;
+    mainWin.show();
+
+    return app.exec();
 }
