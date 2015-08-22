@@ -34,7 +34,6 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    void setTitle(const QString& title);
     Ui::MainWindow* getUi() const {
         return _ui;
     }

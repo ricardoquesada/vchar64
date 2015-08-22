@@ -46,16 +46,12 @@ MainWindow::MainWindow(QWidget *parent)
     createDefaults();
 
     QApplication::setWindowIcon(QIcon(":/logo512.png"));
+    setUnifiedTitleAndToolBarOnMac(true);
 }
 
 MainWindow::~MainWindow()
 {
     delete _ui;
-}
-
-void MainWindow::setTitle(const QString &title)
-{
-    emit setWindowTitle(title + "[*]");
 }
 
 void MainWindow::previewConnected()
@@ -127,7 +123,6 @@ void MainWindow::createActions()
 void MainWindow::createDefaults()
 {
     _lastDir = _settings.value("dir/lastdir", _lastDir).toString();
-    setTitle("[untitled]");
 
     auto state = State::getInstance();
     state->openFile(":/c64-chargen-uppercase.bin");
@@ -138,6 +133,8 @@ void MainWindow::createDefaults()
     state->setTileProperties(properties);
 
     state->setMultiColor(false);
+
+    setWindowFilePath("[untitled]");
 }
 
 void MainWindow::updateRecentFiles()
@@ -196,7 +193,7 @@ void MainWindow::openFile(const QString& fileName)
         auto state = State::getInstance();
         _ui->checkBox->setChecked(state->isMultiColor());
 
-        setTitle(info.fileName());
+        setWindowFilePath(info.filePath());
     }
 }
 
@@ -235,7 +232,7 @@ void MainWindow::on_actionEmptyProject_triggered()
         auto state = State::getInstance();
         state->reset();
         update();
-        setTitle("[untitled]");
+        setWindowFilePath("[untitled]");
     }
 }
 
@@ -252,7 +249,7 @@ void MainWindow::on_actionC64DefaultUppercase_triggered()
         state->setMultiColor(false);
 
         update();
-        setTitle("[untitled]");
+        setWindowFilePath("[untitled]");
     }
 }
 
@@ -269,7 +266,7 @@ void MainWindow::on_actionC64DefaultLowercase_triggered()
         state->setMultiColor(false);
 
         update();
-        setTitle("[untitled]");
+        setWindowFilePath("[untitled]");
     }
 }
 
@@ -363,7 +360,7 @@ bool MainWindow::on_actionSaveAs_triggered()
         auto state = State::getInstance();
         if ((ret=state->saveProject(filename))) {
             QFileInfo fi(filename);
-            setTitle(fi.baseName());
+            setWindowFilePath(fi.filePath());
         }
     }
 
