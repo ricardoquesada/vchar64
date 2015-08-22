@@ -121,6 +121,10 @@ public:
     quint8* getCharsBuffer();
     void resetCharsBuffer();
 
+    bool isModified() const {
+        return _dirty;
+    }
+
     //
     void tileCopy(int tileIndex);
     void tilePaste(int tileIndex);
@@ -152,7 +156,7 @@ signals:
 
     // when the state is dirty, or non-dirty.
     // only emmited when the dirty-state changes
-    void stateIsDirty(bool);
+    void contentsChanged();
 
 public slots:
 

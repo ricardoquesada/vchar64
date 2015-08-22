@@ -42,7 +42,7 @@ public:
 public slots:
     void previewConnected();
     void previewDisconnected();
-    void stateIsDirty(bool isDirty);
+    void documentWasModified();
 
 protected:
     void createActions();
@@ -52,6 +52,8 @@ protected:
     void setRecentFile(const QString& fileName);
     QStringList recentFiles() const;
     void openFile(const QString& fileName);
+
+    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
 
     // XXX If declared as "slot" it will raise a runtime warning. uh?
     void on_openRecentFile_triggered();
@@ -90,6 +92,8 @@ private slots:
     void on_actionXlinkConnection_triggered();
 
 private:
+
+    bool maybeSave();
 
     QAction* _recentFiles[MAX_RECENT_FILES];
 

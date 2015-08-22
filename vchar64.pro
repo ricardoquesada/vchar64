@@ -56,6 +56,6 @@ DISTFILES +=
 RESOURCES += \
     res/resources.qrc
 
-mac {
+macx {
     ICON = res/vchar64.icns
 }

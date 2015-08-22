@@ -77,6 +77,8 @@ void State::reset()
     memset(_chars, 0, sizeof(_chars));
 
     emit fileLoaded();
+    _dirty = false;
+    emit contentsChanged();
 }
 
 bool State::export_()
@@ -196,6 +198,8 @@ bool State::openFile(const QString& filename)
     }
 
     emit fileLoaded();
+    _dirty = false;
+    emit contentsChanged();
 
     return true;
 }
@@ -217,6 +221,9 @@ bool State::saveProject(const QString& filename)
         return false;
 
     _savedFilename = filename;
+
+    _dirty = false;
+    emit contentsChanged();
 
     return true;
 }
@@ -275,7 +282,9 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     quint8 oldValue = _chars[byteIndex];
     if (oldValue != c) {
         _chars[byteIndex] = c;
+        _dirty = true;
         emit byteUpdated(byteIndex);
+        emit contentsChanged();
     }
 }
 
@@ -283,7 +292,9 @@ void State::setTileProperties(const TileProperties& properties)
 {
     if (memcmp(&_tileProperties, &properties, sizeof(_tileProperties)) != 0) {
         _tileProperties = properties;
+        _dirty = true;
         emit tilePropertiesUpdated();
+        emit contentsChanged();
     }
 }
 
@@ -334,7 +345,9 @@ void State::tilePaste(int tileIndex)
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(&_chars[tileIndex*tileSize], _copyTile, tileSize);
 
+    _dirty = true;
     emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 void State::tileInvert(int tileIndex)
@@ -350,7 +363,9 @@ void State::tileInvert(int tileIndex)
         }
     }
 
+    _dirty = true;
     emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 void State::tileClear(int tileIndex)
@@ -366,7 +381,9 @@ void State::tileClear(int tileIndex)
         }
     }
 
+    _dirty = true;
     emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 void State::tileFlipHorizontally(int tileIndex)
@@ -399,7 +416,9 @@ void State::tileFlipHorizontally(int tileIndex)
         }
     }
 
+    _dirty = true;
     emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 void State::tileFlipVertically(int tileIndex)
@@ -428,7 +447,9 @@ void State::tileFlipVertically(int tileIndex)
         }
     }
 
+    _dirty = true;
     emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 void State::tileRotate(int tileIndex)
@@ -478,7 +499,9 @@ void State::tileRotate(int tileIndex)
         }
     }
 
+    _dirty = true;
     emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 void State::tileShiftLeft(int tileIndex)
@@ -511,7 +534,9 @@ void State::tileShiftLeft(int tileIndex)
         }
     }
 
+    _dirty = true;
     emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 void State::tileShiftRight(int tileIndex)
@@ -544,7 +569,9 @@ void State::tileShiftRight(int tileIndex)
         }
     }
 
+    _dirty = true;
     emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 void State::tileShiftUp(int tileIndex)
@@ -572,7 +599,9 @@ void State::tileShiftUp(int tileIndex)
         charPtr[7+(x+(_tileProperties.size.height()-1)*_tileProperties.size.width())*8*_tileProperties.interleaved] = prevTopByte;
     }
 
+    _dirty = true;
     emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 void State::tileShiftDown(int tileIndex)
@@ -600,7 +629,9 @@ void State::tileShiftDown(int tileIndex)
         charPtr[x*8*_tileProperties.interleaved] = prevBottomByte;
     }
 
+    _dirty = true;
     emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 

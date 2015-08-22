@@ -23,6 +23,7 @@ limitations under the License.
 #include <QMessageBox>
 #include <QDebug>
 #include <QDesktopServices>
+#include <QCloseEvent>
 
 #include "state.h"
 #include "preview.h"
@@ -67,9 +68,19 @@ void MainWindow::previewDisconnected()
     _ui->actionXlinkConnection->setText("Connect");
 }
 
-void MainWindow::stateIsDirty(bool isDirty)
+void MainWindow::documentWasModified()
 {
+    auto state = State::getInstance();
+    setWindowModified(state->isModified());
+}
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (maybeSave()) {
+        event->accept();
+    } else {
+        event->ignore();
+    }
 }
 
 void MainWindow::createActions()
@@ -100,7 +111,7 @@ void MainWindow::createActions()
     connect(state, SIGNAL(byteUpdated(int)), preview, SLOT(byteUpdated(int)));
     connect(state, SIGNAL(tileUpdated(int)), preview, SLOT(tileUpdated(int)));
     connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(colorPropertiesUpdated()));
-    connect(state, SIGNAL(stateIsDirty(bool)), this, SLOT(stateIsDirty(bool)));
+    connect(state, SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
 
     connect(_ui->colorPalette, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
     connect(preview, SIGNAL(previewConnected()), this, SLOT(previewConnected()));
@@ -188,6 +199,27 @@ void MainWindow::openFile(const QString& fileName)
         setTitle(info.fileName());
     }
 }
+
+bool MainWindow::maybeSave()
+{
+    auto state = State::getInstance();
+
+    if (state->isModified()) {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("Application"),
+                     tr("The chars has been modified.\n"
+                        "Do you want to save your changes?"),
+                     QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        if (ret == QMessageBox::Save) {
+            on_actionSave_triggered();
+            return true;
+        }
+        else if (ret == QMessageBox::Cancel)
+            return false;
+    }
+    return true;
+}
+
 
 //
 // MARK - Slots / Events / Callbacks
