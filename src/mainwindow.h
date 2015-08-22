@@ -67,8 +67,8 @@ private slots:
     void on_radioButton_2_clicked();
     void on_radioButton_3_clicked();
     void on_radioButton_4_clicked();
-    void on_actionSaveAs_triggered();
-    void on_actionSave_triggered();
+    bool on_actionSaveAs_triggered();
+    bool on_actionSave_triggered();
     void on_actionExport_triggered();
     void on_actionExportAs_triggered();
     void on_actionInvert_triggered();

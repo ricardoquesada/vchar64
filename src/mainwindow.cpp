@@ -55,7 +55,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::setTitle(const QString &title)
 {
-    emit setWindowTitle(title + " - VChar64");
+    emit setWindowTitle(title + "[*]");
 }
 
 void MainWindow::previewConnected()
@@ -210,10 +210,8 @@ bool MainWindow::maybeSave()
                      tr("The chars has been modified.\n"
                         "Do you want to save your changes?"),
                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        if (ret == QMessageBox::Save) {
-            on_actionSave_triggered();
-            return true;
-        }
+        if (ret == QMessageBox::Save)
+            return on_actionSave_triggered();
         else if (ret == QMessageBox::Cancel)
             return false;
     }
@@ -226,7 +224,8 @@ bool MainWindow::maybeSave()
 //
 void MainWindow::on_actionExit_triggered()
 {
-    QApplication::exit();
+    if (maybeSave())
+        QApplication::exit();
 }
 
 void MainWindow::on_actionEmptyProject_triggered()
@@ -253,25 +252,28 @@ void MainWindow::on_actionC64Default_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString filter = _settings.value("dir/lastUsedOpenFilter", "All supported files").toString();
-    auto fn = QFileDialog::getOpenFileName(this,
-                                           tr("Select File"),
-                                           _lastDir,
-                                           tr(
-                                               "All files (*);;" \
-                                               "All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;" \
-                                               "VChar64 Project (*.vchar64proj);;" \
-                                               "Raw (*.raw *.bin);;" \
-                                               "PRG (*.prg *.64c);;" \
-                                               "CharPad (*.ctm);;"
-                                           ),
-                                           &filter
-                                           /*,QFileDialog::DontUseNativeDialog*/
-                                           );
+    if (maybeSave())
+    {
+        QString filter = _settings.value("dir/lastUsedOpenFilter", "All supported files").toString();
+        auto fn = QFileDialog::getOpenFileName(this,
+                                               tr("Select File"),
+                                               _lastDir,
+                                               tr(
+                                                   "All files (*);;" \
+                                                   "All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;" \
+                                                   "VChar64 Project (*.vchar64proj);;" \
+                                                   "Raw (*.raw *.bin);;" \
+                                                   "PRG (*.prg *.64c);;" \
+                                                   "CharPad (*.ctm);;"
+                                               ),
+                                               &filter
+                                               /*,QFileDialog::DontUseNativeDialog*/
+                                               );
 
-    if (fn.length()> 0) {
-        _settings.setValue("dir/lastUsedOpenFilter", filter);
-        openFile(fn);
+        if (fn.length()> 0) {
+            _settings.setValue("dir/lastUsedOpenFilter", filter);
+            openFile(fn);
+        }
     }
 }
 
@@ -310,8 +312,10 @@ void MainWindow::on_radioButton_4_clicked()
     state->setSelectedColorIndex(2);
 }
 
-void MainWindow::on_actionSaveAs_triggered()
+bool MainWindow::on_actionSaveAs_triggered()
 {
+    bool ret = false;
+
     auto state = State::getInstance();
     auto fn = state->getSavedFilename();
     if (fn.length() == 0)
@@ -334,21 +338,22 @@ void MainWindow::on_actionSaveAs_triggered()
 
     if (filename.length() > 0) {
         auto state = State::getInstance();
-        state->saveProject(filename);
-
-        QFileInfo fi(filename);
-        setTitle(fi.baseName());
+        if ((ret=state->saveProject(filename))) {
+            QFileInfo fi(filename);
+            setTitle(fi.baseName());
+        }
     }
+
+    return ret;
 }
 
-void MainWindow::on_actionSave_triggered()
+bool MainWindow::on_actionSave_triggered()
 {
     auto state = State::getInstance();
     auto filename = state->getSavedFilename();
     if (filename.length() > 0)
-        state->saveProject(filename);
-    else
-        on_actionSaveAs_triggered();
+        return state->saveProject(filename);
+    return on_actionSaveAs_triggered();
 }
 
 void MainWindow::on_actionExport_triggered()
