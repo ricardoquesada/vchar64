@@ -210,7 +210,7 @@
      <x>0</x>
      <y>0</y>
      <width>536</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -228,7 +228,8 @@
       <string>New</string>
      </property>
      <addaction name="actionEmptyProject"/>
-     <addaction name="actionC64Default"/>
+     <addaction name="actionC64DefaultUppercase"/>
+     <addaction name="actionC64DefaultLowercase"/>
     </widget>
     <addaction name="menuNew"/>
     <addaction name="actionOpen"/>
@@ -523,9 +524,9 @@
     <string>Ctrl+N</string>
    </property>
   </action>
-  <action name="actionC64Default">
+  <action name="actionC64DefaultUppercase">
    <property name="text">
-    <string>C64 Default Charset</string>
+    <string>C64 Default Uppercase Charset</string>
    </property>
   </action>
   <action name="actionTilesProperties">
@@ -550,6 +551,14 @@
    </property>
    <property name="text">
     <string>Connect</string>
+   </property>
+  </action>
+  <action name="actionC64DefaultLowercase">
+   <property name="text">
+    <string>C64 Default Lowercase Charset</string>
+   </property>
+   <property name="toolTip">
+    <string>C64 Default Lowercase Charset</string>
    </property>
   </action>
  </widget>

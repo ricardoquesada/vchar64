@@ -87,7 +87,8 @@ private slots:
     void on_actionAboutQt_triggered();
     void on_actionClearRecentFiles_triggered();
     void on_actionEmptyProject_triggered();
-    void on_actionC64Default_triggered();
+    void on_actionC64DefaultUppercase_triggered();
+    void on_actionC64DefaultLowercase_triggered();
     void on_actionTilesProperties_triggered();
     void on_actionXlinkConnection_triggered();
 

@@ -130,7 +130,7 @@ void MainWindow::createDefaults()
     setTitle("[untitled]");
 
     auto state = State::getInstance();
-    state->openFile(":/c64-chargen.bin");
+    state->openFile(":/c64-chargen-uppercase.bin");
 
     State::TileProperties properties;
     properties.size = {1,1};
@@ -230,24 +230,47 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_actionEmptyProject_triggered()
 {
-    auto state = State::getInstance();
-    state->reset();
-    update();
-    setTitle("[untitled]");
+    if (maybeSave())
+    {
+        auto state = State::getInstance();
+        state->reset();
+        update();
+        setTitle("[untitled]");
+    }
 }
 
-void MainWindow::on_actionC64Default_triggered()
+void MainWindow::on_actionC64DefaultUppercase_triggered()
 {
-    auto state = State::getInstance();
-    state->openFile(":/c64-chargen.bin");
-    State::TileProperties properties;
-    properties.size = {1,1};
-    properties.interleaved = 1;
-    state->setTileProperties(properties);
-    state->setMultiColor(false);
+    if (maybeSave())
+    {
+        auto state = State::getInstance();
+        state->openFile(":/c64-chargen-uppercase.bin");
+        State::TileProperties properties;
+        properties.size = {1,1};
+        properties.interleaved = 1;
+        state->setTileProperties(properties);
+        state->setMultiColor(false);
 
-    update();
-    setTitle("[untitled]");
+        update();
+        setTitle("[untitled]");
+    }
+}
+
+void MainWindow::on_actionC64DefaultLowercase_triggered()
+{
+    if (maybeSave())
+    {
+        auto state = State::getInstance();
+        state->openFile(":/c64-chargen-lowercase.bin");
+        State::TileProperties properties;
+        properties.size = {1,1};
+        properties.interleaved = 1;
+        state->setTileProperties(properties);
+        state->setMultiColor(false);
+
+        update();
+        setTitle("[untitled]");
+    }
 }
 
 void MainWindow::on_actionOpen_triggered()
