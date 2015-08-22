@@ -203,7 +203,7 @@ bool MainWindow::maybeSave()
     if (state->isModified()) {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning(this, tr("Application"),
-                     tr("The chars has been modified.\n"
+                     tr("The are unsaved changes.\n"
                         "Do you want to save your changes?"),
                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         if (ret == QMessageBox::Save)
