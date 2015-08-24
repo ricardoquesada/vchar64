@@ -6,7 +6,7 @@
 
 An editor for the Commodore 64/128
 
-Tailored for my own needs, but feel free to send patches, open bugs, etc.
+Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 
 ## Features
 
@@ -16,6 +16,7 @@ Tailored for my own needs, but feel free to send patches, open bugs, etc.
     * Flip Horizontally, Vertically
     * Rotate
     * Shift Up, Down, Left, Right
+    * Undo, Redo
 * Tile support:
     * From 1x1 to 8x8
     * Custom Distance in chars between tiles
@@ -27,6 +28,7 @@ Tailored for my own needs, but feel free to send patches, open bugs, etc.
 
 In no particular order:
 
+* MDI: copy & paste chars from one document to another one
 * Images support
    * Import images and convert them to charset + color
 * Tilemap editor (similar to CharPad but with Tiled look & feel)
