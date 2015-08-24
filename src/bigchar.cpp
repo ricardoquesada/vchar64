@@ -22,6 +22,7 @@ limitations under the License.
 
 #include "state.h"
 #include "constants.h"
+#include "commands.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -32,27 +33,23 @@ BigChar::BigChar(QWidget *parent)
     , _cursorPos({0,0})
     , _tileProperties({{1,1},1})
     , _pixelSize({32,32})
+    , _commandMergeable(false)
 {
 }
 
 void BigChar::paintPixel(int x, int y, int selectedColor)
 {
-    int bitIndex = (x%8) + (y%8) * 8;
-
     auto&& state = State::getInstance();
     if (!state->isMultiColor() && selectedColor)
         selectedColor = 1;
 
-    int charIndex = _charIndex
-            + (x/8) * _tileProperties.interleaved
-            + (y/8) * _tileProperties.interleaved * _tileProperties.size.width();
-    state->setCharColor(charIndex, bitIndex, selectedColor);
-
-    dynamic_cast<QWidget*>(parent())->update();
+    state->getUndoStack()->push(new PaintTileCommand(state, _tileIndex, QPoint(x,y), selectedColor, _commandMergeable));
 }
 
 void BigChar::mousePressEvent(QMouseEvent * event)
 {
+    event->accept();
+
     auto pos = event->localPos();
 
     int x = pos.x() / _pixelSize.width();
@@ -69,10 +66,14 @@ void BigChar::mousePressEvent(QMouseEvent * event)
         paintPixel(x, y, selectedColor);
     else if(event->button() == Qt::RightButton)
         paintPixel(x, y, 0);
+
+    _commandMergeable = true;
 }
 
 void BigChar::mouseMoveEvent(QMouseEvent * event)
 {
+    event->accept();
+
     auto pos = event->localPos();
 
     int x = pos.x() / _pixelSize.width();
@@ -90,10 +91,23 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
         paintPixel(x, y, selectedColor);
     else if(button == Qt::RightButton)
         paintPixel(x, y, 0);
+
+    _commandMergeable = true;
+}
+
+void BigChar::mouseReleaseEvent(QMouseEvent * event)
+{
+    event->accept();
+
+    // don't merge "tilePaint" command if the mouse was
+    // released
+    _commandMergeable = false;
 }
 
 void BigChar::keyPressEvent(QKeyEvent *event)
 {
+    event->accept();
+
     MainWindow *window = dynamic_cast<MainWindow*>(qApp->activeWindow());
     Ui::MainWindow *ui = window->getUi();
 

@@ -28,7 +28,8 @@ SOURCES += src/main.cpp\
     src/stateexport.cpp \
     src/exportdialog.cpp \
     src/tilepropertiesdialog.cpp \
-    src/preview.cpp
+    src/preview.cpp \
+    src/commands.cpp
 
 HEADERS  += src/mainwindow.h \
     src/bigchar.h \
@@ -42,7 +43,8 @@ HEADERS  += src/mainwindow.h \
     src/stateexport.h \
     src/exportdialog.h \
     src/tilepropertiesdialog.h \
-    src/preview.h
+    src/preview.h \
+    src/commands.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui \

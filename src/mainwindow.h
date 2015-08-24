@@ -20,6 +20,10 @@ limitations under the License.
 #include <QString>
 #include <QSettings>
 
+QT_BEGIN_NAMESPACE
+class QUndoView;
+QT_END_NAMESPACE
+
 namespace Ui {
 class MainWindow;
 }
@@ -42,10 +46,12 @@ public slots:
     void previewConnected();
     void previewDisconnected();
     void documentWasModified();
+    void updateWindow();
 
 protected:
     void createActions();
     void createDefaults();
+    void createUndoView();
 
     void updateRecentFiles();
     void setRecentFile(const QString& fileName);
@@ -90,6 +96,10 @@ private slots:
     void on_actionC64DefaultLowercase_triggered();
     void on_actionTilesProperties_triggered();
     void on_actionXlinkConnection_triggered();
+
+    void on_actionUndo_triggered();
+
+    void on_actionRedo_triggered();
 
 private:
 

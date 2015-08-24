@@ -18,7 +18,6 @@ limitations under the License.
 
 #include <QWidget>
 
-//! [0]
 
 class ColorPalette : public QWidget
 {
@@ -34,5 +33,3 @@ protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 };
-//! [0]
-

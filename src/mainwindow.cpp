@@ -24,6 +24,7 @@ limitations under the License.
 #include <QDebug>
 #include <QDesktopServices>
 #include <QCloseEvent>
+#include <QUndoView>
 
 #include "state.h"
 #include "preview.h"
@@ -31,6 +32,7 @@ limitations under the License.
 #include "exportdialog.h"
 #include "tilepropertiesdialog.h"
 #include "bigchar.h"
+#include "commands.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 
@@ -40,12 +42,13 @@ MainWindow::MainWindow(QWidget *parent)
     , _lastDir(QDir::homePath())
     , _settings()
 {
+    setUnifiedTitleAndToolBarOnMac(true);
+
     _ui->setupUi(this);
 
     createActions();
     createDefaults();
-
-    setUnifiedTitleAndToolBarOnMac(true);
+    createUndoView();
 }
 
 MainWindow::~MainWindow()
@@ -53,6 +56,9 @@ MainWindow::~MainWindow()
     delete _ui;
 }
 
+//
+// public slots
+//
 void MainWindow::previewConnected()
 {
     _ui->actionXlinkConnection->setText("Disconnect");
@@ -69,6 +75,14 @@ void MainWindow::documentWasModified()
     setWindowModified(state->isModified());
 }
 
+void MainWindow::updateWindow()
+{
+    update();
+}
+
+//
+//
+//
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (maybeSave()) {
@@ -76,6 +90,20 @@ void MainWindow::closeEvent(QCloseEvent *event)
     } else {
         event->ignore();
     }
+}
+
+void MainWindow::createUndoView()
+{
+    auto undoDock = new QDockWidget(tr("Undo List"), this);
+
+    auto state = State::getInstance();
+    auto undoView = new QUndoView(state->getUndoStack(), undoDock);
+
+    undoDock->setWidget(undoView);
+    undoDock->setFloating(true);
+    undoDock->hide();
+
+    _ui->menuViews->addAction(undoDock->toggleViewAction());
 }
 
 void MainWindow::createActions()
@@ -105,14 +133,25 @@ void MainWindow::createActions()
     connect(state, SIGNAL(fileLoaded()), preview, SLOT(fileLoaded()));
     connect(state, SIGNAL(byteUpdated(int)), preview, SLOT(byteUpdated(int)));
     connect(state, SIGNAL(tileUpdated(int)), preview, SLOT(tileUpdated(int)));
-    connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(colorPropertiesUpdated()));
+    connect(state, SIGNAL(byteUpdated(int)), this, SLOT(updateWindow()));
+    connect(state, SIGNAL(tileUpdated(int)), this, SLOT(updateWindow()));
+//    connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(tileWasUpdated()));
+    connect(state, SIGNAL(colorPropertiesUpdated()), this, SLOT(updateWindow()));
     connect(state, SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
+    connect(state->getUndoStack(), SIGNAL(indexChanged(int)), this, SLOT(documentWasModified()));
+    connect(state->getUndoStack(), SIGNAL(cleanChanged(bool)), this, SLOT(documentWasModified()));
 
     connect(_ui->colorPalette, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
     connect(preview, SIGNAL(previewConnected()), this, SLOT(previewConnected()));
     connect(preview, SIGNAL(previewDisconnected()), this, SLOT(previewDisconnected()));
 
     _ui->menuPreview->setEnabled(preview->isAvailable());
+
+//
+    _ui->menuViews->addAction(_ui->dockWidget_charset->toggleViewAction());
+    _ui->menuViews->addAction(_ui->dockWidget_colors->toggleViewAction());
+    _ui->menuViews->addAction(_ui->dockWidget_tileIndex->toggleViewAction());
+
 
      if(preview->isConnected()) {
           previewConnected();
@@ -302,9 +341,8 @@ void MainWindow::on_checkBox_toggled(bool checked)
     _ui->radioButton_4->setEnabled(checked);
 
     State *state = State::getInstance();
-    state->setMultiColor(checked);
 
-    update();
+    state->getUndoStack()->push(new SetMulticolorModeCommand(state, checked));
 }
 
 void MainWindow::on_radioButton_1_clicked()
@@ -401,9 +439,7 @@ void MainWindow::on_actionInvert_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-    state->tileInvert(tileIndex);
-
-    update();
+    state->getUndoStack()->push(new InvertTileCommand(state, tileIndex));
 }
 
 //
@@ -415,9 +451,7 @@ void MainWindow::on_actionFlipHorizontally_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-    state->tileFlipHorizontally(tileIndex);
-
-    update();
+    state->getUndoStack()->push(new FlipTileHCommand(state, tileIndex));
 }
 
 void MainWindow::on_actionFlipVertically_triggered()
@@ -425,9 +459,7 @@ void MainWindow::on_actionFlipVertically_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-    state->tileFlipVertically(tileIndex);
-
-    update();
+    state->getUndoStack()->push(new FlipTileVCommand(state, tileIndex));
 }
 
 void MainWindow::on_actionRotate_triggered()
@@ -435,18 +467,15 @@ void MainWindow::on_actionRotate_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-    state->tileRotate(tileIndex);
-
-    update();
+    state->getUndoStack()->push(new RotateTileCommand(state, tileIndex));
 }
 
 void MainWindow::on_actionClearCharacter_triggered()
 {
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
-    state->tileClear(tileIndex);
 
-    update();
+    state->getUndoStack()->push(new ClearTileCommand(state, tileIndex));
 }
 
 void MainWindow::on_actionShiftLeft_triggered()
@@ -454,9 +483,7 @@ void MainWindow::on_actionShiftLeft_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-    state->tileShiftLeft(tileIndex);
-
-    update();
+    state->getUndoStack()->push(new ShiftLeftTileCommand(state, tileIndex));
 }
 
 void MainWindow::on_actionShiftRight_triggered()
@@ -464,9 +491,7 @@ void MainWindow::on_actionShiftRight_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-    state->tileShiftRight(tileIndex);
-
-    update();
+    state->getUndoStack()->push(new ShiftRightTileCommand(state, tileIndex));
 }
 
 void MainWindow::on_actionShiftUp_triggered()
@@ -474,9 +499,7 @@ void MainWindow::on_actionShiftUp_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-    state->tileShiftUp(tileIndex);
-
-    update();
+    state->getUndoStack()->push(new ShiftUpTileCommand(state, tileIndex));
 }
 
 void MainWindow::on_actionShiftDown_triggered()
@@ -484,9 +507,7 @@ void MainWindow::on_actionShiftDown_triggered()
     auto state = State::getInstance();
     int tileIndex = _ui->bigchar->getTileIndex();
 
-    state->tileShiftDown(tileIndex);
-
-    update();
+    state->getUndoStack()->push(new ShiftDownTileCommand(state, tileIndex));
 }
 
 void MainWindow::on_actionCopy_triggered()
@@ -498,8 +519,9 @@ void MainWindow::on_actionCopy_triggered()
 void MainWindow::on_actionPaste_triggered()
 {
     auto state = State::getInstance();
-    state->tilePaste(_ui->bigchar->getTileIndex());
-    update();
+    int tileIndex = _ui->bigchar->getTileIndex();
+
+    state->getUndoStack()->push(new PasteTileCommand(state, tileIndex));
 }
 
 void MainWindow::on_actionReportBug_triggered()
@@ -556,4 +578,16 @@ void MainWindow::on_actionXlinkConnection_triggered()
             QMessageBox msgBox(QMessageBox::Warning, "", "Could not connect to remote C64", 0, this);
             msgBox.exec();
         }
+}
+
+void MainWindow::on_actionUndo_triggered()
+{
+    auto state = State::getInstance();
+    state->getUndoStack()->undo();
+}
+
+void MainWindow::on_actionRedo_triggered()
+{
+    auto state = State::getInstance();
+    state->getUndoStack()->redo();
 }

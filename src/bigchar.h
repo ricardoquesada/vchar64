@@ -23,14 +23,13 @@ limitations under the License.
 #include <stdint.h>
 #include "state.h"
 
-//! [0]
 
 class BigChar : public QWidget
 {
     Q_OBJECT
 
 public:
-    BigChar(QWidget *parent);
+    BigChar(QWidget *parent=nullptr);
     int getTileIndex() const {
         return _tileIndex;
     }
@@ -47,6 +46,7 @@ protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 
@@ -63,6 +63,5 @@ protected:
     State::TileProperties _tileProperties;
 
     QSize _pixelSize;
+    bool _commandMergeable;
 };
-//! [0]
-

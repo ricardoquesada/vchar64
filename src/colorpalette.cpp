@@ -20,10 +20,11 @@ limitations under the License.
 #include <QPainter>
 #include <QPaintEvent>
 #include <QColor>
+#include <QDebug>
 
 #include "constants.h"
 #include "state.h"
-
+#include "commands.h"
 static const int PIXEL_SIZE_X = 24;
 static const int PIXEL_SIZE_Y = 16;
 
@@ -35,6 +36,8 @@ ColorPalette::ColorPalette(QWidget *parent)
 
 void ColorPalette::mousePressEvent(QMouseEvent * event)
 {
+    event->accept();
+
     auto pos = event->localPos();
 
     int x = pos.x() / PIXEL_SIZE_X;
@@ -48,9 +51,9 @@ void ColorPalette::mousePressEvent(QMouseEvent * event)
     int oldColor = state->getColorAtIndex(index);
 
     if (oldColor != color) {
-        state->setColorAtIndex(index, color);
-        emit colorSelected();
+        state->getUndoStack()->push(new SetColorCommand(state, color, index));
 
+        emit colorSelected();
         update();
     }
 }

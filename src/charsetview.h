@@ -18,14 +18,13 @@ limitations under the License.
 
 #include <QWidget>
 
-//! [0]
 
 class CharSetView : public QWidget
 {
     Q_OBJECT
 
 public:
-    CharSetView(QWidget *parent);
+    CharSetView(QWidget *parent=nullptr);
 
 public slots:
     void setTileIndex(int tileIndex);
@@ -42,5 +41,4 @@ protected:
 
     QPoint _cursorPos;
 };
-//! [0]
 

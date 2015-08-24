@@ -37,6 +37,8 @@ CharSetView::CharSetView(QWidget *parent)
 
 void CharSetView::mousePressEvent(QMouseEvent * event)
 {
+    event->accept();
+
     auto pos = event->localPos();
 
     int x = pos.x() / PIXEL_SIZE / 8;
@@ -51,6 +53,8 @@ void CharSetView::mousePressEvent(QMouseEvent * event)
 
 void CharSetView::keyPressEvent(QKeyEvent *event)
 {
+    event->accept();
+
     MainWindow *window = dynamic_cast<MainWindow*>(qApp->activeWindow());
     Ui::MainWindow *ui = window->getUi();
 

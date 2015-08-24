@@ -19,6 +19,8 @@ limitations under the License.
 #include <QObject>
 #include <QString>
 #include <QSize>
+#include <QUndoStack>
+#include <QPoint>
 
 #include <string>
 #include "stateimport.h"
@@ -43,6 +45,10 @@ public:
     // only 256 chars at the time
     const static int CHAR_BUFFER_SIZE = 8 * 256;
 
+    // Max Tile size: 8x8
+    const static int MAX_TILE_WIDTH = 8;
+    const static int MAX_TILE_HEIGHT = 8;
+
     static State* getInstance();
 
     void reset();
@@ -53,26 +59,14 @@ public:
     // export is a defined keyword, so we use export_ instead
     bool export_();
 
-    quint8* getChars();
-
-    quint8* getCharAtIndex(int charIndex) {
-        Q_ASSERT(charIndex>=0 && charIndex<256 && "Invalid index");
-        return &_chars[charIndex*8];
-    }
-
-    int getCharColor(int charIndex, int bitIndex) const;
-    void setCharColor(int charIndex, int bitIndex, int colorIndex);
+    int getTileColorAt(int tileIndex, const QPoint& position);
 
     int getColorAtIndex(int index) const {
         Q_ASSERT(index >=0 && index < 4);
         return _colors[index];
     }
 
-    void setColorAtIndex(int colorIndex, int color) {
-        Q_ASSERT(colorIndex >=0 && colorIndex < 4);
-        Q_ASSERT(color >=0 && color < 16);
-        _colors[colorIndex] = color;
-    }
+    void setColorAtIndex(int colorIndex, int color);
 
     int getCurrentColor() const {
         return _colors[_selectedColorIndex];
@@ -87,10 +81,7 @@ public:
         return _selectedColorIndex;
     }
 
-    void setMultiColor(bool enabled) {
-        _multiColor = enabled;
-        emit colorPropertiesUpdated();
-    }
+    void setMultiColor(bool enabled);
 
     bool isMultiColor() const {
         return _multiColor;
@@ -115,16 +106,34 @@ public:
     }
 
     //
+    // chars bufffer manipulation
+    //
     int getCharIndexFromTileIndex(int tileIndex) const;
     int getTileIndexFromCharIndex(int charIndex) const;
+
+
+    quint8* getCharAtIndex(int charIndex) {
+        Q_ASSERT(charIndex>=0 && charIndex<256 && "Invalid index");
+        return &_chars[charIndex*8];
+    }
 
     quint8* getCharsBuffer();
     void resetCharsBuffer();
 
-    bool isModified() const {
-        return _dirty;
+    // size-of-tile chars will be copied. bufferSize must be big enough
+    void copyCharFromIndex(int tileIndex, quint8* buffer, int bufferSize);
+    // size-of-tile chars will be copied. bufferSize must be big enough
+    void copyCharToIndex(int tileIndex, quint8* buffer, int bufferSize);
+
+    // is the state "dirty" ?
+    bool isModified() const;
+
+    QUndoStack* getUndoStack() const {
+        return _undoStack;
     }
 
+    //
+    // tile manipulation
     //
     void tileCopy(int tileIndex);
     void tilePaste(int tileIndex);
@@ -137,6 +146,7 @@ public:
     void tileShiftRight(int tileIndex);
     void tileShiftUp(int tileIndex);
     void tileShiftDown(int tileIndex);
+    void tilePaint(int tileIndex, const QPoint& position, int colorIndex);
 
 signals:
     // file loaded, or new project
@@ -189,13 +199,13 @@ protected:
 
     // filename of the exported file (.raw, .prg)
     QString _exportedFilename;
+
     // -1 for "raw", otherwise it will be a "prg" and the value will have the address
     int _exportedAddress;
 
     // max size of tile: 8 x 8
-    quint8 _copyTile[8 * 8 * 8];
+    quint8 _copyTile[MAX_TILE_HEIGHT * MAX_TILE_WIDTH * 8];
 
-    // whether or not the state is dirty
-    bool _dirty;
+    QUndoStack* _undoStack;
 };
 

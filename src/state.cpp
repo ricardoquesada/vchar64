@@ -47,14 +47,15 @@ State::State()
     , _savedFilename("")
     , _exportedFilename("")
     , _exportedAddress(-1)
-    , _dirty(false)
+    , _undoStack(nullptr)
 {
     memset(_copyTile, 0, sizeof(_copyTile));
+    _undoStack = new QUndoStack;
 }
 
 State::~State()
 {
-
+    delete _undoStack;
 }
 
 void State::reset()
@@ -72,13 +73,18 @@ void State::reset()
     _savedFilename = "";
     _exportedFilename = "";
     _exportedAddress = -1;
-    _dirty = false;
 
     memset(_chars, 0, sizeof(_chars));
 
+    _undoStack->clear();
+
     emit fileLoaded();
-    _dirty = false;
     emit contentsChanged();
+}
+
+bool State::isModified() const
+{
+    return (!_undoStack->isClean());
 }
 
 bool State::export_()
@@ -121,11 +127,6 @@ bool State::exportPRG(const QString& filename, quint16 address)
         return true;
     }
     return false;
-}
-
-quint8 *State::getChars()
-{
-    return _chars;
 }
 
 bool State::openFile(const QString& filename)
@@ -197,8 +198,9 @@ bool State::openFile(const QString& filename)
         }
     }
 
+    _undoStack->clear();
+
     emit fileLoaded();
-    _dirty = false;
     emit contentsChanged();
 
     return true;
@@ -222,16 +224,46 @@ bool State::saveProject(const QString& filename)
 
     _savedFilename = filename;
 
-    _dirty = false;
+    _undoStack->clear();
+
     emit contentsChanged();
 
     return true;
 }
 
-int State::getCharColor(int charIndex, int bitIndex) const
+//
+void State::setMultiColor(bool enabled)
 {
-    Q_ASSERT(charIndex >=0 && charIndex < 256 && "Invalid charIndex. Valid range: 0,255");
-    Q_ASSERT(bitIndex >=0 && bitIndex < 64 && "Invalid bit. Valid range: 0,63");
+    if (_multiColor != enabled)
+    {
+        _multiColor = enabled;
+
+        emit colorPropertiesUpdated();
+        emit contentsChanged();
+    }
+}
+
+void State::setColorAtIndex(int colorIndex, int color)
+{
+    Q_ASSERT(colorIndex >=0 && colorIndex < 4);
+    Q_ASSERT(color >=0 && color < 16);
+    _colors[colorIndex] = color;
+
+    emit colorPropertiesUpdated();
+    emit contentsChanged();
+}
+
+int State::getTileColorAt(int tileIndex, const QPoint& position)
+{
+    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
+    Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
+
+    int x = position.x();
+    int y = position.y();
+    int bitIndex = (x%8) + (y%8) * 8;
+    int charIndex = getCharIndexFromTileIndex(tileIndex)
+            + (x/8) * _tileProperties.interleaved
+            + (y/8) * _tileProperties.interleaved * _tileProperties.size.width();
 
     char c = _chars[charIndex*8 + bitIndex/8];
     int b = bitIndex%8;
@@ -240,11 +272,18 @@ int State::getCharColor(int charIndex, int bitIndex) const
    return (c & mask);
 }
 
-void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
+void State::tilePaint(int tileIndex, const QPoint& position, int colorIndex)
 {
-    Q_ASSERT(charIndex >=0 && charIndex < 256 && "Invalid charIndex. Valid range: 0,256");
-    Q_ASSERT(bitIndex >=0 && bitIndex < 64 && "Invalid bit. Valid range: 0,64");
+    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
+    Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
     Q_ASSERT(colorIndex >=0 && colorIndex < 4 && "Invalid colorIndex. range: 0,4");
+
+    int x = position.x();
+    int y = position.y();
+    int bitIndex = (x%8) + (y%8) * 8;
+    int charIndex = getCharIndexFromTileIndex(tileIndex)
+            + (x/8) * _tileProperties.interleaved
+            + (y/8) * _tileProperties.interleaved * _tileProperties.size.width();
 
     int byteIndex = charIndex*8 + bitIndex/8;
 
@@ -282,7 +321,7 @@ void State::setCharColor(int charIndex, int bitIndex, int colorIndex)
     quint8 oldValue = _chars[byteIndex];
     if (oldValue != c) {
         _chars[byteIndex] = c;
-        _dirty = true;
+
         emit byteUpdated(byteIndex);
         emit contentsChanged();
     }
@@ -292,7 +331,7 @@ void State::setTileProperties(const TileProperties& properties)
 {
     if (memcmp(&_tileProperties, &properties, sizeof(_tileProperties)) != 0) {
         _tileProperties = properties;
-        _dirty = true;
+
         emit tilePropertiesUpdated();
         emit contentsChanged();
     }
@@ -307,6 +346,28 @@ void State::resetCharsBuffer()
 {
     memset(_chars, 0, sizeof(_chars));
 }
+
+// buffer must be at least 8x8*8 bytes big
+void State::copyCharFromIndex(int tileIndex, quint8* buffer, int bufferSize)
+{
+    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
+    Q_ASSERT(bufferSize >= tileSize && "invalid bufferSize. Too small");
+    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
+    memcpy(buffer, &_chars[tileIndex*tileSize], tileSize);
+}
+
+// size-of-tile chars will be copied
+void State::copyCharToIndex(int tileIndex, quint8* buffer, int bufferSize)
+{
+    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
+    Q_ASSERT(bufferSize >= tileSize && "invalid bufferSize. Too small");
+    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
+    memcpy(&_chars[tileIndex*tileSize], buffer, tileSize);
+
+    emit tileUpdated(tileIndex);
+    emit contentsChanged();
+}
+
 
 // helper functions
 int State::getCharIndexFromTileIndex(int tileIndex) const
@@ -336,7 +397,6 @@ void State::tileCopy(int tileIndex)
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(_copyTile, &_chars[tileIndex*tileSize], tileSize);
-
 }
 
 void State::tilePaste(int tileIndex)
@@ -345,7 +405,6 @@ void State::tilePaste(int tileIndex)
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     memcpy(&_chars[tileIndex*tileSize], _copyTile, tileSize);
 
-    _dirty = true;
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }
@@ -363,7 +422,6 @@ void State::tileInvert(int tileIndex)
         }
     }
 
-    _dirty = true;
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }
@@ -381,7 +439,6 @@ void State::tileClear(int tileIndex)
         }
     }
 
-    _dirty = true;
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }
@@ -416,7 +473,6 @@ void State::tileFlipHorizontally(int tileIndex)
         }
     }
 
-    _dirty = true;
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }
@@ -447,7 +503,6 @@ void State::tileFlipVertically(int tileIndex)
         }
     }
 
-    _dirty = true;
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }
@@ -499,7 +554,6 @@ void State::tileRotate(int tileIndex)
         }
     }
 
-    _dirty = true;
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }
@@ -534,7 +588,6 @@ void State::tileShiftLeft(int tileIndex)
         }
     }
 
-    _dirty = true;
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }
@@ -569,7 +622,6 @@ void State::tileShiftRight(int tileIndex)
         }
     }
 
-    _dirty = true;
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }
@@ -599,7 +651,6 @@ void State::tileShiftUp(int tileIndex)
         charPtr[7+(x+(_tileProperties.size.height()-1)*_tileProperties.size.width())*8*_tileProperties.interleaved] = prevTopByte;
     }
 
-    _dirty = true;
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }
@@ -629,7 +680,6 @@ void State::tileShiftDown(int tileIndex)
         charPtr[x*8*_tileProperties.interleaved] = prevBottomByte;
     }
 
-    _dirty = true;
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }

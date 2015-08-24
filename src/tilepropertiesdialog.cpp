@@ -18,6 +18,7 @@ limitations under the License.
 #include "ui_tilepropertiesdialog.h"
 
 #include "state.h"
+#include "commands.h"
 
 TilePropertiesDialog::TilePropertiesDialog(QWidget *parent) :
     QDialog(parent),
@@ -47,7 +48,8 @@ void TilePropertiesDialog::on_buttonBox_accepted()
     State::TileProperties properties;
     properties.size = {w,h};
     properties.interleaved = interleaved;
-    state->setTileProperties(properties);
+
+    state->getUndoStack()->push(new SetTilePropertiesCommand(state, properties));
 }
 
 void TilePropertiesDialog::on_spinBoxSizeX_editingFinished()
