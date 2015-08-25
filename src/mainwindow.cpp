@@ -77,6 +77,11 @@ void MainWindow::documentWasModified()
 
 void MainWindow::updateWindow()
 {
+    // make sure the "multicolor" checkbox is in the correct state.
+    // this is needed for the "undo" / "redos"...
+    auto state = State::getInstance();
+    _ui->checkBox->setChecked(state->isMultiColor());
+
     update();
 }
 
