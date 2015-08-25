@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>512</width>
-    <height>573</height>
+    <width>537</width>
+    <height>543</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -53,8 +53,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>512</width>
-     <height>31</height>
+     <width>537</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -182,8 +182,8 @@
   <widget class="QDockWidget" name="dockWidget_colors">
    <property name="minimumSize">
     <size>
-     <width>210</width>
-     <height>250</height>
+     <width>62</width>
+     <height>230</height>
     </size>
    </property>
    <property name="windowTitle">
@@ -193,52 +193,31 @@
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
-    <property name="minimumSize">
-     <size>
-      <width>210</width>
-      <height>192</height>
-     </size>
-    </property>
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>203</width>
-       <height>223</height>
+       <width>234</width>
+       <height>201</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="2" column="1">
-         <widget class="QRadioButton" name="radioButton_multicolor1">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Multi Color #1</string>
-          </property>
-         </widget>
-        </item>
         <item row="3" column="1">
-         <widget class="QRadioButton" name="radioButton_multicolor2">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Multi Color #2</string>
-          </property>
-         </widget>
+         <widget class="ColorRect" name="colorRect_3" native="true"/>
+        </item>
+        <item row="2" column="1">
+         <widget class="ColorRect" name="colorRect_2" native="true"/>
         </item>
         <item row="0" column="1">
-         <widget class="QRadioButton" name="radioButton_background">
-          <property name="text">
-           <string>Background</string>
-          </property>
-         </widget>
+         <widget class="ColorRect" name="colorRect_0" native="true"/>
         </item>
         <item row="1" column="1">
+         <widget class="ColorRect" name="colorRect_1" native="true"/>
+        </item>
+        <item row="1" column="0">
          <widget class="QRadioButton" name="radioButton_foreground">
           <property name="text">
            <string>Foreground</string>
@@ -248,17 +227,32 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="2">
-         <widget class="ColorRect" name="colorRect_0" native="true"/>
+        <item row="2" column="0">
+         <widget class="QRadioButton" name="radioButton_multicolor1">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Multi Color #1</string>
+          </property>
+         </widget>
         </item>
-        <item row="1" column="2">
-         <widget class="ColorRect" name="colorRect_1" native="true"/>
+        <item row="3" column="0">
+         <widget class="QRadioButton" name="radioButton_multicolor2">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Multi Color #2</string>
+          </property>
+         </widget>
         </item>
-        <item row="2" column="2">
-         <widget class="ColorRect" name="colorRect_2" native="true"/>
-        </item>
-        <item row="3" column="2">
-         <widget class="ColorRect" name="colorRect_3" native="true"/>
+        <item row="0" column="0">
+         <widget class="QRadioButton" name="radioButton_background">
+          <property name="text">
+           <string>Background</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -272,6 +266,12 @@
       <item>
        <widget class="ColorPalette" name="colorPalette" native="true">
         <property name="minimumSize">
+         <size>
+          <width>192</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="maximumSize">
          <size>
           <width>192</width>
           <height>32</height>
@@ -621,6 +621,10 @@
    </property>
   </action>
   <action name="actionUndo">
+   <property name="icon">
+    <iconset theme="edit-undo" resource="../res/resources.qrc">
+     <normaloff>:/icons/22x22/actions/edit-undo.png</normaloff>:/icons/22x22/actions/edit-undo.png</iconset>
+   </property>
    <property name="text">
     <string>Undo</string>
    </property>
@@ -629,6 +633,10 @@
    </property>
   </action>
   <action name="actionRedo">
+   <property name="icon">
+    <iconset theme="edit-redo" resource="../res/resources.qrc">
+     <normaloff>:/icons/22x22/actions/edit-redo.png</normaloff>:/icons/22x22/actions/edit-redo.png</iconset>
+   </property>
    <property name="text">
     <string>Redo</string>
    </property>
