@@ -1,6 +1,6 @@
 # VChar64
 
-<img src="https://lh6.googleusercontent.com/-Oi4KQjCYhKY/VNpNGmcVlnI/AAAAAAABQc8/Lp3oHhWBKso/s640/Screen%2520Shot%25202015-02-10%2520at%25209.18.16%2520AM.png" width=640>
+<img src="https://lh3.googleusercontent.com/-mVvZaASgcec/Vdyeno_jJjI/AAAAAAABTwg/UveprioNQnQ/s640-Ic42/vchar64-0.0.6.png" width=640>
 
 ## About
 
