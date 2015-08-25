@@ -60,7 +60,7 @@ $ git clone https://github.com/ricardoquesada/vchar64.git
 
 * Linux (tested on Ubuntu 14.10)
 * Mac (tested on v10.10)
-* Windows (tested on Windows 8.1)
+* Windows (tested on Windows XP, 8.1 and 10)
 
 ## Download binaries
 
