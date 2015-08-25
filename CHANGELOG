@@ -1,9 +1,10 @@
-0.0.6 ( August 2015)
+0.0.6 (24 August 2015)
 
 * Adds Undo / Redo for all the actions
 * When quitting/closing, the save dialog will appear if the "undo stack" is
   not empty
 * "colors", "charset" and "tile select" are "dock windows"
+* better variable names for UI widgets
 
 0.0.5 (21 August 2015)
 
