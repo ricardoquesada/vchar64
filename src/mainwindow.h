@@ -67,11 +67,6 @@ private slots:
 
     void on_actionExit_triggered();
     void on_actionOpen_triggered();
-    void on_checkBox_toggled(bool checked);
-    void on_radioButton_1_clicked();
-    void on_radioButton_2_clicked();
-    void on_radioButton_3_clicked();
-    void on_radioButton_4_clicked();
     bool on_actionSaveAs_triggered();
     bool on_actionSave_triggered();
     void on_actionExport_triggered();
@@ -96,10 +91,15 @@ private slots:
     void on_actionC64DefaultLowercase_triggered();
     void on_actionTilesProperties_triggered();
     void on_actionXlinkConnection_triggered();
-
     void on_actionUndo_triggered();
-
     void on_actionRedo_triggered();
+    void on_radioButton_background_clicked();
+    void on_radioButton_foreground_clicked();
+    void on_radioButton_multicolor1_clicked();
+    void on_radioButton_multicolor2_clicked();
+
+
+    void on_checkBox_multicolor_toggled(bool checked);
 
 private:
 

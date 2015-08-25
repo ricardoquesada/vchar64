@@ -209,7 +209,7 @@
          <number>16</number>
         </property>
         <item row="2" column="1">
-         <widget class="QRadioButton" name="radioButton_3">
+         <widget class="QRadioButton" name="radioButton_multicolor1">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -219,7 +219,7 @@
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QRadioButton" name="radioButton_4">
+         <widget class="QRadioButton" name="radioButton_multicolor2">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -229,14 +229,14 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QRadioButton" name="radioButton_1">
+         <widget class="QRadioButton" name="radioButton_background">
           <property name="text">
            <string>Background</string>
           </property>
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QRadioButton" name="radioButton_2">
+         <widget class="QRadioButton" name="radioButton_foreground">
           <property name="text">
            <string>Foreground</string>
           </property>
@@ -260,7 +260,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox">
+       <widget class="QCheckBox" name="checkBox_multicolor">
         <property name="text">
          <string>MultiColor Mode</string>
         </property>
@@ -305,12 +305,12 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="label_tileIndex">
         <property name="text">
          <string>Tile. Index</string>
         </property>
         <property name="buddy">
-         <cstring>spinBox</cstring>
+         <cstring>spinBox_tileIndex</cstring>
         </property>
        </widget>
       </item>
@@ -328,7 +328,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QSpinBox" name="spinBox">
+       <widget class="QSpinBox" name="spinBox_tileIndex">
         <property name="maximum">
          <number>255</number>
         </property>
@@ -343,7 +343,7 @@
   </widget>
   <action name="actionOpen">
    <property name="icon">
-    <iconset theme="document-open" resource="../res/resources.qrc">
+    <iconset theme="document-open">
      <normaloff>:/icons/22x22/actions/document-open.png</normaloff>:/icons/22x22/actions/document-open.png</iconset>
    </property>
    <property name="text">
@@ -385,7 +385,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset resource="../res/resources.qrc">
+    <iconset>
      <normaloff>:/icons/22x22/actions/document-save.png</normaloff>:/icons/22x22/actions/document-save.png</iconset>
    </property>
    <property name="text">
@@ -400,7 +400,7 @@
   </action>
   <action name="actionCopy">
    <property name="icon">
-    <iconset theme="edit-copy" resource="../res/resources.qrc">
+    <iconset theme="edit-copy">
      <normaloff>:/icons/22x22/actions/edit-copy.png</normaloff>:/icons/22x22/actions/edit-copy.png</iconset>
    </property>
    <property name="text">
@@ -430,7 +430,7 @@
   </action>
   <action name="actionSaveAs">
    <property name="icon">
-    <iconset theme="document-save" resource="../res/resources.qrc">
+    <iconset theme="document-save">
      <normaloff>:/icons/22x22/actions/document-save.png</normaloff>:/icons/22x22/actions/document-save.png</iconset>
    </property>
    <property name="text">
@@ -570,7 +570,7 @@
   </action>
   <action name="actionEmptyProject">
    <property name="icon">
-    <iconset theme="document-new" resource="../res/resources.qrc">
+    <iconset theme="document-new">
      <normaloff>:/icons/22x22/actions/document-new.png</normaloff>:/icons/22x22/actions/document-new.png</iconset>
    </property>
    <property name="text">
@@ -633,11 +633,6 @@
     <string>Ctrl+Shift+Z</string>
    </property>
   </action>
-  <action name="actionTest">
-   <property name="text">
-    <string>test</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -677,16 +672,14 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>radioButton_1</tabstop>
-  <tabstop>radioButton_2</tabstop>
-  <tabstop>radioButton_3</tabstop>
-  <tabstop>radioButton_4</tabstop>
-  <tabstop>checkBox</tabstop>
-  <tabstop>spinBox</tabstop>
+  <tabstop>radioButton_background</tabstop>
+  <tabstop>radioButton_foreground</tabstop>
+  <tabstop>radioButton_multicolor1</tabstop>
+  <tabstop>radioButton_multicolor2</tabstop>
+  <tabstop>checkBox_multicolor</tabstop>
+  <tabstop>spinBox_tileIndex</tabstop>
  </tabstops>
- <resources>
-  <include location="../res/resources.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>colorPalette</sender>
@@ -753,7 +746,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>radioButton_1</sender>
+   <sender>radioButton_background</sender>
    <signal>clicked()</signal>
    <receiver>colorPalette</receiver>
    <slot>update()</slot>
@@ -769,7 +762,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>radioButton_2</sender>
+   <sender>radioButton_foreground</sender>
    <signal>clicked()</signal>
    <receiver>colorPalette</receiver>
    <slot>update()</slot>
@@ -785,7 +778,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>radioButton_3</sender>
+   <sender>radioButton_multicolor1</sender>
    <signal>clicked()</signal>
    <receiver>colorPalette</receiver>
    <slot>update()</slot>
@@ -801,7 +794,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>radioButton_4</sender>
+   <sender>radioButton_multicolor2</sender>
    <signal>clicked()</signal>
    <receiver>colorPalette</receiver>
    <slot>update()</slot>
@@ -819,7 +812,7 @@
   <connection>
    <sender>charsetview</sender>
    <signal>tileSelected(int)</signal>
-   <receiver>spinBox</receiver>
+   <receiver>spinBox_tileIndex</receiver>
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -849,7 +842,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>spinBox</sender>
+   <sender>spinBox_tileIndex</sender>
    <signal>valueChanged(int)</signal>
    <receiver>charsetview</receiver>
    <slot>setTileIndex(int)</slot>
@@ -865,7 +858,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>spinBox</sender>
+   <sender>spinBox_tileIndex</sender>
    <signal>valueChanged(int)</signal>
    <receiver>bigchar</receiver>
    <slot>setTileIndex(int)</slot>

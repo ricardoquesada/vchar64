@@ -80,7 +80,7 @@ void MainWindow::updateWindow()
     // make sure the "multicolor" checkbox is in the correct state.
     // this is needed for the "undo" / "redos"...
     auto state = State::getInstance();
-    _ui->checkBox->setChecked(state->isMultiColor());
+    _ui->checkBox_multicolor->setChecked(state->isMultiColor());
 
     update();
 }
@@ -234,7 +234,7 @@ void MainWindow::openFile(const QString& fileName)
 
         update();
         auto state = State::getInstance();
-        _ui->checkBox->setChecked(state->isMultiColor());
+        _ui->checkBox_multicolor->setChecked(state->isMultiColor());
 
         setWindowFilePath(info.filePath());
     }
@@ -340,35 +340,35 @@ void MainWindow::on_actionOpen_triggered()
     }
 }
 
-void MainWindow::on_checkBox_toggled(bool checked)
+void MainWindow::on_checkBox_multicolor_toggled(bool checked)
 {
-    _ui->radioButton_3->setEnabled(checked);
-    _ui->radioButton_4->setEnabled(checked);
+    _ui->radioButton_multicolor1->setEnabled(checked);
+    _ui->radioButton_multicolor2->setEnabled(checked);
 
     State *state = State::getInstance();
 
     state->getUndoStack()->push(new SetMulticolorModeCommand(state, checked));
 }
 
-void MainWindow::on_radioButton_1_clicked()
+void MainWindow::on_radioButton_background_clicked()
 {
     State *state = State::getInstance();
     state->setSelectedColorIndex(0);
 }
 
-void MainWindow::on_radioButton_2_clicked()
+void MainWindow::on_radioButton_foreground_clicked()
 {
     State *state = State::getInstance();
     state->setSelectedColorIndex(3);
 }
 
-void MainWindow::on_radioButton_3_clicked()
+void MainWindow::on_radioButton_multicolor1_clicked()
 {
     State *state = State::getInstance();
     state->setSelectedColorIndex(1);
 }
 
-void MainWindow::on_radioButton_4_clicked()
+void MainWindow::on_radioButton_multicolor2_clicked()
 {
     State *state = State::getInstance();
     state->setSelectedColorIndex(2);
@@ -567,7 +567,7 @@ void MainWindow::on_actionTilesProperties_triggered()
     // update max tile index
     auto state = State::getInstance();
     QSize s = state->getTileProperties().size;
-    _ui->spinBox->setMaximum((256 / (s.width()*s.height()))-1);
+    _ui->spinBox_tileIndex->setMaximum((256 / (s.width()*s.height()))-1);
 
     // rotate only enable if witdh==height
     _ui->actionRotate->setEnabled(s.width() == s.height());
