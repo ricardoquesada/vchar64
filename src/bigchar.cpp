@@ -166,7 +166,7 @@ void BigChar::paintEvent(QPaintEvent *event)
     painter.begin(this);
 
     // background
-    painter.fillRect(event->rect(), QColor(204,204,204));
+    painter.fillRect(event->rect(), QColor(240,240,240));
 
     QPen pen;
     pen.setColor({149,195,244,255});
