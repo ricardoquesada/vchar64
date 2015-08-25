@@ -5,6 +5,7 @@
   not empty
 * "colors", "charset" and "tile select" are "dock windows"
 * better variable names for UI widgets
+* saves/restores window geometry and state
 
 0.0.5 (21 August 2015)
 
