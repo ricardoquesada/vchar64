@@ -49,6 +49,8 @@ public slots:
     void updateWindow();
 
 protected:
+    void readSettings();
+    void saveSettings();
     void createActions();
     void createDefaults();
     void createUndoView();
@@ -107,7 +109,7 @@ private:
 
     QAction* _recentFiles[MAX_RECENT_FILES];
 
-    Ui::MainWindow *_ui;
+    Ui::MainWindow* _ui;
     QString _lastDir;
 
     QSettings _settings;

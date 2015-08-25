@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
     , _lastDir(QDir::homePath())
-    , _settings()
+    , _settings("RetroMoe","VChar64")
 {
     setUnifiedTitleAndToolBarOnMac(true);
 
@@ -49,6 +49,8 @@ MainWindow::MainWindow(QWidget *parent)
     createActions();
     createDefaults();
     createUndoView();
+
+    readSettings();
 }
 
 MainWindow::~MainWindow()
@@ -92,6 +94,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (maybeSave()) {
         event->accept();
+
+        saveSettings();
+        QMainWindow::closeEvent(event);
     } else {
         event->ignore();
     }
@@ -109,6 +114,21 @@ void MainWindow::createUndoView()
     undoDock->hide();
 
     _ui->menuViews->addAction(undoDock->toggleViewAction());
+}
+
+void MainWindow::readSettings()
+{
+    auto geom = _settings.value("MainWindow/geometry").toByteArray();
+    auto state = _settings.value("MainWindow/windowState").toByteArray();
+
+    restoreState(state);
+    restoreGeometry(geom);
+}
+
+void MainWindow::saveSettings()
+{
+    _settings.setValue("MainWindow/geometry", saveGeometry());
+    _settings.setValue("MainWindow/windowState", saveState());
 }
 
 void MainWindow::createActions()
@@ -264,8 +284,10 @@ bool MainWindow::maybeSave()
 //
 void MainWindow::on_actionExit_triggered()
 {
-    if (maybeSave())
+    if (maybeSave()) {
+        saveSettings();
         QApplication::exit();
+    }
 }
 
 void MainWindow::on_actionEmptyProject_triggered()
