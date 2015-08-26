@@ -267,9 +267,25 @@ int State::getTileColorAt(int tileIndex, const QPoint& position)
 
     char c = _chars[charIndex*8 + bitIndex/8];
     int b = bitIndex%8;
-    int mask = 1 << (7-b);
 
-   return (c & mask);
+    int ret = 0;
+
+    // not multicolor: expected result: 0 or 1
+    if (!_multiColor)
+    {
+        uint8_t mask = 1 << (7-b);
+        ret = (c & mask) >> (7-b);
+    }
+    else
+    {
+        uint8_t masks[] = {192,192,48,48,12,12,3,3};
+        uint8_t mask = masks[b];
+
+        // ignore "odd" numbers when... valid bits to shift: 6,4,2,0
+        ret = (c & mask) >> ((7-b) & 254);
+
+    }
+    return ret;
 }
 
 void State::tilePaint(int tileIndex, const QPoint& position, int colorIndex)

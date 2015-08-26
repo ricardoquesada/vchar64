@@ -59,6 +59,8 @@ public:
     // export is a defined keyword, so we use export_ instead
     bool export_();
 
+    // returns 0 or 1 in normal mode
+    // returns 0, 1, 2 or 3 in multicolor mode
     int getTileColorAt(int tileIndex, const QPoint& position);
 
     int getColorAtIndex(int index) const {
@@ -66,6 +68,8 @@ public:
         return _colors[index];
     }
 
+    // color should be 0 or 1 in normal mode
+    // and 0, 1, 2 or 3 in multicolor mode
     void setColorAtIndex(int colorIndex, int color);
 
     int getCurrentColor() const {

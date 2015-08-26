@@ -43,7 +43,11 @@ void BigChar::paintPixel(int x, int y, int selectedColor)
     if (!state->isMultiColor() && selectedColor)
         selectedColor = 1;
 
-    state->getUndoStack()->push(new PaintTileCommand(state, _tileIndex, QPoint(x,y), selectedColor, _commandMergeable));
+    if (state->getTileColorAt(_tileIndex, QPoint(x,y)) != selectedColor)
+        state->getUndoStack()->push(new PaintTileCommand(state, _tileIndex, QPoint(x,y), selectedColor, _commandMergeable));
+
+    // redraw cursor
+    update();
 }
 
 void BigChar::mousePressEvent(QMouseEvent * event)
@@ -156,6 +160,8 @@ void BigChar::keyPressEvent(QKeyEvent *event)
     }
     _cursorPos = {qBound(0, _cursorPos.x(), 8*_tileProperties.size.width()-1),
                   qBound(0, _cursorPos.y(), 8*_tileProperties.size.height()-1)};
+
+    // redraw cursor
     update();
 }
 
