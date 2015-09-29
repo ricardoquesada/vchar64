@@ -303,39 +303,29 @@ void State::tilePaint(int tileIndex, const QPoint& position, int colorIndex)
 
     int byteIndex = charIndex*8 + bitIndex/8;
 
-//    if (_multiColor)
-    int bits_to_mask = 1;
-    int totalbits = 64;
-    int modulus = 8;
 
-    if (_multiColor) {
-        bits_to_mask = 3;
-        totalbits = 32;
-        modulus = 4;
-
-        // only care about even bits in multicolor
-        bitIndex &= 0xfe;
+    uint8_t b = bitIndex%8;
+    uint8_t and_mask = 0x00;
+    uint8_t or_mask = 0x00;
+    if (!_multiColor)
+    {
+        and_mask = 1 << (7-b);
+        or_mask = colorIndex << (7-b);
+    }
+    else
+    {
+        uint8_t masks[] = {128+64, 128+64, 32+16, 32+16, 8+4, 8+4, 2+1, 2+1};
+        and_mask = masks[b];
+        or_mask = colorIndex << ((7-b) & 254);
     }
 
-
-    // get the needed line ignoring whether it is multicolor or not
+    // get the neede byte
     quint8 c = _chars[byteIndex];
 
-    // for multicolor, we need to get the modulus
-    // in different ways regarding it is multicolor or not
+    c &= ~and_mask;
+    c |= or_mask;
 
-    int factor = 64/totalbits;
-    int b = (bitIndex/factor) % modulus;
-    int mask = bits_to_mask << ((modulus-1)-b) * factor;
-
-    // turn off bits
-    c &= ~mask;
-
-    // and 'or' it with colorIndex
-    c |= colorIndex << ((modulus-1)-b) * factor;
-
-    quint8 oldValue = _chars[byteIndex];
-    if (oldValue != c) {
+    if (c != _chars[byteIndex]) {
         _chars[byteIndex] = c;
 
         emit byteUpdated(byteIndex);
