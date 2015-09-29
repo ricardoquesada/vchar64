@@ -157,6 +157,13 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     if ((std::size_t)size<sizeof(header))
         return -1;
 
+    // check header
+    if (header.id[0] != 'V' || header.id[1] != 'C' || header.id[2] != 'h' || header.id[3] != 'a' || header.id[4] != 'r') {
+        qDebug() << "Not a valid VChar64 file";
+        return -1;
+    }
+
+
     int num_chars = qFromLittleEndian((int)header.num_chars);
     int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
 

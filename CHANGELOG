@@ -1,3 +1,8 @@
+0.0.7 (?)
+
+* Shows dialog error when loading invalid files
+* Check valid VChar64 header when loading VChar64 files
+
 0.0.6 (24 August 2015)
 
 * Adds Undo / Redo for all the actions

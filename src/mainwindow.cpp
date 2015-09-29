@@ -25,6 +25,7 @@ limitations under the License.
 #include <QDesktopServices>
 #include <QCloseEvent>
 #include <QUndoView>
+#include <QErrorMessage>
 
 #include "state.h"
 #include "preview.h"
@@ -257,6 +258,13 @@ void MainWindow::openFile(const QString& fileName)
         _ui->checkBox_multicolor->setChecked(state->isMultiColor());
 
         setWindowFilePath(info.filePath());
+    }
+    else
+    {
+        QMessageBox msgBox;
+        QString msg = tr("Error loading file: ") + fileName;
+        msgBox.setText(msg);
+        msgBox.exec();
     }
 }
 
