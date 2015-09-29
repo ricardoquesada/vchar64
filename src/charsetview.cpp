@@ -71,9 +71,6 @@ void CharSetView::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Up:
         _cursorPos += {0,-1};
         break;
-    case Qt::Key_M:
-        ui->checkBox_multicolor->click();
-        break;
     default:
         QWidget::keyPressEvent(event);
     }

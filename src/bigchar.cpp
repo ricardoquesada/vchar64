@@ -134,21 +134,6 @@ void BigChar::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Space:
         paintPixel(_cursorPos.x(), _cursorPos.y(), state->getSelectedColorIndex());
         break;
-    case Qt::Key_1:
-        ui->radioButton_background->click();
-        break;
-    case Qt::Key_2:
-        ui->radioButton_foreground->click();
-        break;
-    case Qt::Key_3:
-        ui->radioButton_multicolor1->click();
-        break;
-    case Qt::Key_4:
-        ui->radioButton_multicolor2->click();
-        break;
-    case Qt::Key_M:
-        ui->checkBox_multicolor->click();
-        break;
     case Qt::Key_Minus:
         ui->spinBox_tileIndex->setValue(ui->spinBox_tileIndex->value() - 1);
         break;

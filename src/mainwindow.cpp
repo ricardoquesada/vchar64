@@ -375,6 +375,8 @@ void MainWindow::on_checkBox_multicolor_toggled(bool checked)
     _ui->radioButton_multicolor1->setEnabled(checked);
     _ui->radioButton_multicolor2->setEnabled(checked);
 
+    _ui->actionEnable_Multicolor->setChecked(checked);
+
     State *state = State::getInstance();
 
     state->getUndoStack()->push(new SetMulticolorModeCommand(state, checked));
@@ -625,4 +627,29 @@ void MainWindow::on_actionRedo_triggered()
 {
     auto state = State::getInstance();
     state->getUndoStack()->redo();
+}
+
+void MainWindow::on_actionBackground_triggered()
+{
+    _ui->radioButton_background->click();
+}
+
+void MainWindow::on_actionForeground_triggered()
+{
+    _ui->radioButton_foreground->click();
+}
+
+void MainWindow::on_actionMulti_Color_1_triggered()
+{
+    _ui->radioButton_multicolor1->click();
+}
+
+void MainWindow::on_actionMulti_Color_2_triggered()
+{
+    _ui->radioButton_multicolor2->click();
+}
+
+void MainWindow::on_actionEnable_Multicolor_triggered()
+{
+    _ui->checkBox_multicolor->click();
 }

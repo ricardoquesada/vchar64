@@ -137,10 +137,31 @@
     </widget>
     <addaction name="menuViews"/>
    </widget>
+   <widget class="QMenu" name="menuColors">
+    <property name="title">
+     <string>Colors</string>
+    </property>
+    <widget class="QMenu" name="menuPalette">
+     <property name="title">
+      <string>Palette</string>
+     </property>
+     <addaction name="actionVice"/>
+     <addaction name="actionCS64"/>
+    </widget>
+    <addaction name="menuPalette"/>
+    <addaction name="separator"/>
+    <addaction name="actionBackground"/>
+    <addaction name="actionForeground"/>
+    <addaction name="actionMulti_Color_1"/>
+    <addaction name="actionMulti_Color_2"/>
+    <addaction name="separator"/>
+    <addaction name="actionEnable_Multicolor"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menuEdit"/>
    <addaction name="menuView"/>
    <addaction name="menuTile"/>
+   <addaction name="menuColors"/>
    <addaction name="menuPreview"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -644,6 +665,68 @@
     <string>Ctrl+Shift+Z</string>
    </property>
   </action>
+  <action name="actionVice">
+   <property name="text">
+    <string>PAL</string>
+   </property>
+  </action>
+  <action name="actionCS64">
+   <property name="text">
+    <string>NTSC</string>
+   </property>
+  </action>
+  <action name="actionBackground">
+   <property name="text">
+    <string>Background</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="actionForeground">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Foreground</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="actionMulti_Color_1">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Multi Color #1</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="actionMulti_Color_2">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Multi Color #2</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
+   </property>
+  </action>
+  <action name="actionEnable_Multicolor">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Multicolor</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -705,8 +788,8 @@
      <y>273</y>
     </hint>
     <hint type="destinationlabel">
-     <x>440</x>
-     <y>101</y>
+     <x>570</x>
+     <y>122</y>
     </hint>
    </hints>
   </connection>
@@ -721,8 +804,8 @@
      <y>273</y>
     </hint>
     <hint type="destinationlabel">
-     <x>440</x>
-     <y>132</y>
+     <x>570</x>
+     <y>154</y>
     </hint>
    </hints>
   </connection>
@@ -737,8 +820,8 @@
      <y>273</y>
     </hint>
     <hint type="destinationlabel">
-     <x>440</x>
-     <y>163</y>
+     <x>570</x>
+     <y>186</y>
     </hint>
    </hints>
   </connection>
@@ -753,8 +836,8 @@
      <y>273</y>
     </hint>
     <hint type="destinationlabel">
-     <x>440</x>
-     <y>194</y>
+     <x>570</x>
+     <y>218</y>
     </hint>
    </hints>
   </connection>
@@ -765,8 +848,8 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>345</x>
-     <y>102</y>
+     <x>460</x>
+     <y>126</y>
     </hint>
     <hint type="destinationlabel">
      <x>505</x>
@@ -781,8 +864,8 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>345</x>
-     <y>133</y>
+     <x>460</x>
+     <y>158</y>
     </hint>
     <hint type="destinationlabel">
      <x>505</x>
@@ -797,8 +880,8 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>345</x>
-     <y>164</y>
+     <x>460</x>
+     <y>190</y>
     </hint>
     <hint type="destinationlabel">
      <x>505</x>
@@ -813,8 +896,8 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>345</x>
-     <y>195</y>
+     <x>460</x>
+     <y>222</y>
     </hint>
     <hint type="destinationlabel">
      <x>505</x>
@@ -830,7 +913,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>314</x>
-     <y>383</y>
+     <y>521</y>
     </hint>
     <hint type="destinationlabel">
      <x>449</x>
@@ -877,8 +960,8 @@
    <slot>setTileIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>412</x>
-     <y>330</y>
+     <x>495</x>
+     <y>359</y>
     </hint>
     <hint type="destinationlabel">
      <x>176</x>

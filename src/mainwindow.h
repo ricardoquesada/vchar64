@@ -103,6 +103,16 @@ private slots:
 
     void on_checkBox_multicolor_toggled(bool checked);
 
+    void on_actionBackground_triggered();
+
+    void on_actionForeground_triggered();
+
+    void on_actionMulti_Color_1_triggered();
+
+    void on_actionMulti_Color_2_triggered();
+
+    void on_actionEnable_Multicolor_triggered();
+
 private:
 
     bool maybeSave();
