@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
-     <widget class="BigCharWidget" name="bigchar" native="true">
+     <widget class="BigCharWidget" name="bigcharWidget" native="true">
       <property name="minimumSize">
        <size>
         <width>256</width>
@@ -180,7 +180,7 @@
       <height>128</height>
      </size>
     </property>
-    <widget class="CharSetWidget" name="charsetview" native="true">
+    <widget class="CharSetWidget" name="charsetWidget" native="true">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -228,16 +228,16 @@
       <item>
        <layout class="QGridLayout" name="gridLayout">
         <item row="3" column="1">
-         <widget class="ColorRectWidget" name="colorRect_3" native="true"/>
+         <widget class="ColorRectWidget" name="colorRectWidget_3" native="true"/>
         </item>
         <item row="2" column="1">
-         <widget class="ColorRectWidget" name="colorRect_2" native="true"/>
+         <widget class="ColorRectWidget" name="colorRectWidget_2" native="true"/>
         </item>
         <item row="0" column="1">
-         <widget class="ColorRectWidget" name="colorRect_0" native="true"/>
+         <widget class="ColorRectWidget" name="colorRectWidget_0" native="true"/>
         </item>
         <item row="1" column="1">
-         <widget class="ColorRectWidget" name="colorRect_1" native="true"/>
+         <widget class="ColorRectWidget" name="colorRectWidget_1" native="true"/>
         </item>
         <item row="1" column="0">
          <widget class="QRadioButton" name="radioButton_foreground">
@@ -286,7 +286,7 @@
        </widget>
       </item>
       <item>
-       <widget class="PaletteWidget" name="paletteView" native="true">
+       <widget class="PaletteWidget" name="paletteWidget" native="true">
         <property name="minimumSize">
          <size>
           <width>192</width>
@@ -798,9 +798,9 @@
  </resources>
  <connections>
   <connection>
-   <sender>paletteView</sender>
+   <sender>paletteWidget</sender>
    <signal>colorSelected()</signal>
-   <receiver>colorRect_0</receiver>
+   <receiver>colorRectWidget_0</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -814,9 +814,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>paletteView</sender>
+   <sender>paletteWidget</sender>
    <signal>colorSelected()</signal>
-   <receiver>colorRect_1</receiver>
+   <receiver>colorRectWidget_1</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -830,9 +830,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>paletteView</sender>
+   <sender>paletteWidget</sender>
    <signal>colorSelected()</signal>
-   <receiver>colorRect_2</receiver>
+   <receiver>colorRectWidget_2</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -846,9 +846,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>paletteView</sender>
+   <sender>paletteWidget</sender>
    <signal>colorSelected()</signal>
-   <receiver>colorRect_3</receiver>
+   <receiver>colorRectWidget_3</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -864,7 +864,7 @@
   <connection>
    <sender>radioButton_background</sender>
    <signal>clicked()</signal>
-   <receiver>paletteView</receiver>
+   <receiver>paletteWidget</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -880,7 +880,7 @@
   <connection>
    <sender>radioButton_foreground</sender>
    <signal>clicked()</signal>
-   <receiver>paletteView</receiver>
+   <receiver>paletteWidget</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -896,7 +896,7 @@
   <connection>
    <sender>radioButton_multicolor1</sender>
    <signal>clicked()</signal>
-   <receiver>paletteView</receiver>
+   <receiver>paletteWidget</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -912,7 +912,7 @@
   <connection>
    <sender>radioButton_multicolor2</sender>
    <signal>clicked()</signal>
-   <receiver>paletteView</receiver>
+   <receiver>paletteWidget</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -926,7 +926,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>charsetview</sender>
+   <sender>charsetWidget</sender>
    <signal>tileSelected(int)</signal>
    <receiver>spinBox_tileIndex</receiver>
    <slot>setValue(int)</slot>
@@ -942,9 +942,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>paletteView</sender>
+   <sender>paletteWidget</sender>
    <signal>colorSelected()</signal>
-   <receiver>charsetview</receiver>
+   <receiver>charsetWidget</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -960,7 +960,7 @@
   <connection>
    <sender>spinBox_tileIndex</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>charsetview</receiver>
+   <receiver>charsetWidget</receiver>
    <slot>setTileIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -976,7 +976,7 @@
   <connection>
    <sender>spinBox_tileIndex</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>bigchar</receiver>
+   <receiver>bigcharWidget</receiver>
    <slot>setTileIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -990,9 +990,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>paletteView</sender>
+   <sender>paletteWidget</sender>
    <signal>colorSelected()</signal>
-   <receiver>bigchar</receiver>
+   <receiver>bigcharWidget</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">

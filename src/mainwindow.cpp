@@ -145,7 +145,7 @@ void MainWindow::saveSettings()
 void MainWindow::createActions()
 {
     auto state = State::getInstance();
-    connect(state, &State::tilePropertiesUpdated, _ui->bigchar, &BigCharWidget::updateTileProperties);
+    connect(state, &State::tilePropertiesUpdated, _ui->bigcharWidget, &BigCharWidget::updateTileProperties);
 
     // Add recent file actions to the recent files menu
     for (int i=0; i<MAX_RECENT_FILES; ++i)
@@ -160,10 +160,10 @@ void MainWindow::createActions()
 
 
     // FIXME should be on a different method
-    _ui->colorRect_0->setColorIndex(0);
-    _ui->colorRect_1->setColorIndex(3);
-    _ui->colorRect_2->setColorIndex(1);
-    _ui->colorRect_3->setColorIndex(2);
+    _ui->colorRectWidget_0->setColorIndex(0);
+    _ui->colorRectWidget_1->setColorIndex(3);
+    _ui->colorRectWidget_2->setColorIndex(1);
+    _ui->colorRectWidget_3->setColorIndex(2);
 
     auto preview = Preview::getInstance();
     connect(state, SIGNAL(fileLoaded()), preview, SLOT(fileLoaded()));
@@ -177,7 +177,7 @@ void MainWindow::createActions()
     connect(state->getUndoStack(), SIGNAL(indexChanged(int)), this, SLOT(documentWasModified()));
     connect(state->getUndoStack(), SIGNAL(cleanChanged(bool)), this, SLOT(documentWasModified()));
 
-    connect(_ui->paletteView, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
+    connect(_ui->paletteWidget, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
     connect(preview, SIGNAL(previewConnected()), this, SLOT(previewConnected()));
     connect(preview, SIGNAL(previewDisconnected()), this, SLOT(previewDisconnected()));
 
@@ -565,7 +565,7 @@ void MainWindow::on_actionExportAs_triggered()
 void MainWindow::on_actionInvert_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigchar->getTileIndex();
+    int tileIndex = _ui->bigcharWidget->getTileIndex();
 
     state->getUndoStack()->push(new InvertTileCommand(state, tileIndex));
 }
@@ -573,7 +573,7 @@ void MainWindow::on_actionInvert_triggered()
 void MainWindow::on_actionFlipHorizontally_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigchar->getTileIndex();
+    int tileIndex = _ui->bigcharWidget->getTileIndex();
 
     state->getUndoStack()->push(new FlipTileHCommand(state, tileIndex));
 }
@@ -581,7 +581,7 @@ void MainWindow::on_actionFlipHorizontally_triggered()
 void MainWindow::on_actionFlipVertically_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigchar->getTileIndex();
+    int tileIndex = _ui->bigcharWidget->getTileIndex();
 
     state->getUndoStack()->push(new FlipTileVCommand(state, tileIndex));
 }
@@ -589,7 +589,7 @@ void MainWindow::on_actionFlipVertically_triggered()
 void MainWindow::on_actionRotate_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigchar->getTileIndex();
+    int tileIndex = _ui->bigcharWidget->getTileIndex();
 
     state->getUndoStack()->push(new RotateTileCommand(state, tileIndex));
 }
@@ -597,7 +597,7 @@ void MainWindow::on_actionRotate_triggered()
 void MainWindow::on_actionClearCharacter_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigchar->getTileIndex();
+    int tileIndex = _ui->bigcharWidget->getTileIndex();
 
     state->getUndoStack()->push(new ClearTileCommand(state, tileIndex));
 }
@@ -605,7 +605,7 @@ void MainWindow::on_actionClearCharacter_triggered()
 void MainWindow::on_actionShiftLeft_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigchar->getTileIndex();
+    int tileIndex = _ui->bigcharWidget->getTileIndex();
 
     state->getUndoStack()->push(new ShiftLeftTileCommand(state, tileIndex));
 }
@@ -613,7 +613,7 @@ void MainWindow::on_actionShiftLeft_triggered()
 void MainWindow::on_actionShiftRight_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigchar->getTileIndex();
+    int tileIndex = _ui->bigcharWidget->getTileIndex();
 
     state->getUndoStack()->push(new ShiftRightTileCommand(state, tileIndex));
 }
@@ -621,7 +621,7 @@ void MainWindow::on_actionShiftRight_triggered()
 void MainWindow::on_actionShiftUp_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigchar->getTileIndex();
+    int tileIndex = _ui->bigcharWidget->getTileIndex();
 
     state->getUndoStack()->push(new ShiftUpTileCommand(state, tileIndex));
 }
@@ -629,7 +629,7 @@ void MainWindow::on_actionShiftUp_triggered()
 void MainWindow::on_actionShiftDown_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigchar->getTileIndex();
+    int tileIndex = _ui->bigcharWidget->getTileIndex();
 
     state->getUndoStack()->push(new ShiftDownTileCommand(state, tileIndex));
 }
@@ -637,13 +637,13 @@ void MainWindow::on_actionShiftDown_triggered()
 void MainWindow::on_actionCopy_triggered()
 {
     auto state = State::getInstance();
-    state->tileCopy(_ui->bigchar->getTileIndex());
+    state->tileCopy(_ui->bigcharWidget->getTileIndex());
 }
 
 void MainWindow::on_actionPaste_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigchar->getTileIndex();
+    int tileIndex = _ui->bigcharWidget->getTileIndex();
 
     state->getUndoStack()->push(new PasteTileCommand(state, tileIndex));
 }
