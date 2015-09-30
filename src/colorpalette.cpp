@@ -22,9 +22,11 @@ limitations under the License.
 #include <QColor>
 #include <QDebug>
 
-#include "constants.h"
+#include "palette.h"
 #include "state.h"
 #include "commands.h"
+#include "palette.h"
+
 static const int PIXEL_SIZE_X = 24;
 static const int PIXEL_SIZE_Y = 16;
 
@@ -78,7 +80,7 @@ void ColorPalette::paintEvent(QPaintEvent *event)
     for (int y=0; y<2; y++) {
         for (int x=0; x<8; x++) {
             int c = 8 * y + x;
-            painter.setBrush( Constants::CBMcolors[c]);
+            painter.setBrush( Palette::getPalette()[c]);
             if (c==currentColor) {
                 painter.setPen(pen);
             } else {

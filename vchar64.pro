@@ -21,7 +21,6 @@ SOURCES += src/main.cpp\
     src/charsetview.cpp \
     src/state.cpp \
     src/colorpalette.cpp \
-    src/constants.cpp \
     src/aboutdialog.cpp \
     src/colorrect.cpp \
     src/stateimport.cpp \
@@ -29,14 +28,14 @@ SOURCES += src/main.cpp\
     src/exportdialog.cpp \
     src/tilepropertiesdialog.cpp \
     src/preview.cpp \
-    src/commands.cpp
+    src/commands.cpp \
+    src/palette.cpp
 
 HEADERS  += src/mainwindow.h \
     src/bigchar.h \
     src/charsetview.h \
     src/state.h \
     src/colorpalette.h \
-    src/constants.h \
     src/aboutdialog.h \
     src/colorrect.h \
     src/stateimport.h \
@@ -44,7 +43,8 @@ HEADERS  += src/mainwindow.h \
     src/exportdialog.h \
     src/tilepropertiesdialog.h \
     src/preview.h \
-    src/commands.h
+    src/commands.h \
+    src/palette.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui \

@@ -21,10 +21,10 @@ limitations under the License.
 #include <QPaintEvent>
 
 #include "state.h"
-#include "constants.h"
 #include "commands.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "palette.h"
 
 BigChar::BigChar(QWidget *parent)
     : QWidget(parent)
@@ -269,7 +269,7 @@ void BigChar::paintChar(QPainter& painter, const QPen& pen, quint8 *charPtr, con
 
             if (!state->isMultiColor() && color_index )
                 color_index = 3;
-            painter.setBrush(Constants::CBMcolors[state->getColorAtIndex(color_index)]);
+            painter.setBrush(Palette::getPalette()[state->getColorAtIndex(color_index)]);
 
             if (hasFocus()
                     && (x + tileToDraw.x() * 8 / increment_x) == _cursorPos.x() / increment_x

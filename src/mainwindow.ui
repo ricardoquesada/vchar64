@@ -145,8 +145,9 @@
      <property name="title">
       <string>Palette</string>
      </property>
-     <addaction name="actionVice"/>
-     <addaction name="actionCS64"/>
+     <addaction name="actionPalette_0"/>
+     <addaction name="actionPalette_1"/>
+     <addaction name="actionPalette_2"/>
     </widget>
     <addaction name="menuPalette"/>
     <addaction name="separator"/>
@@ -665,14 +666,23 @@
     <string>Ctrl+Shift+Z</string>
    </property>
   </action>
-  <action name="actionVice">
+  <action name="actionPalette_0">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>PAL</string>
+    <string>Light</string>
    </property>
   </action>
-  <action name="actionCS64">
+  <action name="actionPalette_1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>NTSC</string>
+    <string>Dark</string>
    </property>
   </action>
   <action name="actionBackground">
@@ -725,6 +735,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionPalette_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grayscale</string>
    </property>
   </action>
  </widget>

@@ -20,7 +20,7 @@ limitations under the License.
 #include <QPaintEvent>
 
 #include "state.h"
-#include "constants.h"
+#include "palette.h"
 
 ColorRect::ColorRect(QWidget *parent)
     : QWidget(parent)
@@ -53,7 +53,7 @@ void ColorRect::paintEvent(QPaintEvent *event)
 
     auto state = State::getInstance();
 
-    painter.fillRect(event->rect(), Constants::CBMcolors[state->getColorAtIndex(_colorIndex)]);
+    painter.fillRect(event->rect(), Palette::getPalette()[state->getColorAtIndex(_colorIndex)]);
 
     painter.end();
 }

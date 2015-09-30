@@ -14,29 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "constants.h"
+#pragma once
 
-namespace Constants
+#include <QColor>
+
+class Palette
 {
-    // Colors from here: http://www.blitzbasic.com/Community/posts.php?topic=52312
-    const QColor CBMcolors[16] = {
+public:
+    static const QColor* getPalette();
+    static void setActivePaletteIndex(int index);
+    static int getActivePaletteIndex();
 
-        {0x00, 0x00, 0x00},
-        {0xFF, 0xFF, 0xFF},
-        {0x74, 0x43, 0x35},
-        {0x7C, 0xAC, 0xBA},
-        {0x7B, 0x48, 0x90},
-        {0x64, 0x97, 0x4F},
-        {0x40, 0x32, 0x85},
-        {0xBF, 0xCD, 0x7A},
-        {0x7B, 0x5B, 0x2F},
-        {0x4f, 0x45, 0x00},
-        {0xa3, 0x72, 0x65},
-        {0x50, 0x50, 0x50},
-        {0x78, 0x78, 0x78},
-        {0xa4, 0xd7, 0x8e},
-        {0x78, 0x6a, 0xbd},
-        {0x9f, 0x9f, 0x9f},
-    };
-}
-
+private:
+    static int _paletteIndex;
+};

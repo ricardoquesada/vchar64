@@ -100,18 +100,18 @@ private slots:
     void on_radioButton_multicolor1_clicked();
     void on_radioButton_multicolor2_clicked();
 
-
     void on_checkBox_multicolor_toggled(bool checked);
 
     void on_actionBackground_triggered();
-
     void on_actionForeground_triggered();
-
     void on_actionMulti_Color_1_triggered();
-
     void on_actionMulti_Color_2_triggered();
 
     void on_actionEnable_Multicolor_triggered();
+
+    void on_actionPalette_0_triggered();
+    void on_actionPalette_1_triggered();
+    void on_actionPalette_2_triggered();
 
 private:
 

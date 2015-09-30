@@ -19,7 +19,7 @@ limitations under the License.
 #include <QPainter>
 #include <QPaintEvent>
 
-#include "constants.h"
+#include "palette.h"
 #include "state.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -54,9 +54,6 @@ void CharSetView::mousePressEvent(QMouseEvent * event)
 void CharSetView::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
-
-    MainWindow *window = dynamic_cast<MainWindow*>(qApp->activeWindow());
-    Ui::MainWindow *ui = window->getUi();
 
     switch (event->key()) {
     case Qt::Key_Left:
@@ -147,7 +144,7 @@ void CharSetView::paintEvent(QPaintEvent *event)
 
                     if (!state->isMultiColor() && color_index )
                         color_index = 3;
-                    painter.setBrush(Constants::CBMcolors[state->getColorAtIndex(color_index)]);
+                    painter.setBrush(Palette::getPalette()[state->getColorAtIndex(color_index)]);
                     painter.drawRect((w*end_x+x) * pixel_size_x, (h*8+y) * PIXEL_SIZE, pixel_size_x, PIXEL_SIZE);
                 }
             }

@@ -34,6 +34,7 @@ limitations under the License.
 #include "tilepropertiesdialog.h"
 #include "bigchar.h"
 #include "commands.h"
+#include "palette.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 
@@ -652,4 +653,28 @@ void MainWindow::on_actionMulti_Color_2_triggered()
 void MainWindow::on_actionEnable_Multicolor_triggered()
 {
     _ui->checkBox_multicolor->click();
+}
+
+void MainWindow::on_actionPalette_0_triggered()
+{
+    Palette::setActivePaletteIndex(0);
+    _ui->actionPalette_1->setChecked(false);
+    _ui->actionPalette_2->setChecked(false);
+    update();
+}
+
+void MainWindow::on_actionPalette_1_triggered()
+{
+    Palette::setActivePaletteIndex(1);
+    _ui->actionPalette_0->setChecked(false);
+    _ui->actionPalette_2->setChecked(false);
+    update();
+}
+
+void MainWindow::on_actionPalette_2_triggered()
+{
+    Palette::setActivePaletteIndex(2);
+    _ui->actionPalette_0->setChecked(false);
+    _ui->actionPalette_1->setChecked(false);
+    update();
 }
