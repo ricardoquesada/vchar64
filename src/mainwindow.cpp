@@ -125,12 +125,21 @@ void MainWindow::readSettings()
 
     restoreState(state);
     restoreGeometry(geom);
+
+    QAction* actions[] = {
+        _ui->actionPalette_0,
+        _ui->actionPalette_1,
+        _ui->actionPalette_2,
+    };
+    int index = _settings.value("palette").toInt();
+    actions[index]->trigger();
 }
 
 void MainWindow::saveSettings()
 {
     _settings.setValue("MainWindow/geometry", saveGeometry());
     _settings.setValue("MainWindow/windowState", saveState());
+    _settings.setValue("palette", Palette::getActivePaletteIndex());
 }
 
 void MainWindow::createActions()
