@@ -363,31 +363,6 @@ void MainWindow::on_radioButton_multicolor2_clicked()
     activateRadioButtonIndex(2);
 }
 
-void MainWindow::on_actionBackground_triggered()
-{
-    _ui->radioButton_background->click();
-}
-
-void MainWindow::on_actionForeground_triggered()
-{
-    _ui->radioButton_foreground->click();
-}
-
-void MainWindow::on_actionMulti_Color_1_triggered()
-{
-    _ui->radioButton_multicolor1->click();
-}
-
-void MainWindow::on_actionMulti_Color_2_triggered()
-{
-    _ui->radioButton_multicolor2->click();
-}
-
-void MainWindow::on_actionEnable_Multicolor_triggered()
-{
-    _ui->checkBox_multicolor->click();
-}
-
 void MainWindow::on_actionPalette_0_triggered()
 {
     Palette::setActivePaletteIndex(0);
