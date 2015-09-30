@@ -17,51 +17,28 @@ limitations under the License.
 #pragma once
 
 #include <QWidget>
-#include <QPoint>
-#include <QSize>
-
-#include <stdint.h>
-#include "state.h"
 
 
-class BigChar : public QWidget
+class CharSetWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    BigChar(QWidget *parent=nullptr);
-    int getTileIndex() const {
-        return _tileIndex;
-    }
-
-    QSize getTileSize() const {
-        return _tileProperties.size;
-    }
+    CharSetWidget(QWidget *parent=nullptr);
 
 public slots:
     void setTileIndex(int tileIndex);
-    void updateTileProperties();
+
+signals:
+    void tileSelected(int tileIndex);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 
-    void paintChar(QPainter& painter, const QPen& pen, quint8* charPtr, const QPoint& tileToDraw);
-    void paintSeparators(QPainter &painter);
     void paintFocus(QPainter &painter);
 
-    void paintPixel(int x, int y, int selectedColor);
-
-    int _tileIndex;
-    int _charIndex;
     QPoint _cursorPos;
-
-    State::TileProperties _tileProperties;
-
-    QSize _pixelSize;
-    bool _commandMergeable;
 };
+

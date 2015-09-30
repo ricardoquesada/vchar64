@@ -18,24 +18,18 @@ limitations under the License.
 
 #include <QWidget>
 
-class ColorRect : public QWidget
+
+class PaletteWidget : public QWidget
 {
     Q_OBJECT
-public:
-    explicit ColorRect(QWidget *parent = 0);
-    ~ColorRect();
 
-    void setColorIndex(int colorIndex);
-    int getColorIndex() const;
+public:
+    PaletteWidget(QWidget *parent);
 
 signals:
-
-public slots:
+    void colorSelected();
 
 protected:
-    void paintEvent(QPaintEvent *event);
-
-
-    int _colorIndex;
+    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 };
-

@@ -17,11 +17,8 @@ CONFIG += c++11
 
 SOURCES += src/main.cpp\
         src/mainwindow.cpp \
-    src/bigchar.cpp \
-    src/charsetview.cpp \
     src/state.cpp \
     src/aboutdialog.cpp \
-    src/colorrect.cpp \
     src/stateimport.cpp \
     src/stateexport.cpp \
     src/exportdialog.cpp \
@@ -29,14 +26,14 @@ SOURCES += src/main.cpp\
     src/preview.cpp \
     src/commands.cpp \
     src/palette.cpp \
-    src/paletteview.cpp
+    src/bigcharwidget.cpp \
+    src/charsetwidget.cpp \
+    src/colorrectwidget.cpp \
+    src/palettewidget.cpp
 
 HEADERS  += src/mainwindow.h \
-    src/bigchar.h \
-    src/charsetview.h \
     src/state.h \
     src/aboutdialog.h \
-    src/colorrect.h \
     src/stateimport.h \
     src/stateexport.h \
     src/exportdialog.h \
@@ -44,7 +41,10 @@ HEADERS  += src/mainwindow.h \
     src/preview.h \
     src/commands.h \
     src/palette.h \
-    src/paletteview.h
+    src/bigcharwidget.h \
+    src/charsetwidget.h \
+    src/colorrectwidget.h \
+    src/palettewidget.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui \

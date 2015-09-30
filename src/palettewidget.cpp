@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "paletteview.h"
+#include "palettewidget.h"
 
 #include <algorithm>
 #include <QPainter>
@@ -30,13 +30,13 @@ limitations under the License.
 static const int PIXEL_SIZE_X = 24;
 static const int PIXEL_SIZE_Y = 16;
 
-PaletteView::PaletteView(QWidget *parent)
+PaletteWidget::PaletteWidget(QWidget *parent)
     : QWidget(parent)
 {
     setFixedSize(PIXEL_SIZE_X * 8, PIXEL_SIZE_Y * 2);
 }
 
-void PaletteView::mousePressEvent(QMouseEvent * event)
+void PaletteWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
@@ -60,7 +60,7 @@ void PaletteView::mousePressEvent(QMouseEvent * event)
     }
 }
 
-void PaletteView::paintEvent(QPaintEvent *event)
+void PaletteWidget::paintEvent(QPaintEvent *event)
 {
     auto state = State::getInstance();
 

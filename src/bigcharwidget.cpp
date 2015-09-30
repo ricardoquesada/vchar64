@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "bigchar.h"
+#include "bigcharwidget.h"
 
 #include <algorithm>
 #include <QPainter>
@@ -26,7 +26,7 @@ limitations under the License.
 #include "ui_mainwindow.h"
 #include "palette.h"
 
-BigChar::BigChar(QWidget *parent)
+BigCharWidget::BigCharWidget(QWidget *parent)
     : QWidget(parent)
     , _tileIndex(0)
     , _charIndex(0)
@@ -37,7 +37,7 @@ BigChar::BigChar(QWidget *parent)
 {
 }
 
-void BigChar::paintPixel(int x, int y, int selectedColor)
+void BigCharWidget::paintPixel(int x, int y, int selectedColor)
 {
     auto&& state = State::getInstance();
     if (!state->isMultiColor() && selectedColor)
@@ -50,7 +50,7 @@ void BigChar::paintPixel(int x, int y, int selectedColor)
     update();
 }
 
-void BigChar::mousePressEvent(QMouseEvent * event)
+void BigCharWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
@@ -74,7 +74,7 @@ void BigChar::mousePressEvent(QMouseEvent * event)
     _commandMergeable = true;
 }
 
-void BigChar::mouseMoveEvent(QMouseEvent * event)
+void BigCharWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
 
@@ -99,7 +99,7 @@ void BigChar::mouseMoveEvent(QMouseEvent * event)
     _commandMergeable = true;
 }
 
-void BigChar::mouseReleaseEvent(QMouseEvent * event)
+void BigCharWidget::mouseReleaseEvent(QMouseEvent * event)
 {
     event->accept();
 
@@ -108,7 +108,7 @@ void BigChar::mouseReleaseEvent(QMouseEvent * event)
     _commandMergeable = false;
 }
 
-void BigChar::keyPressEvent(QKeyEvent *event)
+void BigCharWidget::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
 
@@ -151,7 +151,7 @@ void BigChar::keyPressEvent(QKeyEvent *event)
 }
 
 
-void BigChar::paintEvent(QPaintEvent *event)
+void BigCharWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
     painter.begin(this);
@@ -183,7 +183,7 @@ void BigChar::paintEvent(QPaintEvent *event)
     painter.end();
 }
 
-void BigChar::paintSeparators(QPainter &painter)
+void BigCharWidget::paintSeparators(QPainter &painter)
 {
     QPen pen;
     pen.setColor({128,128,128,196});
@@ -205,7 +205,7 @@ void BigChar::paintSeparators(QPainter &painter)
 
 }
 
-void BigChar::paintFocus(QPainter &painter)
+void BigCharWidget::paintFocus(QPainter &painter)
 {
     if (hasFocus())
     {
@@ -231,7 +231,7 @@ void BigChar::paintFocus(QPainter &painter)
 }
 
 
-void BigChar::paintChar(QPainter& painter, const QPen& pen, quint8 *charPtr, const QPoint& tileToDraw)
+void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8 *charPtr, const QPoint& tileToDraw)
 {
     State *state = State::getInstance();
 
@@ -287,7 +287,7 @@ void BigChar::paintChar(QPainter& painter, const QPen& pen, quint8 *charPtr, con
     }
 }
 
-void BigChar::setTileIndex(int tileIndex)
+void BigCharWidget::setTileIndex(int tileIndex)
 {
     auto state = State::getInstance();
 
@@ -298,7 +298,7 @@ void BigChar::setTileIndex(int tileIndex)
     }
 }
 
-void BigChar::updateTileProperties()
+void BigCharWidget::updateTileProperties()
 {
     auto state = State::getInstance();
     _tileProperties = state->getTileProperties();
@@ -315,7 +315,7 @@ void BigChar::updateTileProperties()
     update();
 }
 
-void BigChar::resizeEvent(QResizeEvent* event)
+void BigCharWidget::resizeEvent(QResizeEvent* event)
 {
     (void)event;
 

@@ -32,7 +32,7 @@ limitations under the License.
 #include "aboutdialog.h"
 #include "exportdialog.h"
 #include "tilepropertiesdialog.h"
-#include "bigchar.h"
+#include "bigcharwidget.h"
 #include "commands.h"
 #include "palette.h"
 
@@ -145,7 +145,7 @@ void MainWindow::saveSettings()
 void MainWindow::createActions()
 {
     auto state = State::getInstance();
-    connect(state, &State::tilePropertiesUpdated, _ui->bigchar, &BigChar::updateTileProperties);
+    connect(state, &State::tilePropertiesUpdated, _ui->bigchar, &BigCharWidget::updateTileProperties);
 
     // Add recent file actions to the recent files menu
     for (int i=0; i<MAX_RECENT_FILES; ++i)
@@ -648,6 +648,24 @@ void MainWindow::on_actionPaste_triggered()
     state->getUndoStack()->push(new PasteTileCommand(state, tileIndex));
 }
 
+//
+// MARK - Undo / Redo callbacks
+//
+void MainWindow::on_actionUndo_triggered()
+{
+    auto state = State::getInstance();
+    state->getUndoStack()->undo();
+}
+
+void MainWindow::on_actionRedo_triggered()
+{
+    auto state = State::getInstance();
+    state->getUndoStack()->redo();
+}
+
+//
+// MARK - Misc callbacks
+//
 void MainWindow::on_actionReportBug_triggered()
 {
     QDesktopServices::openUrl(QUrl("https://github.com/ricardoquesada/vchar64/issues"));
@@ -702,16 +720,4 @@ void MainWindow::on_actionXlinkConnection_triggered()
             QMessageBox msgBox(QMessageBox::Warning, "", "Could not connect to remote C64", 0, this);
             msgBox.exec();
         }
-}
-
-void MainWindow::on_actionUndo_triggered()
-{
-    auto state = State::getInstance();
-    state->getUndoStack()->undo();
-}
-
-void MainWindow::on_actionRedo_triggered()
-{
-    auto state = State::getInstance();
-    state->getUndoStack()->redo();
 }

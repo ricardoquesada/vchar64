@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "colorrect.h"
+#include "colorrectwidget.h"
 
 #include <QPainter>
 #include <QPaintEvent>
@@ -22,17 +22,17 @@ limitations under the License.
 #include "state.h"
 #include "palette.h"
 
-ColorRect::ColorRect(QWidget *parent)
+ColorRectWidget::ColorRectWidget(QWidget *parent)
     : QWidget(parent)
     , _colorIndex(0)
 {
 }
 
-ColorRect::~ColorRect()
+ColorRectWidget::~ColorRectWidget()
 {
 }
 
-void ColorRect::setColorIndex(int colorIndex)
+void ColorRectWidget::setColorIndex(int colorIndex)
 {
     Q_ASSERT(colorIndex>=0 && colorIndex<16 && "Invalid colorIndex");
     if (_colorIndex != colorIndex) {
@@ -41,12 +41,12 @@ void ColorRect::setColorIndex(int colorIndex)
     }
 }
 
-int ColorRect::getColorIndex() const
+int ColorRectWidget::getColorIndex() const
 {
     return _colorIndex;
 }
 
-void ColorRect::paintEvent(QPaintEvent *event)
+void ColorRectWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
     painter.begin(this);

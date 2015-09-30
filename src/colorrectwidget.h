@@ -18,27 +18,24 @@ limitations under the License.
 
 #include <QWidget>
 
-
-class CharSetView : public QWidget
+class ColorRectWidget : public QWidget
 {
     Q_OBJECT
-
 public:
-    CharSetView(QWidget *parent=nullptr);
+    explicit ColorRectWidget(QWidget *parent = 0);
+    ~ColorRectWidget();
 
-public slots:
-    void setTileIndex(int tileIndex);
+    void setColorIndex(int colorIndex);
+    int getColorIndex() const;
 
 signals:
-    void tileSelected(int tileIndex);
+
+public slots:
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent *event);
 
-    void paintFocus(QPainter &painter);
 
-    QPoint _cursorPos;
+    int _colorIndex;
 };
 

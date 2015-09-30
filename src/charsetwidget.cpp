@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "charsetview.h"
+#include "charsetwidget.h"
 
 #include <QPainter>
 #include <QPaintEvent>
@@ -28,14 +28,14 @@ static const int PIXEL_SIZE = 2;
 static const int COLUMNS = 32;
 static const int ROWS = 8;
 
-CharSetView::CharSetView(QWidget *parent)
+CharSetWidget::CharSetWidget(QWidget *parent)
     : QWidget(parent)
     , _cursorPos({0,0})
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8, PIXEL_SIZE * ROWS * 8);
 }
 
-void CharSetView::mousePressEvent(QMouseEvent * event)
+void CharSetWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
@@ -51,7 +51,7 @@ void CharSetView::mousePressEvent(QMouseEvent * event)
     emit tileSelected(tileIndex);
 }
 
-void CharSetView::keyPressEvent(QKeyEvent *event)
+void CharSetWidget::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
 
@@ -84,7 +84,7 @@ void CharSetView::keyPressEvent(QKeyEvent *event)
     emit tileSelected(tileIndex);
 }
 
-void CharSetView::paintEvent(QPaintEvent *event)
+void CharSetWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
 
@@ -162,7 +162,7 @@ void CharSetView::paintEvent(QPaintEvent *event)
     painter.end();
 }
 
-void CharSetView::paintFocus(QPainter &painter)
+void CharSetWidget::paintFocus(QPainter &painter)
 {
     if (hasFocus())
     {
@@ -187,7 +187,7 @@ void CharSetView::paintFocus(QPainter &painter)
     }
 }
 
-void CharSetView::setTileIndex(int tileIndex)
+void CharSetWidget::setTileIndex(int tileIndex)
 {
     auto state = State::getInstance();
     int charIndex = state->getCharIndexFromTileIndex(tileIndex);
