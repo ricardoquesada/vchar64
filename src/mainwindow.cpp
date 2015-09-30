@@ -211,6 +211,12 @@ void MainWindow::createDefaults()
     setWindowFilePath("[untitled]");
 }
 
+QStringList MainWindow::recentFiles() const
+{
+    QVariant v = _settings.value(QLatin1String("recentFiles/fileNames"));
+    return v.toStringList();
+}
+
 void MainWindow::updateRecentFiles()
 {
     QStringList files = recentFiles();
@@ -246,56 +252,6 @@ void MainWindow::setRecentFile(const QString& fileName)
     _settings.setValue(QLatin1String("recentFiles/fileNames"), files);
     updateRecentFiles();
 }
-
-QStringList MainWindow::recentFiles() const
-{
-    QVariant v = _settings.value(QLatin1String("recentFiles/fileNames"));
-    return v.toStringList();
-}
-
-void MainWindow::openFile(const QString& fileName)
-{
-    QFileInfo info(fileName);
-    _lastDir = info.absolutePath();
-    _settings.setValue("dir/lastdir", _lastDir);
-
-    if (State::getInstance()->openFile(fileName)) {
-
-        setRecentFile(fileName);
-
-        update();
-        auto state = State::getInstance();
-        _ui->checkBox_multicolor->setChecked(state->isMultiColor());
-
-        setWindowFilePath(info.filePath());
-    }
-    else
-    {
-        QMessageBox msgBox;
-        QString msg = tr("Error loading file: ") + fileName;
-        msgBox.setText(msg);
-        msgBox.exec();
-    }
-}
-
-bool MainWindow::maybeSave()
-{
-    auto state = State::getInstance();
-
-    if (state->isModified()) {
-        QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(this, tr("Application"),
-                     tr("The are unsaved changes.\n"
-                        "Do you want to save your changes?"),
-                     QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        if (ret == QMessageBox::Save)
-            return on_actionSave_triggered();
-        else if (ret == QMessageBox::Cancel)
-            return false;
-    }
-    return true;
-}
-
 
 //
 // MARK - Slots / Events / Callbacks
@@ -353,33 +309,9 @@ void MainWindow::on_actionC64DefaultLowercase_triggered()
     }
 }
 
-void MainWindow::on_actionOpen_triggered()
-{
-    if (maybeSave())
-    {
-        QString filter = _settings.value("dir/lastUsedOpenFilter", "All supported files").toString();
-        auto fn = QFileDialog::getOpenFileName(this,
-                                               tr("Select File"),
-                                               _lastDir,
-                                               tr(
-                                                   "All files (*);;" \
-                                                   "All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;" \
-                                                   "VChar64 Project (*.vchar64proj);;" \
-                                                   "Raw (*.raw *.bin);;" \
-                                                   "PRG (*.prg *.64c);;" \
-                                                   "CharPad (*.ctm);;"
-                                               ),
-                                               &filter
-                                               /*,QFileDialog::DontUseNativeDialog*/
-                                               );
-
-        if (fn.length()> 0) {
-            _settings.setValue("dir/lastUsedOpenFilter", filter);
-            openFile(fn);
-        }
-    }
-}
-
+//
+// MARK - Color + Palette callbacks
+//
 void MainWindow::on_checkBox_multicolor_toggled(bool checked)
 {
     _ui->radioButton_multicolor1->setEnabled(checked);
@@ -431,6 +363,125 @@ void MainWindow::on_radioButton_multicolor2_clicked()
     activateRadioButtonIndex(2);
 }
 
+void MainWindow::on_actionBackground_triggered()
+{
+    _ui->radioButton_background->click();
+}
+
+void MainWindow::on_actionForeground_triggered()
+{
+    _ui->radioButton_foreground->click();
+}
+
+void MainWindow::on_actionMulti_Color_1_triggered()
+{
+    _ui->radioButton_multicolor1->click();
+}
+
+void MainWindow::on_actionMulti_Color_2_triggered()
+{
+    _ui->radioButton_multicolor2->click();
+}
+
+void MainWindow::on_actionEnable_Multicolor_triggered()
+{
+    _ui->checkBox_multicolor->click();
+}
+
+void MainWindow::on_actionPalette_0_triggered()
+{
+    Palette::setActivePaletteIndex(0);
+    _ui->actionPalette_1->setChecked(false);
+    _ui->actionPalette_2->setChecked(false);
+    update();
+}
+
+void MainWindow::on_actionPalette_1_triggered()
+{
+    Palette::setActivePaletteIndex(1);
+    _ui->actionPalette_0->setChecked(false);
+    _ui->actionPalette_2->setChecked(false);
+    update();
+}
+
+void MainWindow::on_actionPalette_2_triggered()
+{
+    Palette::setActivePaletteIndex(2);
+    _ui->actionPalette_0->setChecked(false);
+    _ui->actionPalette_1->setChecked(false);
+    update();
+}
+
+//
+// MARK - File IO callbacks + helper functions
+//
+void MainWindow::openFile(const QString& fileName)
+{
+    QFileInfo info(fileName);
+    _lastDir = info.absolutePath();
+    _settings.setValue("dir/lastdir", _lastDir);
+
+    if (State::getInstance()->openFile(fileName)) {
+
+        setRecentFile(fileName);
+
+        update();
+        auto state = State::getInstance();
+        _ui->checkBox_multicolor->setChecked(state->isMultiColor());
+
+        setWindowFilePath(info.filePath());
+    }
+    else
+    {
+        QMessageBox::warning(this, tr("Application"), tr("Error loading file: ") + fileName, QMessageBox::Ok);
+    }
+}
+
+bool MainWindow::maybeSave()
+{
+    auto state = State::getInstance();
+
+    if (state->isModified()) {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("Application"),
+                     tr("The are unsaved changes.\n"
+                        "Do you want to save your changes?"),
+                     QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        if (ret == QMessageBox::Save)
+            return on_actionSave_triggered();
+        else if (ret == QMessageBox::Cancel)
+            return false;
+    }
+    return true;
+}
+
+void MainWindow::on_actionOpen_triggered()
+{
+    if (maybeSave())
+    {
+        QString filter = _settings.value("dir/lastUsedOpenFilter", "All supported files").toString();
+        auto fn = QFileDialog::getOpenFileName(this,
+                                               tr("Select File"),
+                                               _lastDir,
+                                               tr(
+                                                   "All files (*);;" \
+                                                   "All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;" \
+                                                   "VChar64 Project (*.vchar64proj);;" \
+                                                   "Raw (*.raw *.bin);;" \
+                                                   "PRG (*.prg *.64c);;" \
+                                                   "CharPad (*.ctm);;"
+                                               ),
+                                               &filter
+                                               /*,QFileDialog::DontUseNativeDialog*/
+                                               );
+
+        if (fn.length()> 0) {
+            _settings.setValue("dir/lastUsedOpenFilter", filter);
+            openFile(fn);
+        }
+    }
+}
+
 bool MainWindow::on_actionSaveAs_triggered()
 {
     bool ret = false;
@@ -463,16 +514,25 @@ bool MainWindow::on_actionSaveAs_triggered()
         }
     }
 
+    if (!ret)
+        QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
+
     return ret;
 }
 
 bool MainWindow::on_actionSave_triggered()
 {
+    bool ret;
     auto state = State::getInstance();
     auto filename = state->getSavedFilename();
     if (filename.length() > 0)
-        return state->saveProject(filename);
-    return on_actionSaveAs_triggered();
+        ret = state->saveProject(filename);
+    ret = on_actionSaveAs_triggered();
+
+    if (!ret)
+        QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
+
+    return ret;
 }
 
 void MainWindow::on_actionExport_triggered()
@@ -486,7 +546,10 @@ void MainWindow::on_actionExport_triggered()
     }
     else
     {
-        state->export_();
+        if (!state->export_())
+        {
+            QMessageBox::warning(this, tr("Application"), tr("Error exporting file: ") + exportedFilename, QMessageBox::Ok);
+        }
     }
 }
 
@@ -496,6 +559,9 @@ void MainWindow::on_actionExportAs_triggered()
     dialog.exec();
 }
 
+//
+// MARK - Tile editing callbacks
+//
 void MainWindow::on_actionInvert_triggered()
 {
     auto state = State::getInstance();
@@ -503,10 +569,6 @@ void MainWindow::on_actionInvert_triggered()
 
     state->getUndoStack()->push(new InvertTileCommand(state, tileIndex));
 }
-
-//
-// Tile editing callbacks
-//
 
 void MainWindow::on_actionFlipHorizontally_triggered()
 {
@@ -652,53 +714,4 @@ void MainWindow::on_actionRedo_triggered()
 {
     auto state = State::getInstance();
     state->getUndoStack()->redo();
-}
-
-void MainWindow::on_actionBackground_triggered()
-{
-    _ui->radioButton_background->click();
-}
-
-void MainWindow::on_actionForeground_triggered()
-{
-    _ui->radioButton_foreground->click();
-}
-
-void MainWindow::on_actionMulti_Color_1_triggered()
-{
-    _ui->radioButton_multicolor1->click();
-}
-
-void MainWindow::on_actionMulti_Color_2_triggered()
-{
-    _ui->radioButton_multicolor2->click();
-}
-
-void MainWindow::on_actionEnable_Multicolor_triggered()
-{
-    _ui->checkBox_multicolor->click();
-}
-
-void MainWindow::on_actionPalette_0_triggered()
-{
-    Palette::setActivePaletteIndex(0);
-    _ui->actionPalette_1->setChecked(false);
-    _ui->actionPalette_2->setChecked(false);
-    update();
-}
-
-void MainWindow::on_actionPalette_1_triggered()
-{
-    Palette::setActivePaletteIndex(1);
-    _ui->actionPalette_0->setChecked(false);
-    _ui->actionPalette_2->setChecked(false);
-    update();
-}
-
-void MainWindow::on_actionPalette_2_triggered()
-{
-    Palette::setActivePaletteIndex(2);
-    _ui->actionPalette_0->setChecked(false);
-    _ui->actionPalette_1->setChecked(false);
-    update();
 }
