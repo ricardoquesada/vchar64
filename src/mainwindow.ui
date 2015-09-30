@@ -686,6 +686,9 @@
    </property>
   </action>
   <action name="actionBackground">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Background</string>
    </property>
@@ -695,7 +698,10 @@
   </action>
   <action name="actionForeground">
    <property name="checkable">
-    <bool>false</bool>
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Foreground</string>
@@ -706,6 +712,9 @@
   </action>
   <action name="actionMulti_Color_1">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
@@ -717,6 +726,9 @@
   </action>
   <action name="actionMulti_Color_2">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">

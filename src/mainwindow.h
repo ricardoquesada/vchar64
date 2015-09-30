@@ -116,6 +116,8 @@ private slots:
 private:
 
     bool maybeSave();
+    void activateRadioButtonIndex(int index);
+
 
     QAction* _recentFiles[MAX_RECENT_FILES];
 

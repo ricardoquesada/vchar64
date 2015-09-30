@@ -385,6 +385,9 @@ void MainWindow::on_checkBox_multicolor_toggled(bool checked)
     _ui->radioButton_multicolor1->setEnabled(checked);
     _ui->radioButton_multicolor2->setEnabled(checked);
 
+    _ui->actionMulti_Color_1->setEnabled(checked);
+    _ui->actionMulti_Color_2->setEnabled(checked);
+
     _ui->actionEnable_Multicolor->setChecked(checked);
 
     State *state = State::getInstance();
@@ -392,28 +395,40 @@ void MainWindow::on_checkBox_multicolor_toggled(bool checked)
     state->getUndoStack()->push(new SetMulticolorModeCommand(state, checked));
 }
 
-void MainWindow::on_radioButton_background_clicked()
+void MainWindow::activateRadioButtonIndex(int index)
 {
     State *state = State::getInstance();
-    state->setSelectedColorIndex(0);
+    state->setSelectedColorIndex(index);
+
+    QAction* actions[] = {
+        _ui->actionBackground,
+        _ui->actionMulti_Color_1,
+        _ui->actionMulti_Color_2,
+        _ui->actionForeground
+    };
+
+    for (int i=0; i<4; i++)
+        actions[i]->setChecked(i==index);
+}
+
+void MainWindow::on_radioButton_background_clicked()
+{
+    activateRadioButtonIndex(0);
 }
 
 void MainWindow::on_radioButton_foreground_clicked()
 {
-    State *state = State::getInstance();
-    state->setSelectedColorIndex(3);
+    activateRadioButtonIndex(3);
 }
 
 void MainWindow::on_radioButton_multicolor1_clicked()
 {
-    State *state = State::getInstance();
-    state->setSelectedColorIndex(1);
+    activateRadioButtonIndex(1);
 }
 
 void MainWindow::on_radioButton_multicolor2_clicked()
 {
-    State *state = State::getInstance();
-    state->setSelectedColorIndex(2);
+    activateRadioButtonIndex(2);
 }
 
 bool MainWindow::on_actionSaveAs_triggered()
