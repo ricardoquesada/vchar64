@@ -177,7 +177,7 @@ void MainWindow::createActions()
     connect(state->getUndoStack(), SIGNAL(indexChanged(int)), this, SLOT(documentWasModified()));
     connect(state->getUndoStack(), SIGNAL(cleanChanged(bool)), this, SLOT(documentWasModified()));
 
-    connect(_ui->colorPalette, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
+    connect(_ui->paletteView, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
     connect(preview, SIGNAL(previewConnected()), this, SLOT(previewConnected()));
     connect(preview, SIGNAL(previewDisconnected()), this, SLOT(previewDisconnected()));
 

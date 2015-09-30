@@ -286,7 +286,7 @@
        </widget>
       </item>
       <item>
-       <widget class="ColorPalette" name="colorPalette" native="true">
+       <widget class="PaletteView" name="paletteView" native="true">
         <property name="minimumSize">
          <size>
           <width>192</width>
@@ -780,18 +780,15 @@
    </slots>
   </customwidget>
   <customwidget>
-   <class>ColorPalette</class>
-   <extends>QWidget</extends>
-   <header>colorpalette.h</header>
-   <container>1</container>
-   <slots>
-    <signal>colorSelected()</signal>
-   </slots>
-  </customwidget>
-  <customwidget>
    <class>ColorRect</class>
    <extends>QWidget</extends>
    <header>colorrect.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PaletteView</class>
+   <extends>QWidget</extends>
+   <header>paletteview.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
@@ -808,7 +805,7 @@
  </resources>
  <connections>
   <connection>
-   <sender>colorPalette</sender>
+   <sender>paletteView</sender>
    <signal>colorSelected()</signal>
    <receiver>colorRect_0</receiver>
    <slot>update()</slot>
@@ -824,7 +821,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>colorPalette</sender>
+   <sender>paletteView</sender>
    <signal>colorSelected()</signal>
    <receiver>colorRect_1</receiver>
    <slot>update()</slot>
@@ -840,7 +837,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>colorPalette</sender>
+   <sender>paletteView</sender>
    <signal>colorSelected()</signal>
    <receiver>colorRect_2</receiver>
    <slot>update()</slot>
@@ -856,7 +853,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>colorPalette</sender>
+   <sender>paletteView</sender>
    <signal>colorSelected()</signal>
    <receiver>colorRect_3</receiver>
    <slot>update()</slot>
@@ -874,7 +871,7 @@
   <connection>
    <sender>radioButton_background</sender>
    <signal>clicked()</signal>
-   <receiver>colorPalette</receiver>
+   <receiver>paletteView</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -890,7 +887,7 @@
   <connection>
    <sender>radioButton_foreground</sender>
    <signal>clicked()</signal>
-   <receiver>colorPalette</receiver>
+   <receiver>paletteView</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -906,7 +903,7 @@
   <connection>
    <sender>radioButton_multicolor1</sender>
    <signal>clicked()</signal>
-   <receiver>colorPalette</receiver>
+   <receiver>paletteView</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -922,7 +919,7 @@
   <connection>
    <sender>radioButton_multicolor2</sender>
    <signal>clicked()</signal>
-   <receiver>colorPalette</receiver>
+   <receiver>paletteView</receiver>
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -952,7 +949,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>colorPalette</sender>
+   <sender>paletteView</sender>
    <signal>colorSelected()</signal>
    <receiver>charsetview</receiver>
    <slot>update()</slot>
@@ -1000,7 +997,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>colorPalette</sender>
+   <sender>paletteView</sender>
    <signal>colorSelected()</signal>
    <receiver>bigchar</receiver>
    <slot>update()</slot>

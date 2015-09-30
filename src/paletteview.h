@@ -19,12 +19,12 @@ limitations under the License.
 #include <QWidget>
 
 
-class ColorPalette : public QWidget
+class PaletteView : public QWidget
 {
     Q_OBJECT
 
 public:
-    ColorPalette(QWidget *parent);
+    PaletteView(QWidget *parent);
 
 signals:
     void colorSelected();

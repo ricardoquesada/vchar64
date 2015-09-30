@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "colorpalette.h"
+#include "paletteview.h"
 
 #include <algorithm>
 #include <QPainter>
@@ -30,13 +30,13 @@ limitations under the License.
 static const int PIXEL_SIZE_X = 24;
 static const int PIXEL_SIZE_Y = 16;
 
-ColorPalette::ColorPalette(QWidget *parent)
+PaletteView::PaletteView(QWidget *parent)
     : QWidget(parent)
 {
     setFixedSize(PIXEL_SIZE_X * 8, PIXEL_SIZE_Y * 2);
 }
 
-void ColorPalette::mousePressEvent(QMouseEvent * event)
+void PaletteView::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
@@ -60,7 +60,7 @@ void ColorPalette::mousePressEvent(QMouseEvent * event)
     }
 }
 
-void ColorPalette::paintEvent(QPaintEvent *event)
+void PaletteView::paintEvent(QPaintEvent *event)
 {
     auto state = State::getInstance();
 
