@@ -40,8 +40,8 @@ State* State::getInstance()
 State::State()
     : _totalChars(0)
     , _multiColor(false)
-    , _selectedColorIndex(3)
-    , _colors{1,12,15,0}
+    , _selectedPen(PEN_FOREGROUND)
+    , _penColors{1,12,15,0}
     , _tileProperties{{1,1},1}
     , _loadedFilename("")
     , _savedFilename("")
@@ -62,11 +62,11 @@ void State::reset()
 {
     _totalChars = 0;
     _multiColor = false;
-    _selectedColorIndex = 3;
-    _colors[0] = 1;
-    _colors[1] = 12;
-    _colors[2] = 15;
-    _colors[3] = 0;
+    _selectedPen = 3;
+    _penColors[0] = 1;
+    _penColors[1] = 12;
+    _penColors[2] = 15;
+    _penColors[3] = 0;
     _tileProperties.size = {1,1};
     _tileProperties.interleaved = 1;
     _loadedFilename = "";
@@ -243,17 +243,17 @@ void State::setMultiColor(bool enabled)
     }
 }
 
-void State::setColorAtIndex(int colorIndex, int color)
+void State::setColorForPen(int pen, int color)
 {
-    Q_ASSERT(colorIndex >=0 && colorIndex < 4);
+    Q_ASSERT(pen >=0 && pen < PEN_MAX);
     Q_ASSERT(color >=0 && color < 16);
-    _colors[colorIndex] = color;
+    _penColors[pen] = color;
 
     emit colorPropertiesUpdated();
     emit contentsChanged();
 }
 
-int State::getTileColorAt(int tileIndex, const QPoint& position)
+int State::tileGetPen(int tileIndex, const QPoint& position)
 {
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
@@ -283,16 +283,17 @@ int State::getTileColorAt(int tileIndex, const QPoint& position)
 
         // ignore "odd" numbers when... valid bits to shift: 6,4,2,0
         ret = (c & mask) >> ((7-b) & 254);
-
     }
+
+    Q_ASSERT(ret >=0 && ret < PEN_MAX);
     return ret;
 }
 
-void State::tilePaint(int tileIndex, const QPoint& position, int colorIndex)
+void State::tileSetPen(int tileIndex, const QPoint& position, int pen)
 {
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
     Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
-    Q_ASSERT(colorIndex >=0 && colorIndex < 4 && "Invalid colorIndex. range: 0,4");
+    Q_ASSERT(pen >=0 && pen < PEN_MAX && "Invalid pen. range: 0,4");
 
     int x = position.x();
     int y = position.y();
@@ -310,13 +311,13 @@ void State::tilePaint(int tileIndex, const QPoint& position, int colorIndex)
     if (!_multiColor)
     {
         and_mask = 1 << (7-b);
-        or_mask = colorIndex << (7-b);
+        or_mask = pen << (7-b);
     }
     else
     {
         uint8_t masks[] = {128+64, 128+64, 32+16, 32+16, 8+4, 8+4, 2+1, 2+1};
         and_mask = masks[b];
-        or_mask = colorIndex << ((7-b) & 254);
+        or_mask = pen << ((7-b) & 254);
     }
 
     // get the neede byte

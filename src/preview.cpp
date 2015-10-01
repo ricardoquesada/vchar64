@@ -85,8 +85,8 @@ void Preview::updateBackgroundColor()
     if(!_xlink->isLoaded()) return;
 
     auto state = State::getInstance();
-    xlink_poke(0x37, 0x00, 0xd020, (uchar) state->getColorAtIndex(0));
-    xlink_poke(0x37, 0x00, 0xd021, (uchar) state->getColorAtIndex(0));
+    xlink_poke(0x37, 0x00, 0xd020, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
+    xlink_poke(0x37, 0x00, 0xd021, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
 }
 
 void Preview::updateForegroundColor()
@@ -94,7 +94,7 @@ void Preview::updateForegroundColor()
     if(!isConnected()) return;
 
     auto state = State::getInstance();
-    uchar foreground = state->getColorAtIndex(3);
+    uchar foreground = state->getColorForPen(State::PEN_FOREGROUND);
     foreground |= state->isMultiColor() ? 8 : 0;
 
     xlink_fill(0xb7, 0x00, 0xd800, foreground, 1000);
@@ -106,7 +106,7 @@ void Preview::updateMulticolor1()
     if(!isConnected()) return;
 
     auto state = State::getInstance();
-    xlink_poke(0x37, 0x00, 0xd022, (uchar) state->getColorAtIndex(1));
+    xlink_poke(0x37, 0x00, 0xd022, (uchar) state->getColorForPen(State::PEN_MULTICOLOR1));
 }
 
 void Preview::updateMulticolor2()
@@ -114,7 +114,7 @@ void Preview::updateMulticolor2()
     if(!isConnected()) return;
 
     auto state = State::getInstance();
-    xlink_poke(0x37, 0x00, 0xd023, (uchar) state->getColorAtIndex(2));
+    xlink_poke(0x37, 0x00, 0xd023, (uchar) state->getColorForPen(State::PEN_MULTICOLOR2));
 }
 
 void Preview::updateColorMode()
@@ -219,7 +219,7 @@ void Preview::colorSelected()
 
     auto state = State::getInstance();
 
-    switch(state->getSelectedColorIndex()) {
+    switch(state->getSelectedPen()) {
     case 0: updateBackgroundColor(); break;
     case 1: updateMulticolor1(); break;
     case 2: updateMulticolor2(); break;

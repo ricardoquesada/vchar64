@@ -77,7 +77,7 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
     auto total = file.read((char*)state->getCharsBuffer(), toRead);
 
     for (int i=0; i<4; i++)
-        state->setColorAtIndex(i, v4header->colors[i]);
+        state->setColorForPen(i, v4header->colors[i]);
 
     state->setMultiColor(v4header->vic_res);
 
@@ -101,7 +101,7 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
     auto total = file.read((char*)state->getCharsBuffer(), toRead);
 
     for (int i=0; i<4; i++)
-        state->setColorAtIndex(i, v5header->colors[i]);
+        state->setColorForPen(i, v5header->colors[i]);
 
     state->setMultiColor(v5header->flags & 0b00000100);
 
@@ -173,7 +173,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     auto total = file.read((char*)state->getCharsBuffer(), toRead);
 
     for (int i=0; i<4; i++)
-        state->setColorAtIndex(i, header.colors[i]);
+        state->setColorForPen(i, header.colors[i]);
 
     state->setMultiColor(header.vic_res);
     State::TileProperties properties;

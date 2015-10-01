@@ -44,7 +44,7 @@ void PaintTileCommand::redo()
     _state->copyCharFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
 
     for (int i = 0; i < _points.size(); ++i) {
-        _state->tilePaint(_tileIndex, _points.at(i), _colorIndex);
+        _state->tileSetPen(_tileIndex, _points.at(i), _colorIndex);
     }
 }
 
@@ -347,11 +347,11 @@ SetColorCommand::SetColorCommand(State *state, int color, int colorIndex, QUndoC
 
 void SetColorCommand::undo()
 {
-    _state->setColorAtIndex(_colorIndex, _old);
+    _state->setColorForPen(_colorIndex, _old);
 }
 
 void SetColorCommand::redo()
 {
-    _old = _state->getColorAtIndex(_colorIndex);
-    _state->setColorAtIndex(_colorIndex, _new);
+    _old = _state->getColorForPen(_colorIndex);
+    _state->setColorForPen(_colorIndex, _new);
 }

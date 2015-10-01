@@ -330,7 +330,7 @@ void MainWindow::on_checkBox_multicolor_toggled(bool checked)
 void MainWindow::activateRadioButtonIndex(int index)
 {
     State *state = State::getInstance();
-    state->setSelectedColorIndex(index);
+    state->setSelectedPen(index);
 
     QAction* actions[] = {
         _ui->actionBackground,

@@ -43,7 +43,7 @@ void BigCharWidget::paintPixel(int x, int y, int selectedColor)
     if (!state->isMultiColor() && selectedColor)
         selectedColor = 1;
 
-    if (state->getTileColorAt(_tileIndex, QPoint(x,y)) != selectedColor)
+    if (state->tileGetPen(_tileIndex, QPoint(x,y)) != selectedColor)
         state->getUndoStack()->push(new PaintTileCommand(state, _tileIndex, QPoint(x,y), selectedColor, _commandMergeable));
 
     // redraw cursor
@@ -64,7 +64,7 @@ void BigCharWidget::mousePressEvent(QMouseEvent * event)
     _cursorPos = {x,y};
 
     auto&& state = State::getInstance();
-    int selectedColor = state->getSelectedColorIndex();
+    int selectedColor = state->getSelectedPen();
 
     if (event->button() == Qt::LeftButton)
         paintPixel(x, y, selectedColor);
@@ -88,7 +88,7 @@ void BigCharWidget::mouseMoveEvent(QMouseEvent * event)
     _cursorPos = {x,y};
 
     auto&& state = State::getInstance();
-    int selectedColor = state->getSelectedColorIndex();
+    int selectedColor = state->getSelectedPen();
 
     auto&& button = event->buttons();
     if (button == Qt::LeftButton)
@@ -132,7 +132,7 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
         _cursorPos += {0,-1};
         break;
     case Qt::Key_Space:
-        paintPixel(_cursorPos.x(), _cursorPos.y(), state->getSelectedColorIndex());
+        paintPixel(_cursorPos.x(), _cursorPos.y(), state->getSelectedPen());
         break;
     case Qt::Key_Minus:
         ui->spinBox_tileIndex->setValue(ui->spinBox_tileIndex->value() - 1);
@@ -269,7 +269,7 @@ void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8 *charPt
 
             if (!state->isMultiColor() && color_index )
                 color_index = 3;
-            painter.setBrush(Palette::getPalette()[state->getColorAtIndex(color_index)]);
+            painter.setBrush(Palette::getPalette()[state->getColorForPen(color_index)]);
 
             if (hasFocus()
                     && (x + tileToDraw.x() * 8 / increment_x) == _cursorPos.x() / increment_x

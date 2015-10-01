@@ -32,6 +32,15 @@ class State : public QObject
     friend class StateImport;
 
 public:
+    enum {
+        PEN_BACKGROUND,
+        PEN_MULTICOLOR1,
+        PEN_MULTICOLOR2,
+        PEN_FOREGROUND,
+
+        PEN_MAX
+    };
+
     union Char {
         quint64 _char64;
         quint8 _char8[8];
@@ -59,30 +68,26 @@ public:
     // export is a defined keyword, so we use export_ instead
     bool export_();
 
-    // returns 0 or 1 in normal mode
-    // returns 0, 1, 2 or 3 in multicolor mode
-    int getTileColorAt(int tileIndex, const QPoint& position);
-
-    int getColorAtIndex(int index) const {
-        Q_ASSERT(index >=0 && index < 4);
-        return _colors[index];
+    int getColorForPen(int pen) const {
+        Q_ASSERT(pen >=0 && pen < PEN_MAX);
+        return _penColors[pen];
     }
 
     // color should be 0 or 1 in normal mode
     // and 0, 1, 2 or 3 in multicolor mode
-    void setColorAtIndex(int colorIndex, int color);
+    void setColorForPen(int pen, int color);
 
     int getCurrentColor() const {
-        return _colors[_selectedColorIndex];
+        return _penColors[_selectedPen];
     }
 
-    void setSelectedColorIndex(int index) {
-        Q_ASSERT(index>=0 && index<4);
-        _selectedColorIndex = index;
+    void setSelectedPen(int pen) {
+        Q_ASSERT(pen>=0 && pen<PEN_MAX);
+        _selectedPen = pen;
     }
 
-    int getSelectedColorIndex() const {
-        return _selectedColorIndex;
+    int getSelectedPen() const {
+        return _selectedPen;
     }
 
     void setMultiColor(bool enabled);
@@ -150,7 +155,14 @@ public:
     void tileShiftRight(int tileIndex);
     void tileShiftUp(int tileIndex);
     void tileShiftDown(int tileIndex);
-    void tilePaint(int tileIndex, const QPoint& position, int colorIndex);
+    void tileSetPen(int tileIndex, const QPoint& position, int pen);
+
+    /** Returns the used pen for a certain bit of a tile.
+        returns 0 or 1 in normal mode
+        returns 0, 1, 2 or 3 in multicolor mode
+    */
+    int tileGetPen(int tileIndex, const QPoint& position);
+
 
 signals:
     // file loaded, or new project
@@ -189,8 +201,8 @@ protected:
 
     bool _multiColor;
 
-    int _selectedColorIndex;
-    int _colors[4];
+    int _selectedPen;
+    int _penColors[PEN_MAX];
 
     TileProperties _tileProperties;
 
