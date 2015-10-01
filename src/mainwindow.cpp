@@ -130,6 +130,8 @@ void MainWindow::readSettings()
         _ui->actionPalette_0,
         _ui->actionPalette_1,
         _ui->actionPalette_2,
+        _ui->actionPalette_3,
+        _ui->actionPalette_4,
     };
     int index = _settings.value("palette").toInt();
     actions[index]->trigger();
@@ -363,28 +365,46 @@ void MainWindow::on_radioButton_multicolor2_clicked()
     activateRadioButtonIndex(2);
 }
 
+void MainWindow::activatePalette(int paletteIndex)
+{
+    QAction* actions[] = {
+        _ui->actionPalette_0,
+        _ui->actionPalette_1,
+        _ui->actionPalette_2,
+        _ui->actionPalette_3,
+        _ui->actionPalette_4,
+    };
+
+    Palette::setActivePaletteIndex(paletteIndex);
+
+    for (int i=0; i<5; i++)
+        actions[i]->setChecked(i==paletteIndex);
+    update();
+}
+
 void MainWindow::on_actionPalette_0_triggered()
 {
-    Palette::setActivePaletteIndex(0);
-    _ui->actionPalette_1->setChecked(false);
-    _ui->actionPalette_2->setChecked(false);
-    update();
+    activatePalette(0);
 }
 
 void MainWindow::on_actionPalette_1_triggered()
 {
-    Palette::setActivePaletteIndex(1);
-    _ui->actionPalette_0->setChecked(false);
-    _ui->actionPalette_2->setChecked(false);
-    update();
+    activatePalette(1);
 }
 
 void MainWindow::on_actionPalette_2_triggered()
 {
-    Palette::setActivePaletteIndex(2);
-    _ui->actionPalette_0->setChecked(false);
-    _ui->actionPalette_1->setChecked(false);
-    update();
+    activatePalette(2);
+}
+
+void MainWindow::on_actionPalette_3_triggered()
+{
+    activatePalette(3);
+}
+
+void MainWindow::on_actionPalette_4_triggered()
+{
+    activatePalette(4);
 }
 
 //

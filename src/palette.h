@@ -21,6 +21,14 @@ limitations under the License.
 class Palette
 {
 public:
+    enum {
+        PEPTO,
+        VICE,
+        CCS64,
+        FRODO,
+        GRAYSCALE
+    };
+
     static const QColor* getPalette();
     static void setActivePaletteIndex(int index);
     static int getActivePaletteIndex();

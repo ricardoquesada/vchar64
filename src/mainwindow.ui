@@ -148,6 +148,8 @@
      <addaction name="actionPalette_0"/>
      <addaction name="actionPalette_1"/>
      <addaction name="actionPalette_2"/>
+     <addaction name="actionPalette_3"/>
+     <addaction name="actionPalette_4"/>
     </widget>
     <addaction name="menuPalette"/>
     <addaction name="separator"/>
@@ -671,18 +673,15 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Light</string>
+    <string>Pepto</string>
    </property>
   </action>
   <action name="actionPalette_1">
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
    <property name="text">
-    <string>Dark</string>
+    <string>VICE</string>
    </property>
   </action>
   <action name="actionBackground">
@@ -749,12 +748,28 @@
     <string>Ctrl+M</string>
    </property>
   </action>
-  <action name="actionPalette_2">
+  <action name="actionPalette_4">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
     <string>Grayscale</string>
+   </property>
+  </action>
+  <action name="actionPalette_3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Frodo</string>
+   </property>
+  </action>
+  <action name="actionPalette_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>CCS64</string>
    </property>
   </action>
  </widget>

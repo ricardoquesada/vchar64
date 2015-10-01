@@ -106,11 +106,15 @@ private slots:
     void on_actionPalette_1_triggered();
     void on_actionPalette_2_triggered();
 
+    void on_actionPalette_4_triggered();
+
+    void on_actionPalette_3_triggered();
+
 private:
 
     bool maybeSave();
     void activateRadioButtonIndex(int index);
-
+    void activatePalette(int paletteIndex);
 
     QAction* _recentFiles[MAX_RECENT_FILES];
 
