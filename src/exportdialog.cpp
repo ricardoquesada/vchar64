@@ -38,6 +38,13 @@ ExportDialog::ExportDialog(QWidget *parent) :
     auto fn = state->getExportedFilename();
     if (fn.length() == 0) {
         fn = state->getLoadedFilename();
+
+        // if getExportedFilename() == 0 then getLoadedFilename() will have the .vcharproj extension.
+        // we should replace it with .bin
+        if (fn.length() != 0) {
+            QFileInfo fileInfo(fn);
+            fn = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName() + ".bin";
+        }
     }
     if (fn.length() == 0)
         fn = lastDir + "/" + "untitled.bin";

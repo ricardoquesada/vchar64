@@ -487,10 +487,10 @@ bool MainWindow::on_actionSaveAs_triggered()
             QFileInfo fi(filename);
             setWindowFilePath(fi.filePath());
         }
-    }
 
-    if (!ret)
-        QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
+        if (!ret)
+            QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
+    }
 
     return ret;
 }
@@ -501,11 +501,15 @@ bool MainWindow::on_actionSave_triggered()
     auto state = State::getInstance();
     auto filename = state->getSavedFilename();
     if (filename.length() > 0)
+    {
         ret = state->saveProject(filename);
-    ret = on_actionSaveAs_triggered();
-
-    if (!ret)
-        QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
+        if (!ret)
+            QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
+    }
+    else
+    {
+        ret = on_actionSaveAs_triggered();
+    }
 
     return ret;
 }
