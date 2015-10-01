@@ -190,14 +190,12 @@ void CharSetWidget::paintFocus(QPainter &painter)
 void CharSetWidget::setTileIndex(int tileIndex)
 {
     auto state = State::getInstance();
-    int charIndex = state->getCharIndexFromTileIndex(tileIndex);
+    int t = state->getTileIndexFromCharIndex(_cursorPos.y() * COLUMNS + _cursorPos.x());
 
-    QPoint p;
-    p.setX(charIndex % COLUMNS);
-    p.setY(charIndex / COLUMNS);
-
-    if (_cursorPos != p) {
-        _cursorPos = p;
+    if (tileIndex != t) {
+        int charIndex = state->getCharIndexFromTileIndex(tileIndex);
+        _cursorPos.setX(charIndex % COLUMNS);
+        _cursorPos.setY(charIndex / COLUMNS);
         update();
     }
 }

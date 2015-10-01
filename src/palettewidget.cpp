@@ -80,7 +80,7 @@ void PaletteWidget::paintEvent(QPaintEvent *event)
     for (int y=0; y<2; y++) {
         for (int x=0; x<8; x++) {
             int c = 8 * y + x;
-            painter.setBrush( Palette::getColor(c));
+            painter.setBrush(Palette::getColor(c));
             if (c==currentColor) {
                 painter.setPen(pen);
             } else {
