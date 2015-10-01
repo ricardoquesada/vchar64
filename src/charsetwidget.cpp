@@ -144,7 +144,7 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
 
                     if (!state->isMultiColor() && color_index )
                         color_index = 3;
-                    painter.setBrush(Palette::getPalette()[state->getColorForPen(color_index)]);
+                    painter.setBrush(Palette::getColor(state->getColorForPen(color_index)));
                     painter.drawRect((w*end_x+x) * pixel_size_x, (h*8+y) * PIXEL_SIZE, pixel_size_x, PIXEL_SIZE);
                 }
             }

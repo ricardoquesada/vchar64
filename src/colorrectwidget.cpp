@@ -53,7 +53,7 @@ void ColorRectWidget::paintEvent(QPaintEvent *event)
 
     auto state = State::getInstance();
 
-    painter.fillRect(event->rect(), Palette::getPalette()[state->getColorForPen(_colorIndex)]);
+    painter.fillRect(event->rect(), Palette::getColor(state->getColorForPen(_colorIndex)));
 
     painter.end();
 }

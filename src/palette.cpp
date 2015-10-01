@@ -118,18 +118,19 @@ static const int MAX_PALETTES = sizeof(Palettes) / sizeof(Palettes[0]);
 
 int Palette::_paletteIndex = 1;
 
-const QColor* Palette::getPalette()
+const QColor& Palette::getColor(int colorIndex)
 {
-    return Palettes[_paletteIndex];
+    Q_ASSERT(colorIndex>=0 && colorIndex<16);
+    return Palettes[_paletteIndex][colorIndex];
 }
 
-void Palette::setActivePaletteIndex(int index)
+void Palette::setActivePalette(int paletteIndex)
 {
-    Q_ASSERT(index >= 0 && index < MAX_PALETTES);
-    _paletteIndex = index;
+    Q_ASSERT(paletteIndex >= 0 && paletteIndex < MAX_PALETTES);
+    _paletteIndex = paletteIndex;
 }
 
-int Palette::getActivePaletteIndex()
+int Palette::getActivePalette()
 {
     return _paletteIndex;
 }

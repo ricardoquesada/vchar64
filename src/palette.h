@@ -29,9 +29,9 @@ public:
         GRAYSCALE
     };
 
-    static const QColor* getPalette();
-    static void setActivePaletteIndex(int index);
-    static int getActivePaletteIndex();
+    static const QColor& getColor(int colorIndex);
+    static void setActivePalette(int paletteIndex);
+    static int getActivePalette();
 
 private:
     static int _paletteIndex;

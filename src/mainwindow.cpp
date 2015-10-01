@@ -141,7 +141,7 @@ void MainWindow::saveSettings()
 {
     _settings.setValue("MainWindow/geometry", saveGeometry());
     _settings.setValue("MainWindow/windowState", saveState());
-    _settings.setValue("palette", Palette::getActivePaletteIndex());
+    _settings.setValue("palette", Palette::getActivePalette());
 }
 
 void MainWindow::createActions()
@@ -375,7 +375,7 @@ void MainWindow::activatePalette(int paletteIndex)
         _ui->actionPalette_4,
     };
 
-    Palette::setActivePaletteIndex(paletteIndex);
+    Palette::setActivePalette(paletteIndex);
 
     for (int i=0; i<5; i++)
         actions[i]->setChecked(i==paletteIndex);

@@ -269,7 +269,7 @@ void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8 *charPt
 
             if (!state->isMultiColor() && color_index )
                 color_index = 3;
-            painter.setBrush(Palette::getPalette()[state->getColorForPen(color_index)]);
+            painter.setBrush(Palette::getColor(state->getColorForPen(color_index)));
 
             if (hasFocus()
                     && (x + tileToDraw.x() * 8 / increment_x) == _cursorPos.x() / increment_x
