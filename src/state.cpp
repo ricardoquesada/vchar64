@@ -21,6 +21,7 @@ limitations under the License.
 #include <algorithm>
 #include <QFile>
 #include <QFileInfo>
+#include <QDebug>
 
 #include "stateimport.h"
 #include "stateexport.h"
@@ -437,7 +438,11 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
 
     while (count>0)
     {
-        memcpy(dst, src, copyRange.blockSize * 8);
+        int bytesToCopy = qMin((long)copyRange.blockSize * 8, _charset + 256 * 8 - dst);
+        if (bytesToCopy <0)
+            break;
+        memcpy(dst, src, bytesToCopy);
+
         dst += (copyRange.blockSize + copyRange.skip) * 8;
         src += (copyRange.blockSize + copyRange.skip) * 8;
         count--;

@@ -4,7 +4,9 @@
         "Bigchar" 1,2,3,4 shortcuts were replaced with Cmd+1, Cmd+2, Cmd+3, Cmd+3
         global shortcuts. Same with the 'm' shortchut.
 * [NEW]: Added "Palettes": Pepto, VICE, CCS64, Frodo, Grayscale
+* [NEW]: Copy & Paste + Block seclection in the Charset Widget
 
+* [BUGFIX] Copy & Paste with interleaved tiles work as expected
 * [BUGFIX] Check valid VChar64 header when loading VChar64 files
 * [BUGFIX] Shows dialog error when loading and saving invalid files
 * [BUGFIX] Export dialog: when exporting a vchar64proj, default 

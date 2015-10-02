@@ -48,14 +48,50 @@ void CharSetWidget::mousePressEvent(QMouseEvent * event)
     int charIndex = x + y * COLUMNS;
 
     auto state = State::getInstance();
-    int tileIndex = state->getTileIndexFromCharIndex(charIndex);
 
-    emit tileSelected(tileIndex);
+    if (event->button() == Qt::LeftButton)
+    {
+        int tileIndex = state->getTileIndexFromCharIndex(charIndex);
+        emit tileSelected(tileIndex);
+
+        if (_selecting)
+        {
+            _selecting = false;
+            _selectingSize = {1,1};
+        }
+    }
+
+    update();
 }
 
 void CharSetWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
+
+    if (event->buttons() == Qt::LeftButton)
+    {
+        auto pos = event->localPos();
+        int x = pos.x() / PIXEL_SIZE / 8;
+        int y = pos.y() / PIXEL_SIZE / 8;
+
+        if (x >= _cursorPos.x())
+            x++;
+        if (y >= _cursorPos.y())
+            y++;
+
+        _selectingSize = {x - _cursorPos.x(),
+                          y - _cursorPos.y()};
+
+        // sanity check
+        _selectingSize = {
+            qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS-_cursorPos.x()),
+            qBound(-_cursorPos.y(), _selectingSize.height(), ROWS-_cursorPos.y())
+        };
+
+        _selecting = true;
+
+        update();
+    }
 }
 
 void CharSetWidget::keyPressEvent(QKeyEvent *event)
