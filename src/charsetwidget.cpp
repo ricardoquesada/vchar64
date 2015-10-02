@@ -31,6 +31,8 @@ static const int ROWS = 8;
 CharSetWidget::CharSetWidget(QWidget *parent)
     : QWidget(parent)
     , _cursorPos({0,0})
+    , _selecting(false)
+    , _selectingSize({1,1})
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8, PIXEL_SIZE * ROWS * 8);
 }
@@ -51,37 +53,71 @@ void CharSetWidget::mousePressEvent(QMouseEvent * event)
     emit tileSelected(tileIndex);
 }
 
+void CharSetWidget::mouseMoveEvent(QMouseEvent * event)
+{
+    event->accept();
+}
+
 void CharSetWidget::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
 
+    QPoint point;
     switch (event->key()) {
     case Qt::Key_Left:
-        _cursorPos += {-1,0};
+        point = {-1,0};
         break;
     case Qt::Key_Right:
-        _cursorPos += {+1,0};
+        point = {+1,0};
         break;
     case Qt::Key_Down:
-        _cursorPos += {0,+1};
+        point = {0,+1};
         break;
     case Qt::Key_Up:
-        _cursorPos += {0,-1};
+        point = {0,-1};
         break;
     default:
         QWidget::keyPressEvent(event);
+        return;
     }
-    _cursorPos = {qBound(0, _cursorPos.x(), COLUMNS-1),
-                  qBound(0, _cursorPos.y(), ROWS-1)};
 
+    bool selecting = (event->modifiers() & Qt::ShiftModifier);
+
+    // disabling selecting?
+    if (_selecting && !selecting) {
+//        int diffX = _selectingSize.width()<0 ? 0 : -1;
+//        int diffY = _selectingSize.height()<0 ? 0 : -1;
+//        _cursorPos = _cursorPos + QPoint(_selectingSize.width()+diffX, _selectingSize.height()+diffY);
+        _selectingSize = {1,1};
+    }
+    else
+    {
+        if (selecting)
+        {
+            _selectingSize += {point.x(), point.y()};
+
+            _selectingSize = {
+                qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS-_cursorPos.x()),
+                qBound(-_cursorPos.y(), _selectingSize.height(), ROWS-_cursorPos.y())
+            };
+        }
+        else
+        {
+            _cursorPos += point;
+            _cursorPos = {qBound(0, _cursorPos.x(), COLUMNS-1),
+                          qBound(0, _cursorPos.y(), ROWS-1)};
+
+            // reverse calculation. From char index to tile index
+            int charIndex = _cursorPos.x() + _cursorPos.y() * COLUMNS;
+            auto state = State::getInstance();
+            int tileIndex = state->getTileIndexFromCharIndex(charIndex);
+
+            emit tileSelected(tileIndex);
+        }
+    }
+
+    _selecting = selecting;
     update();
-
-    // reverse calculation. From char index to tile index
-    int charIndex = _cursorPos.x() + _cursorPos.y() * COLUMNS;
-    auto state = State::getInstance();
-    int tileIndex = state->getTileIndexFromCharIndex(charIndex);
-
-    emit tileSelected(tileIndex);
 }
 
 void CharSetWidget::paintEvent(QPaintEvent *event)
@@ -149,13 +185,24 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
                 }
             }
 
-            if (w==_cursorPos.x() && h==_cursorPos.y()) {
-                painter.setPen(pen);
-                painter.setBrush(QColor(128,0,0,0));
-                painter.drawRect(w*8*PIXEL_SIZE, h*8*PIXEL_SIZE, PIXEL_SIZE*8, PIXEL_SIZE*8);
-            }
             painter.setPen(Qt::NoPen);
         }
+    }
+
+    if (_selecting) {
+        pen.setColor({149,195,244,255});
+        painter.setPen(pen);
+        painter.setBrush(QColor(149,195,244,64));
+        painter.drawRect(_cursorPos.x()*8*PIXEL_SIZE, _cursorPos.y()*8*PIXEL_SIZE,
+                         _selectingSize.width()*8*PIXEL_SIZE, _selectingSize.height()*8*PIXEL_SIZE);
+    }
+    else
+    {
+        pen.setColor({149,195,244,255});
+        painter.setPen(pen);
+        painter.setBrush(QColor(128,0,0,0));
+        painter.drawRect(_cursorPos.x()*8*PIXEL_SIZE, _cursorPos.y()*8*PIXEL_SIZE,
+                         8*PIXEL_SIZE, 8*PIXEL_SIZE);
     }
 
     paintFocus(painter);
@@ -192,10 +239,79 @@ void CharSetWidget::setTileIndex(int tileIndex)
     auto state = State::getInstance();
     int t = state->getTileIndexFromCharIndex(_cursorPos.y() * COLUMNS + _cursorPos.x());
 
+    // comparing tileIndex instead of charIndex is needed in order to allow
+    // left, up and down navigation
     if (tileIndex != t) {
         int charIndex = state->getCharIndexFromTileIndex(tileIndex);
         _cursorPos.setX(charIndex % COLUMNS);
         _cursorPos.setY(charIndex / COLUMNS);
         update();
     }
+}
+
+bool CharSetWidget::hasSelection() const
+{
+    return (_selecting && _selectingSize.width()!=0 && _selectingSize.height()!=0);
+}
+
+void CharSetWidget::getSelectionRange(State::CopyRange* copyRange) const
+{
+    Q_ASSERT(copyRange);
+
+    if (hasSelection())
+    {
+        // calculate absolute values of origin/size
+        QPoint fixed_origin = _cursorPos;
+        QSize fixed_size = _selectingSize;
+
+        if (_selectingSize.width() < 0)
+        {
+            fixed_origin.setX(_cursorPos.x() + _selectingSize.width());
+            fixed_size.setWidth(-_selectingSize.width());
+        }
+
+        if (_selectingSize.height() < 0)
+        {
+            fixed_origin.setY(_cursorPos.y() + _selectingSize.height());
+            fixed_size.setHeight(-_selectingSize.height());
+        }
+
+
+        // transform origin/size to offset, blockSize, ...
+
+        copyRange->offset = fixed_origin.y() * COLUMNS + fixed_origin.x();
+        copyRange->blockSize = fixed_size.width();
+        copyRange->count = fixed_size.height();
+        copyRange->skip = COLUMNS - fixed_size.width();
+    }
+    else
+    {
+        auto state = State::getInstance();
+
+        // No selection, so copy current tile
+        int charIndex = _cursorPos.y() * COLUMNS + _cursorPos.x();
+        int tileIndex = state->getTileIndexFromCharIndex(charIndex);
+
+        auto tileProperties = state->getTileProperties();
+
+        if (tileProperties.interleaved == 1)
+        {
+            copyRange->offset = tileIndex * tileProperties.size.width() * tileProperties.size.height();
+            copyRange->blockSize = tileProperties.size.width() * tileProperties.size.height();
+            copyRange->count = 1;
+            copyRange->skip = 0;
+        }
+        else
+        {
+            copyRange->offset = tileIndex * tileProperties.interleaved;
+            copyRange->blockSize = 1;
+            copyRange->count = tileProperties.size.width() * tileProperties.size.height();
+            copyRange->skip = tileProperties.interleaved-1;
+        }
+    }
+}
+
+int CharSetWidget::getCursorPos() const
+{
+    return _cursorPos.y() * COLUMNS + _cursorPos.x();
 }

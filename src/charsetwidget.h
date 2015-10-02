@@ -18,6 +18,8 @@ limitations under the License.
 
 #include <QWidget>
 
+#include "state.h"
+
 
 class CharSetWidget : public QWidget
 {
@@ -25,6 +27,10 @@ class CharSetWidget : public QWidget
 
 public:
     CharSetWidget(QWidget *parent=nullptr);
+
+    bool hasSelection() const;
+    void getSelectionRange(State::CopyRange* copyRange) const;
+    int getCursorPos() const;
 
 public slots:
     void setTileIndex(int tileIndex);
@@ -35,10 +41,13 @@ signals:
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
     void paintFocus(QPainter &painter);
 
     QPoint _cursorPos;
+    bool _selecting;
+    QSize _selectingSize;
 };
 

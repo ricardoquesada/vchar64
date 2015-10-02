@@ -144,7 +144,7 @@ void Preview::updateCharset()
 
     auto state = State::getInstance();
 
-    xlink_load(0xb7, 0x00, 0x3000, (uchar*) state->getCharsBuffer(), State::CHAR_BUFFER_SIZE);
+    xlink_load(0xb7, 0x00, 0x3000, (uchar*) state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
     xlink_poke(0x37, 0x00, 0xd018, 0x1c);
 }
 
@@ -188,7 +188,7 @@ void Preview::byteUpdated(int byteIndex)
     if(!isConnected()) return;
 
     auto state = State::getInstance();
-    xlink_poke(0xb7, 0x00, 0x3000 + byteIndex, state->getCharsBuffer()[byteIndex]);
+    xlink_poke(0xb7, 0x00, 0x3000 + byteIndex, state->getCharsetBuffer()[byteIndex]);
 }
 
 void Preview::tileUpdated(int tileIndex)

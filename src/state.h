@@ -32,6 +32,13 @@ class State : public QObject
     friend class StateImport;
 
 public:
+    // only 256 chars at the time
+    const static int CHAR_BUFFER_SIZE = 8 * 256;
+
+    // Max Tile size: 8x8
+    const static int MAX_TILE_WIDTH = 8;
+    const static int MAX_TILE_HEIGHT = 8;
+
     enum {
         PEN_BACKGROUND,
         PEN_MULTICOLOR1,
@@ -51,12 +58,19 @@ public:
         int interleaved;
     };
 
-    // only 256 chars at the time
-    const static int CHAR_BUFFER_SIZE = 8 * 256;
-
-    // Max Tile size: 8x8
-    const static int MAX_TILE_WIDTH = 8;
-    const static int MAX_TILE_HEIGHT = 8;
+    /**
+     * @brief The CopyRange struct
+     */
+    struct CopyRange {
+        /** @brief offset in bytes */
+        int offset;
+        /** @brief blockSize in bytes */
+        int blockSize;
+        /** @brief how many bytes to skip before reaching the next block */
+        int skip;
+        /** how many blocks to copy */
+        int count;
+    };
 
     static State* getInstance();
 
@@ -114,26 +128,6 @@ public:
         return _tileProperties;
     }
 
-    //
-    // chars bufffer manipulation
-    //
-    int getCharIndexFromTileIndex(int tileIndex) const;
-    int getTileIndexFromCharIndex(int charIndex) const;
-
-
-    quint8* getCharAtIndex(int charIndex) {
-        Q_ASSERT(charIndex>=0 && charIndex<256 && "Invalid index");
-        return &_chars[charIndex*8];
-    }
-
-    quint8* getCharsBuffer();
-    void resetCharsBuffer();
-
-    // size-of-tile chars will be copied. bufferSize must be big enough
-    void copyCharFromIndex(int tileIndex, quint8* buffer, int bufferSize);
-    // size-of-tile chars will be copied. bufferSize must be big enough
-    void copyCharToIndex(int tileIndex, quint8* buffer, int bufferSize);
-
     // is the state "dirty" ?
     bool isModified() const;
 
@@ -142,10 +136,53 @@ public:
     }
 
     //
+    // chars buffer manipulation
+    //
+    int getCharIndexFromTileIndex(int tileIndex) const;
+    int getTileIndexFromCharIndex(int charIndex) const;
+    quint8* getCharAtIndex(int charIndex);
+
+    // size-of-tile chars will be copied. bufferSize must be big enough
+    void copyCharFromIndex(int tileIndex, quint8* buffer, int bufferSize);
+    // size-of-tile chars will be copied. bufferSize must be big enough
+    void copyCharToIndex(int tileIndex, quint8* buffer, int bufferSize);
+
+    //
+    // charset
+    //
+    quint8* getCharsetBuffer();
+    quint8* getCopyCharsetBuffer();
+    void resetCharsetBuffer();
+    /**
+     * @brief updateCharset replace current charset with a new one.
+     * Emit `charsetUpdated()` and `contentsChanged()` signals
+     * @param buffer that contains 256 chars
+     */
+    void updateCharset(quint8* buffer);
+
+    /**
+      @brief copy a range of bytes to the copy buffer
+      @param copyRange the range of bytes to copy
+     */
+    void copy(const CopyRange& copyRange);
+
+    /**
+     * @brief paste paste previously copied range starting from charIndex
+     * @param charIndex offset in bytes
+     * @param copyRange range to paste
+     * @param charsetBuffer buffer that has the 256 chars
+     */
+    void paste(int charIndex, const CopyRange& copyRange, const quint8* charsetBuffer);
+    const CopyRange& getCopyRange() const;
+    /**
+     * @brief setCopyRange update the CopyRange ivar. Useful for undo/redo command
+     * @param range the Copy Range
+     */
+    void setCopyRange(const CopyRange& range);
+
+    //
     // tile manipulation
     //
-    void tileCopy(int tileIndex);
-    void tilePaste(int tileIndex);
     void tileInvert(int tileIndex);
     void tileClear(int tileIndex);
     void tileFlipHorizontally(int tileIndex);
@@ -175,7 +212,10 @@ signals:
     void byteUpdated(int);
 
     // when the whole tile changes
-    void tileUpdated(int);    
+    void tileUpdated(int);
+
+    // when the charbuffer was updated. Probably due to a copy & paste operation
+    void charsetUpdated();
 
     // multi-color / hires or new colors
     void colorPropertiesUpdated();
@@ -197,7 +237,7 @@ protected:
 
     int _totalChars;
 
-    quint8 _chars[State::CHAR_BUFFER_SIZE];
+    quint8 _charset[State::CHAR_BUFFER_SIZE];
 
     bool _multiColor;
 
@@ -219,8 +259,9 @@ protected:
     // -1 for "raw", otherwise it will be a "prg" and the value will have the address
     int _exportedAddress;
 
-    // max size of tile: 8 x 8
-    quint8 _copyTile[MAX_TILE_HEIGHT * MAX_TILE_WIDTH * 8];
+    /** @brief buffer that will have a copy of all the chars */
+    quint8 _copyCharset[CHAR_BUFFER_SIZE];
+    CopyRange _copyRange;
 
     QUndoStack* _undoStack;
 };

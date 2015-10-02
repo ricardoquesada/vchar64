@@ -173,7 +173,9 @@ void MainWindow::createActions()
     connect(state, SIGNAL(tileUpdated(int)), preview, SLOT(tileUpdated(int)));
     connect(state, SIGNAL(byteUpdated(int)), this, SLOT(updateWindow()));
     connect(state, SIGNAL(tileUpdated(int)), this, SLOT(updateWindow()));
-//    connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(tileWasUpdated()));
+    connect(state, SIGNAL(charsetUpdated()), this, SLOT(updateWindow()));
+
+    //    connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(tileWasUpdated()));
     connect(state, SIGNAL(colorPropertiesUpdated()), this, SLOT(updateWindow()));
     connect(state, SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
     connect(state->getUndoStack(), SIGNAL(indexChanged(int)), this, SLOT(documentWasModified()));
@@ -636,15 +638,20 @@ void MainWindow::on_actionShiftDown_triggered()
 void MainWindow::on_actionCopy_triggered()
 {
     auto state = State::getInstance();
-    state->tileCopy(_ui->bigcharWidget->getTileIndex());
+
+    //state->tileCopy(_ui->bigcharWidget->getTileIndex());
+
+    State::CopyRange copyRange;
+    _ui->charsetWidget->getSelectionRange(&copyRange);
+    state->copy(copyRange);
 }
 
 void MainWindow::on_actionPaste_triggered()
 {
     auto state = State::getInstance();
-    int tileIndex = _ui->bigcharWidget->getTileIndex();
+    int cursorPos = _ui->charsetWidget->getCursorPos();
 
-    state->getUndoStack()->push(new PasteTileCommand(state, tileIndex));
+    state->getUndoStack()->push(new PasteCommand(state, cursorPos, state->getCopyRange()));
 }
 
 //

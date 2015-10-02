@@ -46,18 +46,35 @@ private:
     QList<QPoint> _points;
 };
 
-class PasteTileCommand : public QUndoCommand
+//class PasteTileCommand : public QUndoCommand
+//{
+//public:
+//    PasteTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+//    void undo() Q_DECL_OVERRIDE;
+//    void redo() Q_DECL_OVERRIDE;
+
+//private:
+//    State* _state;
+//    int _tileIndex;
+//    quint8 _buffer[State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8];
+//};
+
+class PasteCommand : public QUndoCommand
 {
 public:
-    PasteTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+    PasteCommand(State *state, int charIndex, const State::CopyRange &copyRange, QUndoCommand *parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
 private:
     State* _state;
-    int _tileIndex;
-    quint8 _buffer[State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8];
+    int _charIndex;
+
+    quint8 _copyBuffer[State::CHAR_BUFFER_SIZE];
+    quint8 _origBuffer[State::CHAR_BUFFER_SIZE];
+    State::CopyRange _copyRange;
 };
+
 
 class FlipTileHCommand : public QUndoCommand
 {

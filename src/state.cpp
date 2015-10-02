@@ -49,7 +49,7 @@ State::State()
     , _exportedAddress(-1)
     , _undoStack(nullptr)
 {
-    memset(_copyTile, 0, sizeof(_copyTile));
+    memset(_copyCharset, 0, sizeof(_copyCharset));
     _undoStack = new QUndoStack;
 }
 
@@ -74,7 +74,7 @@ void State::reset()
     _exportedFilename = "";
     _exportedAddress = -1;
 
-    memset(_chars, 0, sizeof(_chars));
+    memset(_charset, 0, sizeof(_charset));
 
     _undoStack->clear();
 
@@ -265,7 +265,7 @@ int State::tileGetPen(int tileIndex, const QPoint& position)
             + (x/8) * _tileProperties.interleaved
             + (y/8) * _tileProperties.interleaved * _tileProperties.size.width();
 
-    char c = _chars[charIndex*8 + bitIndex/8];
+    char c = _charset[charIndex*8 + bitIndex/8];
     int b = bitIndex%8;
 
     int ret = 0;
@@ -321,13 +321,13 @@ void State::tileSetPen(int tileIndex, const QPoint& position, int pen)
     }
 
     // get the neede byte
-    quint8 c = _chars[byteIndex];
+    quint8 c = _charset[byteIndex];
 
     c &= ~and_mask;
     c |= or_mask;
 
-    if (c != _chars[byteIndex]) {
-        _chars[byteIndex] = c;
+    if (c != _charset[byteIndex]) {
+        _charset[byteIndex] = c;
 
         emit byteUpdated(byteIndex);
         emit contentsChanged();
@@ -344,14 +344,28 @@ void State::setTileProperties(const TileProperties& properties)
     }
 }
 
-quint8* State::getCharsBuffer()
+// charset methods
+quint8* State::getCharsetBuffer()
 {
-    return _chars;
+    return _charset;
 }
 
-void State::resetCharsBuffer()
+quint8* State::getCopyCharsetBuffer()
 {
-    memset(_chars, 0, sizeof(_chars));
+    return _copyCharset;
+}
+
+void State::resetCharsetBuffer()
+{
+    memset(_charset, 0, sizeof(_charset));
+}
+
+void State::updateCharset(quint8 *buffer)
+{
+    memcpy(_charset, buffer, sizeof(_charset));
+
+    emit charsetUpdated();
+    emit contentsChanged();
 }
 
 // buffer must be at least 8x8*8 bytes big
@@ -360,7 +374,7 @@ void State::copyCharFromIndex(int tileIndex, quint8* buffer, int bufferSize)
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(bufferSize >= tileSize && "invalid bufferSize. Too small");
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
-    memcpy(buffer, &_chars[tileIndex*tileSize], tileSize);
+    memcpy(buffer, &_charset[tileIndex*tileSize], tileSize);
 }
 
 // size-of-tile chars will be copied
@@ -369,7 +383,7 @@ void State::copyCharToIndex(int tileIndex, quint8* buffer, int bufferSize)
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(bufferSize >= tileSize && "invalid bufferSize. Too small");
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
-    memcpy(&_chars[tileIndex*tileSize], buffer, tileSize);
+    memcpy(&_charset[tileIndex*tileSize], buffer, tileSize);
 
     emit tileUpdated(tileIndex);
     emit contentsChanged();
@@ -397,24 +411,69 @@ int State::getTileIndexFromCharIndex(int charIndex) const
     return tileIndex;
 }
 
-
-// tile manipulation
-void State::tileCopy(int tileIndex)
+quint8* State::getCharAtIndex(int charIndex)
 {
-    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
-    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
-    memcpy(_copyTile, &_chars[tileIndex*tileSize], tileSize);
+    Q_ASSERT(charIndex>=0 && charIndex<256 && "Invalid index");
+    return &_charset[charIndex*8];
 }
 
-void State::tilePaste(int tileIndex)
+void State::copy(const CopyRange& copyRange)
 {
-    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
-    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
-    memcpy(&_chars[tileIndex*tileSize], _copyTile, tileSize);
+    memcpy(_copyCharset, _charset, CHAR_BUFFER_SIZE);
+    _copyRange = copyRange;
+}
 
-    emit tileUpdated(tileIndex);
+void State::paste(int charIndex, const CopyRange& copyRange, const quint8* charsetBuffer)
+{
+    Q_ASSERT(charIndex >=0 && charIndex< CHAR_BUFFER_SIZE && "Invalid charIndex size");
+
+    if (!copyRange.count)
+        return;
+
+    int count = copyRange.count;
+
+    quint8* dst = _charset + (charIndex * 8);
+    const quint8* src = charsetBuffer + (copyRange.offset * 8);
+
+    while (count>0)
+    {
+        memcpy(dst, src, copyRange.blockSize * 8);
+        dst += (copyRange.blockSize + copyRange.skip) * 8;
+        src += (copyRange.blockSize + copyRange.skip) * 8;
+        count--;
+    }
+
+    emit charsetUpdated();
     emit contentsChanged();
 }
+
+const State::CopyRange& State::getCopyRange() const
+{
+    return _copyRange;
+}
+
+void State::setCopyRange(const State::CopyRange& copyRange)
+{
+    _copyRange = copyRange;
+}
+
+// tile manipulation
+//void State::tileCopy(int tileIndex)
+//{
+//    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
+//    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
+//    memcpy(_copyCharset, &_charset[tileIndex*tileSize], tileSize);
+//}
+
+//void State::tilePaste(int tileIndex)
+//{
+//    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
+//    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
+//    memcpy(&_charset[tileIndex*tileSize], _copyCharset, tileSize);
+
+//    emit tileUpdated(tileIndex);
+//    emit contentsChanged();
+//}
 
 void State::tileInvert(int tileIndex)
 {
@@ -702,7 +761,7 @@ State::Char State::getCharFromTile(int tileIndex, int x, int y) const
     int charIndex = getCharIndexFromTileIndex(tileIndex);
 
     for (int i=0; i<8; i++) {
-        ret._char8[i] = _chars[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
+        ret._char8[i] = _charset[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
     }
     return ret;
 }
@@ -712,7 +771,7 @@ void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
 
     for (int i=0; i<8; i++) {
-        _chars[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = chr._char8[i];
+        _charset[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = chr._char8[i];
     }
 }
 

@@ -86,26 +86,28 @@ void ClearTileCommand::redo()
     _state->tileClear(_tileIndex);
 }
 
-// PasteTileCommand
+// PasteCommand
 
-PasteTileCommand::PasteTileCommand(State *state, int tileIndex, QUndoCommand *parent)
+PasteCommand::PasteCommand(State *state, int charIndex, const State::CopyRange& copyRange, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
-    _tileIndex = tileIndex;
+    _charIndex = charIndex;
     _state = state;
+    _copyRange = copyRange;
 
-    setText(QObject::tr("Paste #%1").arg(_tileIndex));
+    setText(QObject::tr("Paste #%1").arg(_charIndex));
 }
 
-void PasteTileCommand::undo()
+void PasteCommand::undo()
 {
-    _state->copyCharToIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
+    _state->updateCharset(_origBuffer);
 }
 
-void PasteTileCommand::redo()
+void PasteCommand::redo()
 {
-    _state->copyCharFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
-    _state->tilePaste(_tileIndex);
+    memcpy(_copyBuffer, _state->getCopyCharsetBuffer(), sizeof(_copyBuffer));
+    memcpy(_origBuffer, _state->getCharsetBuffer(), sizeof(_origBuffer));
+    _state->paste(_charIndex, _copyRange, _copyBuffer);
 }
 
 // FlipTileHCommand
