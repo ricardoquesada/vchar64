@@ -334,7 +334,7 @@
       <item>
        <widget class="QLabel" name="label_tileIndex">
         <property name="text">
-         <string>Tile. Index</string>
+         <string>Tile Index</string>
         </property>
         <property name="buddy">
          <cstring>spinBox_tileIndex</cstring>
@@ -780,6 +780,9 @@
    <extends>QWidget</extends>
    <header>charsetwidget.h</header>
    <container>1</container>
+   <slots>
+    <signal>tileSelected(int)</signal>
+   </slots>
   </customwidget>
   <customwidget>
    <class>BigCharWidget</class>
@@ -941,22 +944,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>charsetWidget</sender>
-   <signal>tileSelected(int)</signal>
-   <receiver>spinBox_tileIndex</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>314</x>
-     <y>521</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>449</x>
-     <y>336</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>paletteWidget</sender>
    <signal>colorSelected()</signal>
    <receiver>charsetWidget</receiver>
@@ -1097,6 +1084,22 @@
     <hint type="destinationlabel">
      <x>463</x>
      <y>249</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>charsetWidget</sender>
+   <signal>tileSelected(int)</signal>
+   <receiver>spinBox_tileIndex</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>255</x>
+     <y>457</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>468</x>
+     <y>347</y>
     </hint>
    </hints>
   </connection>

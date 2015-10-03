@@ -33,8 +33,24 @@ CharSetWidget::CharSetWidget(QWidget *parent)
     , _cursorPos({0,0})
     , _selecting(false)
     , _selectingSize({1,1})
+    , _charIndex(-1)
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8, PIXEL_SIZE * ROWS * 8);
+}
+
+void CharSetWidget::updateCharIndex(int charIndex)
+{
+    if (_charIndex != charIndex)
+    {
+        _charIndex = charIndex;
+
+        auto state = State::getInstance();
+        int tileIndex = state->getTileIndexFromCharIndex(charIndex);
+
+        // in this order
+        emit tileSelected(tileIndex);
+        emit charSelected(charIndex);
+    }
 }
 
 void CharSetWidget::mousePressEvent(QMouseEvent * event)
@@ -47,21 +63,17 @@ void CharSetWidget::mousePressEvent(QMouseEvent * event)
     int y = pos.y() / PIXEL_SIZE / 8;
     int charIndex = x + y * COLUMNS;
 
-    auto state = State::getInstance();
-
     if (event->button() == Qt::LeftButton)
     {
-        int tileIndex = state->getTileIndexFromCharIndex(charIndex);
-        emit tileSelected(tileIndex);
-
         if (_selecting)
         {
             _selecting = false;
             _selectingSize = {1,1};
         }
-    }
 
-    update();
+        updateCharIndex(charIndex);
+        update();
+    }
 }
 
 void CharSetWidget::mouseMoveEvent(QMouseEvent * event)
@@ -147,10 +159,7 @@ void CharSetWidget::keyPressEvent(QKeyEvent *event)
 
             // reverse calculation. From char index to tile index
             int charIndex = _cursorPos.x() + _cursorPos.y() * COLUMNS;
-            auto state = State::getInstance();
-            int tileIndex = state->getTileIndexFromCharIndex(charIndex);
-
-            emit tileSelected(tileIndex);
+            updateCharIndex(charIndex);
         }
     }
 

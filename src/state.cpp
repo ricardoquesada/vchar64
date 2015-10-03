@@ -44,6 +44,7 @@ State::State()
     , _selectedPen(PEN_FOREGROUND)
     , _penColors{1,12,15,0}
     , _tileProperties{{1,1},1}
+    , _charIndex(-1)
     , _loadedFilename("")
     , _savedFilename("")
     , _exportedFilename("")
@@ -755,6 +756,23 @@ void State::tileShiftDown(int tileIndex)
     emit contentsChanged();
 }
 
+//
+// Slots
+//
+void State::setCharIndex(int charIndex)
+{
+    if (_charIndex != charIndex)
+    {
+        _charIndex = charIndex;
+        emit charIndexUpdated(charIndex);
+    }
+}
+
+void State::setTileIndex(int tileIndex)
+{
+    int charIndex = getCharIndexFromTileIndex(tileIndex);
+    setCharIndex(charIndex);
+}
 
 //
 // Helpers
@@ -779,4 +797,3 @@ void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
         _charset[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = chr._char8[i];
     }
 }
-

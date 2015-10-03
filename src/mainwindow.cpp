@@ -173,15 +173,21 @@ void MainWindow::createActions()
     connect(state, SIGNAL(fileLoaded()), preview, SLOT(fileLoaded()));
     connect(state, SIGNAL(byteUpdated(int)), preview, SLOT(byteUpdated(int)));
     connect(state, SIGNAL(tileUpdated(int)), preview, SLOT(tileUpdated(int)));
+
     connect(state, SIGNAL(byteUpdated(int)), this, SLOT(updateWindow()));
     connect(state, SIGNAL(tileUpdated(int)), this, SLOT(updateWindow()));
+    connect(state, SIGNAL(charIndexUpdated(int)), this, SLOT(charIndexUpdated(int)));
     connect(state, SIGNAL(charsetUpdated()), this, SLOT(updateWindow()));
 
-    //    connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(tileWasUpdated()));
+//  connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(tileWasUpdated()));
     connect(state, SIGNAL(colorPropertiesUpdated()), this, SLOT(updateWindow()));
     connect(state, SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
+
     connect(state->getUndoStack(), SIGNAL(indexChanged(int)), this, SLOT(documentWasModified()));
     connect(state->getUndoStack(), SIGNAL(cleanChanged(bool)), this, SLOT(documentWasModified()));
+
+    connect(_ui->charsetWidget, SIGNAL(charSelected(int)), state, SLOT(setCharIndex(int)));
+    connect(_ui->spinBox_tileIndex, SIGNAL(valueChanged(int)), state, SLOT(setTileIndex(int)));
 
     connect(_ui->paletteWidget, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
     connect(preview, SIGNAL(previewConnected()), this, SLOT(previewConnected()));
@@ -219,13 +225,7 @@ void MainWindow::createDefaults()
 
 void MainWindow::setupStatusBar()
 {
-    _labelTileIdx = new QLabel(tr("Tile #: 13"), this);
-    auto separator = new QLabel(this);
-    _labelCharIdx = new QLabel(tr("Char #: 43"), this);
-
-    separator->setFrameStyle(QFrame::VLine);
-    QMainWindow::statusBar()->addWidget(_labelTileIdx);
-    QMainWindow::statusBar()->addWidget(separator);
+    _labelCharIdx = new QLabel(tr("#000 - $00"), this);
     QMainWindow::statusBar()->addWidget(_labelCharIdx);
 }
 
@@ -274,6 +274,14 @@ void MainWindow::setRecentFile(const QString& fileName)
 //
 // MARK - Slots / Events / Callbacks
 //
+void MainWindow::charIndexUpdated(int charIndex)
+{
+
+    _labelCharIdx->setText(QString("#%1 - $%2")
+                           .arg(charIndex, 3, 10, QLatin1Char('0'))
+                           .arg(charIndex, 2, 16, QLatin1Char('0')));
+}
+
 void MainWindow::on_actionExit_triggered()
 {
     if (maybeSave()) {

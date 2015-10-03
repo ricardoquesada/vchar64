@@ -48,6 +48,7 @@ public slots:
     void previewDisconnected();
     void documentWasModified();
     void updateWindow();
+    void charIndexUpdated(int);
 
 protected:
     void readSettings();
@@ -122,7 +123,6 @@ private:
 
     Ui::MainWindow* _ui;
     QString _lastDir;
-    QLabel* _labelTileIdx;
     QLabel* _labelCharIdx;
 
     QSettings _settings;

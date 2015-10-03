@@ -36,7 +36,17 @@ public slots:
     void setTileIndex(int tileIndex);
 
 signals:
+    /**
+     * @brief tileSelected when a new tile is selected. Spinbox will consume this event.
+     * @param tileIndex value between 0 and tileMax
+     */
     void tileSelected(int tileIndex);
+
+    /**
+     * @brief charSelected when a new char is selected. State will consume this event.
+     * @param charIndex value between 0 and 255
+     */
+    void charSelected(int charIndex);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
@@ -44,10 +54,12 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
+    void updateCharIndex(int charIndex);
     void paintFocus(QPainter &painter);
 
     QPoint _cursorPos;
     bool _selecting;
     QSize _selectingSize;
+    int _charIndex;
 };
 

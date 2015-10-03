@@ -224,7 +224,20 @@ signals:
     // only emmited when the dirty-state changes
     void contentsChanged();
 
+    // when the charIndex is updated. Emits the charIndex
+    void charIndexUpdated(int);
+
 public slots:
+    /**
+     * @brief setCharIndex is called when a char is selected
+     * @param charIndex Value between 0 and 255
+     */
+    void setCharIndex(int charIndex);
+    /**
+     * @brief setTileIndex is called when a tiled is selected
+     * @param tileIndex Value between 0 and tileMax
+     */
+    void setTileIndex(int tileIndex);
 
 
 protected:    
@@ -245,6 +258,9 @@ protected:
     int _penColors[PEN_MAX];
 
     TileProperties _tileProperties;
+
+    /** Current selected char from the charset. Value from 0 to 255*/
+    int _charIndex;
 
     // filename of the loaded file
     // each time a new file is loaded, "exported" and "saved" are reset
