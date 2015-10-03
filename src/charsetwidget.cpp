@@ -121,9 +121,6 @@ void CharSetWidget::keyPressEvent(QKeyEvent *event)
 
     // disabling selecting?
     if (_selecting && !selecting) {
-//        int diffX = _selectingSize.width()<0 ? 0 : -1;
-//        int diffY = _selectingSize.height()<0 ? 0 : -1;
-//        _cursorPos = _cursorPos + QPoint(_selectingSize.width()+diffX, _selectingSize.height()+diffY);
         _selectingSize = {1,1};
     }
     else
@@ -131,6 +128,11 @@ void CharSetWidget::keyPressEvent(QKeyEvent *event)
         if (selecting)
         {
             _selectingSize += {point.x(), point.y()};
+
+            if (_selectingSize.width() == 0)
+                _selectingSize.setWidth(_selectingSize.width() + 1 * point.x());
+            if (_selectingSize.height() == 0)
+                _selectingSize.setHeight(_selectingSize.height() + 1 * point.y());
 
             _selectingSize = {
                 qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS-_cursorPos.x()),

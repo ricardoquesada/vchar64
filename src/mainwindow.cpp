@@ -26,6 +26,7 @@ limitations under the License.
 #include <QCloseEvent>
 #include <QUndoView>
 #include <QErrorMessage>
+#include <QLabel>
 
 #include "state.h"
 #include "preview.h"
@@ -51,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
     createActions();
     createDefaults();
     createUndoView();
+    setupStatusBar();
 
     readSettings();
 }
@@ -213,6 +215,18 @@ void MainWindow::createDefaults()
     state->setMultiColor(false);
 
     setWindowFilePath("[untitled]");
+}
+
+void MainWindow::setupStatusBar()
+{
+    _labelTileIdx = new QLabel(tr("Tile #: 13"), this);
+    auto separator = new QLabel(this);
+    _labelCharIdx = new QLabel(tr("Char #: 43"), this);
+
+    separator->setFrameStyle(QFrame::VLine);
+    QMainWindow::statusBar()->addWidget(_labelTileIdx);
+    QMainWindow::statusBar()->addWidget(separator);
+    QMainWindow::statusBar()->addWidget(_labelCharIdx);
 }
 
 QStringList MainWindow::recentFiles() const

@@ -22,6 +22,7 @@ limitations under the License.
 
 QT_BEGIN_NAMESPACE
 class QUndoView;
+class QLabel;
 QT_END_NAMESPACE
 
 namespace Ui {
@@ -54,6 +55,7 @@ protected:
     void createActions();
     void createDefaults();
     void createUndoView();
+    void setupStatusBar();
 
     void updateRecentFiles();
     void setRecentFile(const QString& fileName);
@@ -120,6 +122,8 @@ private:
 
     Ui::MainWindow* _ui;
     QString _lastDir;
+    QLabel* _labelTileIdx;
+    QLabel* _labelCharIdx;
 
     QSettings _settings;
 };
