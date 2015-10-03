@@ -5,11 +5,14 @@
         global shortcuts. Same with the 'm' shortchut.
 * [NEW]: Added "Palettes": Pepto, VICE, CCS64, Frodo, Grayscale
 * [NEW]: Copy & Paste + Block seclection in the Charset Widget
+         Supports mouse selection and Shift + cursor selection
+* [NEW]: Displays selected char on status bar
 
-* [BUGFIX] Copy & Paste with interleaved tiles work as expected
+* [BUGFIX] Copy & Paste with interleaved tiles works as expected
 * [BUGFIX] Check valid VChar64 header when loading VChar64 files
-* [BUGFIX] Shows dialog error when loading and saving invalid files
-* [BUGFIX] Export dialog: when exporting a vchar64proj, default 
+* [BUGFIX] Shows error dialog when loading and saving invalid files
+* [BUGFIX] Export dialog: when exporting a vchar64proj, default extensions is
+           the correct one, not vchar64proj
 * [BUGFIX] Possible to move left,up,down on Charset widget when using tiles
            bigger than 1x1
 
