@@ -713,6 +713,11 @@ void MainWindow::on_actionReportBug_triggered()
     QDesktopServices::openUrl(QUrl("https://github.com/ricardoquesada/vchar64/issues"));
 }
 
+void MainWindow::on_actionDocumentation_triggered()
+{
+    QDesktopServices::openUrl(QUrl("https://github.com/ricardoquesada/vchar64/wiki"));
+}
+
 void MainWindow::on_actionAbout_triggered()
 {
     AboutDialog aboutDialog(this);

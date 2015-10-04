@@ -5,7 +5,7 @@
         global shortcuts. Same with the 'm' shortchut.
 * [NEW]: Added "Palettes": Pepto, VICE, CCS64, Frodo, Grayscale
 * [NEW]: Copy & Paste + Block seclection in the Charset Widget
-         Supports mouse selection and Shift + cursor selection
+        Supports mouse selection and Shift + cursor selection
 * [NEW]: Displays selected char on status bar
 
 * [BUGFIX] when Multicolor & foreground_color < 8 works as expected
@@ -13,9 +13,13 @@
 * [BUGFIX] Check valid VChar64 header when loading VChar64 files
 * [BUGFIX] Shows error dialog when loading and saving invalid files
 * [BUGFIX] Export dialog: when exporting a vchar64proj, default extensions is
-           the correct one, not vchar64proj
+        the correct one, not vchar64proj
 * [BUGFIX] Possible to move left,up,down on Charset widget when using tiles
-           bigger than 1x1
+        bigger than 1x1
+
+* [REFACTOR] Name "pen" is used instead of "color_index" to identify
+        background, foreground, multicolor1 and multicolor2
+
 
 0.0.6 (24 August 2015)
 

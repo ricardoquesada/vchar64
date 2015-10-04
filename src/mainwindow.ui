@@ -112,6 +112,7 @@
     </property>
     <addaction name="actionAbout"/>
     <addaction name="actionAboutQt"/>
+    <addaction name="actionDocumentation"/>
     <addaction name="actionReportBug"/>
    </widget>
    <widget class="QMenu" name="menuTile">
@@ -770,6 +771,11 @@
    </property>
    <property name="text">
     <string>CCS64</string>
+   </property>
+  </action>
+  <action name="actionDocumentation">
+   <property name="text">
+    <string>Documentation</string>
    </property>
   </action>
  </widget>

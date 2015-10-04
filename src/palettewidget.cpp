@@ -49,11 +49,11 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
 
     auto state = State::getInstance();
 
-    int index = state->getSelectedPen();
-    int oldColor = state->getColorForPen(index);
+    int pen = state->getSelectedPen();
+    int oldColor = state->getColorForPen(pen);
 
     if (oldColor != color) {
-        state->getUndoStack()->push(new SetColorCommand(state, color, index));
+        state->getUndoStack()->push(new SetColorCommand(state, color, pen));
 
         emit colorSelected();
         update();

@@ -114,6 +114,8 @@ private slots:
 
     void on_actionPalette_3_triggered();
 
+    void on_actionDocumentation_triggered();
+
 private:
 
     bool maybeSave();

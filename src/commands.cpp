@@ -334,26 +334,26 @@ void SetMulticolorModeCommand::redo()
 
 // SetColorCommand
 
-SetColorCommand::SetColorCommand(State *state, int color, int colorIndex, QUndoCommand *parent)
+SetColorCommand::SetColorCommand(State *state, int color, int pen, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
     setText(QObject::tr("Color[%1] = %2")
-            .arg(colorIndex)
+            .arg(pen)
             .arg(color)
             );
 
     _state = state;
-    _colorIndex = colorIndex;
+    _pen = pen;
     _new = color;
 }
 
 void SetColorCommand::undo()
 {
-    _state->setColorForPen(_colorIndex, _old);
+    _state->setColorForPen(_pen, _old);
 }
 
 void SetColorCommand::redo()
 {
-    _old = _state->getColorForPen(_colorIndex);
-    _state->setColorForPen(_colorIndex, _new);
+    _old = _state->getColorForPen(_pen);
+    _state->setColorForPen(_pen, _new);
 }
