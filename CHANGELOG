@@ -8,6 +8,7 @@
          Supports mouse selection and Shift + cursor selection
 * [NEW]: Displays selected char on status bar
 
+* [BUGFIX] when Multicolor & foreground_color < 8 works as expected
 * [BUGFIX] Copy & Paste with interleaved tiles works as expected
 * [BUGFIX] Check valid VChar64 header when loading VChar64 files
 * [BUGFIX] Shows error dialog when loading and saving invalid files
