@@ -67,7 +67,9 @@ void PaletteWidget::paintEvent(QPaintEvent *event)
     QPainter painter;
     painter.begin(this);
 
-    painter.fillRect(event->rect(), QBrush(QColor(255, 255, 255)));
+    // paint with default background color
+    painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
+
 
     int currentColor = state->getCurrentColor();
     int selectedPen = state->getSelectedPen();
@@ -92,7 +94,8 @@ void PaletteWidget::paintEvent(QPaintEvent *event)
                 c %= 8;
             painter.setBrush(Palette::getColor(c));
 
-            painter.drawRect(x * PIXEL_SIZE_X, y * PIXEL_SIZE_Y, PIXEL_SIZE_X, PIXEL_SIZE_Y);
+            painter.drawRect(x * PIXEL_SIZE_X, y * PIXEL_SIZE_Y,
+                             PIXEL_SIZE_X-1, PIXEL_SIZE_Y-1);
         }
     }
 
