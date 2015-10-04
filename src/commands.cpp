@@ -20,14 +20,14 @@ limitations under the License.
 #include "commands.h"
 
 // Paint Tile
-PaintTileCommand::PaintTileCommand(State *state, int tileIndex, const QPoint& position, int colorIndex, bool mergeable, QUndoCommand *parent)
+PaintTileCommand::PaintTileCommand(State *state, int tileIndex, const QPoint& position, int pen, bool mergeable, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
     Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
 
     _state = state;
     _tileIndex = tileIndex;
-    _colorIndex = colorIndex;
+    _pen = pen;
     _mergeable = mergeable;
     _points.append(position);
 
@@ -44,7 +44,7 @@ void PaintTileCommand::redo()
     _state->copyCharFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
 
     for (int i = 0; i < _points.size(); ++i) {
-        _state->tileSetPen(_tileIndex, _points.at(i), _colorIndex);
+        _state->tileSetPen(_tileIndex, _points.at(i), _pen);
     }
 }
 
@@ -55,7 +55,7 @@ bool PaintTileCommand::mergeWith(const QUndoCommand* other)
 
     auto p = static_cast<const PaintTileCommand*>(other);
 
-    if (_colorIndex!=p->_colorIndex || _tileIndex!=p->_tileIndex || !p->_mergeable)
+    if (_pen != p->_pen || _tileIndex != p->_tileIndex || !p->_mergeable)
         return false;
 
     _points.append(p->_points);
@@ -323,13 +323,13 @@ SetMulticolorModeCommand::SetMulticolorModeCommand(State *state, bool multicolor
 
 void SetMulticolorModeCommand::undo()
 {
-    _state->setMultiColor(_old);
+    _state->setMulticolorMode(_old);
 }
 
 void SetMulticolorModeCommand::redo()
 {
-    _old = _state->isMultiColor();
-    _state->setMultiColor(_new);
+    _old = _state->isMulticolorMode();
+    _state->setMulticolorMode(_new);
 }
 
 // SetColorCommand

@@ -40,9 +40,9 @@ State* State::getInstance()
 
 State::State()
     : _totalChars(0)
-    , _multiColor(false)
+    , _multicolorMode(false)
     , _selectedPen(PEN_FOREGROUND)
-    , _penColors{1,12,15,0}
+    , _penColors{1,5,7,11}
     , _tileProperties{{1,1},1}
     , _charIndex(-1)
     , _loadedFilename("")
@@ -63,7 +63,7 @@ State::~State()
 void State::reset()
 {
     _totalChars = 0;
-    _multiColor = false;
+    _multicolorMode = false;
     _selectedPen = 3;
     _penColors[0] = 1;
     _penColors[1] = 12;
@@ -234,13 +234,25 @@ bool State::saveProject(const QString& filename)
 }
 
 //
-void State::setMultiColor(bool enabled)
+bool State::shouldBeDisplayedInMulticolor() const
 {
-    if (_multiColor != enabled)
-    {
-        _multiColor = enabled;
+    // display char as multicolor only if multicolor is enabled
+    // and foreground color is >= 8
+    return (_multicolorMode && _penColors[State::PEN_FOREGROUND] >= 8);
+}
 
-        emit colorPropertiesUpdated();
+bool State::isMulticolorMode() const
+{
+    return _multicolorMode;
+}
+
+void State::setMulticolorMode(bool enabled)
+{
+    if (_multicolorMode != enabled)
+    {
+        _multicolorMode = enabled;
+
+        emit multicolorModeToggled(enabled);
         emit contentsChanged();
     }
 }
@@ -249,10 +261,38 @@ void State::setColorForPen(int pen, int color)
 {
     Q_ASSERT(pen >=0 && pen < PEN_MAX);
     Q_ASSERT(color >=0 && color < 16);
-    _penColors[pen] = color;
 
-    emit colorPropertiesUpdated();
-    emit contentsChanged();
+    if (_penColors[pen] != color)
+    {
+        bool oldvalue = shouldBeDisplayedInMulticolor();
+
+        _penColors[pen] = color;
+
+        bool newvalue = shouldBeDisplayedInMulticolor();
+
+        emit colorPropertiesUpdated(pen);
+
+        if (oldvalue != newvalue)
+            emit multicolorModeToggled(newvalue);
+
+        emit contentsChanged();
+    }
+}
+
+int State::getCurrentColor() const
+{
+    return _penColors[_selectedPen];
+}
+
+int State::getSelectedPen() const
+{
+    return _selectedPen;
+}
+
+void State::setSelectedPen(int pen)
+{
+    Q_ASSERT(pen>=0 && pen<PEN_MAX);
+    _selectedPen = pen;
 }
 
 int State::tileGetPen(int tileIndex, const QPoint& position)
@@ -273,7 +313,7 @@ int State::tileGetPen(int tileIndex, const QPoint& position)
     int ret = 0;
 
     // not multicolor: expected result: 0 or 1
-    if (!_multiColor)
+    if (!_multicolorMode)
     {
         uint8_t mask = 1 << (7-b);
         ret = (c & mask) >> (7-b);
@@ -310,7 +350,7 @@ void State::tileSetPen(int tileIndex, const QPoint& position, int pen)
     uint8_t b = bitIndex%8;
     uint8_t and_mask = 0x00;
     uint8_t or_mask = 0x00;
-    if (!_multiColor)
+    if (!shouldBeDisplayedInMulticolor())
     {
         and_mask = 1 << (7-b);
         or_mask = pen << (7-b);

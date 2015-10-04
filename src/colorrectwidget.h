@@ -25,8 +25,8 @@ public:
     explicit ColorRectWidget(QWidget *parent = 0);
     ~ColorRectWidget();
 
-    void setColorIndex(int colorIndex);
-    int getColorIndex() const;
+    void setPen(int pen);
+    int getPen() const;
 
 signals:
 
@@ -36,6 +36,6 @@ protected:
     void paintEvent(QPaintEvent *event);
 
 
-    int _colorIndex;
+    int _pen;
 };
 

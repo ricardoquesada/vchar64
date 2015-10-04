@@ -31,7 +31,7 @@ enum UndoCommands {
 class PaintTileCommand : public QUndoCommand
 {
 public:
-    PaintTileCommand(State *state, int tileIndex, const QPoint& position, int colorIndex, bool mergeable, QUndoCommand *parent = nullptr);
+    PaintTileCommand(State *state, int tileIndex, const QPoint& position, int pen, bool mergeable, QUndoCommand *parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
     int id() const Q_DECL_OVERRIDE { return Cmd_PaintTile; }
@@ -40,7 +40,7 @@ public:
 private:
     State* _state;
     int _tileIndex;
-    int _colorIndex;
+    int _pen;
     quint8 _buffer[State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8];
     bool _mergeable;
     QList<QPoint> _points;

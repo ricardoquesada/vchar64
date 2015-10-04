@@ -15,6 +15,7 @@ limitations under the License.
 ****************************************************************************/
 
 #include "palette.h"
+#include "state.h"
 
 
 static const QColor Palettes[][16] = {
@@ -117,6 +118,19 @@ static const QColor Palettes[][16] = {
 static const int MAX_PALETTES = sizeof(Palettes) / sizeof(Palettes[0]);
 
 int Palette::_paletteIndex = 1;
+
+const QColor& Palette::getColorForPen(int pen)
+{
+    Q_ASSERT(pen>=0 && pen<State::PEN_MAX && "Invalid pen value");
+    auto state = State::getInstance();
+    int colorIndex = state->getColorForPen(pen);
+
+    // upper colors should be the same a lower colors on multicolor mode in foreground pen
+    if (pen == State::PEN_FOREGROUND && state->isMulticolorMode() && colorIndex >= 8)
+        colorIndex -= 8;
+
+    return Palettes[_paletteIndex][colorIndex];
+}
 
 const QColor& Palette::getColor(int colorIndex)
 {

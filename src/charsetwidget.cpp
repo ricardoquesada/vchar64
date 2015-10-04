@@ -185,7 +185,7 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
     int increment_x = 1;
     int bits_to_mask = 1;
 
-    if (state->isMultiColor())
+    if (state->shouldBeDisplayedInMulticolor())
     {
         end_x = 4;
         pixel_size_x = PIXEL_SIZE * 2;
@@ -223,11 +223,11 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
                     // possible colors
 
                     int bits_to_shift = (((end_x-1)-x) * increment_x);
-                    int color_index = color >> bits_to_shift;
+                    int color_pen = color >> bits_to_shift;
 
-                    if (!state->isMultiColor() && color_index )
-                        color_index = 3;
-                    painter.setBrush(Palette::getColor(state->getColorForPen(color_index)));
+                    if (!state->shouldBeDisplayedInMulticolor() && color_pen )
+                        color_pen = State::PEN_FOREGROUND;
+                    painter.setBrush(Palette::getColorForPen(color_pen));
                     painter.drawRect((w*end_x+x) * pixel_size_x, (h*8+y) * PIXEL_SIZE, pixel_size_x, PIXEL_SIZE);
                 }
             }

@@ -44,7 +44,7 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     header.tile_height = properties.size.height();
     header.char_interleaved = properties.interleaved;
 
-    header.vic_res = state->isMultiColor();
+    header.vic_res = state->isMulticolorMode();
 
     QByteArray arrayHeader((const char*)&header, sizeof(header));
     auto total = file.write(arrayHeader);

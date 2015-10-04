@@ -95,7 +95,7 @@ void Preview::updateForegroundColor()
 
     auto state = State::getInstance();
     uchar foreground = state->getColorForPen(State::PEN_FOREGROUND);
-    foreground |= state->isMultiColor() ? 8 : 0;
+    foreground |= state->isMulticolorMode() ? 8 : 0;
 
     xlink_fill(0xb7, 0x00, 0xd800, foreground, 1000);
     xlink_poke(0x37, 0x00, 0x0286, foreground);
@@ -125,7 +125,7 @@ void Preview::updateColorMode()
     uchar control = 0x08;
 
     xlink_peek(0x37, 0x00, 0xd016, &control);
-    xlink_poke(0x37, 0x00, 0xd016, state->isMultiColor() ? 0x18 : 0x08);
+    xlink_poke(0x37, 0x00, 0xd016, state->isMulticolorMode() ? 0x18 : 0x08);
 
     updateForegroundColor();
 }

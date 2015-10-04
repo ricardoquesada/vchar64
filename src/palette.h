@@ -30,6 +30,7 @@ public:
     };
 
     static const QColor& getColor(int colorIndex);
+    static const QColor& getColorForPen(int pen);
     static void setActivePalette(int paletteIndex);
     static int getActivePalette();
 

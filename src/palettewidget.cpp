@@ -70,6 +70,7 @@ void PaletteWidget::paintEvent(QPaintEvent *event)
     painter.fillRect(event->rect(), QBrush(QColor(255, 255, 255)));
 
     int currentColor = state->getCurrentColor();
+    int selectedPen = state->getSelectedPen();
 
 
     QPen pen;
@@ -80,12 +81,16 @@ void PaletteWidget::paintEvent(QPaintEvent *event)
     for (int y=0; y<2; y++) {
         for (int x=0; x<8; x++) {
             int c = 8 * y + x;
-            painter.setBrush(Palette::getColor(c));
+
             if (c==currentColor) {
                 painter.setPen(pen);
             } else {
                 painter.setPen(Qt::PenStyle::NoPen);
             }
+
+            if (selectedPen == State::PEN_FOREGROUND && state->isMulticolorMode())
+                c %= 8;
+            painter.setBrush(Palette::getColor(c));
 
             painter.drawRect(x * PIXEL_SIZE_X, y * PIXEL_SIZE_Y, PIXEL_SIZE_X, PIXEL_SIZE_Y);
         }

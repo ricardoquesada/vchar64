@@ -83,13 +83,25 @@ void MainWindow::documentWasModified()
 
 void MainWindow::updateWindow()
 {
+    update();
+}
+
+void MainWindow::multicolorModeToggled(bool newvalue)
+{
     // make sure the "multicolor" checkbox is in the correct state.
     // this is needed for the "undo" / "redos"...
     auto state = State::getInstance();
-    _ui->checkBox_multicolor->setChecked(state->isMultiColor());
+    _ui->checkBox_multicolor->setChecked(state->isMulticolorMode());
+
+    // enable / disable radios based on newvalue.
+    // this event could be trigged by just changing the PEN_FOREGROUND color
+    // when in multicolor mode.
+    _ui->radioButton_multicolor1->setEnabled(newvalue);
+    _ui->radioButton_multicolor2->setEnabled(newvalue);
 
     update();
 }
+
 
 //
 //
@@ -164,10 +176,10 @@ void MainWindow::createActions()
 
 
     // FIXME should be on a different method
-    _ui->colorRectWidget_0->setColorIndex(0);
-    _ui->colorRectWidget_1->setColorIndex(3);
-    _ui->colorRectWidget_2->setColorIndex(1);
-    _ui->colorRectWidget_3->setColorIndex(2);
+    _ui->colorRectWidget_0->setPen(State::PEN_BACKGROUND);
+    _ui->colorRectWidget_1->setPen(State::PEN_FOREGROUND);
+    _ui->colorRectWidget_2->setPen(State::PEN_MULTICOLOR1);
+    _ui->colorRectWidget_3->setPen(State::PEN_MULTICOLOR2);
 
     auto preview = Preview::getInstance();
     connect(state, SIGNAL(fileLoaded()), preview, SLOT(fileLoaded()));
@@ -179,8 +191,9 @@ void MainWindow::createActions()
     connect(state, SIGNAL(charIndexUpdated(int)), this, SLOT(charIndexUpdated(int)));
     connect(state, SIGNAL(charsetUpdated()), this, SLOT(updateWindow()));
 
-//  connect(state, SIGNAL(colorPropertiesUpdated()), preview, SLOT(tileWasUpdated()));
-    connect(state, SIGNAL(colorPropertiesUpdated()), this, SLOT(updateWindow()));
+//  connect(state, SIGNAL(colorPropertiesUpdated(int)), preview, SLOT(tileWasUpdated()));
+    connect(state, SIGNAL(colorPropertiesUpdated(int)), this, SLOT(updateWindow()));
+    connect(state, SIGNAL(multicolorModeToggled(bool)), this, SLOT(multicolorModeToggled(bool)));
     connect(state, SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
 
     connect(state->getUndoStack(), SIGNAL(indexChanged(int)), this, SLOT(documentWasModified()));
@@ -218,14 +231,15 @@ void MainWindow::createDefaults()
     properties.interleaved = 1;
     state->setTileProperties(properties);
 
-    state->setMultiColor(false);
+    state->setMulticolorMode(false);
 
     setWindowFilePath("[untitled]");
 }
 
 void MainWindow::setupStatusBar()
 {
-    _labelCharIdx = new QLabel(tr("#000 - $00"), this);
+    _labelCharIdx = new QLabel(tr("#000  $00"), this);
+//    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
     QMainWindow::statusBar()->addWidget(_labelCharIdx);
 }
 
@@ -277,7 +291,7 @@ void MainWindow::setRecentFile(const QString& fileName)
 void MainWindow::charIndexUpdated(int charIndex)
 {
 
-    _labelCharIdx->setText(QString("#%1 - $%2")
+    _labelCharIdx->setText(QString("#%1  $%2")
                            .arg(charIndex, 3, 10, QLatin1Char('0'))
                            .arg(charIndex, 2, 16, QLatin1Char('0')));
 }
@@ -311,7 +325,7 @@ void MainWindow::on_actionC64DefaultUppercase_triggered()
         properties.size = {1,1};
         properties.interleaved = 1;
         state->setTileProperties(properties);
-        state->setMultiColor(false);
+        state->setMulticolorMode(false);
 
         update();
         setWindowFilePath("[untitled]");
@@ -328,7 +342,7 @@ void MainWindow::on_actionC64DefaultLowercase_triggered()
         properties.size = {1,1};
         properties.interleaved = 1;
         state->setTileProperties(properties);
-        state->setMultiColor(false);
+        state->setMulticolorMode(false);
 
         update();
         setWindowFilePath("[untitled]");
@@ -353,10 +367,10 @@ void MainWindow::on_checkBox_multicolor_toggled(bool checked)
     state->getUndoStack()->push(new SetMulticolorModeCommand(state, checked));
 }
 
-void MainWindow::activateRadioButtonIndex(int index)
+void MainWindow::activateRadioButtonIndex(int pen)
 {
     State *state = State::getInstance();
-    state->setSelectedPen(index);
+    state->setSelectedPen(pen);
 
     QAction* actions[] = {
         _ui->actionBackground,
@@ -366,27 +380,27 @@ void MainWindow::activateRadioButtonIndex(int index)
     };
 
     for (int i=0; i<4; i++)
-        actions[i]->setChecked(i==index);
+        actions[i]->setChecked(i==pen);
 }
 
 void MainWindow::on_radioButton_background_clicked()
 {
-    activateRadioButtonIndex(0);
+    activateRadioButtonIndex(State::PEN_BACKGROUND);
 }
 
 void MainWindow::on_radioButton_foreground_clicked()
 {
-    activateRadioButtonIndex(3);
+    activateRadioButtonIndex(State::PEN_FOREGROUND);
 }
 
 void MainWindow::on_radioButton_multicolor1_clicked()
 {
-    activateRadioButtonIndex(1);
+    activateRadioButtonIndex(State::PEN_MULTICOLOR1);
 }
 
 void MainWindow::on_radioButton_multicolor2_clicked()
 {
-    activateRadioButtonIndex(2);
+    activateRadioButtonIndex(State::PEN_MULTICOLOR2);
 }
 
 void MainWindow::activatePalette(int paletteIndex)
@@ -446,7 +460,7 @@ void MainWindow::openFile(const QString& fileName)
 
         update();
         auto state = State::getInstance();
-        _ui->checkBox_multicolor->setChecked(state->isMultiColor());
+        _ui->checkBox_multicolor->setChecked(state->isMulticolorMode());
 
         setWindowFilePath(info.filePath());
     }

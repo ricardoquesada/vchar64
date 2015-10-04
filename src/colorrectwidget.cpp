@@ -24,7 +24,7 @@ limitations under the License.
 
 ColorRectWidget::ColorRectWidget(QWidget *parent)
     : QWidget(parent)
-    , _colorIndex(0)
+    , _pen(0)
 {
 }
 
@@ -32,18 +32,18 @@ ColorRectWidget::~ColorRectWidget()
 {
 }
 
-void ColorRectWidget::setColorIndex(int colorIndex)
+void ColorRectWidget::setPen(int pen)
 {
-    Q_ASSERT(colorIndex>=0 && colorIndex<16 && "Invalid colorIndex");
-    if (_colorIndex != colorIndex) {
-        _colorIndex = colorIndex;
+    Q_ASSERT(pen>=0 && pen<State::PEN_MAX && "Invalid colorIndex");
+    if (_pen != pen) {
+        _pen = pen;
         repaint();
     }
 }
 
-int ColorRectWidget::getColorIndex() const
+int ColorRectWidget::getPen() const
 {
-    return _colorIndex;
+    return _pen;
 }
 
 void ColorRectWidget::paintEvent(QPaintEvent *event)
@@ -51,9 +51,6 @@ void ColorRectWidget::paintEvent(QPaintEvent *event)
     QPainter painter;
     painter.begin(this);
 
-    auto state = State::getInstance();
-
-    painter.fillRect(event->rect(), Palette::getColor(state->getColorForPen(_colorIndex)));
-
+    painter.fillRect(event->rect(), Palette::getColorForPen(_pen));
     painter.end();
 }

@@ -49,6 +49,7 @@ public slots:
     void documentWasModified();
     void updateWindow();
     void charIndexUpdated(int);
+    void multicolorModeToggled(bool);
 
 protected:
     void readSettings();
@@ -116,7 +117,7 @@ private slots:
 private:
 
     bool maybeSave();
-    void activateRadioButtonIndex(int index);
+    void activateRadioButtonIndex(int pen);
     void activatePalette(int paletteIndex);
 
     QAction* _recentFiles[MAX_RECENT_FILES];

@@ -82,33 +82,60 @@ public:
     // export is a defined keyword, so we use export_ instead
     bool export_();
 
+    /**
+     * @brief getColorForPen
+     * @param pen PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1 or PEN_MULTICOLOR2
+     * @return the color being used by the pen
+     */
     int getColorForPen(int pen) const {
         Q_ASSERT(pen >=0 && pen < PEN_MAX);
         return _penColors[pen];
     }
 
-    // color should be 0 or 1 in normal mode
-    // and 0, 1, 2 or 3 in multicolor mode
+    /**
+     * @brief setColorForPen set a color for a pen
+     * @param pen PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1, PEN_MULTICOLOR2
+     * @param color a color between 0 and 15
+     */
     void setColorForPen(int pen, int color);
 
-    int getCurrentColor() const {
-        return _penColors[_selectedPen];
-    }
+    /**
+     * @brief getCurrentColor
+     * @return the color being used by the selected pen
+     */
+    int getCurrentColor() const;
 
-    void setSelectedPen(int pen) {
-        Q_ASSERT(pen>=0 && pen<PEN_MAX);
-        _selectedPen = pen;
-    }
+    /**
+     * @brief setSelectedPen sets pen as the selected one
+     * @param pen PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1, PEN_MULTICOLOR2
+     */
+    void setSelectedPen(int pen);
 
-    int getSelectedPen() const {
-        return _selectedPen;
-    }
+    /**
+     * @brief getSelectedPen
+     * @return the selected pen: PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1, PEN_MULTICOLOR2
+     */
+    int getSelectedPen() const;
 
-    void setMultiColor(bool enabled);
+    /**
+     * @brief setMulticolorMode enable/display multicolor mode
+     * @param enabled whether or not multicolor mode should be enabled
+     */
+    void setMulticolorMode(bool enabled);
 
-    bool isMultiColor() const {
-        return _multiColor;
-    }
+    /**
+     * @brief isMulticolorMode
+     * @return whether or not multicolor mode is enabled
+     */
+    bool isMulticolorMode() const;
+
+    /**
+     * @brief shouldBeDisplayedInMulticolor whether or not the char should be displayed as multicolor.
+     * Even if multicolor mode is enabled, if Foreground color is <= 7, then char should not be
+     * displayed in multicolor mode
+     * @return whether or not the char/tile should be displayed in multicolor mode
+     */
+    bool shouldBeDisplayedInMulticolor() const;
 
     QString getLoadedFilename() const {
         return _loadedFilename;
@@ -217,8 +244,11 @@ signals:
     // when the charbuffer was updated. Probably due to a copy & paste operation
     void charsetUpdated();
 
-    // multi-color / hires or new colors
-    void colorPropertiesUpdated();
+    // a color new color for a pen was selected
+    void colorPropertiesUpdated(int);
+
+    // multicolor mode was toggled
+    void multicolorModeToggled(bool);
 
     // when the state is dirty, or non-dirty.
     // only emmited when the dirty-state changes
@@ -252,7 +282,7 @@ protected:
 
     quint8 _charset[State::CHAR_BUFFER_SIZE];
 
-    bool _multiColor;
+    bool _multicolorMode;
 
     int _selectedPen;
     int _penColors[PEN_MAX];

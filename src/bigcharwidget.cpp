@@ -37,14 +37,17 @@ BigCharWidget::BigCharWidget(QWidget *parent)
 {
 }
 
-void BigCharWidget::paintPixel(int x, int y, int selectedColor)
+void BigCharWidget::paintPixel(int x, int y, int pen)
 {
     auto&& state = State::getInstance();
-    if (!state->isMultiColor() && selectedColor)
-        selectedColor = 1;
 
-    if (state->tileGetPen(_tileIndex, QPoint(x,y)) != selectedColor)
-        state->getUndoStack()->push(new PaintTileCommand(state, _tileIndex, QPoint(x,y), selectedColor, _commandMergeable));
+    if (state->tileGetPen(_tileIndex, QPoint(x,y)) != pen)
+    {
+        if (!state->shouldBeDisplayedInMulticolor() && pen)
+            pen = 1;
+
+        state->getUndoStack()->push(new PaintTileCommand(state, _tileIndex, QPoint(x,y), pen, _commandMergeable));
+    }
 
     // redraw cursor
     update();
@@ -64,12 +67,12 @@ void BigCharWidget::mousePressEvent(QMouseEvent * event)
     _cursorPos = {x,y};
 
     auto&& state = State::getInstance();
-    int selectedColor = state->getSelectedPen();
+    int selectedPen = state->getSelectedPen();
 
     if (event->button() == Qt::LeftButton)
-        paintPixel(x, y, selectedColor);
+        paintPixel(x, y, selectedPen);
     else if(event->button() == Qt::RightButton)
-        paintPixel(x, y, 0);
+        paintPixel(x, y, State::PEN_BACKGROUND);
 
     _commandMergeable = true;
 }
@@ -88,13 +91,13 @@ void BigCharWidget::mouseMoveEvent(QMouseEvent * event)
     _cursorPos = {x,y};
 
     auto&& state = State::getInstance();
-    int selectedColor = state->getSelectedPen();
+    int pen = state->getSelectedPen();
 
     auto&& button = event->buttons();
     if (button == Qt::LeftButton)
-        paintPixel(x, y, selectedColor);
+        paintPixel(x, y, pen);
     else if(button == Qt::RightButton)
-        paintPixel(x, y, 0);
+        paintPixel(x, y, State::PEN_BACKGROUND);
 
     _commandMergeable = true;
 }
@@ -116,7 +119,7 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
     Ui::MainWindow *ui = window->getUi();
 
     auto&& state = State::getInstance();
-    int increment_x = state->isMultiColor() ? 2 : 1;
+    int increment_x = state->shouldBeDisplayedInMulticolor() ? 2 : 1;
 
     switch (event->key()) {
     case Qt::Key_Left:
@@ -231,7 +234,7 @@ void BigCharWidget::paintFocus(QPainter &painter)
 }
 
 
-void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8 *charPtr, const QPoint& tileToDraw)
+void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8* charPtr, const QPoint& tileToDraw)
 {
     State *state = State::getInstance();
 
@@ -240,7 +243,7 @@ void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8 *charPt
     int increment_x = 1;
     int bits_to_mask = 1;
 
-    if (state->isMultiColor())
+    if (state->shouldBeDisplayedInMulticolor())
     {
         end_x = 4;
         pixel_size_x = _pixelSize.width() * 2;
@@ -265,11 +268,11 @@ void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8 *charPt
             // possible colors
 
             int bits_to_shift = (((end_x-1)-x) * increment_x);
-            int color_index = color >> bits_to_shift;
+            int color_pen = color >> bits_to_shift;
 
-            if (!state->isMultiColor() && color_index )
-                color_index = 3;
-            painter.setBrush(Palette::getColor(state->getColorForPen(color_index)));
+            if (!state->shouldBeDisplayedInMulticolor() && color_pen )
+                color_pen = State::PEN_FOREGROUND;
+            painter.setBrush(Palette::getColorForPen(color_pen));
 
             if (hasFocus()
                     && (x + tileToDraw.x() * 8 / increment_x) == _cursorPos.x() / increment_x
