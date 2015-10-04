@@ -479,7 +479,7 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
 
     while (count>0)
     {
-        int bytesToCopy = qMin((long)copyRange.blockSize * 8, _charset + 256 * 8 - dst);
+        int bytesToCopy = qMin((long)copyRange.blockSize * 8, (long)_charset + 256 * 8 - (long)dst);
         if (bytesToCopy <0)
             break;
         memcpy(dst, src, bytesToCopy);
