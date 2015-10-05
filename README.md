@@ -63,8 +63,8 @@ $ git clone https://github.com/ricardoquesada/vchar64.git
 
 ## Download binaries
 
-* [vchar64-v0.0.7 for win32](https://www.dropbox.com/s/2yx9axfe3qg19r4/vchar64-0.0.7.zip?dl=0)
-* [vchar64-v0.0.7 for mac](https://www.dropbox.com/s/5ogv3n9l3poe3ox/vchar64-0.0.7.dmg?dl=0)
+* [vchar64-v0.0.7 for win32](https://www.dropbox.com/s/2yx9axfe3qg19r4/vchar64-0.0.7.zip?dl=1)
+* [vchar64-v0.0.7 for mac](https://www.dropbox.com/s/5ogv3n9l3poe3ox/vchar64-0.0.7.dmg?dl=1)
 
 ## License
 
