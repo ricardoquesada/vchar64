@@ -88,6 +88,7 @@ void MainWindow::updateWindow()
 
 void MainWindow::multicolorModeToggled(bool newvalue)
 {
+    Q_UNUSED(newvalue);
     // make sure the "multicolor" checkbox is in the correct state.
     // this is needed for the "undo" / "redos"...
     auto state = State::getInstance();
@@ -96,8 +97,11 @@ void MainWindow::multicolorModeToggled(bool newvalue)
     // enable / disable radios based on newvalue.
     // this event could be trigged by just changing the PEN_FOREGROUND color
     // when in multicolor mode.
-    _ui->radioButton_multicolor1->setEnabled(newvalue);
-    _ui->radioButton_multicolor2->setEnabled(newvalue);
+    // but also, this event could be triggered by clicking on multicolor checkbox
+    // so using "newvalue" is not enough
+    bool enableradios = state->shouldBeDisplayedInMulticolor();
+    _ui->radioButton_multicolor1->setEnabled(enableradios);
+    _ui->radioButton_multicolor2->setEnabled(enableradios);
 
     update();
 }
