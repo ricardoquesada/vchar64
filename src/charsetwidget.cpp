@@ -65,13 +65,37 @@ void CharSetWidget::mousePressEvent(QMouseEvent * event)
 
     if (event->button() == Qt::LeftButton)
     {
-        if (_selecting)
+        if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier)
         {
-            _selecting = false;
-            _selectingSize = {1,1};
+            // Click + Shift == select mode
+            _selecting = true;
+
+            if (x >= _cursorPos.x())
+                x++;
+            if (y >= _cursorPos.y())
+                y++;
+
+            _selectingSize = {x - _cursorPos.x(),
+                              y - _cursorPos.y()};
+
+            // sanity check
+            _selectingSize = {
+                qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS-_cursorPos.x()),
+                qBound(-_cursorPos.y(), _selectingSize.height(), ROWS-_cursorPos.y())
+            };
+        }
+        else
+        {
+            // click without shift == select single char and clear select mode
+            if (_selecting)
+            {
+                _selecting = false;
+                _selectingSize = {1,1};
+            }
+
+            updateCharIndex(charIndex);
         }
 
-        updateCharIndex(charIndex);
         update();
     }
 }
