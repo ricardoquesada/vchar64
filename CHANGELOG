@@ -1,3 +1,8 @@
+0.0.8 (4 October 2015)
+
+* [BUGFIX] Block-copy supported in Xlink
+* [BUGFIX] events are propagated to the dock windows when they are floating
+
 0.0.7 (4 October 2015)
 
 * [NEW] Added "Color" menu with new shortcuts for colors

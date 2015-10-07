@@ -84,6 +84,13 @@ void MainWindow::documentWasModified()
 void MainWindow::updateWindow()
 {
     update();
+
+    // update event() does not get propagated if dockWidget are floating.
+    // manual update it
+    _ui->dockWidget_charset->update();
+    _ui->dockWidget_colors->update();
+    _ui->dockWidget_tileIndex->update();
+
 }
 
 void MainWindow::multicolorModeToggled(bool newvalue)
@@ -103,7 +110,7 @@ void MainWindow::multicolorModeToggled(bool newvalue)
     _ui->radioButton_multicolor1->setEnabled(enableradios);
     _ui->radioButton_multicolor2->setEnabled(enableradios);
 
-    update();
+    updateWindow();
 }
 
 
@@ -314,7 +321,7 @@ void MainWindow::on_actionEmptyProject_triggered()
     {
         auto state = State::getInstance();
         state->reset();
-        update();
+        updateWindow();
         setWindowFilePath("[untitled]");
     }
 }
@@ -331,7 +338,7 @@ void MainWindow::on_actionC64DefaultUppercase_triggered()
         state->setTileProperties(properties);
         state->setMulticolorMode(false);
 
-        update();
+        updateWindow();
         setWindowFilePath("[untitled]");
     }
 }
@@ -348,7 +355,7 @@ void MainWindow::on_actionC64DefaultLowercase_triggered()
         state->setTileProperties(properties);
         state->setMulticolorMode(false);
 
-        update();
+        updateWindow();
         setWindowFilePath("[untitled]");
     }
 }
@@ -421,7 +428,7 @@ void MainWindow::activatePalette(int paletteIndex)
 
     for (int i=0; i<5; i++)
         actions[i]->setChecked(i==paletteIndex);
-    update();
+    updateWindow();
 }
 
 void MainWindow::on_actionPalette_0_triggered()
@@ -462,7 +469,7 @@ void MainWindow::openFile(const QString& fileName)
 
         setRecentFile(fileName);
 
-        update();
+        updateWindow();
         auto state = State::getInstance();
         _ui->checkBox_multicolor->setChecked(state->isMulticolorMode());
 
