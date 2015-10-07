@@ -191,6 +191,14 @@ void Preview::byteUpdated(int byteIndex)
     xlink_poke(0xb7, 0x00, 0x3000 + byteIndex, state->getCharsetBuffer()[byteIndex]);
 }
 
+void Preview::bytesUpdated(int pos, int count)
+{
+    if(!isConnected()) return;
+
+    auto state = State::getInstance();
+    xlink_load(0xb7, 0x00, 0x3000+pos, state->getCharsetBuffer()+pos, count);
+}
+
 void Preview::tileUpdated(int tileIndex)
 {
     if(!isConnected()) return;
