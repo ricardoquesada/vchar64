@@ -195,14 +195,16 @@ void MainWindow::createActions()
     auto preview = Preview::getInstance();
     connect(state, SIGNAL(fileLoaded()), preview, SLOT(fileLoaded()));
     connect(state, SIGNAL(byteUpdated(int)), preview, SLOT(byteUpdated(int)));
+    connect(state, SIGNAL(bytesUpdated(int, int)), preview, SLOT(bytesUpdated(int, int)));
     connect(state, SIGNAL(tileUpdated(int)), preview, SLOT(tileUpdated(int)));
+    connect(state, SIGNAL(colorPropertiesUpdated(int)), preview, SLOT(colorPropertiesUpdated()));
+    connect(state, SIGNAL(multicolorModeToggled(bool)), preview, SLOT(colorPropertiesUpdated()));
 
     connect(state, SIGNAL(byteUpdated(int)), this, SLOT(updateWindow()));
     connect(state, SIGNAL(tileUpdated(int)), this, SLOT(updateWindow()));
     connect(state, SIGNAL(charIndexUpdated(int)), this, SLOT(charIndexUpdated(int)));
     connect(state, SIGNAL(charsetUpdated()), this, SLOT(updateWindow()));
 
-//  connect(state, SIGNAL(colorPropertiesUpdated(int)), preview, SLOT(tileWasUpdated()));
     connect(state, SIGNAL(colorPropertiesUpdated(int)), this, SLOT(updateWindow()));
     connect(state, SIGNAL(multicolorModeToggled(bool)), this, SLOT(multicolorModeToggled(bool)));
     connect(state, SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
