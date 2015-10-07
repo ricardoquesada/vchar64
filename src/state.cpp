@@ -413,6 +413,11 @@ void State::updateCharset(quint8 *buffer)
 // buffer must be at least 8x8*8 bytes big
 void State::copyCharFromIndex(int tileIndex, quint8* buffer, int bufferSize)
 {
+    // bufferSize is only used in Q_ASSERT (debug mode) so...
+#if QT_NO_DEBUG
+    Q_UNUSED(bufferSize);
+#endif
+
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(bufferSize >= tileSize && "invalid bufferSize. Too small");
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
@@ -422,6 +427,11 @@ void State::copyCharFromIndex(int tileIndex, quint8* buffer, int bufferSize)
 // size-of-tile chars will be copied
 void State::copyCharToIndex(int tileIndex, quint8* buffer, int bufferSize)
 {
+    // bufferSize is only used in Q_ASSERT (debug mode) so...
+#if QT_NO_DEBUG
+    Q_UNUSED(bufferSize);
+#endif
+
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(bufferSize >= tileSize && "invalid bufferSize. Too small");
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
