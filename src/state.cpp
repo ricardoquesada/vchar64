@@ -483,6 +483,7 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
         if (bytesToCopy <0)
             break;
         memcpy(dst, src, bytesToCopy);
+        emit bytesUpdated(charIndex * 8, bytesToCopy);
 
         dst += (copyRange.blockSize + copyRange.skip) * 8;
         src += (copyRange.blockSize + copyRange.skip) * 8;

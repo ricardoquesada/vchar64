@@ -100,7 +100,11 @@ PasteCommand::PasteCommand(State *state, int charIndex, const State::CopyRange& 
 
 void PasteCommand::undo()
 {
-    _state->updateCharset(_origBuffer);
+    State::CopyRange reversedCopyRange;
+    memcpy(&reversedCopyRange, &_copyRange, sizeof(State::CopyRange));
+    reversedCopyRange.offset = _charIndex;
+
+    _state->paste(_charIndex, reversedCopyRange, _origBuffer);
 }
 
 void PasteCommand::redo()
