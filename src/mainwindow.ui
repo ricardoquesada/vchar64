@@ -120,6 +120,8 @@
      <string>Tile</string>
     </property>
     <addaction name="actionTilesProperties"/>
+    <addaction name="actionNext_Tile"/>
+    <addaction name="actionPrevious_Tile"/>
    </widget>
    <widget class="QMenu" name="menuPreview">
     <property name="title">
@@ -776,6 +778,22 @@
   <action name="actionDocumentation">
    <property name="text">
     <string>Documentation</string>
+   </property>
+  </action>
+  <action name="actionNext_Tile">
+   <property name="text">
+    <string>Next Tile</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Right</string>
+   </property>
+  </action>
+  <action name="actionPrevious_Tile">
+   <property name="text">
+    <string>Previous Tile</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Left</string>
    </property>
   </action>
  </widget>

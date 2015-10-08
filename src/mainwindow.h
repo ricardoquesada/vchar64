@@ -116,6 +116,10 @@ private slots:
 
     void on_actionDocumentation_triggered();
 
+    void on_actionNext_Tile_triggered();
+
+    void on_actionPrevious_Tile_triggered();
+
 private:
 
     bool maybeSave();

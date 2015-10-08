@@ -55,6 +55,7 @@ protected:
     void paintFocus(QPainter &painter);
 
     void paintPixel(int x, int y, int pen);
+    void cyclePixel(int x, int y);
 
     int _tileIndex;
     int _charIndex;

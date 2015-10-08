@@ -53,6 +53,28 @@ void BigCharWidget::paintPixel(int x, int y, int pen)
     update();
 }
 
+void BigCharWidget::cyclePixel(int x, int y)
+{
+    auto&& state = State::getInstance();
+
+    int pen = state->tileGetPen(_tileIndex, QPoint(x, y));
+
+    int nextPenMC[] = {State::PEN_FOREGROUND,
+                       State::PEN_MULTICOLOR2,
+                       State::PEN_BACKGROUND,
+                       State::PEN_MULTICOLOR1};
+
+    int nextPenHR[] = {State::PEN_FOREGROUND,
+                       State::PEN_BACKGROUND};
+
+    if (state->shouldBeDisplayedInMulticolor())
+        pen = nextPenMC[pen];
+    else
+        pen = nextPenHR[pen];
+
+    paintPixel(x, y, pen);
+}
+
 void BigCharWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
@@ -115,9 +137,6 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
 
-    MainWindow *window = dynamic_cast<MainWindow*>(qApp->activeWindow());
-    Ui::MainWindow *ui = window->getUi();
-
     auto&& state = State::getInstance();
     int increment_x = state->shouldBeDisplayedInMulticolor() ? 2 : 1;
 
@@ -137,11 +156,8 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Space:
         paintPixel(_cursorPos.x(), _cursorPos.y(), state->getSelectedPen());
         break;
-    case Qt::Key_Minus:
-        ui->spinBox_tileIndex->setValue(ui->spinBox_tileIndex->value() - 1);
-        break;
-    case Qt::Key_Plus:
-        ui->spinBox_tileIndex->setValue(ui->spinBox_tileIndex->value() + 1);
+    case Qt::Key_X:
+        cyclePixel(_cursorPos.x(), _cursorPos.y());
         break;
     default:
         QWidget::keyPressEvent(event);

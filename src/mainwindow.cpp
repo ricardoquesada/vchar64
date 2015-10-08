@@ -781,3 +781,19 @@ void MainWindow::on_actionXlinkConnection_triggered()
             msgBox.exec();
         }
 }
+
+void MainWindow::on_actionNext_Tile_triggered()
+{
+    int value = _ui->spinBox_tileIndex->value() + 1;
+    if (value > _ui->spinBox_tileIndex->maximum())
+        value = 0;
+    _ui->spinBox_tileIndex->setValue(value);
+}
+
+void MainWindow::on_actionPrevious_Tile_triggered()
+{
+    int value = _ui->spinBox_tileIndex->value() - 1;
+    if (value < 0)
+        value = _ui->spinBox_tileIndex->maximum();
+    _ui->spinBox_tileIndex->setValue(value);
+}

@@ -1,5 +1,8 @@
 0.0.8 (4 October 2015)
 
+* [NEW] Ctrl+Right / Ctrl-Left display the next tile
+* [NEW] When focus in BigcharWidget, key 'x' sets the next pen
+
 * [BUGFIX] Block-copy supported in Xlink
 * [BUGFIX] events are propagated to the dock windows when they are floating
 
