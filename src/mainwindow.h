@@ -50,6 +50,7 @@ public slots:
     void updateWindow();
     void charIndexUpdated(int);
     void multicolorModeToggled(bool);
+    void tilePropertiesUpdated();
 
 protected:
     void readSettings();

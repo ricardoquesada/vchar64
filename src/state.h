@@ -150,10 +150,17 @@ public:
     }
 
     // tile properties
+    /**
+     * @brief setTileProperties changes the tile properties
+     * emit tilePropertiesUpdated();
+     * @param properties the new TileProperties struct
+     */
     void setTileProperties(const TileProperties& properties);
-    TileProperties getTileProperties() const {
-        return _tileProperties;
-    }
+    /**
+     * @brief getTileProperties
+     * @return the TileProperties being used
+     */
+    TileProperties getTileProperties() const;
 
     // is the state "dirty" ?
     bool isModified() const;

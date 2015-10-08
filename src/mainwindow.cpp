@@ -87,10 +87,24 @@ void MainWindow::updateWindow()
 
     // update event() does not get propagated if dockWidget are floating.
     // manual update it
-    _ui->dockWidget_charset->update();
-    _ui->dockWidget_colors->update();
-    _ui->dockWidget_tileIndex->update();
+    if (_ui->dockWidget_charset->isFloating())
+        _ui->dockWidget_charset->update();
+    if (_ui->dockWidget_colors->isFloating())
+        _ui->dockWidget_colors->update();
+    if (_ui->dockWidget_tileIndex->isFloating())
+        _ui->dockWidget_tileIndex->update();
 
+}
+
+void MainWindow::tilePropertiesUpdated()
+{
+    // update max tile index
+    auto state = State::getInstance();
+    QSize s = state->getTileProperties().size;
+    _ui->spinBox_tileIndex->setMaximum((256 / (s.width()*s.height()))-1);
+
+    // rotate only enable if witdh==height
+    _ui->actionRotate->setEnabled(s.width() == s.height());
 }
 
 void MainWindow::multicolorModeToggled(bool newvalue)
@@ -172,7 +186,6 @@ void MainWindow::saveSettings()
 void MainWindow::createActions()
 {
     auto state = State::getInstance();
-    connect(state, &State::tilePropertiesUpdated, _ui->bigcharWidget, &BigCharWidget::updateTileProperties);
 
     // Add recent file actions to the recent files menu
     for (int i=0; i<MAX_RECENT_FILES; ++i)
@@ -199,6 +212,9 @@ void MainWindow::createActions()
     connect(state, SIGNAL(tileUpdated(int)), preview, SLOT(tileUpdated(int)));
     connect(state, SIGNAL(colorPropertiesUpdated(int)), preview, SLOT(colorPropertiesUpdated()));
     connect(state, SIGNAL(multicolorModeToggled(bool)), preview, SLOT(colorPropertiesUpdated()));
+
+    connect(state, &State::tilePropertiesUpdated, _ui->bigcharWidget, &BigCharWidget::updateTileProperties);
+    connect(state, &State::tilePropertiesUpdated, this, &MainWindow::tilePropertiesUpdated);
 
     connect(state, SIGNAL(byteUpdated(int)), this, SLOT(updateWindow()));
     connect(state, SIGNAL(tileUpdated(int)), this, SLOT(updateWindow()));
@@ -760,14 +776,6 @@ void MainWindow::on_actionTilesProperties_triggered()
     TilePropertiesDialog dialog(this);
 
     dialog.exec();
-
-    // update max tile index
-    auto state = State::getInstance();
-    QSize s = state->getTileProperties().size;
-    _ui->spinBox_tileIndex->setMaximum((256 / (s.width()*s.height()))-1);
-
-    // rotate only enable if witdh==height
-    _ui->actionRotate->setEnabled(s.width() == s.height());
 }
 
 void MainWindow::on_actionXlinkConnection_triggered()

@@ -385,6 +385,10 @@ void State::setTileProperties(const TileProperties& properties)
         emit contentsChanged();
     }
 }
+State::TileProperties State::getTileProperties() const
+{
+    return _tileProperties;
+}
 
 // charset methods
 quint8* State::getCharsetBuffer()
@@ -413,29 +417,20 @@ void State::updateCharset(quint8 *buffer)
 // buffer must be at least 8x8*8 bytes big
 void State::copyCharFromIndex(int tileIndex, quint8* buffer, int bufferSize)
 {
-    // bufferSize is only used in Q_ASSERT (debug mode) so...
-#if QT_NO_DEBUG
-    Q_UNUSED(bufferSize);
-#endif
-
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(bufferSize >= tileSize && "invalid bufferSize. Too small");
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
-    memcpy(buffer, &_charset[tileIndex*tileSize], tileSize);
+
+    memcpy(buffer, &_charset[tileIndex*tileSize], qMin(tileSize, bufferSize));
 }
 
 // size-of-tile chars will be copied
 void State::copyCharToIndex(int tileIndex, quint8* buffer, int bufferSize)
 {
-    // bufferSize is only used in Q_ASSERT (debug mode) so...
-#if QT_NO_DEBUG
-    Q_UNUSED(bufferSize);
-#endif
-
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
     Q_ASSERT(bufferSize >= tileSize && "invalid bufferSize. Too small");
     Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
-    memcpy(&_charset[tileIndex*tileSize], buffer, tileSize);
+    memcpy(&_charset[tileIndex*tileSize], buffer, qMin(tileSize, bufferSize));
 
     emit tileUpdated(tileIndex);
     emit contentsChanged();
@@ -514,24 +509,9 @@ void State::setCopyRange(const State::CopyRange& copyRange)
     _copyRange = copyRange;
 }
 
+//
 // tile manipulation
-//void State::tileCopy(int tileIndex)
-//{
-//    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
-//    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
-//    memcpy(_copyCharset, &_charset[tileIndex*tileSize], tileSize);
-//}
-
-//void State::tilePaste(int tileIndex)
-//{
-//    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
-//    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
-//    memcpy(&_charset[tileIndex*tileSize], _copyCharset, tileSize);
-
-//    emit tileUpdated(tileIndex);
-//    emit contentsChanged();
-//}
-
+//
 void State::tileInvert(int tileIndex)
 {
     int charIndex = getCharIndexFromTileIndex(tileIndex);
