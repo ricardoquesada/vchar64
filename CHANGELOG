@@ -7,6 +7,8 @@
 	Kind of restoring the old behavior, but instead of changing the color
 	it sets the pixel with those colors
 
+* [BUGFIX] Tile Index / Rotate Action udpated correctly after tile properties
+	are updated in undo / redo
 * [BUGFIX] Block-copy supported in Xlink
 * [BUGFIX] events are propagated to the dock windows when they are floating
 
