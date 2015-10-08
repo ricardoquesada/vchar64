@@ -153,10 +153,21 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Up:
         _cursorPos += {0,-1};
         break;
-    case Qt::Key_Space:
-        paintPixel(_cursorPos.x(), _cursorPos.y(), state->getSelectedPen());
+    case Qt::Key_1:
+        paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_BACKGROUND);
         break;
-    case Qt::Key_X:
+    case Qt::Key_2:
+        paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_FOREGROUND);
+        break;
+    case Qt::Key_3:
+        if (state->shouldBeDisplayedInMulticolor())
+            paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_MULTICOLOR1);
+        break;
+    case Qt::Key_4:
+        if (state->shouldBeDisplayedInMulticolor())
+            paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_MULTICOLOR2);
+        break;
+    case Qt::Key_Space:
         cyclePixel(_cursorPos.x(), _cursorPos.y());
         break;
     default:

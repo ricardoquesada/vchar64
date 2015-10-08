@@ -1,7 +1,11 @@
 0.0.8 (4 October 2015)
 
 * [NEW] Ctrl+Right / Ctrl-Left display the next tile
-* [NEW] When focus in BigcharWidget, key 'x' sets the next pen
+* [NEW] When focus in BigcharWidget, 'space' sets the next pen
+* [NEW] When focus in BigcharWidget, keys '1', '2', '3', '4' sets
+        BACKGROUND, FOREGROUND, MULTICOLOR1 and MULTICOLOR2 respectively
+	Kind of restoring the old behavior, but instead of changing the color
+	it sets the pixel with those colors
 
 * [BUGFIX] Block-copy supported in Xlink
 * [BUGFIX] events are propagated to the dock windows when they are floating
