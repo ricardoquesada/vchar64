@@ -27,6 +27,7 @@ limitations under the License.
 static const int PIXEL_SIZE = 2;
 static const int COLUMNS = 32;
 static const int ROWS = 8;
+static const int OFFSET = 2;
 
 CharSetWidget::CharSetWidget(QWidget *parent)
     : QWidget(parent)
@@ -35,7 +36,8 @@ CharSetWidget::CharSetWidget(QWidget *parent)
     , _selectingSize({1,1})
     , _charIndex(-1)
 {
-    setFixedSize(PIXEL_SIZE * COLUMNS * 8, PIXEL_SIZE * ROWS * 8);
+    setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
+                 PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 }
 
 void CharSetWidget::updateCharIndex(int charIndex)
@@ -59,8 +61,8 @@ void CharSetWidget::mousePressEvent(QMouseEvent * event)
 
     auto pos = event->localPos();
 
-    int x = pos.x() / PIXEL_SIZE / 8;
-    int y = pos.y() / PIXEL_SIZE / 8;
+    int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
+    int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
     int charIndex = x + y * COLUMNS;
 
     if (event->button() == Qt::LeftButton)
@@ -107,8 +109,8 @@ void CharSetWidget::mouseMoveEvent(QMouseEvent * event)
     if (event->buttons() == Qt::LeftButton)
     {
         auto pos = event->localPos();
-        int x = pos.x() / PIXEL_SIZE / 8;
-        int y = pos.y() / PIXEL_SIZE / 8;
+        int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
+        int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
 
         if (x >= _cursorPos.x())
             x++;
@@ -196,8 +198,7 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
     QPainter painter;
 
     painter.begin(this);
-//    painter.fillRect(event->rect(), QBrush(QColor(255, 255, 255)));
-    painter.fillRect(event->rect(), QColor(204,204,204));
+    painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
     painter.setBrush(QColor(0,0,0));
     painter.setPen(Qt::NoPen);
@@ -252,7 +253,10 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
                     if (!state->shouldBeDisplayedInMulticolor() && color_pen )
                         color_pen = State::PEN_FOREGROUND;
                     painter.setBrush(Palette::getColorForPen(color_pen));
-                    painter.drawRect((w*end_x+x) * pixel_size_x, (h*8+y) * PIXEL_SIZE, pixel_size_x, PIXEL_SIZE);
+                    painter.drawRect((w*end_x+x) * pixel_size_x + OFFSET,
+                                     (h*8+y) * PIXEL_SIZE + OFFSET,
+                                     pixel_size_x,
+                                     PIXEL_SIZE);
                 }
             }
 
@@ -264,16 +268,20 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(149,195,244,64));
-        painter.drawRect(_cursorPos.x()*8*PIXEL_SIZE, _cursorPos.y()*8*PIXEL_SIZE,
-                         _selectingSize.width()*8*PIXEL_SIZE, _selectingSize.height()*8*PIXEL_SIZE);
+        painter.drawRect(_cursorPos.x() * 8 * PIXEL_SIZE + OFFSET,
+                         _cursorPos.y() * 8 * PIXEL_SIZE + OFFSET,
+                         _selectingSize.width() * 8 * PIXEL_SIZE,
+                         _selectingSize.height() * 8 * PIXEL_SIZE);
     }
     else
     {
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(128,0,0,0));
-        painter.drawRect(_cursorPos.x()*8*PIXEL_SIZE, _cursorPos.y()*8*PIXEL_SIZE,
-                         8*PIXEL_SIZE, 8*PIXEL_SIZE);
+        painter.drawRect(_cursorPos.x() * 8 * PIXEL_SIZE + OFFSET,
+                         _cursorPos.y() * 8 * PIXEL_SIZE + OFFSET,
+                         8 * PIXEL_SIZE,
+                         8 * PIXEL_SIZE);
     }
 
     paintFocus(painter);
@@ -293,15 +301,15 @@ void CharSetWidget::paintFocus(QPainter &painter)
 
         // vertical lines
         painter.drawLine(0, 0,
-                         0, ROWS * PIXEL_SIZE * 8);
-        painter.drawLine(COLUMNS * PIXEL_SIZE * 8, 0,
-                         COLUMNS * PIXEL_SIZE * 8, ROWS * PIXEL_SIZE * 8);
+                         0, ROWS * PIXEL_SIZE * 8 + OFFSET * 2);
+        painter.drawLine(COLUMNS * PIXEL_SIZE * 8 + OFFSET, 0,
+                         COLUMNS * PIXEL_SIZE * 8 + OFFSET * 2, ROWS * PIXEL_SIZE * 8 + OFFSET * 2);
 
         // horizontal lines
         painter.drawLine(0, 0,
-                         COLUMNS * PIXEL_SIZE * 8, 0);
-        painter.drawLine(0, ROWS * PIXEL_SIZE * 8,
-                         COLUMNS * PIXEL_SIZE * 8, ROWS * PIXEL_SIZE * 8);
+                         COLUMNS * PIXEL_SIZE * 8 + OFFSET * 2, 0);
+        painter.drawLine(0, ROWS * PIXEL_SIZE * 8 + OFFSET,
+                         COLUMNS * PIXEL_SIZE * 8 + OFFSET * 2, ROWS * PIXEL_SIZE * 8 + OFFSET * 2);
     }
 }
 

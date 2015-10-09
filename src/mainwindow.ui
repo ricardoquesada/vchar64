@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>537</width>
-    <height>543</height>
+    <height>523</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -181,8 +181,8 @@
    <widget class="QWidget" name="dockWidgetContents">
     <property name="minimumSize">
      <size>
-      <width>512</width>
-      <height>128</height>
+      <width>516</width>
+      <height>132</height>
      </size>
     </property>
     <widget class="CharSetWidget" name="charsetWidget" native="true">
@@ -190,14 +190,14 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>512</width>
-       <height>128</height>
+       <width>516</width>
+       <height>132</height>
       </rect>
      </property>
      <property name="minimumSize">
       <size>
-       <width>512</width>
-       <height>128</height>
+       <width>516</width>
+       <height>132</height>
       </size>
      </property>
      <property name="focusPolicy">
