@@ -27,7 +27,7 @@ typedef bool (*xlink_peek_t)(uchar, uchar, ushort, uchar*);
 typedef bool (*xlink_poke_t)(uchar, uchar, ushort, uchar);
 typedef bool (*xlink_fill_t)(uchar, uchar, ushort, uchar, uint);
 
-class Preview : public QObject
+class XlinkPreview : public QObject
 {
     Q_OBJECT
 
@@ -45,7 +45,7 @@ class Preview : public QObject
     void install();
 
 public:
-    static Preview* getInstance();
+    static XlinkPreview* getInstance();
     bool isConnected();
     bool isAvailable() { return _available; }
     bool connect();
@@ -75,7 +75,7 @@ public slots:
     void colorSelected();
 
 protected:
-    Preview();
+    XlinkPreview();
 
     QLibrary *_xlink;
     xlink_ping_t xlink_ping;

@@ -29,7 +29,7 @@ limitations under the License.
 #include <QLabel>
 
 #include "state.h"
-#include "preview.h"
+#include "xlinkpreview.h"
 #include "aboutdialog.h"
 #include "exportdialog.h"
 #include "tilepropertiesdialog.h"
@@ -205,7 +205,7 @@ void MainWindow::createActions()
     _ui->colorRectWidget_2->setPen(State::PEN_MULTICOLOR1);
     _ui->colorRectWidget_3->setPen(State::PEN_MULTICOLOR2);
 
-    auto preview = Preview::getInstance();
+    auto preview = XlinkPreview::getInstance();
     connect(state, SIGNAL(fileLoaded()), preview, SLOT(fileLoaded()));
     connect(state, SIGNAL(byteUpdated(int)), preview, SLOT(byteUpdated(int)));
     connect(state, SIGNAL(bytesUpdated(int, int)), preview, SLOT(bytesUpdated(int, int)));
@@ -780,7 +780,7 @@ void MainWindow::on_actionTilesProperties_triggered()
 
 void MainWindow::on_actionXlinkConnection_triggered()
 {
-    auto preview = Preview::getInstance();
+    auto preview = XlinkPreview::getInstance();
     if(preview->isConnected())
         preview->disconnect();
     else

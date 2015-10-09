@@ -17,19 +17,19 @@ limitations under the License.
 #include <QFile>
 #include <QFileInfo>
 
-#include "preview.h"
+#include "xlinkpreview.h"
 
-static Preview *__instance = nullptr;
+static XlinkPreview *__instance = nullptr;
 
-Preview* Preview::getInstance()
+XlinkPreview* XlinkPreview::getInstance()
 {
     if (!__instance)
-        __instance = new Preview();
+        __instance = new XlinkPreview();
 
     return __instance;
 }
 
-bool Preview::isConnected()
+bool XlinkPreview::isConnected()
 {
     if(!_available) return false;
     if(!_connected) return false;
@@ -42,7 +42,7 @@ bool Preview::isConnected()
     return true;
 }
 
-bool Preview::connect()
+bool XlinkPreview::connect()
 {
     if((_connected = xlink_ping())) {
         fileLoaded();
@@ -51,13 +51,13 @@ bool Preview::connect()
     return _connected;
 }
 
-void Preview::disconnect()
+void XlinkPreview::disconnect()
 {
     _connected = false;
     emit previewDisconnected();
 }
 
-Preview::Preview()
+XlinkPreview::XlinkPreview()
     : _available(false)
     , _connected(false)
     , xlink_ping(nullptr)
@@ -80,7 +80,7 @@ Preview::Preview()
     }
 }
 
-void Preview::updateBackgroundColor()
+void XlinkPreview::updateBackgroundColor()
 {
     if(!_xlink->isLoaded()) return;
 
@@ -89,7 +89,7 @@ void Preview::updateBackgroundColor()
     xlink_poke(0x37, 0x00, 0xd021, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
 }
 
-void Preview::updateForegroundColor()
+void XlinkPreview::updateForegroundColor()
 {
     if(!isConnected()) return;
 
@@ -101,7 +101,7 @@ void Preview::updateForegroundColor()
     xlink_poke(0x37, 0x00, 0x0286, foreground);
 }
 
-void Preview::updateMulticolor1()
+void XlinkPreview::updateMulticolor1()
 {
     if(!isConnected()) return;
 
@@ -109,7 +109,7 @@ void Preview::updateMulticolor1()
     xlink_poke(0x37, 0x00, 0xd022, (uchar) state->getColorForPen(State::PEN_MULTICOLOR1));
 }
 
-void Preview::updateMulticolor2()
+void XlinkPreview::updateMulticolor2()
 {
     if(!isConnected()) return;
 
@@ -117,7 +117,7 @@ void Preview::updateMulticolor2()
     xlink_poke(0x37, 0x00, 0xd023, (uchar) state->getColorForPen(State::PEN_MULTICOLOR2));
 }
 
-void Preview::updateColorMode()
+void XlinkPreview::updateColorMode()
 {
     if(!isConnected()) return;
 
@@ -130,7 +130,7 @@ void Preview::updateColorMode()
     updateForegroundColor();
 }
 
-void Preview::updateColorProperties()
+void XlinkPreview::updateColorProperties()
 {
     updateBackgroundColor();
     updateMulticolor1();
@@ -138,7 +138,7 @@ void Preview::updateColorProperties()
     updateColorMode(); // also updates foreground color
 }
 
-void Preview::updateCharset()
+void XlinkPreview::updateCharset()
 {
     if(!isConnected()) return;
 
@@ -148,7 +148,7 @@ void Preview::updateCharset()
     xlink_poke(0x37, 0x00, 0xd018, 0x1c);
 }
 
-bool Preview::updateScreen(const QString& filename)
+bool XlinkPreview::updateScreen(const QString& filename)
 {
     if(!isConnected()) return false;
 
@@ -169,21 +169,21 @@ bool Preview::updateScreen(const QString& filename)
     return true;
 }
 
-void Preview::install()
+void XlinkPreview::install()
 {
     updateScreen(":/c64-screen.bin");
     updateCharset();
     updateColorProperties();
 }
 
-void Preview::fileLoaded()
+void XlinkPreview::fileLoaded()
 {
     if(!isConnected()) return;
 
     install();
 }
 
-void Preview::byteUpdated(int byteIndex)
+void XlinkPreview::byteUpdated(int byteIndex)
 {
     if(!isConnected()) return;
 
@@ -191,7 +191,7 @@ void Preview::byteUpdated(int byteIndex)
     xlink_poke(0xb7, 0x00, 0x3000 + byteIndex, state->getCharsetBuffer()[byteIndex]);
 }
 
-void Preview::bytesUpdated(int pos, int count)
+void XlinkPreview::bytesUpdated(int pos, int count)
 {
     if(!isConnected()) return;
 
@@ -199,7 +199,7 @@ void Preview::bytesUpdated(int pos, int count)
     xlink_load(0xb7, 0x00, 0x3000+pos, state->getCharsetBuffer()+pos, count);
 }
 
-void Preview::tileUpdated(int tileIndex)
+void XlinkPreview::tileUpdated(int tileIndex)
 {
     if(!isConnected()) return;
 
@@ -221,7 +221,7 @@ void Preview::tileUpdated(int tileIndex)
     }
 }
 
-void Preview::colorSelected()
+void XlinkPreview::colorSelected()
 {
     if(!isConnected()) return;
 
@@ -235,7 +235,7 @@ void Preview::colorSelected()
     }
 }
 
-void Preview::colorPropertiesUpdated()
+void XlinkPreview::colorPropertiesUpdated()
 {
     if(!isConnected()) return;
 

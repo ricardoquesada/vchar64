@@ -23,13 +23,13 @@ SOURCES += src/main.cpp\
     src/stateexport.cpp \
     src/exportdialog.cpp \
     src/tilepropertiesdialog.cpp \
-    src/preview.cpp \
     src/commands.cpp \
     src/palette.cpp \
     src/bigcharwidget.cpp \
     src/charsetwidget.cpp \
     src/colorrectwidget.cpp \
-    src/palettewidget.cpp
+    src/palettewidget.cpp \
+    src/xlinkpreview.cpp
 
 HEADERS  += src/mainwindow.h \
     src/state.h \
@@ -38,13 +38,13 @@ HEADERS  += src/mainwindow.h \
     src/stateexport.h \
     src/exportdialog.h \
     src/tilepropertiesdialog.h \
-    src/preview.h \
     src/commands.h \
     src/palette.h \
     src/bigcharwidget.h \
     src/charsetwidget.h \
     src/colorrectwidget.h \
-    src/palettewidget.h
+    src/palettewidget.h \
+    src/xlinkpreview.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui \
