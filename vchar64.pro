@@ -29,7 +29,8 @@ SOURCES += src/main.cpp\
     src/charsetwidget.cpp \
     src/colorrectwidget.cpp \
     src/palettewidget.cpp \
-    src/xlinkpreview.cpp
+    src/xlinkpreview.cpp \
+    src/tilesetwidget.cpp
 
 HEADERS  += src/mainwindow.h \
     src/state.h \
@@ -44,7 +45,8 @@ HEADERS  += src/mainwindow.h \
     src/charsetwidget.h \
     src/colorrectwidget.h \
     src/palettewidget.h \
-    src/xlinkpreview.h
+    src/xlinkpreview.h \
+    src/tilesetwidget.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui \

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>537</width>
-    <height>523</height>
+    <width>516</width>
+    <height>527</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -53,7 +53,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>537</width>
+     <width>516</width>
      <height>22</height>
     </rect>
    </property>
@@ -371,6 +371,26 @@
     </widget>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="dockWidget_tileset">
+   <property name="windowTitle">
+    <string>Tileset</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_5">
+    <widget class="TilesetWidget" name="tilesetWidget" native="true">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>70</y>
+       <width>120</width>
+       <height>80</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+  </widget>
   <action name="actionOpen">
    <property name="icon">
     <iconset theme="document-open" resource="../res/resources.qrc">
@@ -388,7 +408,7 @@
   </action>
   <action name="actionExit">
    <property name="icon">
-    <iconset theme="exit">
+    <iconset theme="application-exit">
      <normaloff/>
     </iconset>
    </property>
@@ -415,7 +435,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset resource="../res/resources.qrc">
+    <iconset theme="document-save" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-save.png</normaloff>:/icons/22x22/actions/document-save.png</iconset>
    </property>
    <property name="text">
@@ -460,7 +480,7 @@
   </action>
   <action name="actionSaveAs">
    <property name="icon">
-    <iconset theme="document-save" resource="../res/resources.qrc">
+    <iconset theme="document-save-as" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-save.png</normaloff>:/icons/22x22/actions/document-save.png</iconset>
    </property>
    <property name="text">
@@ -578,6 +598,11 @@
    </property>
   </action>
   <action name="actionAbout">
+   <property name="icon">
+    <iconset theme="help-about">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>About</string>
    </property>
@@ -776,6 +801,11 @@
    </property>
   </action>
   <action name="actionDocumentation">
+   <property name="icon">
+    <iconset theme="help-contents">
+     <normaloff/>
+    </iconset>
+   </property>
    <property name="text">
     <string>Documentation</string>
    </property>
@@ -824,6 +854,12 @@
    <class>PaletteWidget</class>
    <extends>QWidget</extends>
    <header>palettewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TilesetWidget</class>
+   <extends>QWidget</extends>
+   <header>tilesetwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

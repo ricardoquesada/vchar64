@@ -162,8 +162,8 @@ void MainWindow::readSettings()
     auto geom = _settings.value("MainWindow/geometry").toByteArray();
     auto state = _settings.value("MainWindow/windowState").toByteArray();
 
-    restoreState(state);
-    restoreGeometry(geom);
+//    restoreState(state);
+//    restoreGeometry(geom);
 
     QAction* actions[] = {
         _ui->actionPalette_0,
@@ -263,6 +263,12 @@ void MainWindow::createDefaults()
     state->setMulticolorMode(false);
 
     setWindowFilePath("[untitled]");
+
+    // tabify charsetWidget and tilesetWidget
+    tabifyDockWidget(_ui->dockWidget_charset, _ui->dockWidget_tileset);
+    // select charsetWidget as the default one
+    _ui->dockWidget_charset->raise();
+
 }
 
 void MainWindow::setupStatusBar()
