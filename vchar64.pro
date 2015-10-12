@@ -63,5 +63,6 @@ RESOURCES += \
 QMAKE_CXXFLAGS += -Werror
 
 macx {
-    ICON = res/vchar64.icns
+    ICON = res/vchar64-icon-mac.icns
+    QMAKE_INFO_PLIST = Info.plist
 }

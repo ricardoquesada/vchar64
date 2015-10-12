@@ -645,9 +645,9 @@
         <file>icons/32x32/status/weather-showers.png</file>
         <file>icons/32x32/status/weather-snow.png</file>
         <file>icons/32x32/status/weather-storm.png</file>
-        <file>vchar64.icns</file>
         <file>logo512.png</file>
         <file>c64-chargen-lowercase.bin</file>
         <file>c64-chargen-uppercase.bin</file>
+        <file>vchar64-icon-mac.icns</file>
     </qresource>
 </RCC>

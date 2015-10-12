@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
-    app.setOrganizationDomain(QLatin1String("vchar64.org"));
+    app.setOrganizationDomain(QLatin1String("retro.moe"));
     app.setApplicationName(QLatin1String("VChar64"));
     app.setApplicationVersion(QLatin1String(APP_VERSION));
 
