@@ -199,9 +199,8 @@ void BigCharWidget::paintEvent(QPaintEvent *event)
 
     for (int y=0; y<_tileProperties.size.height(); y++) {
         for (int x=0; x<_tileProperties.size.width(); x++) {
-            QPoint tileToDraw(x,y);
 
-            paintChar(painter, pen, charPtr, tileToDraw);
+            paintChar(painter, pen, charPtr, QPoint{x,y});
             // chars could be 64 chars away from each other
             charPtr +=  _tileProperties.interleaved * 8;
         }

@@ -382,11 +382,14 @@
     <widget class="TilesetWidget" name="tilesetWidget" native="true">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>70</y>
+       <x>0</x>
+       <y>0</y>
        <width>120</width>
        <height>80</height>
       </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::StrongFocus</enum>
      </property>
     </widget>
    </widget>
@@ -861,6 +864,10 @@
    <extends>QWidget</extends>
    <header>tilesetwidget.h</header>
    <container>1</container>
+   <slots>
+    <signal>tileSelected(int)</signal>
+    <slot>tileIndexUpdated(int)</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <tabstops>
@@ -870,6 +877,8 @@
   <tabstop>radioButton_multicolor2</tabstop>
   <tabstop>checkBox_multicolor</tabstop>
   <tabstop>spinBox_tileIndex</tabstop>
+  <tabstop>bigcharWidget</tabstop>
+  <tabstop>charsetWidget</tabstop>
  </tabstops>
  <resources>
   <include location="../res/resources.qrc"/>
@@ -886,7 +895,7 @@
      <y>273</y>
     </hint>
     <hint type="destinationlabel">
-     <x>570</x>
+     <x>549</x>
      <y>122</y>
     </hint>
    </hints>
@@ -902,7 +911,7 @@
      <y>273</y>
     </hint>
     <hint type="destinationlabel">
-     <x>570</x>
+     <x>549</x>
      <y>154</y>
     </hint>
    </hints>
@@ -918,7 +927,7 @@
      <y>273</y>
     </hint>
     <hint type="destinationlabel">
-     <x>570</x>
+     <x>549</x>
      <y>186</y>
     </hint>
    </hints>
@@ -934,7 +943,7 @@
      <y>273</y>
     </hint>
     <hint type="destinationlabel">
-     <x>570</x>
+     <x>549</x>
      <y>218</y>
     </hint>
    </hints>
@@ -946,7 +955,7 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>460</x>
+     <x>439</x>
      <y>126</y>
     </hint>
     <hint type="destinationlabel">
@@ -962,7 +971,7 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>460</x>
+     <x>439</x>
      <y>158</y>
     </hint>
     <hint type="destinationlabel">
@@ -978,7 +987,7 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>460</x>
+     <x>439</x>
      <y>190</y>
     </hint>
     <hint type="destinationlabel">
@@ -994,7 +1003,7 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>460</x>
+     <x>439</x>
      <y>222</y>
     </hint>
     <hint type="destinationlabel">
@@ -1042,8 +1051,8 @@
    <slot>setTileIndex(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>495</x>
-     <y>359</y>
+     <x>474</x>
+     <y>343</y>
     </hint>
     <hint type="destinationlabel">
      <x>176</x>
@@ -1158,8 +1167,40 @@
      <y>457</y>
     </hint>
     <hint type="destinationlabel">
-     <x>468</x>
-     <y>347</y>
+     <x>474</x>
+     <y>343</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinBox_tileIndex</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>tilesetWidget</receiver>
+   <slot>tileIndexUpdated(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>440</x>
+     <y>329</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>34</x>
+     <y>105</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tilesetWidget</sender>
+   <signal>tileSelected(int)</signal>
+   <receiver>spinBox_tileIndex</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>47</x>
+     <y>121</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>434</x>
+     <y>335</y>
     </hint>
    </hints>
   </connection>

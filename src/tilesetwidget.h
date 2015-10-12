@@ -30,8 +30,14 @@ public:
 
 
 public slots:
+    void tileIndexUpdated(int selectedTileIndex);
 
 signals:
+    /**
+     * @brief tileSelected when a new tile is selected. Spinbox will consume this event.
+     * @param tileIndex value between 0 and tileMax
+     */
+    void tileSelected(int tileIndex);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
@@ -39,5 +45,11 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
+
+    void paintFocus(QPainter &painter);
+    void paintPixel(QPainter &painter, int width, int height, quint8* charPtr);
+    void paintSelectedTile(QPainter& painter);
+
+    int _selectedTile;
 };
 
