@@ -28,5 +28,5 @@ protected:
     bool event(QEvent* event) Q_DECL_OVERRIDE;
 
 signals:
-    void fileOpenRequest(const QString &file);
+    void fileOpenRequest(const QString& file);
 };

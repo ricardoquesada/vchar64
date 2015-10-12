@@ -8,3 +8,8 @@ Ricardo Quesada (http://retro.moe)
 Contributors:
 Henning Bekel (http://henning-bekel.de):
     - Added xlink support
+
+
+Additional:
+Used [Tiled](http://mapeditor.org) source code to learn how to code an editor in Qt
+

@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     MainWindow mainWin;
     mainWin.show();
 
-    QObject::connect(&app, SIGNAL(fileOpenRequest(QString)), &mainWin, SLOT(openFile(QString)));
+    QObject::connect(&app, SIGNAL(fileOpenRequest(const QString&)), &mainWin, SLOT(openFile(const QString&)));
 
     return app.exec();
 }

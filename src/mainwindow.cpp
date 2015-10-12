@@ -483,15 +483,15 @@ void MainWindow::on_actionPalette_4_triggered()
 //
 // MARK - File IO callbacks + helper functions
 //
-void MainWindow::openFile(const QString& fileName)
+void MainWindow::openFile(const QString& path)
 {
-    QFileInfo info(fileName);
+    QFileInfo info(path);
     _lastDir = info.absolutePath();
     _settings.setValue("dir/lastdir", _lastDir);
 
-    if (State::getInstance()->openFile(fileName)) {
+    if (State::getInstance()->openFile(path)) {
 
-        setRecentFile(fileName);
+        setRecentFile(path);
 
         updateWindow();
         auto state = State::getInstance();
@@ -501,7 +501,7 @@ void MainWindow::openFile(const QString& fileName)
     }
     else
     {
-        QMessageBox::warning(this, tr("Application"), tr("Error loading file: ") + fileName, QMessageBox::Ok);
+        QMessageBox::warning(this, tr("Application"), tr("Error loading file: ") + path, QMessageBox::Ok);
     }
 }
 
