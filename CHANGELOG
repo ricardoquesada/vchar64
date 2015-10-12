@@ -6,6 +6,8 @@
         BACKGROUND, FOREGROUND, MULTICOLOR1 and MULTICOLOR2 respectively
 	Kind of restoring the old behavior, but instead of changing the color
 	it sets the pixel with those colors
+* [NEW] TilesetWidget view: previews the "chars" as "tiles".
+* [NEW] Associates .vchar64proj to VChar64
 
 * [BUGFIX] Tile Index / Rotate Action udpated correctly after tile properties
 	are updated in undo / redo

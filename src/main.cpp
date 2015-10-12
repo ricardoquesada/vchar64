@@ -15,13 +15,13 @@ limitations under the License.
 ****************************************************************************/
 
 #include "mainwindow.h"
-#include <QApplication>
+#include "vchar64application.h"
 
 int main(int argc, char *argv[])
 {
     Q_INIT_RESOURCE(resources);
 
-    QApplication app(argc, argv);
+    VChar64Application app(argc, argv);
 
     app.setOrganizationDomain(QLatin1String("retro.moe"));
     app.setApplicationName(QLatin1String("VChar64"));
@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
 
     MainWindow mainWin;
     mainWin.show();
+
+    QObject::connect(&app, SIGNAL(fileOpenRequest(QString)), &mainWin, SLOT(openFile(QString)));
 
     return app.exec();
 }

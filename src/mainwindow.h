@@ -51,6 +51,7 @@ public slots:
     void charIndexUpdated(int);
     void multicolorModeToggled(bool);
     void tilePropertiesUpdated();
+    void openFile(const QString& fileName);
 
 protected:
     void readSettings();
@@ -63,7 +64,6 @@ protected:
     void updateRecentFiles();
     void setRecentFile(const QString& fileName);
     QStringList recentFiles() const;
-    void openFile(const QString& fileName);
 
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
 

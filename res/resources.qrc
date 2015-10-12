@@ -648,6 +648,5 @@
         <file>logo512.png</file>
         <file>c64-chargen-lowercase.bin</file>
         <file>c64-chargen-uppercase.bin</file>
-        <file>vchar64-icon-mac.icns</file>
     </qresource>
 </RCC>

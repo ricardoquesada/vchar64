@@ -30,7 +30,8 @@ SOURCES += src/main.cpp\
     src/colorrectwidget.cpp \
     src/palettewidget.cpp \
     src/xlinkpreview.cpp \
-    src/tilesetwidget.cpp
+    src/tilesetwidget.cpp \
+    src/vchar64application.cpp
 
 HEADERS  += src/mainwindow.h \
     src/state.h \
@@ -46,7 +47,8 @@ HEADERS  += src/mainwindow.h \
     src/colorrectwidget.h \
     src/palettewidget.h \
     src/xlinkpreview.h \
-    src/tilesetwidget.h
+    src/tilesetwidget.h \
+    src/vchar64application.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui \
@@ -55,7 +57,8 @@ FORMS    += src/mainwindow.ui \
 
 INCLUDEPATH += src
 
-DISTFILES +=
+DISTFILES += \
+    res/vchar64-icon-mac.icns
 
 RESOURCES += \
     res/resources.qrc
@@ -63,6 +66,7 @@ RESOURCES += \
 QMAKE_CXXFLAGS += -Werror
 
 macx {
+    TARGET = VChar64
     ICON = res/vchar64-icon-mac.icns
     QMAKE_INFO_PLIST = Info.plist
 }
