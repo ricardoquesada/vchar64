@@ -92,19 +92,6 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
 
     auto state = State::getInstance();
 
-    int end_x = 8;
-    int pixel_size_x = PIXEL_SIZE;
-    int increment_x = 1;
-    int bits_to_mask = 1;
-
-    if (state->shouldBeDisplayedInMulticolor())
-    {
-        end_x = 4;
-        pixel_size_x = PIXEL_SIZE * 2;
-        increment_x = 2;
-        bits_to_mask = 3;
-    }
-
     QPen pen;
     pen.setColor({149,195,244,255});
     pen.setWidth(hasFocus() ? 3 : 1 );
