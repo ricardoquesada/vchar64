@@ -287,6 +287,8 @@ protected:
     Char getCharFromTile(int tileIndex, int x, int y) const;
     void setCharForTile(int tileIndex, int x, int y, const Char& chr);
 
+    void _tileShiftLeft(int tileIndex);
+    void _tileShiftRight(int tileIndex);
 
     int _totalChars;
 

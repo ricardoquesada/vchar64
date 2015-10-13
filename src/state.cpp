@@ -663,6 +663,18 @@ void State::tileRotate(int tileIndex)
 
 void State::tileShiftLeft(int tileIndex)
 {
+    _tileShiftLeft(tileIndex);
+
+    // double shift if in multicolor
+    if (shouldBeDisplayedInMulticolor())
+        _tileShiftLeft(tileIndex);
+
+    emit tileUpdated(tileIndex);
+    emit contentsChanged();
+}
+
+void State::_tileShiftLeft(int tileIndex)
+{
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
@@ -690,12 +702,21 @@ void State::tileShiftLeft(int tileIndex)
             charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= leftBit;
         }
     }
+}
+
+void State::tileShiftRight(int tileIndex)
+{
+    _tileShiftRight(tileIndex);
+
+    // double shift in multicolor mode
+    if (shouldBeDisplayedInMulticolor())
+        _tileShiftRight(tileIndex);
 
     emit tileUpdated(tileIndex);
     emit contentsChanged();
 }
 
-void State::tileShiftRight(int tileIndex)
+void State::_tileShiftRight(int tileIndex)
 {
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
@@ -724,9 +745,6 @@ void State::tileShiftRight(int tileIndex)
             charPtr[i+(0+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (rightBit<<7);
         }
     }
-
-    emit tileUpdated(tileIndex);
-    emit contentsChanged();
 }
 
 void State::tileShiftUp(int tileIndex)

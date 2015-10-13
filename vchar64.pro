@@ -14,6 +14,7 @@ VERSION = 0.0.8-git
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 CONFIG += c++11
+CONFIG += debug_and_release
 
 SOURCES += src/main.cpp\
         src/mainwindow.cpp \
