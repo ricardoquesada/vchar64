@@ -13,6 +13,8 @@
 	are updated in undo / redo
 * [BUGFIX] Block-copy supported in Xlink
 * [BUGFIX] events are propagated to the dock windows when they are floating
+* [BUGFIX] Copy & Paste works as expected in interleaved mode
+
 
 0.0.7 (4 October 2015)
 

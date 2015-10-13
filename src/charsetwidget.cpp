@@ -382,7 +382,7 @@ void CharSetWidget::getSelectionRange(State::CopyRange* copyRange) const
         }
         else
         {
-            copyRange->offset = tileIndex * tileProperties.interleaved;
+            copyRange->offset = tileIndex;
             copyRange->blockSize = 1;
             copyRange->count = tileProperties.size.width() * tileProperties.size.height();
             copyRange->skip = tileProperties.interleaved-1;
