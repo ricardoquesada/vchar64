@@ -121,6 +121,8 @@ private slots:
 
     void on_actionPrevious_Tile_triggered();
 
+    void on_actionImport_VICE_snapshot_triggered();
+
 private:
 
     bool maybeSave();

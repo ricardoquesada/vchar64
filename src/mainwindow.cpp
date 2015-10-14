@@ -36,6 +36,7 @@ limitations under the License.
 #include "bigcharwidget.h"
 #include "commands.h"
 #include "palette.h"
+#include "importvicedialog.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 
@@ -810,4 +811,13 @@ void MainWindow::on_actionPrevious_Tile_triggered()
     if (value < 0)
         value = _ui->spinBox_tileIndex->maximum();
     _ui->spinBox_tileIndex->setValue(value);
+}
+
+void MainWindow::on_actionImport_VICE_snapshot_triggered()
+{
+    if (maybeSave())
+    {
+        ImportVICEDialog dialog;
+        dialog.exec();
+    }
 }

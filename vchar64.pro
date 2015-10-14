@@ -32,7 +32,8 @@ SOURCES += src/main.cpp\
     src/palettewidget.cpp \
     src/xlinkpreview.cpp \
     src/tilesetwidget.cpp \
-    src/vchar64application.cpp
+    src/vchar64application.cpp \
+    src/importvicedialog.cpp
 
 HEADERS  += src/mainwindow.h \
     src/state.h \
@@ -49,12 +50,14 @@ HEADERS  += src/mainwindow.h \
     src/palettewidget.h \
     src/xlinkpreview.h \
     src/tilesetwidget.h \
-    src/vchar64application.h
+    src/vchar64application.h \
+    src/importvicedialog.h
 
 FORMS    += src/mainwindow.ui \
     src/aboutdialog.ui \
     src/exportdialog.ui \
-    src/tilepropertiesdialog.ui
+    src/tilepropertiesdialog.ui \
+    src/importvicedialog.ui
 
 INCLUDEPATH += src
 

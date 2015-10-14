@@ -39,7 +39,10 @@ static const QColor Palettes[][16] = {
         {0x95, 0x95, 0x95},
     },
     {
-        /* VICE palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64 */
+        /* VICE palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64
+	 * Although VICE seems to be using the Pepto palette, so not sure
+	 * from where this palette was taken
+	 */
         {0x00, 0x00, 0x00},
         {0xff, 0xff, 0xff},
         {0xbd, 0x18, 0x21},
