@@ -31,8 +31,8 @@ ImportCharsetWidget::ImportCharsetWidget(QWidget *parent)
     : QWidget(parent)
     , _memoryOffset(0)
     , _multicolor(false)
-    , _charset(nullptr)
 {
+    memset(_buffer, 0, sizeof(_buffer));
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
                  PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 }
@@ -46,9 +46,6 @@ void ImportCharsetWidget::paintEvent(QPaintEvent *event)
 
     painter.begin(this);
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
-
-    if (!_charset)
-        return;
 
     painter.setBrush(QColor(0,0,0));
     painter.setPen(Qt::NoPen);
@@ -75,7 +72,7 @@ void ImportCharsetWidget::paintEvent(QPaintEvent *event)
         for (int h=0; h<ROWS; h++) {
 
             int index = w + h * COLUMNS;
-            quint8* charPtr = &_charset[_memoryOffset + index];
+            quint8* charPtr = &_buffer[_memoryOffset + index * 8];
 
             for (int y=0; y<8; y++) {
 
@@ -115,9 +112,15 @@ void ImportCharsetWidget::paintEvent(QPaintEvent *event)
 //
 // public
 //
-void ImportCharsetWidget::setCharset(quint8* charset)
+void ImportCharsetWidget::setBuffer(quint8* buffer)
 {
-    _charset = charset;
+    memcpy(_buffer, buffer, sizeof(_buffer));
+    update();
+}
+
+quint8* ImportCharsetWidget::getBuffer()
+{
+    return _buffer;
 }
 
 //
@@ -126,9 +129,11 @@ void ImportCharsetWidget::setCharset(quint8* charset)
 void ImportCharsetWidget::multicolorToggled(bool toggled)
 {
     _multicolor = toggled;
+    update();
 }
 
 void ImportCharsetWidget::addressChanged(int offset)
 {
     _memoryOffset = offset;
+    update();
 }

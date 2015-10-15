@@ -89,48 +89,6 @@ bool State::isModified() const
     return (!_undoStack->isClean());
 }
 
-bool State::export_()
-{
-    Q_ASSERT(_exportedFilename.length()>0 && "Invalid filename");
-
-    if (_exportedAddress == -1)
-        return exportRaw(_exportedFilename);
-    else
-        return exportPRG(_exportedFilename, (quint16)_exportedAddress);
-}
-
-bool State::exportRaw(const QString& filename)
-{
-    QFile file(filename);
-
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
-        return false;
-
-    if (StateExport::saveRaw(this, file) > 0)
-    {
-        _exportedAddress = -1;
-        _exportedFilename = filename;
-        return true;
-    }
-    return false;
-}
-
-bool State::exportPRG(const QString& filename, quint16 address)
-{
-    QFile file(filename);
-
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
-        return false;
-
-    if (StateExport::savePRG(this, file, address) > 0)
-    {
-        _exportedAddress = address;
-        _exportedFilename = filename;
-        return true;
-    }
-    return false;
-}
-
 bool State::openFile(const QString& filename)
 {
     QFile file(filename);
@@ -206,6 +164,67 @@ bool State::openFile(const QString& filename)
     emit contentsChanged();
 
     return true;
+}
+void State::importCharset(const QString& filename, const quint8 *charset, int charsetSize)
+{
+    Q_ASSERT(charset);
+    Q_ASSERT(charsetSize <= CHAR_BUFFER_SIZE);
+
+    resetCharsetBuffer();
+    memcpy(_charset, charset, qMin(CHAR_BUFFER_SIZE, charsetSize));
+
+    _undoStack->clear();
+
+    // if a new file is loaded, then reset the exported and saved values
+    _savedFilename = "";
+    _exportedFilename = "";
+    _exportedAddress = -1;
+    _loadedFilename = filename;
+
+    emit fileLoaded();
+    emit contentsChanged();
+}
+
+bool State::export_()
+{
+    Q_ASSERT(_exportedFilename.length()>0 && "Invalid filename");
+
+    if (_exportedAddress == -1)
+        return exportRaw(_exportedFilename);
+    else
+        return exportPRG(_exportedFilename, (quint16)_exportedAddress);
+}
+
+bool State::exportRaw(const QString& filename)
+{
+    QFile file(filename);
+
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+        return false;
+
+    if (StateExport::saveRaw(this, file) > 0)
+    {
+        _exportedAddress = -1;
+        _exportedFilename = filename;
+        return true;
+    }
+    return false;
+}
+
+bool State::exportPRG(const QString& filename, quint16 address)
+{
+    QFile file(filename);
+
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+        return false;
+
+    if (StateExport::savePRG(this, file, address) > 0)
+    {
+        _exportedAddress = address;
+        _exportedFilename = filename;
+        return true;
+    }
+    return false;
 }
 
 bool State::saveProject(const QString& filename)

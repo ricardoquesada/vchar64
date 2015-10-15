@@ -20,20 +20,53 @@ limitations under the License.
 
 class State;
 
+/**
+ * @brief The StateImport class
+ * Provices helper functions to load different formats into VChar64
+ */
 class StateImport
 {
 public:
-    // loads a raw file
+    /**
+     * @brief loadRaw loads a raw file
+     * @param state State
+     * @param file file to load
+     * @return whether or not the loading was successful
+     */
     static qint64 loadRaw(State* state, QFile& file);
 
-    // loads a PRG / 64C file. Same a raw, but the first 2 characters are ignored
+    /**
+     * @brief loadPRG loads a PRG / 64C file. Same a raw, but the first 2 characters are ignored
+     * @param state State
+     * @param file file to load
+     * @param outAddress address where it was loaded
+     * @return whether or not the loading was successful
+     */
     static qint64 loadPRG(State* state, QFile& file, quint16* outAddress);
 
-    // loads a CharPad project file
+    /**
+     * @brief loadCTM loads a CharPad project file
+     * @param state State
+     * @param file file to load
+     * @return whether or not the loading was successful
+     */
     static qint64 loadCTM(State* state, QFile& file);
 
-    // loads a VChar64 project file
+    /**
+     * @brief loadVChar64 loads a VChar64 project file
+     * @param state State
+     * @param file file to load
+     * @return whether or not the loading was successful
+     */
     static qint64 loadVChar64(State* state, QFile& file);
+
+    /**
+     * @brief parseVICESnapshot parses a VICE snapshot file
+     * @param file file to parse
+     * @param buffer64k "out" buffer that will have the 64k RAM memory
+     * @return
+     */
+    static qint64 parseVICESnapshot(QFile& file, quint8* buffer64k);
 
     //
     // From CharPad documentation
@@ -132,8 +165,8 @@ public:
     MAP_DATA.        Size =  MAP_WID x MAP_HEI bytes.
     */
 
-    #pragma pack(push)
-    #pragma pack(1)
+#pragma pack(push)
+#pragma pack(1)
     struct CTMHeader4
     {
         char id[3];                 // must be CTM
@@ -156,7 +189,7 @@ public:
 
         char reserved[4];           // Must be 24 bytes in total
     };
-    #pragma pack(pop)
+#pragma pack(pop)
     static_assert (sizeof(CTMHeader4) == 24, "Size is not correct");
 
     /*
@@ -244,8 +277,8 @@ public:
                     Each byte in this block is a (16 bit) tile code, the sequence should be interpreted as
                     running left-to-right for each map row starting with the topmost and moving down.
     */
-    #pragma pack(push)
-    #pragma pack(1)
+#pragma pack(push)
+#pragma pack(1)
     struct CTMHeader5
     {
         char id[3];                 // must be CTM
@@ -264,12 +297,12 @@ public:
         quint16 map_width;          // 16-bit Map width (low, high).
         quint16 map_height;         // 16-bit Map height (low, high).
     };
-    #pragma pack(pop)
+#pragma pack(pop)
     static_assert (sizeof(CTMHeader5) == 20, "Size is not correct");
 
 
-    #pragma pack(push)
-    #pragma pack(1)
+#pragma pack(push)
+#pragma pack(1)
     struct VChar64Header
     {
         char id[5];                 // must be VChar
@@ -285,9 +318,39 @@ public:
 
         char reserved[16];          // Must be 32 bytes in total
     };
-    #pragma pack(pop)
+#pragma pack(pop)
 
     static_assert (sizeof(VChar64Header) == 32, "Size is not correct");
+
+#pragma pack(push)
+#pragma pack(1)
+    struct VICESnapshotHeader
+    {
+        char id[19];                // "VICE Snapshot File"
+        char major;
+        char minor;
+        char machine[16];           // "C64" or "C128" or...
+    };
+    static_assert (sizeof(VICESnapshotHeader) == 37, "Size is not correct");
+
+    struct VICESnapshoptModule
+    {
+        char moduleName[16];        // looking for "C64MEM"
+        char major;
+        char minor;
+        quint32 lenght;             // little endian
+    };
+
+    struct VICESnapshoptC64Mem
+    {
+        quint8 cpudata;             // CPU port data byte
+        quint8 cpudir;              // CPU port direction byte
+        quint8 exrom;               // state of the EXROM line (?)
+        quint8 game;                // state of the GAME line (?)
+        quint8 ram[65536];          // 64k RAM dump
+    };
+#pragma pack(pop)
+
 
 protected:
     static qint64 loadCTM4(State *state, QFile& file, struct CTMHeader4* v5header);

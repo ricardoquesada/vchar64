@@ -26,7 +26,8 @@ limitations under the License.
 ImportVICEDialog::ImportVICEDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ImportVICEDialog),
-    _validVICEFile(false)
+    _validVICEFile(false),
+    _filepath("")
 {
     ui->setupUi(this);
 
@@ -38,11 +39,19 @@ ImportVICEDialog::~ImportVICEDialog()
     delete ui;
 }
 
+const QString& ImportVICEDialog::getFilepath() const
+{
+    return _filepath;
+}
+
+//
+// slots
+//
 void ImportVICEDialog::on_pushButton_import_clicked()
 {
     auto state = State::getInstance();
-//    state->importMemory();
     state->setMulticolorMode(ui->checkBox->checkState() == Qt::Checked);
+    state->importCharset(_filepath, ui->widget->getBuffer() + ui->spinBox->value(), State::CHAR_BUFFER_SIZE);
     accept();
 }
 
@@ -82,12 +91,16 @@ void ImportVICEDialog::on_pushButton_clicked()
                                            /*,QFileDialog::DontUseNativeDialog*/
                                            );
 
-    if (fn.length()> 0) {
-        ui->lineEdit->setText(fn);
+    if (fn.length()> 0)
+    {
+        if (fn != _filepath)
+        {
+            _filepath = fn;
+            ui->lineEdit->setText(fn);
 
-        QFileInfo fi(fn);
-        _validVICEFile = fi.exists() && validVICEFile(fn);
-        updateWidgets();
+            _validVICEFile = validateVICEFile(fn);
+            updateWidgets();
+        }
     }
 }
 
@@ -95,17 +108,25 @@ void ImportVICEDialog::on_lineEdit_editingFinished()
 {
     QString filename = ui->lineEdit->text();
 
-    QFileInfo fi(filename);
-
-    _validVICEFile = fi.exists() && validVICEFile(filename);
-    updateWidgets();
+    if (_filepath != filename)
+    {
+        QFileInfo fi(filename);
+        _validVICEFile = fi.exists() && validateVICEFile(filename);
+        updateWidgets();
+        _filepath = filename;
+    }
 }
 
 // helper
-bool ImportVICEDialog::validVICEFile(const QString& filepath)
+bool ImportVICEDialog::validateVICEFile(const QString& filepath)
 {
-    Q_UNUSED(filepath);
-    return true;
+    QFile file(filepath);
+
+    quint8 buffer[65536];
+    auto ret = StateImport::parseVICESnapshot(file, buffer);
+    if (ret >= 0)
+        ui->widget->setBuffer(buffer);
+    return (ret >= 0);
 }
 
 void ImportVICEDialog::updateWidgets()
@@ -114,7 +135,6 @@ void ImportVICEDialog::updateWidgets()
     {
         ui->checkBox,
         ui->spinBox,
-        ui->widget,
         ui->pushButton_import
     };
 

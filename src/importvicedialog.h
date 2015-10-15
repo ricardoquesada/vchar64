@@ -30,8 +30,10 @@ public:
     explicit ImportVICEDialog(QWidget *parent = 0);
     ~ImportVICEDialog();
 
+    const QString& getFilepath() const;
+
 protected:
-    bool validVICEFile(const QString& filepath);
+    bool validateVICEFile(const QString& filepath);
     void updateWidgets();
 
 private slots:
@@ -49,6 +51,6 @@ private slots:
 
 private:
     Ui::ImportVICEDialog *ui;
-
     bool _validVICEFile;
+    QString _filepath;
 };

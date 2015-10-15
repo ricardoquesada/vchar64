@@ -17,6 +17,7 @@ limitations under the License.
 #pragma once
 
 #include <QWidget>
+#include "state.h"
 
 class ImportCharsetWidget : public QWidget
 {
@@ -24,7 +25,12 @@ class ImportCharsetWidget : public QWidget
 
 public:
     ImportCharsetWidget(QWidget *parent=nullptr);
-    void setCharset(quint8* charset);
+    /**
+     * @brief setBuffer copies a buffer of 64k which belongs to the C64 RAM
+     * @param buffer the buffer
+     */
+    void setBuffer(quint8* buffer);
+    quint8* getBuffer();
 
 public slots:
     void multicolorToggled(bool toggled);
@@ -35,6 +41,7 @@ protected:
 
     int _memoryOffset;
     bool _multicolor;
-    quint8* _charset;
+    quint8 _buffer[65536];
+
 };
 

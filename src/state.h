@@ -74,13 +74,29 @@ public:
 
     static State* getInstance();
 
+    /**
+     * @brief reset resets the charsets. emits fileLoaded();
+     */
     void reset();
+    /**
+     * @brief openFile imports a file. emits fileLoaded();
+     * @param filename
+     * @return
+     */
     bool openFile(const QString& filename);
     bool saveProject(const QString& filename);
     bool exportRaw(const QString& filename);
     bool exportPRG(const QString& filename, quint16 address);
     // export is a defined keyword, so we use export_ instead
     bool export_();
+
+    /**
+     * @brief importCharset sets a new charset. emits fileLoaded();
+     * @param filename filename to be associated with the import. No files are actually loaded
+     * @param charset pointer to the charset
+     * @param charsetSize size of the charset
+     */
+    void importCharset(const QString &filename, const quint8* charset, int charsetSize);
 
     /**
      * @brief getColorForPen

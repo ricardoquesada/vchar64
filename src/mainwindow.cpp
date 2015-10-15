@@ -221,6 +221,7 @@ void MainWindow::createActions()
     connect(state, SIGNAL(tileUpdated(int)), this, SLOT(updateWindow()));
     connect(state, SIGNAL(charIndexUpdated(int)), this, SLOT(charIndexUpdated(int)));
     connect(state, SIGNAL(charsetUpdated()), this, SLOT(updateWindow()));
+    connect(state, SIGNAL(fileLoaded()), this, SLOT(updateWindow()));
 
     connect(state, SIGNAL(colorPropertiesUpdated(int)), this, SLOT(updateWindow()));
     connect(state, SIGNAL(multicolorModeToggled(bool)), this, SLOT(multicolorModeToggled(bool)));
@@ -494,7 +495,6 @@ void MainWindow::openFile(const QString& path)
 
         setRecentFile(path);
 
-        updateWindow();
         auto state = State::getInstance();
         _ui->checkBox_multicolor->setChecked(state->isMulticolorMode());
 
@@ -547,6 +547,18 @@ void MainWindow::on_actionOpen_triggered()
         if (fn.length()> 0) {
             _settings.setValue("dir/lastUsedOpenFilter", filter);
             openFile(fn);
+        }
+    }
+}
+
+void MainWindow::on_actionImport_VICE_snapshot_triggered()
+{
+    if (maybeSave())
+    {
+        ImportVICEDialog dialog;
+        if (dialog.exec())
+        {
+            setWindowFilePath(dialog.getFilepath());
         }
     }
 }
@@ -811,13 +823,4 @@ void MainWindow::on_actionPrevious_Tile_triggered()
     if (value < 0)
         value = _ui->spinBox_tileIndex->maximum();
     _ui->spinBox_tileIndex->setValue(value);
-}
-
-void MainWindow::on_actionImport_VICE_snapshot_triggered()
-{
-    if (maybeSave())
-    {
-        ImportVICEDialog dialog;
-        qDebug() << dialog.exec();
-    }
 }

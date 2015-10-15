@@ -183,3 +183,59 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
 
     return total;
 }
+
+qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
+{
+    struct VICESnapshotHeader header;
+    struct VICESnapshoptModule module;
+    struct VICESnapshoptC64Mem c64mem;
+
+    static const char VICE_MAGIC[] = "VICE Snapshot File\032";
+    static const char VICE_C64MEM[] = "C64MEM";
+
+    if (!file.isOpen())
+        file.open(QIODevice::ReadOnly);
+
+    auto size = file.size();
+    if (size < (qint64)sizeof(VICESnapshotHeader))
+        return -1;
+
+    file.seek(0);
+    size = file.read((char*)&header, sizeof(header));
+    if (size != sizeof(header))
+        return -1;
+
+    if (memcmp(header.id, VICE_MAGIC, sizeof(header.id)) != 0)
+        return -1;
+
+    int offset = file.pos();
+    bool found = false;
+
+    while (1) {
+        size = file.read((char*)&module, sizeof(module));
+        if (size != sizeof(module))
+            break;
+
+        /* Found?  */
+        if (memcmp(module.moduleName, VICE_C64MEM, sizeof(VICE_C64MEM)) == 0 &&
+                module.major == 0)
+        {
+            found = true;
+            break;
+        }
+        offset += qFromLittleEndian(module.lenght);
+        if (!file.seek(offset))
+            break;
+    }
+
+    if (found)
+    {
+        size = file.read((char*)&c64mem, sizeof(c64mem));
+        if (size != sizeof(c64mem))
+            return -1;
+
+        memcpy(buffer64k, c64mem.ram, sizeof(c64mem.ram));
+    }
+
+    return 0;
+}
