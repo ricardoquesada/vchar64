@@ -56,7 +56,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QWidget" name="widget" native="true">
+       <widget class="ImportCharsetWidget" name="widget" native="true">
         <property name="minimumSize">
          <size>
           <width>512</width>
@@ -151,6 +151,18 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImportCharsetWidget</class>
+   <extends>QWidget</extends>
+   <header>importcharsetwidget.h</header>
+   <container>1</container>
+   <slots>
+    <slot>multicolorToggled(bool)</slot>
+    <slot>addressChanged(int)</slot>
+   </slots>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>lineEdit</tabstop>
   <tabstop>pushButton</tabstop>
@@ -163,15 +175,31 @@
    <sender>checkBox</sender>
    <signal>toggled(bool)</signal>
    <receiver>widget</receiver>
-   <slot>update()</slot>
+   <slot>multicolorToggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>57</x>
-     <y>246</y>
+     <x>70</x>
+     <y>271</y>
     </hint>
     <hint type="destinationlabel">
-     <x>151</x>
-     <y>163</y>
+     <x>95</x>
+     <y>176</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>spinBox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>widget</receiver>
+   <slot>addressChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>495</x>
+     <y>237</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>439</x>
+     <y>130</y>
     </hint>
    </hints>
   </connection>

@@ -21,11 +21,16 @@ limitations under the License.
 #include <QSettings>
 #include <QDir>
 
+#include "state.h"
+
 ImportVICEDialog::ImportVICEDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::ImportVICEDialog)
+    ui(new Ui::ImportVICEDialog),
+    _validVICEFile(false)
 {
     ui->setupUi(this);
+
+    updateWidgets();
 }
 
 ImportVICEDialog::~ImportVICEDialog()
@@ -35,12 +40,15 @@ ImportVICEDialog::~ImportVICEDialog()
 
 void ImportVICEDialog::on_pushButton_import_clicked()
 {
-
+    auto state = State::getInstance();
+//    state->importMemory();
+    state->setMulticolorMode(ui->checkBox->checkState() == Qt::Checked);
+    accept();
 }
 
 void ImportVICEDialog::on_pushButton_cancel_clicked()
 {
-
+    reject();
 }
 
 void ImportVICEDialog::on_spinBox_editingFinished()
@@ -76,6 +84,10 @@ void ImportVICEDialog::on_pushButton_clicked()
 
     if (fn.length()> 0) {
         ui->lineEdit->setText(fn);
+
+        QFileInfo fi(fn);
+        _validVICEFile = fi.exists() && validVICEFile(fn);
+        updateWidgets();
     }
 }
 
@@ -84,10 +96,9 @@ void ImportVICEDialog::on_lineEdit_editingFinished()
     QString filename = ui->lineEdit->text();
 
     QFileInfo fi(filename);
-    if (fi.exists() && validVICEFile(filename))
-    {
 
-    }
+    _validVICEFile = fi.exists() && validVICEFile(filename);
+    updateWidgets();
 }
 
 // helper
@@ -95,4 +106,22 @@ bool ImportVICEDialog::validVICEFile(const QString& filepath)
 {
     Q_UNUSED(filepath);
     return true;
+}
+
+void ImportVICEDialog::updateWidgets()
+{
+    QWidget* widgets[] =
+    {
+        ui->checkBox,
+        ui->spinBox,
+        ui->widget,
+        ui->pushButton_import
+    };
+
+    const int COUNT = sizeof(widgets) / sizeof(widgets[0]);
+
+    for (int i=0; i<COUNT; i++)
+    {
+        widgets[i]->setEnabled(_validVICEFile);
+    }
 }

@@ -818,6 +818,6 @@ void MainWindow::on_actionImport_VICE_snapshot_triggered()
     if (maybeSave())
     {
         ImportVICEDialog dialog;
-        dialog.exec();
+        qDebug() << dialog.exec();
     }
 }

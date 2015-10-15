@@ -16,39 +16,25 @@ limitations under the License.
 
 #pragma once
 
-#include <QDialog>
+#include <QWidget>
 
-namespace Ui {
-class ImportVICEDialog;
-}
-
-class ImportVICEDialog : public QDialog
+class ImportCharsetWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit ImportVICEDialog(QWidget *parent = 0);
-    ~ImportVICEDialog();
+    ImportCharsetWidget(QWidget *parent=nullptr);
+    void setCharset(quint8* charset);
+
+public slots:
+    void multicolorToggled(bool toggled);
+    void addressChanged(int offset);
 
 protected:
-    bool validVICEFile(const QString& filepath);
-    void updateWidgets();
+    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
 
-private slots:
-    void on_pushButton_import_clicked();
-
-    void on_pushButton_cancel_clicked();
-
-    void on_spinBox_editingFinished();
-
-    void on_spinBox_valueChanged(int value);
-
-    void on_pushButton_clicked();
-
-    void on_lineEdit_editingFinished();
-
-private:
-    Ui::ImportVICEDialog *ui;
-
-    bool _validVICEFile;
+    int _memoryOffset;
+    bool _multicolor;
+    quint8* _charset;
 };
+
