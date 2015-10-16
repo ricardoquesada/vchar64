@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "ImportCharsetWidget.h"
+#include "importcharsetwidget.h"
 
 #include <QPainter>
 #include <QPaintEvent>
