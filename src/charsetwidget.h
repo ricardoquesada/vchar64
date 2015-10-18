@@ -35,19 +35,6 @@ public:
 public slots:
     void onCharIndexUpdated(int charIndex);
 
-signals:
-    /**
-     * @brief tileSelected when a new tile is selected. Spinbox will consume this event.
-     * @param tileIndex value between 0 and tileMax
-     */
-    void tileSelected(int tileIndex);
-
-    /**
-     * @brief charSelected when a new char is selected. State will consume this event.
-     * @param charIndex value between 0 and 255
-     */
-    void charSelected(int charIndex);
-
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;

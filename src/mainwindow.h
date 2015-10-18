@@ -48,8 +48,8 @@ public slots:
     void previewDisconnected();
     void documentWasModified();
     void updateWindow();
-    void charIndexUpdated(int);
-    void multicolorModeToggled(bool);
+    void onCharIndexUpdated(int);
+    void onMulticolorModeToggled(bool);
     void onTilePropertiesUpdated();
     void openFile(const QString& fileName);
 

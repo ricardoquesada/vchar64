@@ -45,13 +45,9 @@ void CharSetWidget::updateCharIndex(int charIndex)
     if (_charIndex != charIndex)
     {
         _charIndex = charIndex;
-
         auto state = State::getInstance();
-        int tileIndex = state->getTileIndexFromCharIndex(charIndex);
+        state->setCharIndex(charIndex);
 
-        // in this order
-        emit tileSelected(tileIndex);
-        emit charSelected(charIndex);
     }
 }
 

@@ -1157,21 +1157,5 @@
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>charsetWidget</sender>
-   <signal>tileSelected(int)</signal>
-   <receiver>spinBox_tileIndex</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>255</x>
-     <y>457</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>474</x>
-     <y>343</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
 </ui>

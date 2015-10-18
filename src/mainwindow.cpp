@@ -109,7 +109,7 @@ void MainWindow::onTilePropertiesUpdated()
     _ui->actionRotate->setEnabled(s.width() == s.height());
 }
 
-void MainWindow::multicolorModeToggled(bool newvalue)
+void MainWindow::onMulticolorModeToggled(bool newvalue)
 {
     Q_UNUSED(newvalue);
     // make sure the "multicolor" checkbox is in the correct state.
@@ -221,27 +221,26 @@ void MainWindow::createActions()
 
     connect(state, &State::byteUpdated, this, &MainWindow::updateWindow);
     connect(state, &State::tileUpdated, this, &MainWindow::updateWindow);
-    connect(state, &State::charIndexUpdated, this, &MainWindow::charIndexUpdated);
+    connect(state, &State::charIndexUpdated, this, &MainWindow::onCharIndexUpdated);
     connect(state, &State::charsetUpdated, this, &MainWindow::updateWindow);
     connect(state, &State::fileLoaded, this, &MainWindow::updateWindow);
     connect(state, &State::colorPropertiesUpdated, this, &MainWindow::updateWindow);
-    connect(state, &State::multicolorModeToggled, this, &MainWindow::multicolorModeToggled);
+    connect(state, &State::multicolorModeToggled, this, &MainWindow::onMulticolorModeToggled);
     connect(state, &State::contentsChanged, this, &MainWindow::documentWasModified);
 
     connect(state, &State::tileIndexUpdated, _ui->tilesetWidget, &TilesetWidget::onTileIndexUpdated);
     connect(state, &State::tileIndexUpdated, _ui->bigcharWidget, &BigCharWidget::onTileIndexUpdated);
     connect(state, &State::charIndexUpdated, _ui->charsetWidget, &CharSetWidget::onCharIndexUpdated);
 
+    connect(state, &State::charIndexUpdated, _ui->spinBox_tileIndex, &QSpinBox::setValue);
+    connect(_ui->spinBox_tileIndex, SIGNAL(valueChanged(int)), state, SLOT(setTileIndex(int)));
+
     connect(state->getUndoStack(), &QUndoStack::indexChanged, this, &MainWindow::documentWasModified);
     connect(state->getUndoStack(), &QUndoStack::cleanChanged, this, &MainWindow::documentWasModified);
 
-    connect(_ui->charsetWidget, &CharSetWidget::charSelected, state, &State::setCharIndex);
-    connect(_ui->tilesetWidget, &TilesetWidget::tileSelected, _ui->spinBox_tileIndex, &QSpinBox::setValue);
-    connect(_ui->spinBox_tileIndex, SIGNAL(valueChanged(int)), state, SLOT(setTileIndex(int)));
-
-    connect(_ui->paletteWidget, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
-    connect(preview, SIGNAL(previewConnected()), this, SLOT(previewConnected()));
-    connect(preview, SIGNAL(previewDisconnected()), this, SLOT(previewDisconnected()));
+    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, preview, &XlinkPreview::colorSelected);
+    connect(preview, &XlinkPreview::previewConnected, this, &MainWindow::previewConnected);
+    connect(preview, &XlinkPreview::previewDisconnected, this, &MainWindow::previewDisconnected);
 
     _ui->menuPreview->setEnabled(preview->isAvailable());
 
@@ -331,7 +330,7 @@ void MainWindow::setRecentFile(const QString& fileName)
 //
 // MARK - Slots / Events / Callbacks
 //
-void MainWindow::charIndexUpdated(int charIndex)
+void MainWindow::onCharIndexUpdated(int charIndex)
 {
 
     _labelCharIdx->setText(QString("#%1  $%2")

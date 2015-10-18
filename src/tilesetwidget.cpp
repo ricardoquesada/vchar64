@@ -47,9 +47,10 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
 
     if (event->button() == Qt::LeftButton)
     {
+        auto state = State::getInstance();
 
         auto pos = event->localPos();
-        auto tileProperties = State::getInstance()->getTileProperties();
+        auto tileProperties = state->getTileProperties();
 
         int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8 / tileProperties.size.width();
         int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8 / tileProperties.size.height();
@@ -58,7 +59,8 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
         if (_selectedTile != tileIndex)
         {
             _selectedTile = tileIndex;
-            emit tileSelected(tileIndex);
+
+            state->setTileIndex(tileIndex);
             update();
         }
     }
@@ -87,14 +89,15 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
         return;
     }
 
-    const auto tileProperties = State::getInstance()->getTileProperties();
+    auto state = State::getInstance();
+    const auto tileProperties = state->getTileProperties();
 
     _selectedTile += (point.x() + point.y() * (_columns / tileProperties.size.width()));
     _selectedTile %= 256 / (tileProperties.size.width() * tileProperties.size.height());
     if (_selectedTile < 0)
         _selectedTile += 256 / (tileProperties.size.width() * tileProperties.size.height());
 
-    emit tileSelected(_selectedTile);
+    state->setTileIndex(_selectedTile);
     update();
 }
 

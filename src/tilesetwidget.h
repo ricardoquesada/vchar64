@@ -33,13 +33,6 @@ public slots:
     void onTileIndexUpdated(int selectedTileIndex);
     void onTilePropertiesUpdated();
 
-signals:
-    /**
-     * @brief tileSelected when a new tile is selected. Spinbox will consume this event.
-     * @param tileIndex value between 0 and tileMax
-     */
-    void tileSelected(int tileIndex);
-
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
