@@ -301,15 +301,15 @@ void CharSetWidget::paintFocus(QPainter &painter)
 
         // vertical lines
         painter.drawLine(0, 0,
-                         0, ROWS * PIXEL_SIZE * 8 + OFFSET * 2);
+                         0, ROWS * PIXEL_SIZE * 8 + OFFSET);
         painter.drawLine(COLUMNS * PIXEL_SIZE * 8 + OFFSET, 0,
-                         COLUMNS * PIXEL_SIZE * 8 + OFFSET * 2, ROWS * PIXEL_SIZE * 8 + OFFSET * 2);
+                         COLUMNS * PIXEL_SIZE * 8 + OFFSET, ROWS * PIXEL_SIZE * 8 + OFFSET);
 
         // horizontal lines
         painter.drawLine(0, 0,
-                         COLUMNS * PIXEL_SIZE * 8 + OFFSET * 2, 0);
+                         COLUMNS * PIXEL_SIZE * 8 + OFFSET, 0);
         painter.drawLine(0, ROWS * PIXEL_SIZE * 8 + OFFSET,
-                         COLUMNS * PIXEL_SIZE * 8 + OFFSET * 2, ROWS * PIXEL_SIZE * 8 + OFFSET * 2);
+                         COLUMNS * PIXEL_SIZE * 8 + OFFSET, ROWS * PIXEL_SIZE * 8 + OFFSET);
     }
 }
 

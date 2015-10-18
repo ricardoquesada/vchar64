@@ -230,15 +230,15 @@ void TilesetWidget::paintFocus(QPainter &painter)
 
         // vertical lines
         painter.drawLine(0, 0,
-                         0, _rows * PIXEL_SIZE * 8 + OFFSET * 2);
+                         0, _rows * PIXEL_SIZE * 8 + OFFSET);
         painter.drawLine(_columns * PIXEL_SIZE * 8 + OFFSET, 0,
-                         _columns * PIXEL_SIZE * 8 + OFFSET * 2, _rows * PIXEL_SIZE * 8 + OFFSET * 2);
+                         _columns * PIXEL_SIZE * 8 + OFFSET, _rows * PIXEL_SIZE * 8 + OFFSET);
 
         // horizontal lines
         painter.drawLine(0, 0,
-                         _columns * PIXEL_SIZE * 8 + OFFSET * 2, 0);
+                         _columns * PIXEL_SIZE * 8 + OFFSET, 0);
         painter.drawLine(0, _rows * PIXEL_SIZE * 8 + OFFSET,
-                         _columns * PIXEL_SIZE * 8 + OFFSET * 2, _rows * PIXEL_SIZE * 8 + OFFSET * 2);
+                         _columns * PIXEL_SIZE * 8 + OFFSET, _rows * PIXEL_SIZE * 8 + OFFSET);
     }
 }
 
@@ -260,9 +260,10 @@ void TilesetWidget::tilePropertiesUpdated()
 
     _columns = (COLUMNS / properties.size.width()) * properties.size.width();
 
-    _rows = qCeil(256.0f / _columns);
+    _rows = qCeil((256.0f / _columns) / properties.size.height()) * properties.size.height();
 
     setFixedSize(PIXEL_SIZE * _columns * 8 + OFFSET * 2,
                  PIXEL_SIZE * _rows * 8 + OFFSET * 2);
 
+    update();
 }
