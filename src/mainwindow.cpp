@@ -214,8 +214,9 @@ void MainWindow::createActions()
     connect(state, SIGNAL(colorPropertiesUpdated(int)), preview, SLOT(colorPropertiesUpdated()));
     connect(state, SIGNAL(multicolorModeToggled(bool)), preview, SLOT(colorPropertiesUpdated()));
 
-    connect(state, &State::tilePropertiesUpdated, _ui->bigcharWidget, &BigCharWidget::updateTileProperties);
     connect(state, &State::tilePropertiesUpdated, this, &MainWindow::tilePropertiesUpdated);
+    connect(state, &State::tilePropertiesUpdated, _ui->bigcharWidget, &BigCharWidget::updateTileProperties);
+    connect(state, &State::tilePropertiesUpdated, _ui->tilesetWidget, &TilesetWidget::tilePropertiesUpdated);
 
     connect(state, SIGNAL(byteUpdated(int)), this, SLOT(updateWindow()));
     connect(state, SIGNAL(tileUpdated(int)), this, SLOT(updateWindow()));

@@ -31,6 +31,7 @@ public:
 
 public slots:
     void tileIndexUpdated(int selectedTileIndex);
+    void tilePropertiesUpdated();
 
 signals:
     /**
@@ -50,5 +51,7 @@ protected:
     void paintSelectedTile(QPainter& painter);
 
     int _selectedTile;
+    int _columns;
+    int _rows;
 };
 

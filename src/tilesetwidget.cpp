@@ -18,6 +18,7 @@ limitations under the License.
 
 #include <QPainter>
 #include <QPaintEvent>
+#include <QtMath>
 
 #include "palette.h"
 #include "state.h"
@@ -32,9 +33,11 @@ static const int OFFSET = 2;
 TilesetWidget::TilesetWidget(QWidget *parent)
     : QWidget(parent)
     , _selectedTile(0)
+    , _columns(COLUMNS)
+    , _rows(ROWS)
 {
-    setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
-                 PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
+    setFixedSize(PIXEL_SIZE * _columns * 8 + OFFSET * 2,
+                 PIXEL_SIZE * _rows * 8 + OFFSET * 2);
 }
 
 
@@ -50,7 +53,7 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
 
         int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8 / tileProperties.size.width();
         int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8 / tileProperties.size.height();
-        int tileIndex = x + y * (COLUMNS / tileProperties.size.width());
+        int tileIndex = x + y * (_columns / tileProperties.size.width());
 
         if (_selectedTile != tileIndex)
         {
@@ -86,7 +89,7 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
 
     const auto tileProperties = State::getInstance()->getTileProperties();
 
-    _selectedTile += (point.x() + point.y() * (COLUMNS / tileProperties.size.width()));
+    _selectedTile += (point.x() + point.y() * (_columns / tileProperties.size.width()));
     _selectedTile %= 256 / (tileProperties.size.width() * tileProperties.size.height());
     if (_selectedTile < 0)
         _selectedTile += 256 / (tileProperties.size.width() * tileProperties.size.height());
@@ -120,10 +123,12 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
 
     for (int i=0; i<max_tiles;i++)
     {
-        quint8* charPtr = state->getCharAtIndex(tileProperties.interleaved == 1 ? i * tw * th : i);
+        quint8* charPtr = state->getCharAtIndex(tileProperties.interleaved == 1 ?
+                                                    i * tw * th :
+                                                    i);
 
-        int w = (i * tw) % COLUMNS;
-        int h = th * ((i * tw) / COLUMNS);
+        int w = (i * tw) % _columns;
+        int h = th * ((i * tw) / _columns);
 
         for (int char_idx=0; char_idx < (tw * th); char_idx++)
         {
@@ -155,8 +160,8 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
     pen.setColor({149,195,244,255});
     pen.setStyle(Qt::PenStyle::SolidLine);
 
-    int x = (_selectedTile * tw) % COLUMNS;
-    int y = th * ((_selectedTile * tw) / COLUMNS);
+    int x = (_selectedTile * tw) % _columns;
+    int y = th * ((_selectedTile * tw) / _columns);
 
     painter.setPen(pen);
     painter.setBrush(QColor(128,0,0,0));
@@ -164,14 +169,6 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
                      y * 8 * PIXEL_SIZE + OFFSET,
                      8 * PIXEL_SIZE * tw,
                      8 * PIXEL_SIZE * th);
-}
-
-void TilesetWidget::tileIndexUpdated(int selectedTileIndex)
-{
-    if (_selectedTile != selectedTileIndex) {
-        _selectedTile = selectedTileIndex;
-        update();
-    }
 }
 
 void TilesetWidget::paintPixel(QPainter &painter, int w, int h, quint8* charPtr)
@@ -233,14 +230,39 @@ void TilesetWidget::paintFocus(QPainter &painter)
 
         // vertical lines
         painter.drawLine(0, 0,
-                         0, ROWS * PIXEL_SIZE * 8 + OFFSET * 2);
-        painter.drawLine(COLUMNS * PIXEL_SIZE * 8 + OFFSET, 0,
-                         COLUMNS * PIXEL_SIZE * 8 + OFFSET * 2, ROWS * PIXEL_SIZE * 8 + OFFSET * 2);
+                         0, _rows * PIXEL_SIZE * 8 + OFFSET * 2);
+        painter.drawLine(_columns * PIXEL_SIZE * 8 + OFFSET, 0,
+                         _columns * PIXEL_SIZE * 8 + OFFSET * 2, _rows * PIXEL_SIZE * 8 + OFFSET * 2);
 
         // horizontal lines
         painter.drawLine(0, 0,
-                         COLUMNS * PIXEL_SIZE * 8 + OFFSET * 2, 0);
-        painter.drawLine(0, ROWS * PIXEL_SIZE * 8 + OFFSET,
-                         COLUMNS * PIXEL_SIZE * 8 + OFFSET * 2, ROWS * PIXEL_SIZE * 8 + OFFSET * 2);
+                         _columns * PIXEL_SIZE * 8 + OFFSET * 2, 0);
+        painter.drawLine(0, _rows * PIXEL_SIZE * 8 + OFFSET,
+                         _columns * PIXEL_SIZE * 8 + OFFSET * 2, _rows * PIXEL_SIZE * 8 + OFFSET * 2);
     }
+}
+
+//
+// SLOTS
+//
+void TilesetWidget::tileIndexUpdated(int selectedTileIndex)
+{
+    if (_selectedTile != selectedTileIndex) {
+        _selectedTile = selectedTileIndex;
+        update();
+    }
+}
+
+void TilesetWidget::tilePropertiesUpdated()
+{
+    auto state = State::getInstance();
+    auto properties = state->getTileProperties();
+
+    _columns = (COLUMNS / properties.size.width()) * properties.size.width();
+
+    _rows = qCeil(256.0f / _columns);
+
+    setFixedSize(PIXEL_SIZE * _columns * 8 + OFFSET * 2,
+                 PIXEL_SIZE * _rows * 8 + OFFSET * 2);
+
 }
