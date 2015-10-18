@@ -316,7 +316,10 @@ void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8* charPt
     }
 }
 
-void BigCharWidget::setTileIndex(int tileIndex)
+//
+// slots
+//
+void BigCharWidget::onTileIndexUpdated(int tileIndex)
 {
     auto state = State::getInstance();
 
@@ -327,7 +330,7 @@ void BigCharWidget::setTileIndex(int tileIndex)
     }
 }
 
-void BigCharWidget::updateTileProperties()
+void BigCharWidget::onUpdateTileProperties()
 {
     auto state = State::getInstance();
     _tileProperties = state->getTileProperties();

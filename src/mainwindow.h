@@ -50,7 +50,7 @@ public slots:
     void updateWindow();
     void charIndexUpdated(int);
     void multicolorModeToggled(bool);
-    void tilePropertiesUpdated();
+    void onTilePropertiesUpdated();
     void openFile(const QString& fileName);
 
 protected:

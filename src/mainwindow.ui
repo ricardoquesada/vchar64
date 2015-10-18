@@ -14,7 +14,7 @@
    <enum>Qt::WheelFocus</enum>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <widget class="BigCharWidget" name="bigcharWidget" native="true">
       <property name="minimumSize">
@@ -380,24 +380,54 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_5">
-    <widget class="TilesetWidget" name="tilesetWidget" native="true">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>120</width>
-       <height>80</height>
-      </rect>
-     </property>
-     <property name="focusPolicy">
-      <enum>Qt::StrongFocus</enum>
-     </property>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <widget class="QScrollArea" name="scrollArea">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="lineWidth">
+        <number>0</number>
+       </property>
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="TilesetWidget" name="tilesetWidget">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>516</width>
+          <height>239</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>516</width>
+          <height>132</height>
+         </size>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::StrongFocus</enum>
+        </property>
+       </widget>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <action name="actionOpen">
    <property name="icon">
-    <iconset theme="document-open">
+    <iconset theme="document-open" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-open.png</normaloff>:/icons/22x22/actions/document-open.png</iconset>
    </property>
    <property name="text">
@@ -413,8 +443,7 @@
   <action name="actionExit">
    <property name="icon">
     <iconset theme="application-exit">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Exit</string>
@@ -439,7 +468,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset theme="document-save">
+    <iconset theme="document-save" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-save.png</normaloff>:/icons/22x22/actions/document-save.png</iconset>
    </property>
    <property name="text">
@@ -454,7 +483,7 @@
   </action>
   <action name="actionCopy">
    <property name="icon">
-    <iconset theme="edit-copy">
+    <iconset theme="edit-copy" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/edit-copy.png</normaloff>:/icons/22x22/actions/edit-copy.png</iconset>
    </property>
    <property name="text">
@@ -484,7 +513,7 @@
   </action>
   <action name="actionSaveAs">
    <property name="icon">
-    <iconset theme="document-save-as">
+    <iconset theme="document-save-as" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-save.png</normaloff>:/icons/22x22/actions/document-save.png</iconset>
    </property>
    <property name="text">
@@ -604,8 +633,7 @@
   <action name="actionAbout">
    <property name="icon">
     <iconset theme="help-about">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>About</string>
@@ -629,7 +657,7 @@
   </action>
   <action name="actionEmptyProject">
    <property name="icon">
-    <iconset theme="document-new">
+    <iconset theme="document-new" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-new.png</normaloff>:/icons/22x22/actions/document-new.png</iconset>
    </property>
    <property name="text">
@@ -678,7 +706,7 @@
   </action>
   <action name="actionUndo">
    <property name="icon">
-    <iconset theme="edit-undo">
+    <iconset theme="edit-undo" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/edit-undo.png</normaloff>:/icons/22x22/actions/edit-undo.png</iconset>
    </property>
    <property name="text">
@@ -690,7 +718,7 @@
   </action>
   <action name="actionRedo">
    <property name="icon">
-    <iconset theme="edit-redo">
+    <iconset theme="edit-redo" resource="../res/resources.qrc">
      <normaloff>:/icons/22x22/actions/edit-redo.png</normaloff>:/icons/22x22/actions/edit-redo.png</iconset>
    </property>
    <property name="text">
@@ -807,8 +835,7 @@
   <action name="actionDocumentation">
    <property name="icon">
     <iconset theme="help-contents">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Documentation</string>
@@ -886,7 +913,9 @@
   <tabstop>bigcharWidget</tabstop>
   <tabstop>charsetWidget</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../res/resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>paletteWidget</sender>
@@ -1033,38 +1062,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>spinBox_tileIndex</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>charsetWidget</receiver>
-   <slot>setTileIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>449</x>
-     <y>336</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>460</x>
-     <y>400</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>spinBox_tileIndex</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>bigcharWidget</receiver>
-   <slot>setTileIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>474</x>
-     <y>343</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>176</x>
-     <y>314</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>paletteWidget</sender>
    <signal>colorSelected()</signal>
    <receiver>bigcharWidget</receiver>
@@ -1172,38 +1169,6 @@
     </hint>
     <hint type="destinationlabel">
      <x>474</x>
-     <y>343</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>spinBox_tileIndex</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>tilesetWidget</receiver>
-   <slot>tileIndexUpdated(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>502</x>
-     <y>343</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>34</x>
-     <y>105</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tilesetWidget</sender>
-   <signal>tileSelected(int)</signal>
-   <receiver>spinBox_tileIndex</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>47</x>
-     <y>121</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>502</x>
      <y>343</y>
     </hint>
    </hints>

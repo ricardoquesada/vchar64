@@ -313,19 +313,11 @@ void CharSetWidget::paintFocus(QPainter &painter)
     }
 }
 
-void CharSetWidget::setTileIndex(int tileIndex)
+void CharSetWidget::onCharIndexUpdated(int charIndex)
 {
-    auto state = State::getInstance();
-    int t = state->getTileIndexFromCharIndex(_cursorPos.y() * COLUMNS + _cursorPos.x());
-
-    // comparing tileIndex instead of charIndex is needed in order to allow
-    // left, up and down navigation
-    if (tileIndex != t) {
-        int charIndex = state->getCharIndexFromTileIndex(tileIndex);
-        _cursorPos.setX(charIndex % COLUMNS);
-        _cursorPos.setY(charIndex / COLUMNS);
-        update();
-    }
+    _cursorPos.setX(charIndex % COLUMNS);
+    _cursorPos.setY(charIndex / COLUMNS);
+    update();
 }
 
 bool CharSetWidget::hasSelection() const

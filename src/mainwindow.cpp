@@ -94,10 +94,11 @@ void MainWindow::updateWindow()
         _ui->dockWidget_colors->update();
     if (_ui->dockWidget_tileIndex->isFloating())
         _ui->dockWidget_tileIndex->update();
-
+    if (_ui->dockWidget_tileset->isFloating())
+        _ui->dockWidget_tileset->update();
 }
 
-void MainWindow::tilePropertiesUpdated()
+void MainWindow::onTilePropertiesUpdated()
 {
     // update max tile index
     auto state = State::getInstance();
@@ -207,31 +208,35 @@ void MainWindow::createActions()
     _ui->colorRectWidget_3->setPen(State::PEN_MULTICOLOR2);
 
     auto preview = XlinkPreview::getInstance();
-    connect(state, SIGNAL(fileLoaded()), preview, SLOT(fileLoaded()));
-    connect(state, SIGNAL(byteUpdated(int)), preview, SLOT(byteUpdated(int)));
-    connect(state, SIGNAL(bytesUpdated(int, int)), preview, SLOT(bytesUpdated(int, int)));
-    connect(state, SIGNAL(tileUpdated(int)), preview, SLOT(tileUpdated(int)));
-    connect(state, SIGNAL(colorPropertiesUpdated(int)), preview, SLOT(colorPropertiesUpdated()));
-    connect(state, SIGNAL(multicolorModeToggled(bool)), preview, SLOT(colorPropertiesUpdated()));
+    connect(state, &State::fileLoaded, preview, &XlinkPreview::fileLoaded);
+    connect(state, &State::byteUpdated, preview, &XlinkPreview::byteUpdated);
+    connect(state, &State::bytesUpdated, preview, &XlinkPreview::bytesUpdated);
+    connect(state, &State::tileUpdated, preview, &XlinkPreview::tileUpdated);
+    connect(state, &State::colorPropertiesUpdated, preview, &XlinkPreview::colorPropertiesUpdated);
+    connect(state, &State::multicolorModeToggled, preview, &XlinkPreview::colorPropertiesUpdated);
 
-    connect(state, &State::tilePropertiesUpdated, this, &MainWindow::tilePropertiesUpdated);
-    connect(state, &State::tilePropertiesUpdated, _ui->bigcharWidget, &BigCharWidget::updateTileProperties);
-    connect(state, &State::tilePropertiesUpdated, _ui->tilesetWidget, &TilesetWidget::tilePropertiesUpdated);
+    connect(state, &State::tilePropertiesUpdated, this, &MainWindow::onTilePropertiesUpdated);
+    connect(state, &State::tilePropertiesUpdated, _ui->bigcharWidget, &BigCharWidget::onUpdateTileProperties);
+    connect(state, &State::tilePropertiesUpdated, _ui->tilesetWidget, &TilesetWidget::onTilePropertiesUpdated);
 
-    connect(state, SIGNAL(byteUpdated(int)), this, SLOT(updateWindow()));
-    connect(state, SIGNAL(tileUpdated(int)), this, SLOT(updateWindow()));
-    connect(state, SIGNAL(charIndexUpdated(int)), this, SLOT(charIndexUpdated(int)));
-    connect(state, SIGNAL(charsetUpdated()), this, SLOT(updateWindow()));
-    connect(state, SIGNAL(fileLoaded()), this, SLOT(updateWindow()));
+    connect(state, &State::byteUpdated, this, &MainWindow::updateWindow);
+    connect(state, &State::tileUpdated, this, &MainWindow::updateWindow);
+    connect(state, &State::charIndexUpdated, this, &MainWindow::charIndexUpdated);
+    connect(state, &State::charsetUpdated, this, &MainWindow::updateWindow);
+    connect(state, &State::fileLoaded, this, &MainWindow::updateWindow);
+    connect(state, &State::colorPropertiesUpdated, this, &MainWindow::updateWindow);
+    connect(state, &State::multicolorModeToggled, this, &MainWindow::multicolorModeToggled);
+    connect(state, &State::contentsChanged, this, &MainWindow::documentWasModified);
 
-    connect(state, SIGNAL(colorPropertiesUpdated(int)), this, SLOT(updateWindow()));
-    connect(state, SIGNAL(multicolorModeToggled(bool)), this, SLOT(multicolorModeToggled(bool)));
-    connect(state, SIGNAL(contentsChanged()), this, SLOT(documentWasModified()));
+    connect(state, &State::tileIndexUpdated, _ui->tilesetWidget, &TilesetWidget::onTileIndexUpdated);
+    connect(state, &State::tileIndexUpdated, _ui->bigcharWidget, &BigCharWidget::onTileIndexUpdated);
+    connect(state, &State::charIndexUpdated, _ui->charsetWidget, &CharSetWidget::onCharIndexUpdated);
 
-    connect(state->getUndoStack(), SIGNAL(indexChanged(int)), this, SLOT(documentWasModified()));
-    connect(state->getUndoStack(), SIGNAL(cleanChanged(bool)), this, SLOT(documentWasModified()));
+    connect(state->getUndoStack(), &QUndoStack::indexChanged, this, &MainWindow::documentWasModified);
+    connect(state->getUndoStack(), &QUndoStack::cleanChanged, this, &MainWindow::documentWasModified);
 
-    connect(_ui->charsetWidget, SIGNAL(charSelected(int)), state, SLOT(setCharIndex(int)));
+    connect(_ui->charsetWidget, &CharSetWidget::charSelected, state, &State::setCharIndex);
+    connect(_ui->tilesetWidget, &TilesetWidget::tileSelected, _ui->spinBox_tileIndex, &QSpinBox::setValue);
     connect(_ui->spinBox_tileIndex, SIGNAL(valueChanged(int)), state, SLOT(setTileIndex(int)));
 
     connect(_ui->paletteWidget, SIGNAL(colorSelected()), preview, SLOT(colorSelected()));
@@ -242,9 +247,9 @@ void MainWindow::createActions()
 
 //
     _ui->menuViews->addAction(_ui->dockWidget_charset->toggleViewAction());
+    _ui->menuViews->addAction(_ui->dockWidget_tileset->toggleViewAction());
     _ui->menuViews->addAction(_ui->dockWidget_colors->toggleViewAction());
     _ui->menuViews->addAction(_ui->dockWidget_tileIndex->toggleViewAction());
-
 
      if(preview->isConnected()) {
           previewConnected();

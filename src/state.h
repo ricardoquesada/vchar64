@@ -280,8 +280,15 @@ signals:
     // only emmited when the dirty-state changes
     void contentsChanged();
 
-    // when the charIndex is updated. Emits the charIndex
+    /**
+     * @brief charIndexUpdated emitted when the charIndex is updated. Could emit tileIndexUpdated(); as well
+     */
     void charIndexUpdated(int);
+
+    /**
+     * @brief tileIndexUpdated emitted when the tileIndex is updated. Emits charIndexUpdated(); as well
+     */
+    void tileIndexUpdated(int);
 
 public slots:
     /**
@@ -303,6 +310,9 @@ protected:
     Char getCharFromTile(int tileIndex, int x, int y) const;
     void setCharForTile(int tileIndex, int x, int y, const Char& chr);
 
+    void _setCharIndex(int charIndex);
+    void _setTileIndex(int tileIndex);
+
     void _tileShiftLeft(int tileIndex);
     void _tileShiftRight(int tileIndex);
 
@@ -317,8 +327,15 @@ protected:
 
     TileProperties _tileProperties;
 
-    /** Current selected char from the charset. Value from 0 to 255*/
+    /**
+     * @brief _charIndex selected char index from the charset. Value from 0 to 255
+     */
     int _charIndex;
+
+    /**
+     * @brief _tileIndex selected tile index from the tileset. Value from 0 up to 255
+     */
+    int _tileIndex;
 
     // filename of the loaded file
     // each time a new file is loaded, "exported" and "saved" are reset

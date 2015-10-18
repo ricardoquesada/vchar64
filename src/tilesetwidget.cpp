@@ -245,7 +245,7 @@ void TilesetWidget::paintFocus(QPainter &painter)
 //
 // SLOTS
 //
-void TilesetWidget::tileIndexUpdated(int selectedTileIndex)
+void TilesetWidget::onTileIndexUpdated(int selectedTileIndex)
 {
     if (_selectedTile != selectedTileIndex) {
         _selectedTile = selectedTileIndex;
@@ -253,7 +253,7 @@ void TilesetWidget::tileIndexUpdated(int selectedTileIndex)
     }
 }
 
-void TilesetWidget::tilePropertiesUpdated()
+void TilesetWidget::onTilePropertiesUpdated()
 {
     auto state = State::getInstance();
     auto properties = state->getTileProperties();

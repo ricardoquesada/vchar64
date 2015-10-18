@@ -45,6 +45,7 @@ State::State()
     , _penColors{1,5,7,11}
     , _tileProperties{{1,1},1}
     , _charIndex(-1)
+    , _tileIndex(-1)
     , _loadedFilename("")
     , _savedFilename("")
     , _exportedFilename("")
@@ -831,16 +832,43 @@ void State::setCharIndex(int charIndex)
 {
     if (_charIndex != charIndex)
     {
-        _charIndex = charIndex;
-        emit charIndexUpdated(charIndex);
+        _setCharIndex(charIndex);
+
+        int tileIndex = getTileIndexFromCharIndex(charIndex);
+        _setTileIndex(tileIndex);
     }
 }
 
+void State::_setCharIndex(int charIndex)
+{
+    if (_charIndex != charIndex)
+    {
+        _charIndex = charIndex;
+        emit charIndexUpdated(_charIndex);
+    }
+}
+
+
 void State::setTileIndex(int tileIndex)
 {
-    int charIndex = getCharIndexFromTileIndex(tileIndex);
-    setCharIndex(charIndex);
+    if (_tileIndex != tileIndex)
+    {
+        _setTileIndex(tileIndex);
+
+        int charIndex = getCharIndexFromTileIndex(tileIndex);
+        _setCharIndex(charIndex);
+    }
 }
+
+void State::_setTileIndex(int tileIndex)
+{
+    if (_tileIndex != tileIndex)
+    {
+        _tileIndex = tileIndex;
+        emit tileIndexUpdated(tileIndex);
+    }
+}
+
 
 //
 // Helpers

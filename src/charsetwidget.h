@@ -33,7 +33,7 @@ public:
     int getCursorPos() const;
 
 public slots:
-    void setTileIndex(int tileIndex);
+    void onCharIndexUpdated(int charIndex);
 
 signals:
     /**

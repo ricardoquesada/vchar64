@@ -30,8 +30,8 @@ public:
 
 
 public slots:
-    void tileIndexUpdated(int selectedTileIndex);
-    void tilePropertiesUpdated();
+    void onTileIndexUpdated(int selectedTileIndex);
+    void onTilePropertiesUpdated();
 
 signals:
     /**
