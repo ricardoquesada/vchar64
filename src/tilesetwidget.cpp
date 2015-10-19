@@ -36,11 +36,16 @@ TilesetWidget::TilesetWidget(QWidget *parent)
     , _columns(COLUMNS)
     , _rows(ROWS)
 {
-    setFixedSize(PIXEL_SIZE * _columns * 8 + OFFSET * 2,
+    _sizeHint = QSize(PIXEL_SIZE * _columns * 8 + OFFSET * 2,
                  PIXEL_SIZE * _rows * 8 + OFFSET * 2);
+
+    setMinimumSize(_sizeHint);
 }
 
 
+//
+// overrides
+//
 void TilesetWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
@@ -152,6 +157,14 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
     painter.end();
 }
 
+QSize TilesetWidget::sizeHint() const
+{
+    return _sizeHint;
+}
+
+//
+// helpers
+//
 void TilesetWidget::paintSelectedTile(QPainter& painter)
 {
     auto tileProperties = State::getInstance()->getTileProperties();
@@ -265,8 +278,14 @@ void TilesetWidget::onTilePropertiesUpdated()
 
     _rows = qCeil((256.0f / _columns) / properties.size.height()) * properties.size.height();
 
-    setFixedSize(PIXEL_SIZE * _columns * 8 + OFFSET * 2,
+    _sizeHint = QSize(PIXEL_SIZE * _columns * 8 + OFFSET * 2,
                  PIXEL_SIZE * _rows * 8 + OFFSET * 2);
+    setMinimumSize(_sizeHint);
 
+    update();
+}
+
+void TilesetWidget::updateColor()
+{
     update();
 }

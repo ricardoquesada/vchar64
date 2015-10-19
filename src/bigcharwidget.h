@@ -41,6 +41,7 @@ public:
 public slots:
     void onTileIndexUpdated(int tileIndex);
     void onUpdateTileProperties();
+    void updateColor();
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

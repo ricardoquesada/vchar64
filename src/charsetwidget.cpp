@@ -36,8 +36,9 @@ CharSetWidget::CharSetWidget(QWidget *parent)
     , _selectingSize({1,1})
     , _charIndex(-1)
 {
-    setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
+    _sizeHint = QSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
                  PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
+    setMinimumSize(_sizeHint);
 }
 
 void CharSetWidget::updateCharIndex(int charIndex)
@@ -51,6 +52,9 @@ void CharSetWidget::updateCharIndex(int charIndex)
     }
 }
 
+//
+// Overrides
+//
 void CharSetWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
@@ -284,6 +288,14 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
     painter.end();
 }
 
+QSize CharSetWidget::sizeHint() const
+{
+    return _sizeHint;
+}
+
+//
+// Helpers
+//
 void CharSetWidget::paintFocus(QPainter &painter)
 {
     if (hasFocus())
@@ -309,6 +321,9 @@ void CharSetWidget::paintFocus(QPainter &painter)
     }
 }
 
+//
+// slots
+//
 void CharSetWidget::onCharIndexUpdated(int charIndex)
 {
     _cursorPos.setX(charIndex % COLUMNS);
@@ -316,6 +331,14 @@ void CharSetWidget::onCharIndexUpdated(int charIndex)
     update();
 }
 
+void CharSetWidget::updateColor()
+{
+    update();
+}
+
+//
+// public
+//
 bool CharSetWidget::hasSelection() const
 {
     return (_selecting && _selectingSize.width()!=0 && _selectingSize.height()!=0);

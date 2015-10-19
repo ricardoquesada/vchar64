@@ -32,12 +32,13 @@ public:
 public slots:
     void onTileIndexUpdated(int selectedTileIndex);
     void onTilePropertiesUpdated();
+    void updateColor();
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
-
+    QSize sizeHint() const Q_DECL_OVERRIDE;
 
     void paintFocus(QPainter &painter);
     void paintPixel(QPainter &painter, int width, int height, quint8* charPtr);
@@ -46,5 +47,7 @@ protected:
     int _selectedTile;
     int _columns;
     int _rows;
+    QSize _sizeHint;
+
 };
 

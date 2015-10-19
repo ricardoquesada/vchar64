@@ -242,6 +242,10 @@ void MainWindow::createActions()
     connect(preview, &XlinkPreview::previewConnected, this, &MainWindow::previewConnected);
     connect(preview, &XlinkPreview::previewDisconnected, this, &MainWindow::previewDisconnected);
 
+    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->bigcharWidget, &BigCharWidget::updateColor);
+    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->charsetWidget, &CharSetWidget::updateColor);
+    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->tilesetWidget, &TilesetWidget::updateColor);
+
     _ui->menuPreview->setEnabled(preview->isAvailable());
 
 //
@@ -275,7 +279,6 @@ void MainWindow::createDefaults()
     tabifyDockWidget(_ui->dockWidget_charset, _ui->dockWidget_tileset);
     // select charsetWidget as the default one
     _ui->dockWidget_charset->raise();
-
 }
 
 void MainWindow::setupStatusBar()

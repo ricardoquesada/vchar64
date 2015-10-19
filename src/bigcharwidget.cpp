@@ -347,6 +347,14 @@ void BigCharWidget::onUpdateTileProperties()
     update();
 }
 
+void BigCharWidget::updateColor()
+{
+    update();
+}
+
+//
+// overrides
+//
 void BigCharWidget::resizeEvent(QResizeEvent* event)
 {
     (void)event;

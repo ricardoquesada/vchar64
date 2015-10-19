@@ -34,12 +34,14 @@ public:
 
 public slots:
     void onCharIndexUpdated(int charIndex);
+    void updateColor();
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    QSize sizeHint() const Q_DECL_OVERRIDE;
 
     void updateCharIndex(int charIndex);
     void paintFocus(QPainter &painter);
@@ -48,5 +50,6 @@ protected:
     bool _selecting;
     QSize _selectingSize;
     int _charIndex;
+    QSize _sizeHint;
 };
 
