@@ -56,12 +56,15 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
 
         auto pos = event->localPos();
         auto tileProperties = state->getTileProperties();
+        int tw = tileProperties.size.width();
+        int th = tileProperties.size.height();
 
-        int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8 / tileProperties.size.width();
-        int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8 / tileProperties.size.height();
-        int tileIndex = x + y * (_columns / tileProperties.size.width());
+        int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8 / tw;
+        int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8 / th;
+        int tileIndex = x + y * (_columns / tw);
 
-        if (_selectedTile != tileIndex)
+        // different and valid tileIndex?
+        if (_selectedTile != tileIndex && tileIndex < (256/(tw * th)))
         {
             _selectedTile = tileIndex;
 
