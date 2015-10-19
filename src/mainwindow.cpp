@@ -231,8 +231,7 @@ void MainWindow::createActions()
     connect(state, &State::tileIndexUpdated, _ui->tilesetWidget, &TilesetWidget::onTileIndexUpdated);
     connect(state, &State::tileIndexUpdated, _ui->bigcharWidget, &BigCharWidget::onTileIndexUpdated);
     connect(state, &State::charIndexUpdated, _ui->charsetWidget, &CharSetWidget::onCharIndexUpdated);
-
-    connect(state, &State::charIndexUpdated, _ui->spinBox_tileIndex, &QSpinBox::setValue);
+    connect(state, &State::tileIndexUpdated, _ui->spinBox_tileIndex, &QSpinBox::setValue);
     connect(_ui->spinBox_tileIndex, SIGNAL(valueChanged(int)), state, SLOT(setTileIndex(int)));
 
     connect(state->getUndoStack(), &QUndoStack::indexChanged, this, &MainWindow::documentWasModified);
