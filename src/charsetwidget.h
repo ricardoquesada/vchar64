@@ -42,6 +42,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
+    void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
 
     void updateCharIndex(int charIndex);
     void paintFocus(QPainter &painter);
@@ -51,5 +52,6 @@ protected:
     QSize _selectingSize;
     int _charIndex;
     QSize _sizeHint;
+    QSize _pixelSize;
 };
 

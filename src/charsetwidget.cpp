@@ -35,9 +35,10 @@ CharSetWidget::CharSetWidget(QWidget *parent)
     , _selecting(false)
     , _selectingSize({1,1})
     , _charIndex(-1)
+    , _pixelSize({PIXEL_SIZE, PIXEL_SIZE})
 {
-    _sizeHint = QSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
-                 PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
+    _sizeHint = QSize(_pixelSize.width() * COLUMNS * 8 + OFFSET * 2,
+                 _pixelSize.height() * ROWS * 8 + OFFSET * 2);
     setMinimumSize(_sizeHint);
 }
 
@@ -61,8 +62,8 @@ void CharSetWidget::mousePressEvent(QMouseEvent * event)
 
     auto pos = event->localPos();
 
-    int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
-    int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
+    int x = (pos.x() - OFFSET) / _pixelSize.width() / 8;
+    int y = (pos.y() - OFFSET) / _pixelSize.height() / 8;
     int charIndex = x + y * COLUMNS;
 
     if (event->button() == Qt::LeftButton)
@@ -109,8 +110,8 @@ void CharSetWidget::mouseMoveEvent(QMouseEvent * event)
     if (event->buttons() == Qt::LeftButton)
     {
         auto pos = event->localPos();
-        int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
-        int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
+        int x = (pos.x() - OFFSET) / _pixelSize.width() / 8;
+        int y = (pos.y() - OFFSET) / _pixelSize.height() / 8;
 
         if (x >= _cursorPos.x())
             x++;
@@ -206,14 +207,14 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
     auto state = State::getInstance();
 
     int end_x = 8;
-    int pixel_size_x = PIXEL_SIZE;
+    int pixel_size_x = _pixelSize.width();
     int increment_x = 1;
     int bits_to_mask = 1;
 
     if (state->shouldBeDisplayedInMulticolor())
     {
         end_x = 4;
-        pixel_size_x = PIXEL_SIZE * 2;
+        pixel_size_x = _pixelSize.width() * 2;
         increment_x = 2;
         bits_to_mask = 3;
     }
@@ -254,9 +255,9 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
                         color_pen = State::PEN_FOREGROUND;
                     painter.setBrush(Palette::getColorForPen(color_pen));
                     painter.drawRect((w*end_x+x) * pixel_size_x + OFFSET,
-                                     (h*8+y) * PIXEL_SIZE + OFFSET,
+                                     (h*8+y) * _pixelSize.height() + OFFSET,
                                      pixel_size_x,
-                                     PIXEL_SIZE);
+                                     _pixelSize.height());
                 }
             }
 
@@ -268,20 +269,20 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(149,195,244,64));
-        painter.drawRect(_cursorPos.x() * 8 * PIXEL_SIZE + OFFSET,
-                         _cursorPos.y() * 8 * PIXEL_SIZE + OFFSET,
-                         _selectingSize.width() * 8 * PIXEL_SIZE,
-                         _selectingSize.height() * 8 * PIXEL_SIZE);
+        painter.drawRect(_cursorPos.x() * 8 * _pixelSize.width() + OFFSET,
+                         _cursorPos.y() * 8 * _pixelSize.height() + OFFSET,
+                         _selectingSize.width() * 8 * _pixelSize.width(),
+                         _selectingSize.height() * 8 * _pixelSize.height());
     }
     else
     {
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(128,0,0,0));
-        painter.drawRect(_cursorPos.x() * 8 * PIXEL_SIZE + OFFSET,
-                         _cursorPos.y() * 8 * PIXEL_SIZE + OFFSET,
-                         8 * PIXEL_SIZE,
-                         8 * PIXEL_SIZE);
+        painter.drawRect(_cursorPos.x() * 8 * _pixelSize.width() + OFFSET,
+                         _cursorPos.y() * 8 * _pixelSize.height() + OFFSET,
+                         8 * _pixelSize.width(),
+                         8 * _pixelSize.height());
     }
 
     paintFocus(painter);
@@ -291,6 +292,18 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
 QSize CharSetWidget::sizeHint() const
 {
     return _sizeHint;
+}
+
+void CharSetWidget::resizeEvent(QResizeEvent* event)
+{
+    Q_UNUSED(event);
+
+    int pixel_size_x = size().width() / (COLUMNS * 8);
+    int pixel_size_y = size().height() / (ROWS * 8);
+
+    // keep aspect ratio
+    int pixel_size = qMin(pixel_size_x, pixel_size_y);
+    _pixelSize = {pixel_size, pixel_size};
 }
 
 //
@@ -309,15 +322,15 @@ void CharSetWidget::paintFocus(QPainter &painter)
 
         // vertical lines
         painter.drawLine(0, 0,
-                         0, ROWS * PIXEL_SIZE * 8 + OFFSET);
-        painter.drawLine(COLUMNS * PIXEL_SIZE * 8 + OFFSET, 0,
-                         COLUMNS * PIXEL_SIZE * 8 + OFFSET, ROWS * PIXEL_SIZE * 8 + OFFSET);
+                         0, ROWS * _pixelSize.height() * 8 + OFFSET);
+        painter.drawLine(COLUMNS * _pixelSize.width() * 8 + OFFSET, 0,
+                         COLUMNS * _pixelSize.width() * 8 + OFFSET, ROWS * _pixelSize.height() * 8 + OFFSET);
 
         // horizontal lines
         painter.drawLine(0, 0,
-                         COLUMNS * PIXEL_SIZE * 8 + OFFSET, 0);
-        painter.drawLine(0, ROWS * PIXEL_SIZE * 8 + OFFSET,
-                         COLUMNS * PIXEL_SIZE * 8 + OFFSET, ROWS * PIXEL_SIZE * 8 + OFFSET);
+                         COLUMNS * _pixelSize.width() * 8 + OFFSET, 0);
+        painter.drawLine(0, ROWS * _pixelSize.height() * 8 + OFFSET,
+                         COLUMNS * _pixelSize.width() * 8 + OFFSET, ROWS * _pixelSize.height() * 8 + OFFSET);
     }
 }
 

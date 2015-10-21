@@ -6,39 +6,47 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>583</width>
-    <height>527</height>
+    <width>524</width>
+    <height>531</height>
    </rect>
   </property>
   <property name="focusPolicy">
    <enum>Qt::WheelFocus</enum>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="BigCharWidget" name="bigcharWidget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>12</x>
-      <y>12</y>
-      <width>295</width>
-      <height>261</height>
-     </rect>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>2</number>
     </property>
-    <property name="minimumSize">
-     <size>
-      <width>256</width>
-      <height>256</height>
-     </size>
+    <property name="topMargin">
+     <number>2</number>
     </property>
-    <property name="sizeIncrement">
-     <size>
-      <width>0</width>
-      <height>0</height>
-     </size>
+    <property name="rightMargin">
+     <number>2</number>
     </property>
-    <property name="focusPolicy">
-     <enum>Qt::StrongFocus</enum>
+    <property name="bottomMargin">
+     <number>2</number>
     </property>
-   </widget>
+    <item>
+     <widget class="BigCharWidget" name="bigcharWidget" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>256</width>
+        <height>256</height>
+       </size>
+      </property>
+      <property name="sizeIncrement">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::StrongFocus</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -57,7 +65,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>583</width>
+     <width>524</width>
      <height>22</height>
     </rect>
    </property>
@@ -184,40 +192,36 @@
     <number>8</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
-    <property name="minimumSize">
-     <size>
-      <width>516</width>
-      <height>132</height>
-     </size>
-    </property>
-    <widget class="CharSetWidget" name="charsetWidget" native="true">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>516</width>
-       <height>132</height>
-      </rect>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <property name="leftMargin">
+      <number>2</number>
      </property>
-     <property name="minimumSize">
-      <size>
-       <width>516</width>
-       <height>132</height>
-      </size>
+     <property name="topMargin">
+      <number>2</number>
      </property>
-     <property name="focusPolicy">
-      <enum>Qt::StrongFocus</enum>
+     <property name="rightMargin">
+      <number>2</number>
      </property>
-    </widget>
+     <property name="bottomMargin">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="CharSetWidget" name="charsetWidget" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>516</width>
+         <height>132</height>
+        </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockWidget_colors">
-   <property name="minimumSize">
-    <size>
-     <width>62</width>
-     <height>230</height>
-    </size>
-   </property>
    <property name="windowTitle">
     <string>Colors</string>
    </property>
@@ -225,94 +229,84 @@
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
-    <widget class="QWidget" name="layoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>234</width>
-       <height>201</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="3" column="1">
-         <widget class="ColorRectWidget" name="colorRectWidget_3" native="true"/>
-        </item>
-        <item row="2" column="1">
-         <widget class="ColorRectWidget" name="colorRectWidget_2" native="true"/>
-        </item>
-        <item row="0" column="1">
-         <widget class="ColorRectWidget" name="colorRectWidget_0" native="true"/>
-        </item>
-        <item row="1" column="1">
-         <widget class="ColorRectWidget" name="colorRectWidget_1" native="true"/>
-        </item>
-        <item row="1" column="0">
-         <widget class="QRadioButton" name="radioButton_foreground">
-          <property name="text">
-           <string>Foreground</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QRadioButton" name="radioButton_multicolor1">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Multi Color #1</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QRadioButton" name="radioButton_multicolor2">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Multi Color #2</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QRadioButton" name="radioButton_background">
-          <property name="text">
-           <string>Background</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox_multicolor">
-        <property name="text">
-         <string>MultiColor Mode</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="PaletteWidget" name="paletteWidget" native="true">
-        <property name="minimumSize">
-         <size>
-          <width>192</width>
-          <height>32</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>192</width>
-          <height>32</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="3" column="1">
+        <widget class="ColorRectWidget" name="colorRectWidget_3" native="true"/>
+       </item>
+       <item row="2" column="1">
+        <widget class="ColorRectWidget" name="colorRectWidget_2" native="true"/>
+       </item>
+       <item row="0" column="1">
+        <widget class="ColorRectWidget" name="colorRectWidget_0" native="true"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="ColorRectWidget" name="colorRectWidget_1" native="true"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QRadioButton" name="radioButton_foreground">
+         <property name="text">
+          <string>Foreground</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QRadioButton" name="radioButton_multicolor1">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Multi Color #1</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QRadioButton" name="radioButton_multicolor2">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Multi Color #2</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QRadioButton" name="radioButton_background">
+         <property name="text">
+          <string>Background</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkBox_multicolor">
+       <property name="text">
+        <string>MultiColor Mode</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PaletteWidget" name="paletteWidget" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>192</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>192</width>
+         <height>32</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockWidget_tileIndex">
@@ -323,57 +317,35 @@
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_3">
-    <property name="minimumSize">
-     <size>
-      <width>200</width>
-      <height>32</height>
-     </size>
-    </property>
-    <widget class="QWidget" name="layoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>0</y>
-       <width>150</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLabel" name="label_tileIndex">
-        <property name="text">
-         <string>Tile Index</string>
-        </property>
-        <property name="buddy">
-         <cstring>spinBox_tileIndex</cstring>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="spinBox_tileIndex">
-        <property name="maximum">
-         <number>255</number>
-        </property>
-        <property name="displayIntegerBase">
-         <number>10</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_tileIndex">
+       <property name="text">
+        <string>Tile Index</string>
+       </property>
+       <property name="buddy">
+        <cstring>spinBox_tileIndex</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="spinBox_tileIndex">
+       <property name="maximum">
+        <number>255</number>
+       </property>
+       <property name="displayIntegerBase">
+        <number>10</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockWidget_tileset">
@@ -384,19 +356,27 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_5">
-    <widget class="TilesetWidget" name="tilesetWidget" native="true">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>38</width>
-       <height>239</height>
-      </rect>
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <property name="leftMargin">
+      <number>2</number>
      </property>
-     <property name="focusPolicy">
-      <enum>Qt::StrongFocus</enum>
+     <property name="topMargin">
+      <number>2</number>
      </property>
-    </widget>
+     <property name="rightMargin">
+      <number>2</number>
+     </property>
+     <property name="bottomMargin">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="TilesetWidget" name="tilesetWidget" native="true">
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <action name="actionOpen">
@@ -883,7 +863,6 @@
   <tabstop>radioButton_multicolor1</tabstop>
   <tabstop>radioButton_multicolor2</tabstop>
   <tabstop>checkBox_multicolor</tabstop>
-  <tabstop>spinBox_tileIndex</tabstop>
   <tabstop>bigcharWidget</tabstop>
   <tabstop>charsetWidget</tabstop>
  </tabstops>

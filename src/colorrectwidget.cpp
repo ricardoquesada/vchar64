@@ -26,6 +26,7 @@ ColorRectWidget::ColorRectWidget(QWidget *parent)
     : QWidget(parent)
     , _pen(0)
 {
+    setMinimumSize(60,10);
 }
 
 ColorRectWidget::~ColorRectWidget()

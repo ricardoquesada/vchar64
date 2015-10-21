@@ -357,7 +357,7 @@ void BigCharWidget::updateColor()
 //
 void BigCharWidget::resizeEvent(QResizeEvent* event)
 {
-    (void)event;
+    Q_UNUSED(event);
 
     // keep aspect ratio
     int maxTileSize = qMax(_tileProperties.size.width(), _tileProperties.size.height());
