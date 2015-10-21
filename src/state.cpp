@@ -853,7 +853,7 @@ void State::_setCharIndex(int charIndex)
 
 void State::setTileIndex(int tileIndex)
 {
-    Q_ASSERT(tileIndex >= 0 && tileIndex < getTileIndexFromCharIndex(255));
+    Q_ASSERT(tileIndex >= 0 && tileIndex < getTileIndexFromCharIndex(256));
 
     if (_tileIndex != tileIndex)
     {
