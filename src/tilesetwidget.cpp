@@ -37,6 +37,9 @@ TilesetWidget::TilesetWidget(QWidget *parent)
     , _sizeHint({0,0})
     , _pixelSize({0,0})
 {
+    _sizeHint = {COLUMNS * 8 * 2,
+                 ROWS * 8 * 2};
+    setMinimumSize(_sizeHint);
 }
 
 //
@@ -60,7 +63,7 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
         int tileIndex = x + y * (_columns / tw);
 
         // different and valid tileIndex?
-        if (_selectedTile != tileIndex && tileIndex < (256/(tw * th)))
+        if (_selectedTile != tileIndex && tileIndex >= 0 && tileIndex < (256/(tw * th)))
         {
             _selectedTile = tileIndex;
 
@@ -171,9 +174,6 @@ void TilesetWidget::resizeEvent(QResizeEvent* event)
     // keep aspect ratio
     int pixel_size = qMin(pixel_size_x, pixel_size_y);
     _pixelSize = {pixel_size, pixel_size};
-
-    _sizeHint = {COLUMNS * 8 * _pixelSize.width(),
-                 ROWS * 8 * _pixelSize.height()};
 }
 
 //

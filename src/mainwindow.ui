@@ -16,16 +16,16 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="leftMargin">
-     <number>2</number>
+     <number>6</number>
     </property>
     <property name="topMargin">
-     <number>2</number>
+     <number>6</number>
     </property>
     <property name="rightMargin">
-     <number>2</number>
+     <number>6</number>
     </property>
     <property name="bottomMargin">
-     <number>2</number>
+     <number>6</number>
     </property>
     <item>
      <widget class="BigCharWidget" name="bigcharWidget" native="true">
@@ -207,12 +207,6 @@
      </property>
      <item>
       <widget class="CharSetWidget" name="charsetWidget" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>516</width>
-         <height>132</height>
-        </size>
-       </property>
        <property name="focusPolicy">
         <enum>Qt::StrongFocus</enum>
        </property>

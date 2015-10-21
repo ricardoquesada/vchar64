@@ -830,6 +830,8 @@ void State::tileShiftDown(int tileIndex)
 //
 void State::setCharIndex(int charIndex)
 {
+    Q_ASSERT(charIndex >= 0 && charIndex < 256);
+
     if (_charIndex != charIndex)
     {
         _setCharIndex(charIndex);
@@ -851,6 +853,8 @@ void State::_setCharIndex(int charIndex)
 
 void State::setTileIndex(int tileIndex)
 {
+    Q_ASSERT(tileIndex >= 0 && tileIndex < getTileIndexFromCharIndex(255));
+
     if (_tileIndex != tileIndex)
     {
         _setTileIndex(tileIndex);

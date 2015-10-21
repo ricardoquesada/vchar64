@@ -37,11 +37,14 @@ CharSetWidget::CharSetWidget(QWidget *parent)
     , _sizeHint({0,0})
     , _pixelSize({0,0})
 {
+    _sizeHint = {COLUMNS * 8 * 2,
+                 ROWS * 8 * 2};
+    setMinimumSize(_sizeHint);
 }
 
 void CharSetWidget::updateCharIndex(int charIndex)
 {
-    if (_charIndex != charIndex)
+    if (_charIndex != charIndex && charIndex >=0 && charIndex < 256)
     {
         _charIndex = charIndex;
         auto state = State::getInstance();
@@ -294,15 +297,12 @@ void CharSetWidget::resizeEvent(QResizeEvent* event)
 {
     Q_UNUSED(event);
 
-    int pixel_size_x = size().width() / (COLUMNS * 8);
-    int pixel_size_y = size().height() / (ROWS * 8);
+    auto pixel_size_x = size().width() / (COLUMNS * 8);
+    auto pixel_size_y = size().height() / (ROWS * 8);
 
     // keep aspect ratio
-    int pixel_size = qMin(pixel_size_x, pixel_size_y);
+    auto pixel_size = qMin(pixel_size_x, pixel_size_y);
     _pixelSize = {pixel_size, pixel_size};
-
-    _sizeHint = {COLUMNS * 8 * _pixelSize.width(),
-                 ROWS * 8 * _pixelSize.height()};
 }
 
 //
