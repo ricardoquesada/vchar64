@@ -164,8 +164,8 @@ void MainWindow::readSettings()
     auto geom = _settings.value("MainWindow/geometry").toByteArray();
     auto state = _settings.value("MainWindow/windowState").toByteArray();
 
-//    restoreState(state);
-//    restoreGeometry(geom);
+    restoreState(state);
+    restoreGeometry(geom);
 
     QAction* actions[] = {
         _ui->actionPalette_0,
