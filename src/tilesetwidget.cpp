@@ -25,7 +25,6 @@ limitations under the License.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-static const int PIXEL_SIZE = 2;
 static const int COLUMNS = 32;
 static const int ROWS = 8;
 static const int OFFSET = 2;
@@ -35,13 +34,10 @@ TilesetWidget::TilesetWidget(QWidget *parent)
     , _selectedTile(0)
     , _columns(COLUMNS)
     , _rows(ROWS)
+    , _sizeHint({0,0})
+    , _pixelSize({0,0})
 {
-    _sizeHint = QSize(PIXEL_SIZE * _columns * 8 + OFFSET * 2,
-                 PIXEL_SIZE * _rows * 8 + OFFSET * 2);
-
-    setMinimumSize(_sizeHint);
 }
-
 
 //
 // overrides
@@ -59,8 +55,8 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
         int tw = tileProperties.size.width();
         int th = tileProperties.size.height();
 
-        int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8 / tw;
-        int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8 / th;
+        int x = (pos.x() - OFFSET) / _pixelSize.width() / 8 / tw;
+        int y = (pos.y() - OFFSET) / _pixelSize.height() / 8 / th;
         int tileIndex = x + y * (_columns / tw);
 
         // different and valid tileIndex?
@@ -165,6 +161,21 @@ QSize TilesetWidget::sizeHint() const
     return _sizeHint;
 }
 
+void TilesetWidget::resizeEvent(QResizeEvent* event)
+{
+    Q_UNUSED(event);
+
+    int pixel_size_x = size().width() / (COLUMNS * 8);
+    int pixel_size_y = size().height() / (ROWS * 8);
+
+    // keep aspect ratio
+    int pixel_size = qMin(pixel_size_x, pixel_size_y);
+    _pixelSize = {pixel_size, pixel_size};
+
+    _sizeHint = {COLUMNS * 8 * _pixelSize.width(),
+                 ROWS * 8 * _pixelSize.height()};
+}
+
 //
 // helpers
 //
@@ -184,10 +195,10 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
 
     painter.setPen(pen);
     painter.setBrush(QColor(128,0,0,0));
-    painter.drawRect(x * 8 * PIXEL_SIZE + OFFSET,
-                     y * 8 * PIXEL_SIZE + OFFSET,
-                     8 * PIXEL_SIZE * tw,
-                     8 * PIXEL_SIZE * th);
+    painter.drawRect(x * 8 * _pixelSize.width() + OFFSET,
+                     y * 8 * _pixelSize.height() + OFFSET,
+                     8 * _pixelSize.width() * tw,
+                     8 * _pixelSize.height() * th);
 }
 
 void TilesetWidget::paintPixel(QPainter &painter, int w, int h, quint8* charPtr)
@@ -195,14 +206,14 @@ void TilesetWidget::paintPixel(QPainter &painter, int w, int h, quint8* charPtr)
     auto state = State::getInstance();
 
     int end_x = 8;
-    int pixel_size_x = PIXEL_SIZE;
+    int pixel_size_x = _pixelSize.width();
     int increment_x = 1;
     int bits_to_mask = 1;
 
     if (state->shouldBeDisplayedInMulticolor())
     {
         end_x = 4;
-        pixel_size_x = PIXEL_SIZE * 2;
+        pixel_size_x = _pixelSize.width() * 2;
         increment_x = 2;
         bits_to_mask = 3;
     }
@@ -229,9 +240,9 @@ void TilesetWidget::paintPixel(QPainter &painter, int w, int h, quint8* charPtr)
                 color_pen = State::PEN_FOREGROUND;
             painter.setBrush(Palette::getColorForPen(color_pen));
             painter.drawRect((w * end_x + x) * pixel_size_x + OFFSET,
-                             (h * 8 + y) * PIXEL_SIZE + OFFSET,
+                             (h * 8 + y) * _pixelSize.height() + OFFSET,
                              pixel_size_x,
-                             PIXEL_SIZE);
+                             _pixelSize.height());
         }
     }
 }
@@ -249,15 +260,15 @@ void TilesetWidget::paintFocus(QPainter &painter)
 
         // vertical lines
         painter.drawLine(0, 0,
-                         0, _rows * PIXEL_SIZE * 8 + OFFSET);
-        painter.drawLine(_columns * PIXEL_SIZE * 8 + OFFSET, 0,
-                         _columns * PIXEL_SIZE * 8 + OFFSET, _rows * PIXEL_SIZE * 8 + OFFSET);
+                         0, _rows * _pixelSize.height() * 8 + OFFSET);
+        painter.drawLine(_columns * _pixelSize.width() * 8 + OFFSET, 0,
+                         _columns * _pixelSize.width() * 8 + OFFSET, _rows * _pixelSize.height() * 8 + OFFSET);
 
         // horizontal lines
         painter.drawLine(0, 0,
-                         _columns * PIXEL_SIZE * 8 + OFFSET, 0);
-        painter.drawLine(0, _rows * PIXEL_SIZE * 8 + OFFSET,
-                         _columns * PIXEL_SIZE * 8 + OFFSET, _rows * PIXEL_SIZE * 8 + OFFSET);
+                         _columns * _pixelSize.width() * 8 + OFFSET, 0);
+        painter.drawLine(0, _rows * _pixelSize.height() * 8 + OFFSET,
+                         _columns * _pixelSize.width() * 8 + OFFSET, _rows * _pixelSize.height() * 8 + OFFSET);
     }
 }
 
@@ -281,10 +292,8 @@ void TilesetWidget::onTilePropertiesUpdated()
 
     _rows = qCeil((256.0f / _columns) / properties.size.height()) * properties.size.height();
 
-    _sizeHint = QSize(PIXEL_SIZE * _columns * 8 + OFFSET * 2,
-                 PIXEL_SIZE * _rows * 8 + OFFSET * 2);
-    setMinimumSize(_sizeHint);
-
+    _sizeHint = QSize(_pixelSize.width() * _columns * 8 + OFFSET * 2,
+                 _pixelSize.height() * _rows * 8 + OFFSET * 2);
     update();
 }
 

@@ -24,7 +24,6 @@ limitations under the License.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-static const int PIXEL_SIZE = 2;
 static const int COLUMNS = 32;
 static const int ROWS = 8;
 static const int OFFSET = 2;
@@ -35,11 +34,9 @@ CharSetWidget::CharSetWidget(QWidget *parent)
     , _selecting(false)
     , _selectingSize({1,1})
     , _charIndex(-1)
-    , _pixelSize({PIXEL_SIZE, PIXEL_SIZE})
+    , _sizeHint({0,0})
+    , _pixelSize({0,0})
 {
-    _sizeHint = QSize(_pixelSize.width() * COLUMNS * 8 + OFFSET * 2,
-                 _pixelSize.height() * ROWS * 8 + OFFSET * 2);
-    setMinimumSize(_sizeHint);
 }
 
 void CharSetWidget::updateCharIndex(int charIndex)
@@ -49,7 +46,6 @@ void CharSetWidget::updateCharIndex(int charIndex)
         _charIndex = charIndex;
         auto state = State::getInstance();
         state->setCharIndex(charIndex);
-
     }
 }
 
@@ -304,6 +300,9 @@ void CharSetWidget::resizeEvent(QResizeEvent* event)
     // keep aspect ratio
     int pixel_size = qMin(pixel_size_x, pixel_size_y);
     _pixelSize = {pixel_size, pixel_size};
+
+    _sizeHint = {COLUMNS * 8 * _pixelSize.width(),
+                 ROWS * 8 * _pixelSize.height()};
 }
 
 //
