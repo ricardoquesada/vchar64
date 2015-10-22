@@ -68,12 +68,12 @@ MainWindow::~MainWindow()
 //
 void MainWindow::previewConnected()
 {
-    _ui->actionXlinkConnection->setText("Disconnect");
+    _ui->actionXlinkConnection->setText(tr("Disconnect"));
 }
 
 void MainWindow::previewDisconnected()
 {
-    _ui->actionXlinkConnection->setText("Connect");
+    _ui->actionXlinkConnection->setText(tr("Connect"));
 }
 
 void MainWindow::documentWasModified()
@@ -334,8 +334,7 @@ void MainWindow::setRecentFile(const QString& fileName)
 //
 void MainWindow::onCharIndexUpdated(int charIndex)
 {
-
-    _labelCharIdx->setText(QString("#%1  $%2")
+    _labelCharIdx->setText(tr("#%1  $%2")
                            .arg(charIndex, 3, 10, QLatin1Char('0'))
                            .arg(charIndex, 2, 16, QLatin1Char('0')));
 }
@@ -355,7 +354,7 @@ void MainWindow::on_actionEmptyProject_triggered()
         auto state = State::getInstance();
         state->reset();
         updateWindow();
-        setWindowFilePath("[untitled]");
+        setWindowFilePath(tr("[untitled]"));
     }
 }
 
@@ -372,7 +371,7 @@ void MainWindow::on_actionC64DefaultUppercase_triggered()
         state->setMulticolorMode(false);
 
         updateWindow();
-        setWindowFilePath("[untitled]");
+        setWindowFilePath(tr("[untitled]"));
     }
 }
 
@@ -389,7 +388,7 @@ void MainWindow::on_actionC64DefaultLowercase_triggered()
         state->setMulticolorMode(false);
 
         updateWindow();
-        setWindowFilePath("[untitled]");
+        setWindowFilePath(tr("[untitled]"));
     }
 }
 
@@ -811,7 +810,7 @@ void MainWindow::on_actionXlinkConnection_triggered()
         preview->disconnect();
     else
         if(!preview->connect()) {
-            QMessageBox msgBox(QMessageBox::Warning, "", "Could not connect to remote C64", 0, this);
+            QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote C64"), 0, this);
             msgBox.exec();
         }
 }

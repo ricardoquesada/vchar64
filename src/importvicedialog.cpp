@@ -78,7 +78,7 @@ void ImportVICEDialog::on_spinBox_valueChanged(int value)
 
 void ImportVICEDialog::on_pushButton_clicked()
 {
-    QString filter("VICE snapshot files");
+    auto filter = tr("VICE snapshot files");
     QString lastdir = QSettings("RetroMoe","VChar64").value("dir/lastdir", QDir::homePath()).toString();
     auto fn = QFileDialog::getOpenFileName(this,
                                            tr("Select VICE Snapshot File"),
