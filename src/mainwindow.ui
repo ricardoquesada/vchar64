@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>524</width>
-    <height>531</height>
+    <width>548</width>
+    <height>516</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -65,7 +65,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>524</width>
+     <width>548</width>
      <height>22</height>
     </rect>
    </property>
@@ -207,6 +207,12 @@
      </property>
      <item>
       <widget class="CharSetWidget" name="charsetWidget" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>512</width>
+         <height>128</height>
+        </size>
+       </property>
        <property name="focusPolicy">
         <enum>Qt::StrongFocus</enum>
        </property>
@@ -326,6 +332,12 @@
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
        </property>
       </spacer>
      </item>
@@ -584,7 +596,7 @@
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>About</string>
+    <string notr="true">About</string>
    </property>
    <property name="toolTip">
     <string>Show the application's About box</string>
