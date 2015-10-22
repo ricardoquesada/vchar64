@@ -9,6 +9,7 @@
 * [NEW] TilesetWidget view: previews the "chars" as "tiles".
 * [NEW] Associates .vchar64proj to VChar64
 * [NEW] Added support to import VICE Snapshot files
+* [NEW] Added internationalization support: Added Spanish translation files
 
 * [BUGFIX] Tile Index / Rotate Action udpated correctly after tile properties
 	are updated in undo / redo
