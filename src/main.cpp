@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+#include <QTranslator>
+#include <QLibraryInfo>
+
 #include "mainwindow.h"
 #include "vchar64application.h"
 
@@ -23,6 +26,17 @@ int main(int argc, char *argv[])
 
     VChar64Application app(argc, argv);
 
+    // translation code
+    QTranslator qtTranslator;
+    qtTranslator.load("qt_" + QLocale::system().name(),
+                      QLibraryInfo::location(QLibraryInfo::TranslationsPath));
+    app.installTranslator(&qtTranslator);
+
+    QTranslator myappTranslator;
+    myappTranslator.load("vchar64_" + QLocale::system().name());
+    app.installTranslator(&myappTranslator);
+
+    // name code
     app.setOrganizationDomain(QLatin1String("retro.moe"));
     app.setApplicationName(QLatin1String("VChar64"));
     app.setApplicationVersion(QLatin1String(APP_VERSION));

@@ -71,6 +71,8 @@ RESOURCES += \
 
 QMAKE_CXXFLAGS += -Werror
 
+TRANSLATIONS = translations/vchar64_es.ts
+
 macx {
     TARGET = VChar64
     ICON = res/vchar64-icon-mac.icns
