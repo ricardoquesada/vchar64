@@ -245,7 +245,6 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="409"/>
         <location filename="../src/mainwindow.ui" line="412"/>
         <source>Exit</source>
         <translation>Salir</translation>

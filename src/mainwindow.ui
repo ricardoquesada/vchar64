@@ -406,7 +406,7 @@
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
-    <string>Exit</string>
+    <string notr="true">Exit</string>
    </property>
    <property name="toolTip">
     <string>Exit</string>
