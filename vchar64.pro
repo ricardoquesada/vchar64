@@ -10,7 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = vchar64
 TEMPLATE = app
-VERSION = 0.0.8
+VERSION = $$system(git describe --abbrev=4 --dirty --always --tags)
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 CONFIG += c++11
