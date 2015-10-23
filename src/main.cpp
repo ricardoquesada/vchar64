@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     // name code
     app.setOrganizationDomain(QLatin1String("retro.moe"));
     app.setApplicationName(QLatin1String("VChar64"));
-    app.setApplicationVersion(QLatin1String(APP_VERSION));
+    app.setApplicationVersion(QLatin1String(GIT_VERSION));
 
     app.setApplicationDisplayName(QLatin1String("VChar64"));
 
