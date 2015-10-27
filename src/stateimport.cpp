@@ -221,20 +221,31 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
     static const char VICE_MAGIC[] = "VICE Snapshot File\032";
     static const char VICE_C64MEM[] = "C64MEM";
 
+    auto state = State::getInstance();
+
     if (!file.isOpen())
         file.open(QIODevice::ReadOnly);
 
     auto size = file.size();
     if (size < (qint64)sizeof(VICESnapshotHeader))
+    {
+        state->setErrorMessage(QObject::tr("Error: VICE file too small"));
         return -1;
+    }
 
     file.seek(0);
     size = file.read((char*)&header, sizeof(header));
     if (size != sizeof(header))
+    {
+        state->setErrorMessage(QObject::tr("Error: VICE header too small"));
         return -1;
+    }
 
     if (memcmp(header.id, VICE_MAGIC, sizeof(header.id)) != 0)
+    {
+        state->setErrorMessage(QObject::tr("Error: Invalid VICE header Id"));
         return -1;
+    }
 
     int offset = file.pos();
     bool found = false;
@@ -260,9 +271,17 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
     {
         size = file.read((char*)&c64mem, sizeof(c64mem));
         if (size != sizeof(c64mem))
+        {
+            state->setErrorMessage(QObject::tr("Error: Invalid VICE C64MEM segment"));
             return -1;
+        }
 
         memcpy(buffer64k, c64mem.ram, sizeof(c64mem.ram));
+    }
+    else
+    {
+        state->setErrorMessage(QObject::tr("Error: VICE C64MEM segment not found"));
+        return -1;
     }
 
     return 0;
