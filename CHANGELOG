@@ -20,6 +20,7 @@
 * [BUGFIX] events are propagated to the dock windows when they are floating
 * [BUGFIX] Copy & Paste works as expected in interleaved mode
 * [BUGFIX] Shift Left / Right work as expected on Multicolor mode
+* [BUGFIX] Don't crash when pasting before copying
 
 
 0.0.7 (4 October 2015)

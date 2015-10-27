@@ -54,6 +54,12 @@ State::State()
 {
     memset(_copyCharset, 0, sizeof(_copyCharset));
     _undoStack = new QUndoStack;
+
+    // default copy range
+    _copyRange.blockSize = 1;
+    _copyRange.count = 1;
+    _copyRange.offset = 0;
+    _copyRange.skip = 0;
 }
 
 State::~State()
