@@ -114,6 +114,33 @@ void PasteCommand::redo()
     _state->paste(_charIndex, _copyRange, _copyBuffer);
 }
 
+// CutCommand
+
+CutCommand::CutCommand(State *state, int charIndex, const State::CopyRange& copyRange, QUndoCommand *parent)
+    : QUndoCommand(parent)
+{
+    _charIndex = charIndex;
+    _state = state;
+    _copyRange = copyRange;
+    bzero(_zeroBuffer, sizeof(_zeroBuffer));
+
+    setText(QObject::tr("Paste #%1").arg(_charIndex));
+}
+
+void CutCommand::undo()
+{
+    State::CopyRange reversedCopyRange;
+    memcpy(&reversedCopyRange, &_copyRange, sizeof(State::CopyRange));
+    reversedCopyRange.offset = _charIndex;
+
+    _state->paste(_charIndex, reversedCopyRange, _origBuffer);
+}
+
+void CutCommand::redo()
+{
+    memcpy(_origBuffer, _state->getCharsetBuffer(), sizeof(_origBuffer));
+    _state->paste(_charIndex, _copyRange, _zeroBuffer);
+}
 // FlipTileHCommand
 
 FlipTileHCommand::FlipTileHCommand(State *state, int tileIndex, QUndoCommand *parent)

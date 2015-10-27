@@ -124,6 +124,8 @@ private slots:
 
     void on_actionImport_VICE_snapshot_triggered();
 
+    void on_actionCut_triggered();
+
 private:
 
     bool maybeSave();

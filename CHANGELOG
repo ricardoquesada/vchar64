@@ -10,7 +10,10 @@
 * [NEW] Associates .vchar64proj to VChar64
 * [NEW] Added support to import VICE Snapshot files
 * [NEW] Added internationalization support: Added Spanish translation files
+* [NEW] Added "Edit -> Cut"
+* [NEW] Reports errors on status bar
 
+* [BUGFIX] Clear Tile works as expected with interleaved tiles
 * [BUGFIX] Tile Index / Rotate Action udpated correctly after tile properties
 	are updated in undo / redo
 * [BUGFIX] Block-copy supported in Xlink

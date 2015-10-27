@@ -749,11 +749,20 @@ void MainWindow::on_actionShiftDown_triggered()
     state->getUndoStack()->push(new ShiftDownTileCommand(state, tileIndex));
 }
 
+void MainWindow::on_actionCut_triggered()
+{
+    auto state = State::getInstance();
+    int cursorPos = _ui->charsetWidget->getCursorPos();
+
+    State::CopyRange copyRange;
+    _ui->charsetWidget->getSelectionRange(&copyRange);
+    state->copy(copyRange);
+    state->getUndoStack()->push(new CutCommand(state, cursorPos, state->getCopyRange()));
+}
+
 void MainWindow::on_actionCopy_triggered()
 {
     auto state = State::getInstance();
-
-    //state->tileCopy(_ui->bigcharWidget->getTileIndex());
 
     State::CopyRange copyRange;
     _ui->charsetWidget->getSelectionRange(&copyRange);

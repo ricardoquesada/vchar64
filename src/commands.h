@@ -75,6 +75,21 @@ private:
     State::CopyRange _copyRange;
 };
 
+class CutCommand : public QUndoCommand
+{
+public:
+    CutCommand(State *state, int charIndex, const State::CopyRange &copyRange, QUndoCommand *parent = nullptr);
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+
+private:
+    State* _state;
+    int _charIndex;
+
+    quint8 _zeroBuffer[State::CHAR_BUFFER_SIZE];
+    quint8 _origBuffer[State::CHAR_BUFFER_SIZE];
+    State::CopyRange _copyRange;
+};
 
 class FlipTileHCommand : public QUndoCommand
 {
