@@ -193,9 +193,9 @@ public:
     quint8* getCharAtIndex(int charIndex);
 
     // size-of-tile chars will be copied. bufferSize must be big enough
-    void copyCharFromIndex(int tileIndex, quint8* buffer, int bufferSize);
+    void copyTileFromIndex(int tileIndex, quint8* buffer, int bufferSize);
     // size-of-tile chars will be copied. bufferSize must be big enough
-    void copyCharToIndex(int tileIndex, quint8* buffer, int bufferSize);
+    void copyTileToIndex(int tileIndex, quint8* buffer, int bufferSize);
 
     //
     // charset
@@ -251,6 +251,18 @@ public:
     int tileGetPen(int tileIndex, const QPoint& position);
 
 
+    /**
+     * @brief setErrorMessage Sets the error message
+     * @param errorMesg
+     */
+    void setErrorMessage(const QString& errorMesg);
+
+    /**
+     * @brief getErrorMessage returns the current error message
+     * @return
+     */
+    const QString& getErrorMessage() const;
+
 signals:
     // file loaded, or new project
     void fileLoaded();
@@ -289,6 +301,12 @@ signals:
      * @brief tileIndexUpdated emitted when the tileIndex is updated. Emits charIndexUpdated(); as well
      */
     void tileIndexUpdated(int);
+
+    /**
+     * @brief errorMessageSet signal emitted when a new error message is set
+     * @param errorMsg
+     */
+    void errorMessageSet(const QString& errorMsg);
 
 public slots:
     /**
@@ -355,5 +373,7 @@ protected:
     CopyRange _copyRange;
 
     QUndoStack* _undoStack;
+
+    QString _lastError;
 };
 

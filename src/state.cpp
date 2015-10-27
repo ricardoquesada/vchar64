@@ -254,6 +254,20 @@ bool State::saveProject(const QString& filename)
 }
 
 //
+// Error messages
+//
+void State::setErrorMessage(const QString &errorMesg)
+{
+    _lastError = errorMesg;
+    emit errorMessageSet(_lastError);
+}
+
+const QString& State::getErrorMessage() const
+{
+    return _lastError;
+}
+
+//
 bool State::shouldBeDisplayedInMulticolor() const
 {
     // display char as multicolor only if multicolor is enabled
@@ -435,22 +449,43 @@ void State::updateCharset(quint8 *buffer)
 }
 
 // buffer must be at least 8x8*8 bytes big
-void State::copyCharFromIndex(int tileIndex, quint8* buffer, int bufferSize)
+void State::copyTileFromIndex(int tileIndex, quint8* buffer, int bufferSize)
 {
-    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
-    Q_ASSERT(bufferSize >= tileSize && "invalid bufferSize. Too small");
-    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
+    int tileSize = _tileProperties.size.width() * _tileProperties.size.height();
+    Q_ASSERT(bufferSize >= (tileSize * 8) && "invalid bufferSize. Too small");
+    Q_ASSERT(tileIndex >= 0 && tileIndex < getTileIndexFromCharIndex(256) && "invalid index value");
 
-    memcpy(buffer, &_charset[tileIndex*tileSize], qMin(tileSize, bufferSize));
+    if (_tileProperties.interleaved == 1)
+    {
+        memcpy(buffer, &_charset[tileIndex * tileSize * 8], qMin(tileSize, bufferSize));
+    }
+    else
+    {
+        for (int i=0; i < tileSize; i++)
+        {
+            memcpy(&buffer[i * 8], &_charset[(tileIndex + i * _tileProperties.interleaved) * 8], 8);
+        }
+    }
 }
 
 // size-of-tile chars will be copied
-void State::copyCharToIndex(int tileIndex, quint8* buffer, int bufferSize)
+void State::copyTileToIndex(int tileIndex, quint8* buffer, int bufferSize)
 {
-    int tileSize = _tileProperties.size.width() * _tileProperties.size.height() * 8;
-    Q_ASSERT(bufferSize >= tileSize && "invalid bufferSize. Too small");
-    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
-    memcpy(&_charset[tileIndex*tileSize], buffer, qMin(tileSize, bufferSize));
+    int tileSize = _tileProperties.size.width() * _tileProperties.size.height();
+    Q_ASSERT(bufferSize >= (tileSize * 8) && "invalid bufferSize. Too small");
+    Q_ASSERT(tileIndex >= 0 && tileIndex < getTileIndexFromCharIndex(256) && "invalid index value");
+
+    if (_tileProperties.interleaved == 1)
+    {
+        memcpy(&_charset[tileIndex * tileSize * 8], buffer, qMin(tileSize * 8, bufferSize));
+    }
+    else
+    {
+        for (int i=0; i < tileSize; i++)
+        {
+            memcpy(&_charset[(tileIndex + i * _tileProperties.interleaved) * 8], &buffer[i * 8], 8);
+        }
+    }
 
     emit tileUpdated(tileIndex);
     emit contentsChanged();

@@ -22,7 +22,9 @@ limitations under the License.
 #include <QDir>
 #include <QDebug>
 #include <QFileInfo>
+#include <QStatusBar>
 
+#include "mainwindow.h"
 #include "state.h"
 
 ExportDialog::ExportDialog(QWidget *parent) :
@@ -85,13 +87,17 @@ void ExportDialog::accept()
         ok = state->exportPRG(filename, ui->spinPRGAddress->value());
     }
 
+    MainWindow *mainWindow = static_cast<MainWindow*>(parent());
+
     if (ok) {
         QFileInfo info(filename);
         auto dir = info.absolutePath();
         _settings.setValue("dir/lastdir", dir);
+        mainWindow->statusBar()->showMessage(tr("File exported to %1").arg(state->getExportedFilename()), 2000);
     }
     else
     {
+        mainWindow->statusBar()->showMessage(tr("Export failed"), 2000);
         qDebug() << "Error saving file: " << filename;
     }
 

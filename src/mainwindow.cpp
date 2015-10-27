@@ -228,6 +228,8 @@ void MainWindow::createActions()
     connect(state, &State::multicolorModeToggled, this, &MainWindow::onMulticolorModeToggled);
     connect(state, &State::contentsChanged, this, &MainWindow::documentWasModified);
 
+    connect(state, &State::errorMessageSet, this, &MainWindow::setErrorMessage);
+
     connect(state, &State::tileIndexUpdated, _ui->tilesetWidget, &TilesetWidget::onTileIndexUpdated);
     connect(state, &State::tileIndexUpdated, _ui->bigcharWidget, &BigCharWidget::onTileIndexUpdated);
     connect(state, &State::charIndexUpdated, _ui->charsetWidget, &CharSetWidget::onCharIndexUpdated);
@@ -282,9 +284,9 @@ void MainWindow::createDefaults()
 
 void MainWindow::setupStatusBar()
 {
-    _labelCharIdx = new QLabel(tr("#000  $00"), this);
+    _labelCharIdx = new QLabel(tr("Char: #000  $00"), this);
 //    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
-    QMainWindow::statusBar()->addWidget(_labelCharIdx);
+    QMainWindow::statusBar()->addPermanentWidget(_labelCharIdx);
 }
 
 QStringList MainWindow::recentFiles() const
@@ -332,9 +334,14 @@ void MainWindow::setRecentFile(const QString& fileName)
 //
 // MARK - Slots / Events / Callbacks
 //
+void MainWindow::setErrorMessage(const QString &errorMessage)
+{
+    statusBar()->showMessage(errorMessage, 6000);
+}
+
 void MainWindow::onCharIndexUpdated(int charIndex)
 {
-    _labelCharIdx->setText(tr("#%1  $%2")
+    _labelCharIdx->setText(tr("Char: #%1  $%2")
                            .arg(charIndex, 3, 10, QLatin1Char('0'))
                            .arg(charIndex, 2, 16, QLatin1Char('0')));
 }
@@ -593,15 +600,21 @@ bool MainWindow::on_actionSaveAs_triggered()
                                              fn,
                                              tr("VChar64 project(*.vchar64proj)"));
 
-    if (filename.length() > 0) {
+    if (filename.length() > 0)
+    {
         auto state = State::getInstance();
-        if ((ret=state->saveProject(filename))) {
+        if ((ret=state->saveProject(filename)))
+        {
             QFileInfo fi(filename);
             setWindowFilePath(fi.filePath());
+            statusBar()->showMessage(tr("File saved to %1").arg(state->getSavedFilename()), 2000);
+        }
+        else
+        {
+            statusBar()->showMessage(tr("Error saving file"), 2000);
+            QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
         }
 
-        if (!ret)
-            QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
     }
 
     return ret;
@@ -615,8 +628,15 @@ bool MainWindow::on_actionSave_triggered()
     if (filename.length() > 0)
     {
         ret = state->saveProject(filename);
-        if (!ret)
+        if (ret)
+        {
+            statusBar()->showMessage(tr("File saved to %1").arg(state->getSavedFilename()), 2000);
+        }
+        else
+        {
+            statusBar()->showMessage(tr("Error saving file"), 2000);
             QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
+        }
     }
     else
     {
@@ -632,13 +652,17 @@ void MainWindow::on_actionExport_triggered()
     auto exportedFilename = state->getExportedFilename();
     if (exportedFilename.length()==0)
     {
-        ExportDialog dialog(this);
-        dialog.exec();
+        on_actionExportAs_triggered();
     }
     else
     {
-        if (!state->export_())
+        if (state->export_())
         {
+            statusBar()->showMessage(tr("File exported to %1").arg(state->getExportedFilename()), 2000);
+        }
+        else
+        {
+            statusBar()->showMessage(tr("Export failed"), 2000);
             QMessageBox::warning(this, tr("Application"), tr("Error exporting file: ") + exportedFilename, QMessageBox::Ok);
         }
     }

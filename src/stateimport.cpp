@@ -26,7 +26,9 @@ limitations under the License.
 qint64 StateImport::loadRaw(State* state, QFile& file)
 {
     auto size = file.size() - file.pos();
-    if (size % 8 !=0) {
+    if (size % 8 !=0)
+    {
+        state->setErrorMessage(QObject::tr("Warning: file is not multiple of 8. Characters might be incomplete"));
         qDebug() << "File size not multiple of 8 (" << size << "). Characters might be incomplete";
     }
 
@@ -46,6 +48,7 @@ qint64 StateImport::loadPRG(State *state, QFile& file, quint16* outAddress)
 {
     auto size = file.size();
     if (size < 10) { // 2 + 8 (at least one char)
+        state->setErrorMessage(QObject::tr("Error: File size too small"));
         qDebug() << "Error: File Size too small.";
         return -1;
     }
@@ -63,6 +66,14 @@ qint64 StateImport::loadPRG(State *state, QFile& file, quint16* outAddress)
 
 qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4header)
 {
+    // only expanded files are supported
+    if (!v4header->expanded)
+    {
+        state->setErrorMessage(QObject::tr("Error: CTM is not expanded"));
+        qDebug() << "CTM is not expanded. Cannot load it";
+        return -1;
+    }
+
     // only 20 bytes were read, but v4 headers has 24 bytes.
     // but the 4 remaing bytes are not important.
     char ignore[4];
@@ -92,6 +103,13 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
 
 qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5header)
 {
+    if (v5header->flags & 03)
+    {
+        state->setErrorMessage(QObject::tr("Error: CTM is not expanded"));
+        qDebug() << "CTM is not expanded. Cannot load it";
+        return -1;
+    }
+
     int num_chars = qFromLittleEndian(v5header->num_chars);
     int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
 
@@ -119,7 +137,9 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
 {
     struct CTMHeader5 header;
     auto size = file.size();
-    if ((std::size_t)size<sizeof(header)) {
+    if ((std::size_t)size<sizeof(header))
+    {
+        state->setErrorMessage(QObject::tr("Error: CTM file too small"));
         qDebug() << "Error. File size too small to be CTM (" << size << ").";
         return -1;
     }
@@ -129,7 +149,9 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
         return -1;
 
     // check header
-    if (header.id[0] != 'C' || header.id[1] != 'T' || header.id[2] != 'M') {
+    if (header.id[0] != 'C' || header.id[1] != 'T' || header.id[2] != 'M')
+    {
+        state->setErrorMessage(QObject::tr("Error: invalid CTM file"));
         qDebug() << "Not a valid CTM file";
         return -1;
     }
@@ -140,6 +162,8 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
     } else if (header.version == 5) {
         return loadCTM5(state, file, &header);
     }
+
+    state->setErrorMessage(QObject::tr("Error: CTM version not supported"));
     qDebug() << "Invalid CTM version: " << header.version;
     return -1;
 }
@@ -148,7 +172,9 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
 {
     struct VChar64Header header;
     auto size = file.size();
-    if ((std::size_t)size<sizeof(header)) {
+    if ((std::size_t)size<sizeof(header))
+    {
+        state->setErrorMessage(QObject::tr("Error: Invalid VChar file"));
         qDebug() << "Error. File size too small to be VChar64 (" << size << ").";
         return -1;
     }
@@ -158,7 +184,9 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
         return -1;
 
     // check header
-    if (header.id[0] != 'V' || header.id[1] != 'C' || header.id[2] != 'h' || header.id[3] != 'a' || header.id[4] != 'r') {
+    if (header.id[0] != 'V' || header.id[1] != 'C' || header.id[2] != 'h' || header.id[3] != 'a' || header.id[4] != 'r')
+    {
+        state->setErrorMessage(QObject::tr("Error: Invalid VChar file"));
         qDebug() << "Not a valid VChar64 file";
         return -1;
     }

@@ -36,12 +36,12 @@ PaintTileCommand::PaintTileCommand(State *state, int tileIndex, const QPoint& po
 
 void PaintTileCommand::undo()
 {
-    _state->copyCharToIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
+    _state->copyTileToIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
 }
 
 void PaintTileCommand::redo()
 {
-    _state->copyCharFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
+    _state->copyTileFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
 
     for (int i = 0; i < _points.size(); ++i) {
         _state->tileSetPen(_tileIndex, _points.at(i), _pen);
@@ -77,12 +77,12 @@ ClearTileCommand::ClearTileCommand(State *state, int tileIndex, QUndoCommand *pa
 
 void ClearTileCommand::undo()
 {
-    _state->copyCharToIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
+    _state->copyTileToIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
 }
 
 void ClearTileCommand::redo()
 {
-    _state->copyCharFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
+    _state->copyTileFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
     _state->tileClear(_tileIndex);
 }
 

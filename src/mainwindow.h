@@ -52,6 +52,7 @@ public slots:
     void onMulticolorModeToggled(bool);
     void onTilePropertiesUpdated();
     void openFile(const QString& fileName);
+    void setErrorMessage(const QString& errorMessage);
 
 protected:
     void readSettings();
