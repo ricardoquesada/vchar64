@@ -130,6 +130,37 @@ void MainWindow::onMulticolorModeToggled(bool newvalue)
     updateWindow();
 }
 
+void MainWindow::onColorPropertiesUpdated(int pen)
+{
+    auto state = State::getInstance();
+    int color = state->getColorForPen(pen);
+    updateWindow();
+
+    QString colors[] = {
+        tr("Black"),
+        tr("White"),
+        tr("Red"),
+        tr("Cyan"),
+        tr("Violet"),
+        tr("Green"),
+        tr("Blue"),
+        tr("Yellow"),
+
+        tr("Orange"),
+        tr("Brown"),
+        tr("Light red"),
+        tr("Grey 1"),
+        tr("Grey 2"),
+        tr("Light green"),
+        tr("Light blue"),
+        tr("Grey 3")
+    };
+
+    int number = color;
+    if (state->shouldBeDisplayedInMulticolor() && pen == State::PEN_FOREGROUND)
+        color = color % 8;
+    _labelSelectedColor->setText(QString("%1: %3 (%2)").arg(tr("Color")).arg(number).arg(colors[color]));
+}
 
 //
 //
@@ -202,7 +233,7 @@ void MainWindow::createActions()
          _recentFiles[i] = new QAction(this);
          _ui->menuRecentFiles->insertAction(_ui->actionClearRecentFiles, _recentFiles[i]);
          _recentFiles[i]->setVisible(false);
-         connect(_recentFiles[i], &QAction::triggered, this, &MainWindow::on_openRecentFile_triggered);
+         connect(_recentFiles[i], &QAction::triggered, this, &MainWindow::onOpenRecentFileTriggered);
     }
     _ui->menuRecentFiles->insertSeparator(_ui->actionClearRecentFiles);
     updateRecentFiles();
@@ -231,7 +262,7 @@ void MainWindow::createActions()
     connect(state, &State::charIndexUpdated, this, &MainWindow::onCharIndexUpdated);
     connect(state, &State::charsetUpdated, this, &MainWindow::updateWindow);
     connect(state, &State::fileLoaded, this, &MainWindow::updateWindow);
-    connect(state, &State::colorPropertiesUpdated, this, &MainWindow::updateWindow);
+    connect(state, &State::colorPropertiesUpdated, this, &MainWindow::onColorPropertiesUpdated);
     connect(state, &State::multicolorModeToggled, this, &MainWindow::onMulticolorModeToggled);
     connect(state, &State::contentsChanged, this, &MainWindow::documentWasModified);
 
@@ -291,9 +322,14 @@ void MainWindow::createDefaults()
 
 void MainWindow::setupStatusBar()
 {
+    _labelSelectedColor = new QLabel(tr("Color: Black (0)"), this);
+    statusBar()->addPermanentWidget(_labelSelectedColor);
+
+    statusBar()->addPermanentWidget(new QLabel(" | ", this));
+
     _labelCharIdx = new QLabel(tr("Char: #000  $00"), this);
 //    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
-    QMainWindow::statusBar()->addPermanentWidget(_labelCharIdx);
+    statusBar()->addPermanentWidget(_labelCharIdx);
 }
 
 QStringList MainWindow::recentFiles() const
@@ -829,7 +865,7 @@ void MainWindow::on_actionClearRecentFiles_triggered()
     updateRecentFiles();
 }
 
-void MainWindow::on_openRecentFile_triggered()
+void MainWindow::onOpenRecentFileTriggered()
 {
     QAction *action = qobject_cast<QAction *>(sender());
     if (action)

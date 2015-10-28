@@ -53,6 +53,8 @@ public slots:
     void onTilePropertiesUpdated();
     void openFile(const QString& fileName);
     void setErrorMessage(const QString& errorMessage);
+    void onColorPropertiesUpdated(int pen);
+    void onOpenRecentFileTriggered();
 
 protected:
     void readSettings();
@@ -68,8 +70,6 @@ protected:
 
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
 
-    // XXX If declared as "slot" it will raise a runtime warning. uh?
-    void on_openRecentFile_triggered();
 
 private slots:
 
@@ -88,6 +88,7 @@ private slots:
     void on_actionShiftRight_triggered();
     void on_actionShiftUp_triggered();
     void on_actionShiftDown_triggered();
+    void on_actionCut_triggered();
     void on_actionCopy_triggered();
     void on_actionPaste_triggered();
     void on_actionReportBug_triggered();
@@ -122,8 +123,6 @@ private slots:
 
     void on_actionImport_VICE_snapshot_triggered();
 
-    void on_actionCut_triggered();
-
     void on_actionReset_Layout_triggered();
 
 private:
@@ -137,6 +136,7 @@ private:
     Ui::MainWindow* _ui;
     QString _lastDir;
     QLabel* _labelCharIdx;
+    QLabel* _labelSelectedColor;
 
     QSettings _settings;
 };
