@@ -153,6 +153,7 @@
      </property>
     </widget>
     <addaction name="menuViews"/>
+    <addaction name="actionReset_Layout"/>
    </widget>
    <widget class="QMenu" name="menuColors">
     <property name="title">
@@ -832,6 +833,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="actionReset_Layout">
+   <property name="text">
+    <string>Reset Layout</string>
    </property>
   </action>
  </widget>

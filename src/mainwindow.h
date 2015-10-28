@@ -111,20 +111,20 @@ private slots:
     void on_actionPalette_0_triggered();
     void on_actionPalette_1_triggered();
     void on_actionPalette_2_triggered();
-
+    void on_actionPalette_3_triggered();
     void on_actionPalette_4_triggered();
 
-    void on_actionPalette_3_triggered();
 
     void on_actionDocumentation_triggered();
 
     void on_actionNext_Tile_triggered();
-
     void on_actionPrevious_Tile_triggered();
 
     void on_actionImport_VICE_snapshot_triggered();
 
     void on_actionCut_triggered();
+
+    void on_actionReset_Layout_triggered();
 
 private:
 

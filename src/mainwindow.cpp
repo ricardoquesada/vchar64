@@ -27,6 +27,7 @@ limitations under the License.
 #include <QUndoView>
 #include <QErrorMessage>
 #include <QLabel>
+#include <QDesktopWidget>
 
 #include "state.h"
 #include "xlinkpreview.h"
@@ -161,6 +162,12 @@ void MainWindow::createUndoView()
 
 void MainWindow::readSettings()
 {
+    // before restoring settings, save the current layout
+    // needed for "reset layout"
+    _settings.setValue("MainWindow/defaultGeometry", saveGeometry());
+    _settings.setValue("MainWindow/defaultWindowState", saveState());
+
+
     auto geom = _settings.value("MainWindow/geometry").toByteArray();
     auto state = _settings.value("MainWindow/windowState").toByteArray();
 
@@ -862,4 +869,22 @@ void MainWindow::on_actionPrevious_Tile_triggered()
     if (value < 0)
         value = _ui->spinBox_tileIndex->maximum();
     _ui->spinBox_tileIndex->setValue(value);
+}
+
+void MainWindow::on_actionReset_Layout_triggered()
+{
+    auto geom = _settings.value("MainWindow/defaultGeometry").toByteArray();
+    auto state = _settings.value("MainWindow/defaultWindowState").toByteArray();
+    restoreState(state);
+    restoreGeometry(geom);
+
+    // center it
+    setGeometry(
+        QStyle::alignedRect(
+            Qt::LeftToRight,
+            Qt::AlignCenter,
+            size(),
+            qApp->desktop()->availableGeometry()
+        )
+    );
 }
