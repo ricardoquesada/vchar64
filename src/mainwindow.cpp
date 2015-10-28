@@ -878,7 +878,7 @@ void MainWindow::on_actionReset_Layout_triggered()
     restoreState(state);
     restoreGeometry(geom);
 
-    // center it
+//    // center it
     setGeometry(
         QStyle::alignedRect(
             Qt::LeftToRight,

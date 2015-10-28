@@ -99,13 +99,21 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
     auto state = State::getInstance();
     const auto tileProperties = state->getTileProperties();
 
-    _selectedTile += (point.x() + point.y() * (_columns / tileProperties.size.width()));
-    _selectedTile %= 256 / (tileProperties.size.width() * tileProperties.size.height());
-    if (_selectedTile < 0)
-        _selectedTile += 256 / (tileProperties.size.width() * tileProperties.size.height());
+    int tc = _columns / tileProperties.size.width();
+    int tr = _rows / tileProperties.size.height();
 
-    state->setTileIndex(_selectedTile);
-    update();
+    int x = _selectedTile % tc + point.x();
+    int y = _selectedTile / tc + point.y();
+
+    int tile =  y * tc + x;
+    if (tile >=0 && tile < 256 / (tileProperties.size.width() * tileProperties.size.height())
+            && x >= 0 && x < tc
+            && y >= 0 && y < tr)
+    {
+        _selectedTile = tile;
+        state->setTileIndex(_selectedTile);
+        update();
+    }
 }
 
 void TilesetWidget::paintEvent(QPaintEvent *event)
