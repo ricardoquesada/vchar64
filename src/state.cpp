@@ -332,7 +332,12 @@ int State::getSelectedPen() const
 void State::setSelectedPen(int pen)
 {
     Q_ASSERT(pen>=0 && pen<PEN_MAX);
-    _selectedPen = pen;
+
+    if (pen != _selectedPen)
+    {
+        _selectedPen = pen;
+        emit selectedPenChaged(pen);
+    }
 }
 
 int State::tileGetPen(int tileIndex, const QPoint& position)

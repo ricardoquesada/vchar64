@@ -285,6 +285,11 @@ signals:
     // a color new color for a pen was selected
     void colorPropertiesUpdated(int);
 
+    /**
+     * @brief selectedPenChaged a new pen is selected
+     */
+    void selectedPenChaged(int);
+
     // multicolor mode was toggled
     void multicolorModeToggled(bool);
 

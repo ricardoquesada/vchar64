@@ -127,6 +127,9 @@ void MainWindow::onMulticolorModeToggled(bool newvalue)
     _ui->radioButton_multicolor1->setEnabled(enableradios);
     _ui->radioButton_multicolor2->setEnabled(enableradios);
 
+    // Update statusBar
+    onColorPropertiesUpdated(state->getSelectedPen());
+
     updateWindow();
 }
 
@@ -149,11 +152,11 @@ void MainWindow::onColorPropertiesUpdated(int pen)
         tr("Orange"),
         tr("Brown"),
         tr("Light red"),
-        tr("Grey 1"),
-        tr("Grey 2"),
+        tr("Dark grey"),
+        tr("Grey"),
         tr("Light green"),
         tr("Light blue"),
-        tr("Grey 3")
+        tr("Light grey")
     };
 
     int number = color;
@@ -263,6 +266,7 @@ void MainWindow::createActions()
     connect(state, &State::charsetUpdated, this, &MainWindow::updateWindow);
     connect(state, &State::fileLoaded, this, &MainWindow::updateWindow);
     connect(state, &State::colorPropertiesUpdated, this, &MainWindow::onColorPropertiesUpdated);
+    connect(state, &State::selectedPenChaged, this, &MainWindow::onColorPropertiesUpdated);
     connect(state, &State::multicolorModeToggled, this, &MainWindow::onMulticolorModeToggled);
     connect(state, &State::contentsChanged, this, &MainWindow::documentWasModified);
 
@@ -330,6 +334,10 @@ void MainWindow::setupStatusBar()
     _labelCharIdx = new QLabel(tr("Char: #000  $00"), this);
 //    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
     statusBar()->addPermanentWidget(_labelCharIdx);
+
+    // display correct selected color
+    auto state = State::getInstance();
+    onColorPropertiesUpdated(state->getSelectedPen());
 }
 
 QStringList MainWindow::recentFiles() const
