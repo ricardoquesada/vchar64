@@ -506,19 +506,18 @@ void State::copyTileToIndex(int tileIndex, quint8* buffer, int bufferSize)
 // helper functions
 int State::getCharIndexFromTileIndex(int tileIndex) const
 {
-    int charIndex = tileIndex;
-    if (_tileProperties.interleaved==1) {
-        charIndex *= (_tileProperties.size.width() * _tileProperties.size.height());
-    }
-
-    return charIndex;
+    return tileIndex * (_tileProperties.size.width() * _tileProperties.size.height());
 }
 
 int State::getTileIndexFromCharIndex(int charIndex) const
 {
-    int tileIndex = charIndex;
-    if (_tileProperties.interleaved==1) {
-        tileIndex /= (_tileProperties.size.width() * _tileProperties.size.height());
+    int tileIndex = -1;
+    if (_tileProperties.interleaved == 1) {
+        tileIndex = charIndex / (_tileProperties.size.width() * _tileProperties.size.height());
+    }
+    else
+    {
+        tileIndex = charIndex % _tileProperties.interleaved;
     }
 
     return tileIndex;
@@ -899,7 +898,7 @@ void State::_setCharIndex(int charIndex)
 
 void State::setTileIndex(int tileIndex)
 {
-    Q_ASSERT(tileIndex >= 0 && tileIndex < getTileIndexFromCharIndex(256));
+    Q_ASSERT(tileIndex >= 0 && tileIndex <= getTileIndexFromCharIndex(255));
 
     if (_tileIndex != tileIndex)
     {
