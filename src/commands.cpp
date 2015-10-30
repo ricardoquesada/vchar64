@@ -122,7 +122,7 @@ CutCommand::CutCommand(State *state, int charIndex, const State::CopyRange& copy
     _charIndex = charIndex;
     _state = state;
     _copyRange = copyRange;
-    bzero(_zeroBuffer, sizeof(_zeroBuffer));
+    memset(_zeroBuffer, 0, sizeof(_zeroBuffer));
 
     setText(QObject::tr("Paste #%1").arg(_charIndex));
 }
