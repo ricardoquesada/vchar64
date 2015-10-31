@@ -21,12 +21,12 @@ limitations under the License.
 #include "state.h"
 
 
-class CharSetWidget : public QWidget
+class CharsetWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    CharSetWidget(QWidget *parent=nullptr);
+    CharsetWidget(QWidget *parent=nullptr);
 
     bool hasSelection() const;
     void getSelectionRange(State::CopyRange* copyRange) const;

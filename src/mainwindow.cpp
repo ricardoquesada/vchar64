@@ -274,7 +274,7 @@ void MainWindow::createActions()
 
     connect(state, &State::tileIndexUpdated, _ui->tilesetWidget, &TilesetWidget::onTileIndexUpdated);
     connect(state, &State::tileIndexUpdated, _ui->bigcharWidget, &BigCharWidget::onTileIndexUpdated);
-    connect(state, &State::charIndexUpdated, _ui->charsetWidget, &CharSetWidget::onCharIndexUpdated);
+    connect(state, &State::charIndexUpdated, _ui->charsetWidget, &CharsetWidget::onCharIndexUpdated);
     connect(state, &State::tileIndexUpdated, _ui->spinBox_tileIndex, &QSpinBox::setValue);
     connect(_ui->spinBox_tileIndex, SIGNAL(valueChanged(int)), state, SLOT(setTileIndex(int)));
 
@@ -286,7 +286,7 @@ void MainWindow::createActions()
     connect(preview, &XlinkPreview::previewDisconnected, this, &MainWindow::previewDisconnected);
 
     connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->bigcharWidget, &BigCharWidget::updateColor);
-    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->charsetWidget, &CharSetWidget::updateColor);
+    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->charsetWidget, &CharsetWidget::updateColor);
     connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->tilesetWidget, &TilesetWidget::updateColor);
 
     _ui->menuPreview->setEnabled(preview->isAvailable());

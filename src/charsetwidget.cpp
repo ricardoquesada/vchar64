@@ -28,7 +28,7 @@ static const int COLUMNS = 32;
 static const int ROWS = 8;
 static const int OFFSET = 2;
 
-CharSetWidget::CharSetWidget(QWidget *parent)
+CharsetWidget::CharsetWidget(QWidget *parent)
     : QWidget(parent)
     , _cursorPos({0,0})
     , _selecting(false)
@@ -42,7 +42,7 @@ CharSetWidget::CharSetWidget(QWidget *parent)
     setMinimumSize(_sizeHint);
 }
 
-void CharSetWidget::updateCharIndex(int charIndex)
+void CharsetWidget::updateCharIndex(int charIndex)
 {
     if (_charIndex != charIndex && charIndex >=0 && charIndex < 256)
     {
@@ -55,7 +55,7 @@ void CharSetWidget::updateCharIndex(int charIndex)
 //
 // Overrides
 //
-void CharSetWidget::mousePressEvent(QMouseEvent * event)
+void CharsetWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
@@ -102,7 +102,7 @@ void CharSetWidget::mousePressEvent(QMouseEvent * event)
     }
 }
 
-void CharSetWidget::mouseMoveEvent(QMouseEvent * event)
+void CharsetWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
 
@@ -132,7 +132,7 @@ void CharSetWidget::mouseMoveEvent(QMouseEvent * event)
     }
 }
 
-void CharSetWidget::keyPressEvent(QKeyEvent *event)
+void CharsetWidget::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
 
@@ -193,7 +193,7 @@ void CharSetWidget::keyPressEvent(QKeyEvent *event)
     update();
 }
 
-void CharSetWidget::paintEvent(QPaintEvent *event)
+void CharsetWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
 
@@ -288,12 +288,12 @@ void CharSetWidget::paintEvent(QPaintEvent *event)
     painter.end();
 }
 
-QSize CharSetWidget::sizeHint() const
+QSize CharsetWidget::sizeHint() const
 {
     return _sizeHint;
 }
 
-void CharSetWidget::resizeEvent(QResizeEvent* event)
+void CharsetWidget::resizeEvent(QResizeEvent* event)
 {
     Q_UNUSED(event);
 
@@ -308,7 +308,7 @@ void CharSetWidget::resizeEvent(QResizeEvent* event)
 //
 // Helpers
 //
-void CharSetWidget::paintFocus(QPainter &painter)
+void CharsetWidget::paintFocus(QPainter &painter)
 {
     if (hasFocus())
     {
@@ -336,14 +336,14 @@ void CharSetWidget::paintFocus(QPainter &painter)
 //
 // slots
 //
-void CharSetWidget::onCharIndexUpdated(int charIndex)
+void CharsetWidget::onCharIndexUpdated(int charIndex)
 {
     _cursorPos.setX(charIndex % COLUMNS);
     _cursorPos.setY(charIndex / COLUMNS);
     update();
 }
 
-void CharSetWidget::updateColor()
+void CharsetWidget::updateColor()
 {
     update();
 }
@@ -351,12 +351,12 @@ void CharSetWidget::updateColor()
 //
 // public
 //
-bool CharSetWidget::hasSelection() const
+bool CharsetWidget::hasSelection() const
 {
     return (_selecting && _selectingSize.width()!=0 && _selectingSize.height()!=0);
 }
 
-void CharSetWidget::getSelectionRange(State::CopyRange* copyRange) const
+void CharsetWidget::getSelectionRange(State::CopyRange* copyRange) const
 {
     Q_ASSERT(copyRange);
 
@@ -397,7 +397,7 @@ void CharSetWidget::getSelectionRange(State::CopyRange* copyRange) const
     }
 }
 
-int CharSetWidget::getCursorPos() const
+int CharsetWidget::getCursorPos() const
 {
     return _cursorPos.y() * COLUMNS + _cursorPos.x();
 }

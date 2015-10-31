@@ -208,7 +208,7 @@
       <number>2</number>
      </property>
      <item>
-      <widget class="CharSetWidget" name="charsetWidget" native="true">
+      <widget class="CharsetWidget" name="charsetWidget" native="true">
        <property name="minimumSize">
         <size>
          <width>512</width>
@@ -826,7 +826,8 @@
   </action>
   <action name="actionCut">
    <property name="icon">
-    <iconset theme="edit-cut"/>
+    <iconset theme="edit-cut">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Cut</string>
@@ -843,15 +844,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>CharSetWidget</class>
-   <extends>QWidget</extends>
-   <header>charsetwidget.h</header>
-   <container>1</container>
-   <slots>
-    <signal>tileSelected(int)</signal>
-   </slots>
-  </customwidget>
   <customwidget>
    <class>BigCharWidget</class>
    <extends>QWidget</extends>
@@ -879,6 +871,12 @@
     <signal>tileSelected(int)</signal>
     <slot>tileIndexUpdated(int)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>CharsetWidget</class>
+   <extends>QWidget</extends>
+   <header>charsetwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <tabstops>
