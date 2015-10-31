@@ -17,6 +17,8 @@ limitations under the License.
 #pragma once
 
 #include <QWidget>
+#include <QPoint>
+#include <QSize>
 
 #include "state.h"
 
@@ -33,6 +35,9 @@ public slots:
     void onTileIndexUpdated(int selectedTileIndex);
     void onTilePropertiesUpdated();
     void updateColor();
+    bool hasSelection() const;
+    void getSelectionRange(State::CopyRange* copyRange) const;
+
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
@@ -45,9 +50,13 @@ protected:
     void paintPixel(QPainter &painter, int width, int height, quint8* charPtr);
     void paintSelectedTile(QPainter& painter);
 
-    int _selectedTile;
-    int _columns;
-    int _rows;
+    bool _selecting;
+    QPoint _cursorPos;
+    QSize _selectingSize;
+    int _columns, _tileColums;
+    int _rows, _tileRows;
+    int _maxTiles;
+
     QSize _sizeHint;
     QSize _pixelSize;
 };

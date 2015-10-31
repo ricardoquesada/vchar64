@@ -31,9 +31,12 @@ static const int OFFSET = 2;
 
 TilesetWidget::TilesetWidget(QWidget *parent)
     : QWidget(parent)
-    , _selectedTile(0)
+    , _cursorPos({0,0})
     , _columns(COLUMNS)
+    , _tileColums(COLUMNS)
     , _rows(ROWS)
+    , _tileRows(ROWS)
+    , _maxTiles(256)
     , _sizeHint({0,0})
     , _pixelSize({0,0})
 {
@@ -60,13 +63,13 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
 
         int x = (pos.x() - OFFSET) / _pixelSize.width() / 8 / tw;
         int y = (pos.y() - OFFSET) / _pixelSize.height() / 8 / th;
+
         int tileIndex = x + y * (_columns / tw);
 
         // different and valid tileIndex?
-        if (_selectedTile != tileIndex && tileIndex >= 0 && tileIndex < (256/(tw * th)))
+        if ((_cursorPos.x() != x || _cursorPos.y() != y) && tileIndex >= 0 && tileIndex < _maxTiles)
         {
-            _selectedTile = tileIndex;
-
+            _cursorPos = {x,y};
             state->setTileIndex(tileIndex);
             update();
         }
@@ -97,21 +100,16 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
     }
 
     auto state = State::getInstance();
-    const auto tileProperties = state->getTileProperties();
 
-    int tc = _columns / tileProperties.size.width();
-    int tr = _rows / tileProperties.size.height();
+    auto pos = _cursorPos + point;
+    pos = {qBound(0, pos.x(), _tileColums-1),
+           qBound(0, pos.y(), _tileRows-1)};
 
-    int x = _selectedTile % tc + point.x();
-    int y = _selectedTile / tc + point.y();
-
-    int tile =  y * tc + x;
-    if (tile >=0 && tile < 256 / (tileProperties.size.width() * tileProperties.size.height())
-            && x >= 0 && x < tc
-            && y >= 0 && y < tr)
+    int tileIdx =  pos.y() * _tileColums + pos.x();
+    if (pos != _cursorPos && tileIdx >=0 && tileIdx < _maxTiles)
     {
-        _selectedTile = tile;
-        state->setTileIndex(_selectedTile);
+        _cursorPos = pos;
+        state->setTileIndex(tileIdx);
         update();
     }
 }
@@ -198,13 +196,10 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
     pen.setColor({149,195,244,255});
     pen.setStyle(Qt::PenStyle::SolidLine);
 
-    int x = (_selectedTile * tw) % _columns;
-    int y = th * ((_selectedTile * tw) / _columns);
-
     painter.setPen(pen);
     painter.setBrush(QColor(128,0,0,0));
-    painter.drawRect(x * 8 * _pixelSize.width() + OFFSET,
-                     y * 8 * _pixelSize.height() + OFFSET,
+    painter.drawRect(_cursorPos.x() * 8 * _pixelSize.width() * tw + OFFSET,
+                     _cursorPos.y() * 8 * _pixelSize.height() * th + OFFSET,
                      8 * _pixelSize.width() * tw,
                      8 * _pixelSize.height() * th);
 }
@@ -285,8 +280,11 @@ void TilesetWidget::paintFocus(QPainter &painter)
 //
 void TilesetWidget::onTileIndexUpdated(int selectedTileIndex)
 {
-    if (_selectedTile != selectedTileIndex) {
-        _selectedTile = selectedTileIndex;
+    int x = selectedTileIndex % _tileColums;
+    int y = selectedTileIndex / _tileColums;
+    if (_cursorPos.x() != x && _cursorPos.y() != y)
+    {
+        _cursorPos = {x, y};
         update();
     }
 }
@@ -297,8 +295,12 @@ void TilesetWidget::onTilePropertiesUpdated()
     auto properties = state->getTileProperties();
 
     _columns = (COLUMNS / properties.size.width()) * properties.size.width();
+    _tileColums = _columns / properties.size.width();
 
     _rows = qCeil((256.0f / _columns) / properties.size.height()) * properties.size.height();
+    _tileRows = _rows / properties.size.height();
+
+    _maxTiles = 256 / (properties.size.width() * properties.size.height());
 
     _sizeHint = QSize(_pixelSize.width() * _columns * 8 + OFFSET * 2,
                  _pixelSize.height() * _rows * 8 + OFFSET * 2);
@@ -309,3 +311,52 @@ void TilesetWidget::updateColor()
 {
     update();
 }
+
+// public
+bool TilesetWidget::hasSelection() const
+{
+    return (_selecting && _selectingSize.width()!=0 && _selectingSize.height()!=0);
+}
+
+void TilesetWidget::getSelectionRange(State::CopyRange* copyRange) const
+{
+    Q_ASSERT(copyRange);
+
+    if (hasSelection())
+    {
+        // calculate absolute values of origin/size
+        QPoint fixed_origin = _cursorPos;
+        QSize fixed_size = _selectingSize;
+
+        if (_selectingSize.width() < 0)
+        {
+            fixed_origin.setX(_cursorPos.x() + _selectingSize.width());
+            fixed_size.setWidth(-_selectingSize.width());
+        }
+
+        if (_selectingSize.height() < 0)
+        {
+            fixed_origin.setY(_cursorPos.y() + _selectingSize.height());
+            fixed_size.setHeight(-_selectingSize.height());
+        }
+
+
+        // transform origin/size to offset, blockSize, ...
+
+        copyRange->offset = fixed_origin.y() * COLUMNS + fixed_origin.x();
+        copyRange->blockSize = fixed_size.width();
+        copyRange->count = fixed_size.height();
+        copyRange->skip = COLUMNS - fixed_size.width();
+    }
+    else
+    {
+        // No selection, so copy current char
+        int charIndex = _cursorPos.y() * COLUMNS + _cursorPos.x();
+        copyRange->offset = charIndex;
+        copyRange->blockSize = 1;
+        copyRange->count = 1;
+        copyRange->skip = 0;
+    }
+}
+
+
