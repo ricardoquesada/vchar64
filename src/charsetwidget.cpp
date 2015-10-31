@@ -388,28 +388,12 @@ void CharSetWidget::getSelectionRange(State::CopyRange* copyRange) const
     }
     else
     {
-        auto state = State::getInstance();
-
-        // No selection, so copy current tile
+        // No selection, so copy current char
         int charIndex = _cursorPos.y() * COLUMNS + _cursorPos.x();
-        int tileIndex = state->getTileIndexFromCharIndex(charIndex);
-
-        auto tileProperties = state->getTileProperties();
-
-        if (tileProperties.interleaved == 1)
-        {
-            copyRange->offset = tileIndex * tileProperties.size.width() * tileProperties.size.height();
-            copyRange->blockSize = tileProperties.size.width() * tileProperties.size.height();
-            copyRange->count = 1;
-            copyRange->skip = 0;
-        }
-        else
-        {
-            copyRange->offset = tileIndex;
-            copyRange->blockSize = 1;
-            copyRange->count = tileProperties.size.width() * tileProperties.size.height();
-            copyRange->skip = tileProperties.interleaved-1;
-        }
+        copyRange->offset = charIndex;
+        copyRange->blockSize = 1;
+        copyRange->count = 1;
+        copyRange->skip = 0;
     }
 }
 
