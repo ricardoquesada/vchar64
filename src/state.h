@@ -62,6 +62,11 @@ public:
      * @brief The CopyRange struct
      */
     struct CopyRange {
+        enum {
+            CHARS,
+            TILES
+        };
+
         /** @brief offset in bytes */
         int offset;
         /** @brief blockSize in bytes */
@@ -70,6 +75,8 @@ public:
         int skip;
         /** how many blocks to copy */
         int count;
+        /** what to copy: chars or tiles */
+        int type;
     };
 
     static State* getInstance();

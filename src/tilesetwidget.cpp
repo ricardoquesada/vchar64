@@ -32,6 +32,8 @@ static const int OFFSET = 2;
 TilesetWidget::TilesetWidget(QWidget *parent)
     : QWidget(parent)
     , _cursorPos({0,0})
+    , _selecting(false)
+    , _selectingSize({0,0})
     , _columns(COLUMNS)
     , _tileColums(COLUMNS)
     , _rows(ROWS)
@@ -76,6 +78,42 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
     }
 }
 
+void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
+{
+    event->accept();
+
+    if (event->buttons() == Qt::LeftButton)
+    {
+        auto state = State::getInstance();
+
+        auto pos = event->localPos();
+        auto tileProperties = state->getTileProperties();
+        int tw = tileProperties.size.width();
+        int th = tileProperties.size.height();
+
+        int x = (pos.x() - OFFSET) / _pixelSize.width() / 8 / tw;
+        int y = (pos.y() - OFFSET) / _pixelSize.height() / 8 / th;
+
+        if (x >= _cursorPos.x())
+            x++;
+        if (y >= _cursorPos.y())
+            y++;
+
+        _selectingSize = {x - _cursorPos.x(),
+                          y - _cursorPos.y()};
+
+        // sanity check
+        _selectingSize = {
+            qBound(-_cursorPos.x(), _selectingSize.width(), _tileColums-_cursorPos.x()),
+            qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows-_cursorPos.y())
+        };
+
+        _selecting = true;
+
+        update();
+    }
+}
+
 void TilesetWidget::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
@@ -101,17 +139,45 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
 
     auto state = State::getInstance();
 
-    auto pos = _cursorPos + point;
-    pos = {qBound(0, pos.x(), _tileColums-1),
-           qBound(0, pos.y(), _tileRows-1)};
+    bool selecting = (event->modifiers() & Qt::ShiftModifier);
 
-    int tileIdx =  pos.y() * _tileColums + pos.x();
-    if (pos != _cursorPos && tileIdx >=0 && tileIdx < _maxTiles)
-    {
-        _cursorPos = pos;
-        state->setTileIndex(tileIdx);
-        update();
+    // disabling selecting?
+    if (_selecting && !selecting) {
+        _selectingSize = {1,1};
     }
+    else
+    {
+        if (selecting)
+        {
+            _selectingSize += {point.x(), point.y()};
+
+            if (_selectingSize.width() == 0)
+                _selectingSize.setWidth(_selectingSize.width() + 1 * point.x());
+            if (_selectingSize.height() == 0)
+                _selectingSize.setHeight(_selectingSize.height() + 1 * point.y());
+
+            _selectingSize = {
+                qBound(-_cursorPos.x(), _selectingSize.width(), _tileColums-_cursorPos.x()),
+                qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows-_cursorPos.y())
+            };
+        }
+        else
+        {
+            auto pos = _cursorPos + point;
+            pos = {qBound(0, pos.x(), _tileColums-1),
+                   qBound(0, pos.y(), _tileRows-1)};
+
+            int tileIdx =  pos.y() * _tileColums + pos.x();
+            if (pos != _cursorPos && tileIdx >=0 && tileIdx < _maxTiles)
+            {
+                _cursorPos = pos;
+                state->setTileIndex(tileIdx);
+            }
+        }
+    }
+
+    _selecting = selecting;
+    update();
 }
 
 void TilesetWidget::paintEvent(QPaintEvent *event)
@@ -196,12 +262,24 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
     pen.setColor({149,195,244,255});
     pen.setStyle(Qt::PenStyle::SolidLine);
 
-    painter.setPen(pen);
-    painter.setBrush(QColor(128,0,0,0));
-    painter.drawRect(_cursorPos.x() * 8 * _pixelSize.width() * tw + OFFSET,
-                     _cursorPos.y() * 8 * _pixelSize.height() * th + OFFSET,
-                     8 * _pixelSize.width() * tw,
-                     8 * _pixelSize.height() * th);
+    if (_selecting)
+    {
+        painter.setPen(pen);
+        painter.setBrush(QColor(149,195,244,64));
+        painter.drawRect(_cursorPos.x() * 8 * _pixelSize.width() * tw + OFFSET,
+                         _cursorPos.y() * 8 * _pixelSize.height() * th + OFFSET,
+                         _selectingSize.width() * 8 * _pixelSize.width() * tw,
+                         _selectingSize.height() * 8 * _pixelSize.height() * th);
+    }
+    else
+    {
+        painter.setPen(pen);
+        painter.setBrush(QColor(128,0,0,0));
+        painter.drawRect(_cursorPos.x() * 8 * _pixelSize.width() * tw + OFFSET,
+                         _cursorPos.y() * 8 * _pixelSize.height() * th + OFFSET,
+                         8 * _pixelSize.width() * tw,
+                         8 * _pixelSize.height() * th);
+    }
 }
 
 void TilesetWidget::paintPixel(QPainter &painter, int w, int h, quint8* charPtr)

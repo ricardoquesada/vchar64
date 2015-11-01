@@ -42,6 +42,7 @@ public slots:
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
@@ -50,8 +51,8 @@ protected:
     void paintPixel(QPainter &painter, int width, int height, quint8* charPtr);
     void paintSelectedTile(QPainter& painter);
 
-    bool _selecting;
     QPoint _cursorPos;
+    bool _selecting;
     QSize _selectingSize;
     int _columns, _tileColums;
     int _rows, _tileRows;

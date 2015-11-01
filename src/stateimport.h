@@ -312,9 +312,9 @@ public:
 
         quint16 num_chars;          // 16-bits, Number of chars - 1 (low, high).
 
-        char tile_width;            // between 1-8
-        char tile_height;           // between 1-8
-        char char_interleaved;      // between 1-128
+        quint8 tile_width;            // between 1-8
+        quint8 tile_height;           // between 1-8
+        quint8 char_interleaved;      // between 1-128
 
         char reserved[16];          // Must be 32 bytes in total
     };

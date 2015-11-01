@@ -395,6 +395,8 @@ void CharsetWidget::getSelectionRange(State::CopyRange* copyRange) const
         copyRange->count = 1;
         copyRange->skip = 0;
     }
+
+    copyRange->type = State::CopyRange::CHARS;
 }
 
 int CharsetWidget::getCursorPos() const
