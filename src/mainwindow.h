@@ -136,6 +136,7 @@ private:
     Ui::MainWindow* _ui;
     QString _lastDir;
     QLabel* _labelCharIdx;
+    QLabel* _labelTileIdx;
     QLabel* _labelSelectedColor;
 
     QSettings _settings;

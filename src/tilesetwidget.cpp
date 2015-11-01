@@ -19,6 +19,7 @@ limitations under the License.
 #include <QPainter>
 #include <QPaintEvent>
 #include <QtMath>
+#include <QDebug>
 
 #include "palette.h"
 #include "state.h"
@@ -71,6 +72,9 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
         // different and valid tileIndex?
         if ((_cursorPos.x() != x || _cursorPos.y() != y) && tileIndex >= 0 && tileIndex < _maxTiles)
         {
+            _selecting = false;
+            _selectingSize = {1,1};
+
             _cursorPos = {x,y};
             state->setTileIndex(tileIndex);
             update();
@@ -393,12 +397,21 @@ void TilesetWidget::updateColor()
 // public
 bool TilesetWidget::hasSelection() const
 {
-    return (_selecting && _selectingSize.width()!=0 && _selectingSize.height()!=0);
+    return (_selecting && _selectingSize.width() != 0 && _selectingSize.height() != 0);
 }
 
 void TilesetWidget::getSelectionRange(State::CopyRange* copyRange) const
 {
     Q_ASSERT(copyRange);
+
+    auto tileProperties = State::getInstance()->getTileProperties();
+    int tileSize = tileProperties.size.width() * tileProperties.size.height();
+
+    if (tileProperties.interleaved != 1)
+    {
+        qDebug() << "ERROR: Copy not supported on interleaved tiles yet";
+        return;
+    }
 
     if (hasSelection())
     {
@@ -421,20 +434,21 @@ void TilesetWidget::getSelectionRange(State::CopyRange* copyRange) const
 
         // transform origin/size to offset, blockSize, ...
 
-        copyRange->offset = fixed_origin.y() * COLUMNS + fixed_origin.x();
-        copyRange->blockSize = fixed_size.width();
+        copyRange->offset = (fixed_origin.y() * _tileColums + fixed_origin.x()) * tileSize;
+        copyRange->blockSize = fixed_size.width() * tileSize;
         copyRange->count = fixed_size.height();
-        copyRange->skip = COLUMNS - fixed_size.width();
+        copyRange->skip = (_tileColums - fixed_size.width()) * tileSize;
     }
     else
     {
         // No selection, so copy current char
-        int charIndex = _cursorPos.y() * COLUMNS + _cursorPos.x();
-        copyRange->offset = charIndex;
-        copyRange->blockSize = 1;
+        int tileIndex = _cursorPos.y() * _tileColums + _cursorPos.x();
+        copyRange->offset = tileIndex * tileSize;
+        copyRange->blockSize = tileSize;
         copyRange->count = 1;
         copyRange->skip = 0;
     }
+    copyRange->type = State::CopyRange::TILES;
 }
 
 

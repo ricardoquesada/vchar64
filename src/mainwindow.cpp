@@ -331,9 +331,15 @@ void MainWindow::setupStatusBar()
 
     statusBar()->addPermanentWidget(new QLabel(" | ", this));
 
-    _labelCharIdx = new QLabel(tr("Char: #000  $00"), this);
+    _labelCharIdx = new QLabel(tr("Char: 000  $00"), this);
 //    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
     statusBar()->addPermanentWidget(_labelCharIdx);
+
+    statusBar()->addPermanentWidget(new QLabel(" | ", this));
+
+    _labelTileIdx = new QLabel(tr("Tile: 000  $00"), this);
+//    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
+    statusBar()->addPermanentWidget(_labelTileIdx);
 
     // display correct selected color
     auto state = State::getInstance();
@@ -392,9 +398,18 @@ void MainWindow::setErrorMessage(const QString &errorMessage)
 
 void MainWindow::onCharIndexUpdated(int charIndex)
 {
+    auto state = State::getInstance();
+
     _labelCharIdx->setText(tr("Char: #%1  $%2")
                            .arg(charIndex, 3, 10, QLatin1Char('0'))
                            .arg(charIndex, 2, 16, QLatin1Char('0')));
+
+    int tileIndex = state->getTileIndexFromCharIndex(charIndex);
+
+    _labelTileIdx->setText(tr("Tile: #%1  $%2")
+                           .arg(tileIndex, 3, 10, QLatin1Char('0'))
+                           .arg(tileIndex, 2, 16, QLatin1Char('0')));
+
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -816,7 +831,13 @@ void MainWindow::on_actionCopy_triggered()
     auto state = State::getInstance();
 
     State::CopyRange copyRange;
-    _ui->charsetWidget->getSelectionRange(&copyRange);
+
+    if (_ui->charsetWidget->hasFocus())
+        _ui->charsetWidget->getSelectionRange(&copyRange);
+    else if (_ui->tilesetWidget->hasFocus())
+        _ui->tilesetWidget->getSelectionRange(&copyRange);
+    else
+        _ui->tilesetWidget->getSelectionRange(&copyRange);
     state->copy(copyRange);
 }
 
