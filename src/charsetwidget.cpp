@@ -314,6 +314,13 @@ void CharsetWidget::paintFocus(QPainter &painter)
 //
 void CharsetWidget::onCharIndexUpdated(int charIndex)
 {
+    // if the charIndex is updated, cancel selection
+    if (_selecting)
+    {
+        _selecting = false;
+        _selectingSize = {1,1};
+    }
+
     _cursorPos.setX(charIndex % COLUMNS);
     _cursorPos.setY(charIndex / COLUMNS);
     update();

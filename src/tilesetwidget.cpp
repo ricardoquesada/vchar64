@@ -363,6 +363,13 @@ void TilesetWidget::paintFocus(QPainter &painter)
 //
 void TilesetWidget::onTileIndexUpdated(int selectedTileIndex)
 {
+    // if the tileIndex is updated, cancel selection
+    if (_selecting)
+    {
+        _selecting = false;
+        _selectingSize = {1,1};
+    }
+
     int x = selectedTileIndex % _tileColums;
     int y = selectedTileIndex / _tileColums;
     if (_cursorPos.x() != x && _cursorPos.y() != y)
