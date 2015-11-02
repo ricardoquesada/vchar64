@@ -400,14 +400,14 @@ void MainWindow::onCharIndexUpdated(int charIndex)
 {
     auto state = State::getInstance();
 
-    _labelCharIdx->setText(tr("Char: #%1  $%2")
-                           .arg(charIndex, 3, 10, QLatin1Char('0'))
+    _labelCharIdx->setText(tr("Char: %1  $%2")
+                           .arg(charIndex, 3, 10, QLatin1Char(' '))
                            .arg(charIndex, 2, 16, QLatin1Char('0')));
 
     int tileIndex = state->getTileIndexFromCharIndex(charIndex);
 
-    _labelTileIdx->setText(tr("Tile: #%1  $%2")
-                           .arg(tileIndex, 3, 10, QLatin1Char('0'))
+    _labelTileIdx->setText(tr("Tile: %1  $%2")
+                           .arg(tileIndex, 3, 10, QLatin1Char(' '))
                            .arg(tileIndex, 2, 16, QLatin1Char('0')));
 
 }
@@ -821,7 +821,10 @@ void MainWindow::on_actionCut_triggered()
     int cursorPos = _ui->charsetWidget->getCursorPos();
 
     State::CopyRange copyRange;
-    _ui->charsetWidget->getSelectionRange(&copyRange);
+    if (_ui->charsetWidget->hasFocus())
+        _ui->charsetWidget->getSelectionRange(&copyRange);
+    else
+        _ui->tilesetWidget->getSelectionRange(&copyRange);
     state->copy(copyRange);
     state->getUndoStack()->push(new CutCommand(state, cursorPos, state->getCopyRange()));
 }
@@ -834,8 +837,6 @@ void MainWindow::on_actionCopy_triggered()
 
     if (_ui->charsetWidget->hasFocus())
         _ui->charsetWidget->getSelectionRange(&copyRange);
-    else if (_ui->tilesetWidget->hasFocus())
-        _ui->tilesetWidget->getSelectionRange(&copyRange);
     else
         _ui->tilesetWidget->getSelectionRange(&copyRange);
     state->copy(copyRange);
@@ -897,7 +898,7 @@ void MainWindow::on_actionClearRecentFiles_triggered()
 void MainWindow::onOpenRecentFileTriggered()
 {
     QAction *action = qobject_cast<QAction *>(sender());
-    if (action)
+    if (action && maybeSave())
         openFile(action->data().toString());
 }
 

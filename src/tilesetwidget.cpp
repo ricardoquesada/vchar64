@@ -252,6 +252,7 @@ void TilesetWidget::resizeEvent(QResizeEvent* event)
     _pixelSize = {pixel_size, pixel_size};
 }
 
+
 //
 // helpers
 //
