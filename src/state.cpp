@@ -342,7 +342,7 @@ void State::setSelectedPen(int pen)
 
 int State::tileGetPen(int tileIndex, const QPoint& position)
 {
-    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
+    Q_ASSERT(tileIndex>=0 && tileIndex<=getTileIndexFromCharIndex(255) && "invalid index value");
     Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
 
     int x = position.x();
@@ -378,7 +378,7 @@ int State::tileGetPen(int tileIndex, const QPoint& position)
 
 void State::tileSetPen(int tileIndex, const QPoint& position, int pen)
 {
-    Q_ASSERT(tileIndex>=0 && tileIndex<getTileIndexFromCharIndex(256) && "invalid index value");
+    Q_ASSERT(tileIndex>=0 && tileIndex<=getTileIndexFromCharIndex(255) && "invalid index value");
     Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
     Q_ASSERT(pen >=0 && pen < PEN_MAX && "Invalid pen. range: 0,4");
 
@@ -464,7 +464,7 @@ void State::copyTileFromIndex(int tileIndex, quint8* buffer, int bufferSize)
 {
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height();
     Q_ASSERT(bufferSize >= (tileSize * 8) && "invalid bufferSize. Too small");
-    Q_ASSERT(tileIndex >= 0 && tileIndex < getTileIndexFromCharIndex(256) && "invalid index value");
+    Q_ASSERT(tileIndex >= 0 && tileIndex <= getTileIndexFromCharIndex(255) && "invalid index value");
 
     if (_tileProperties.interleaved == 1)
     {
@@ -484,7 +484,7 @@ void State::copyTileToIndex(int tileIndex, quint8* buffer, int bufferSize)
 {
     int tileSize = _tileProperties.size.width() * _tileProperties.size.height();
     Q_ASSERT(bufferSize >= (tileSize * 8) && "invalid bufferSize. Too small");
-    Q_ASSERT(tileIndex >= 0 && tileIndex < getTileIndexFromCharIndex(256) && "invalid index value");
+    Q_ASSERT(tileIndex >= 0 && tileIndex <= getTileIndexFromCharIndex(255) && "invalid index value");
 
     if (_tileProperties.interleaved == 1)
     {
@@ -553,20 +553,57 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
 
     int count = copyRange.count;
 
-    quint8* dst = _charset + (charIndex * 8);
-    const quint8* src = charsetBuffer + (copyRange.offset * 8);
-
-    while (count>0)
+    if (copyRange.type == CopyRange::CHARS)
     {
-        int bytesToCopy = qMin((long)copyRange.blockSize * 8, (long)_charset + 256 * 8 - (long)dst);
-        if (bytesToCopy <0)
-            break;
-        memcpy(dst, src, bytesToCopy);
-        emit bytesUpdated(charIndex * 8, bytesToCopy);
+        quint8* dst = _charset + (charIndex * 8);
+        const quint8* src = charsetBuffer + (copyRange.offset * 8);
 
-        dst += (copyRange.blockSize + copyRange.skip) * 8;
-        src += (copyRange.blockSize + copyRange.skip) * 8;
-        count--;
+        while (count>0)
+        {
+            int bytesToCopy = qMin((long)copyRange.blockSize * 8, (long)_charset + 256 * 8 - (long)dst);
+            if (bytesToCopy <0)
+                break;
+            memcpy(dst, src, bytesToCopy);
+            emit bytesUpdated(charIndex * 8, bytesToCopy);
+
+            dst += (copyRange.blockSize + copyRange.skip) * 8;
+            src += (copyRange.blockSize + copyRange.skip) * 8;
+            count--;
+        }
+    }
+    else
+    {
+        int tileSrcIdx = copyRange.offset;
+        int tileDstIdx = getTileIndexFromCharIndex(charIndex);
+        int tileSize = _tileProperties.size.height() * _tileProperties.size.width();
+        int skip = 0;
+        while (count>0)
+        {
+            for (int i=0; i<copyRange.blockSize; i++)
+            {
+                int dstidx = tileDstIdx + i + skip;
+                int srcidx = tileSrcIdx + i + skip;
+
+                if (dstidx >= (256 / tileSize))
+                {
+                    // don't dst tile already out of bounds
+                    count = 0;
+                    break;
+                }
+
+                for (int j=0; j < tileSize; j++)
+                {
+                    int charsrc = (srcidx + j * _tileProperties.interleaved) * 8;
+                    int chardst = (dstidx + j * _tileProperties.interleaved) * 8;
+
+                    // don't overflow, don't copy crappy chars
+                    if ((CHAR_BUFFER_SIZE - chardst) >= 8 && (CHAR_BUFFER_SIZE - charsrc) >= 8)
+                        memcpy(&_charset[chardst], &charsetBuffer[charsrc], 8);
+                }
+            }
+            skip += copyRange.skip + copyRange.blockSize;
+            count--;
+        }
     }
 
     emit charsetUpdated();

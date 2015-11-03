@@ -343,41 +343,32 @@ void CharsetWidget::getSelectionRange(State::CopyRange* copyRange) const
 {
     Q_ASSERT(copyRange);
 
-    if (hasSelection())
+    // if charset has no selection, it works the same
+    // since selectingSize will be {1,1}
+
+    // calculate absolute values of origin/size
+    QPoint fixed_origin = _cursorPos;
+    QSize fixed_size = _selectingSize;
+
+    if (_selectingSize.width() < 0)
     {
-        // calculate absolute values of origin/size
-        QPoint fixed_origin = _cursorPos;
-        QSize fixed_size = _selectingSize;
-
-        if (_selectingSize.width() < 0)
-        {
-            fixed_origin.setX(_cursorPos.x() + _selectingSize.width());
-            fixed_size.setWidth(-_selectingSize.width());
-        }
-
-        if (_selectingSize.height() < 0)
-        {
-            fixed_origin.setY(_cursorPos.y() + _selectingSize.height());
-            fixed_size.setHeight(-_selectingSize.height());
-        }
-
-
-        // transform origin/size to offset, blockSize, ...
-
-        copyRange->offset = fixed_origin.y() * COLUMNS + fixed_origin.x();
-        copyRange->blockSize = fixed_size.width();
-        copyRange->count = fixed_size.height();
-        copyRange->skip = COLUMNS - fixed_size.width();
+        fixed_origin.setX(_cursorPos.x() + _selectingSize.width());
+        fixed_size.setWidth(-_selectingSize.width());
     }
-    else
+
+    if (_selectingSize.height() < 0)
     {
-        // No selection, so copy current char
-        int charIndex = _cursorPos.y() * COLUMNS + _cursorPos.x();
-        copyRange->offset = charIndex;
-        copyRange->blockSize = 1;
-        copyRange->count = 1;
-        copyRange->skip = 0;
+        fixed_origin.setY(_cursorPos.y() + _selectingSize.height());
+        fixed_size.setHeight(-_selectingSize.height());
     }
+
+
+    // transform origin/size to offset, blockSize, ...
+
+    copyRange->offset = fixed_origin.y() * COLUMNS + fixed_origin.x();
+    copyRange->blockSize = fixed_size.width();
+    copyRange->count = fixed_size.height();
+    copyRange->skip = COLUMNS - fixed_size.width();
 
     copyRange->type = State::CopyRange::CHARS;
 }
