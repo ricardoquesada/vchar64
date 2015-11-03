@@ -354,6 +354,20 @@ QStringList MainWindow::recentFiles() const
     return v.toStringList();
 }
 
+static QString shortNativePath(const QString& filename)
+{
+#ifdef Q_OS_UNIX
+    auto filepath = QFileInfo(filename).canonicalFilePath();
+    auto homepath = QDir::cleanPath(QDir::homePath());
+    if (filepath.startsWith(homepath))
+    {
+        filepath.remove(homepath);
+        return QLatin1Char('~') + QDir::toNativeSeparators(filepath);
+    }
+#endif
+    return filename;
+}
+
 void MainWindow::updateRecentFiles()
 {
     QStringList files = recentFiles();
@@ -361,7 +375,7 @@ void MainWindow::updateRecentFiles()
 
     for (int i = 0; i < numRecentFiles; ++i)
     {
-        _recentFiles[i]->setText(QFileInfo(files[i]).fileName());
+        _recentFiles[i]->setText(shortNativePath(files[i]));
         _recentFiles[i]->setData(files[i]);
         _recentFiles[i]->setVisible(true);
     }
