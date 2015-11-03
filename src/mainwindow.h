@@ -19,6 +19,7 @@ limitations under the License.
 #include <QMainWindow>
 #include <QString>
 #include <QSettings>
+#include <QVector>
 
 QT_BEGIN_NAMESPACE
 class QUndoView;
@@ -33,7 +34,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    static constexpr int MAX_RECENT_FILES=8;
+    static constexpr int MAX_RECENT_FILES=20;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -51,7 +52,7 @@ public slots:
     void onCharIndexUpdated(int);
     void onMulticolorModeToggled(bool);
     void onTilePropertiesUpdated();
-    void openFile(const QString& fileName);
+    bool openFile(const QString& fileName);
     void setErrorMessage(const QString& errorMessage);
     void onColorPropertiesUpdated(int pen);
     void onOpenRecentFileTriggered();
@@ -131,7 +132,7 @@ private:
     void activateRadioButtonIndex(int pen);
     void activatePalette(int paletteIndex);
 
-    QAction* _recentFiles[MAX_RECENT_FILES];
+    QVector<QAction*> _recentFiles;
 
     Ui::MainWindow* _ui;
     QString _lastDir;

@@ -233,10 +233,12 @@ void MainWindow::createActions()
     // Add recent file actions to the recent files menu
     for (int i=0; i<MAX_RECENT_FILES; ++i)
     {
-         _recentFiles[i] = new QAction(this);
-         _ui->menuRecentFiles->insertAction(_ui->actionClearRecentFiles, _recentFiles[i]);
-         _recentFiles[i]->setVisible(false);
-         connect(_recentFiles[i], &QAction::triggered, this, &MainWindow::onOpenRecentFileTriggered);
+         auto action = new QAction(this);
+         _ui->menuRecentFiles->insertAction(_ui->actionClearRecentFiles, action);
+         action->setVisible(false);
+         connect(action, &QAction::triggered, this, &MainWindow::onOpenRecentFileTriggered);
+
+         _recentFiles.append(action);
     }
     _ui->menuRecentFiles->insertSeparator(_ui->actionClearRecentFiles);
     updateRecentFiles();
@@ -436,15 +438,17 @@ void MainWindow::on_actionC64DefaultUppercase_triggered()
     if (maybeSave())
     {
         auto state = State::getInstance();
-        state->openFile(":/c64-chargen-uppercase.bin");
-        State::TileProperties properties;
-        properties.size = {1,1};
-        properties.interleaved = 1;
-        state->setTileProperties(properties);
-        state->setMulticolorMode(false);
+        if (state->openFile(":/c64-chargen-uppercase.bin"))
+        {
+            State::TileProperties properties;
+            properties.size = {1,1};
+            properties.interleaved = 1;
+            state->setTileProperties(properties);
+            state->setMulticolorMode(false);
 
-        updateWindow();
-        setWindowFilePath(tr("[untitled]"));
+            updateWindow();
+            setWindowFilePath(tr("[untitled]"));
+        }
     }
 }
 
@@ -453,15 +457,17 @@ void MainWindow::on_actionC64DefaultLowercase_triggered()
     if (maybeSave())
     {
         auto state = State::getInstance();
-        state->openFile(":/c64-chargen-lowercase.bin");
-        State::TileProperties properties;
-        properties.size = {1,1};
-        properties.interleaved = 1;
-        state->setTileProperties(properties);
-        state->setMulticolorMode(false);
+        if (state->openFile(":/c64-chargen-lowercase.bin"))
+        {
+            State::TileProperties properties;
+            properties.size = {1,1};
+            properties.interleaved = 1;
+            state->setTileProperties(properties);
+            state->setMulticolorMode(false);
 
-        updateWindow();
-        setWindowFilePath(tr("[untitled]"));
+            updateWindow();
+            setWindowFilePath(tr("[untitled]"));
+        }
     }
 }
 
@@ -564,14 +570,16 @@ void MainWindow::on_actionPalette_4_triggered()
 //
 // MARK - File IO callbacks + helper functions
 //
-void MainWindow::openFile(const QString& path)
+bool MainWindow::openFile(const QString& path)
 {
     QFileInfo info(path);
     _lastDir = info.absolutePath();
     _settings.setValue("dir/lastdir", _lastDir);
 
-    if (State::getInstance()->openFile(path)) {
 
+    bool ret = State::getInstance()->openFile(path);
+    if (ret)
+    {
         setRecentFile(path);
 
         auto state = State::getInstance();
@@ -583,6 +591,8 @@ void MainWindow::openFile(const QString& path)
     {
         QMessageBox::warning(this, tr("Application"), tr("Error loading file: ") + path, QMessageBox::Ok);
     }
+
+    return ret;
 }
 
 bool MainWindow::maybeSave()
@@ -818,7 +828,6 @@ void MainWindow::on_actionShiftDown_triggered()
 void MainWindow::on_actionCut_triggered()
 {
     auto state = State::getInstance();
-    int cursorPos = _ui->charsetWidget->getCursorPos();
 
     State::CopyRange copyRange;
     if (_ui->charsetWidget->hasFocus())
@@ -826,7 +835,9 @@ void MainWindow::on_actionCut_triggered()
     else
         _ui->tilesetWidget->getSelectionRange(&copyRange);
     state->copy(copyRange);
-    state->getUndoStack()->push(new CutCommand(state, cursorPos, state->getCopyRange()));
+
+    int indexChar = copyRange.offset;
+    state->getUndoStack()->push(new CutCommand(state, indexChar, copyRange));
 }
 
 void MainWindow::on_actionCopy_triggered()
@@ -899,7 +910,16 @@ void MainWindow::onOpenRecentFileTriggered()
 {
     QAction *action = qobject_cast<QAction *>(sender());
     if (action && maybeSave())
-        openFile(action->data().toString());
+    {
+        auto path = action->data().toString();
+        if (!openFile(path))
+        {
+            QStringList files = recentFiles();
+            files.removeAll(path);
+            _settings.setValue(QLatin1String("recentFiles/fileNames"), files);
+            updateRecentFiles();
+        }
+    }
 }
 
 void MainWindow::on_actionTilesProperties_triggered()
