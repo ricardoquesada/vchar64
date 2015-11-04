@@ -1,4 +1,4 @@
-0.0.8 (4 October 2015)
+0.0.8 (4 November 2015)
 
 * [NEW] Ctrl+Right / Ctrl-Left display the next tile
 * [NEW] When focus in BigcharWidget, 'space' sets the next pen
@@ -13,6 +13,8 @@
 * [NEW] Added "Edit -> Cut"
 * [NEW] Added "View -> Reset Layout"
 * [NEW] Reports errors on status bar
+* [NEW] New samples: boulderdash_1x2, caren_1x2,cuneiform_2x2
+	ianmic02_2x2,rambo_2x2, reset04_2x3,reset06_3x3,reset07_2x2
 
 * [BUGFIX] Clear Tile works as expected with interleaved tiles
 * [BUGFIX] Tile Index / Rotate Action udpated correctly after tile properties
