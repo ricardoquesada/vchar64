@@ -12,7 +12,6 @@ TARGET = vchar64
 TEMPLATE = app
 VERSION = 0.0.8
 GIT_VERSION = $$system(git describe --abbrev=4 --dirty --always --tags)
-DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 DEFINES += GIT_VERSION=\\\"$$GIT_VERSION\\\"
 
 CONFIG += c++11
