@@ -766,7 +766,7 @@
     <message>
         <location filename="../src/mainwindow.cpp" line="336"/>
         <source>Char: 000  $00</source>
-        <translation>Caracter.: 000 $00</translation>
+        <translation>Caracter: 000 $00</translation>
     </message>
     <message>
         <location filename="../src/mainwindow.cpp" line="342"/>
