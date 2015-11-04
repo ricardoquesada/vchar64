@@ -330,7 +330,7 @@ void BigCharWidget::onTileIndexUpdated(int tileIndex)
     }
 }
 
-void BigCharWidget::onUpdateTileProperties()
+void BigCharWidget::onTilePropertiesUpdated()
 {
     auto state = State::getInstance();
     _tileProperties = state->getTileProperties();

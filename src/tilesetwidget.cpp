@@ -372,7 +372,7 @@ void TilesetWidget::onTileIndexUpdated(int selectedTileIndex)
 
     int x = selectedTileIndex % _tileColums;
     int y = selectedTileIndex / _tileColums;
-    if (_cursorPos.x() != x && _cursorPos.y() != y)
+    if (_cursorPos.x() != x || _cursorPos.y() != y)
     {
         _cursorPos = {x, y};
         update();

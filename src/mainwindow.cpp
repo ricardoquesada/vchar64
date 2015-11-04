@@ -259,7 +259,7 @@ void MainWindow::createActions()
     connect(state, &State::multicolorModeToggled, preview, &XlinkPreview::colorPropertiesUpdated);
 
     connect(state, &State::tilePropertiesUpdated, this, &MainWindow::onTilePropertiesUpdated);
-    connect(state, &State::tilePropertiesUpdated, _ui->bigcharWidget, &BigCharWidget::onUpdateTileProperties);
+    connect(state, &State::tilePropertiesUpdated, _ui->bigcharWidget, &BigCharWidget::onTilePropertiesUpdated);
     connect(state, &State::tilePropertiesUpdated, _ui->tilesetWidget, &TilesetWidget::onTilePropertiesUpdated);
 
     connect(state, &State::byteUpdated, this, &MainWindow::updateWindow);

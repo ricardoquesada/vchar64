@@ -40,7 +40,7 @@ public:
 
 public slots:
     void onTileIndexUpdated(int tileIndex);
-    void onUpdateTileProperties();
+    void onTilePropertiesUpdated();
     void updateColor();
 
 protected:
