@@ -69,15 +69,42 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
 
         int tileIndex = x + y * (_columns / tw);
 
-        // different and valid tileIndex?
-        if ((_cursorPos.x() != x || _cursorPos.y() != y) && tileIndex >= 0 && tileIndex < _maxTiles)
-        {
-            _selecting = false;
-            _selectingSize = {1,1};
+        // quick sanity check
+        if (! (tileIndex >= 0 && tileIndex < _maxTiles))
+            return;
 
-            _cursorPos = {x,y};
-            state->setTileIndex(tileIndex);
+        if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier)
+        {
+            // Click + Shift == select mode
+            _selecting = true;
+
+            if (x >= _cursorPos.x())
+                x++;
+            if (y >= _cursorPos.y())
+                y++;
+
+            _selectingSize = {x - _cursorPos.x(),
+                              y - _cursorPos.y()};
+
+            // sanity check
+            _selectingSize = {
+                qBound(-_cursorPos.x(), _selectingSize.width(), _tileColums - _cursorPos.x()),
+                qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows - _cursorPos.y())
+            };
             update();
+        }
+        else
+        {
+            // different and valid tileIndex?
+            if (_cursorPos.x() != x || _cursorPos.y() != y)
+            {
+                _selecting = false;
+                _selectingSize = {1,1};
+
+                _cursorPos = {x,y};
+                state->setTileIndex(tileIndex);
+                update();
+            }
         }
     }
 }
@@ -97,6 +124,11 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
 
         int x = (pos.x() - OFFSET) / _pixelSize.width() / 8 / tw;
         int y = (pos.y() - OFFSET) / _pixelSize.height() / 8 / th;
+
+        // sanity check
+        int tileIndex = x + y * (_columns / tw);
+        if (! (tileIndex >= 0 && tileIndex < _maxTiles))
+            return;
 
         if (x >= _cursorPos.x())
             x++;
