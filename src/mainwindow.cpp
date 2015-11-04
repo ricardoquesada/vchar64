@@ -318,7 +318,7 @@ void MainWindow::createDefaults()
 
     state->setMulticolorMode(false);
 
-    setWindowFilePath("[untitled]");
+    setWindowFilePath(tr("[untitled]"));
 
     // tabify charsetWidget and tilesetWidget
     tabifyDockWidget(_ui->dockWidget_charset, _ui->dockWidget_tileset);
