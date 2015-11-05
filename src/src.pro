@@ -43,7 +43,8 @@ SOURCES += main.cpp\
     tilesetwidget.cpp \
     vchar64application.cpp \
     importvicedialog.cpp \
-    importcharsetwidget.cpp
+    importcharsetwidget.cpp \
+    fileutils.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -62,7 +63,8 @@ HEADERS  += mainwindow.h \
     tilesetwidget.h \
     vchar64application.h \
     importvicedialog.h \
-    importcharsetwidget.h
+    importcharsetwidget.h \
+    fileutils.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \

@@ -38,6 +38,7 @@ limitations under the License.
 #include "commands.h"
 #include "palette.h"
 #include "importvicedialog.h"
+#include "fileutils.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 
@@ -354,20 +355,6 @@ QStringList MainWindow::recentFiles() const
     return v.toStringList();
 }
 
-static QString shortNativePath(const QString& filename)
-{
-#ifdef Q_OS_UNIX
-    auto filepath = QFileInfo(filename).canonicalFilePath();
-    auto homepath = QDir::cleanPath(QDir::homePath());
-    if (filepath.startsWith(homepath))
-    {
-        filepath.remove(homepath);
-        return QLatin1Char('~') + QDir::toNativeSeparators(filepath);
-    }
-#endif
-    return filename;
-}
-
 void MainWindow::updateRecentFiles()
 {
     QStringList files = recentFiles();
@@ -375,7 +362,7 @@ void MainWindow::updateRecentFiles()
 
     for (int i = 0; i < numRecentFiles; ++i)
     {
-        _recentFiles[i]->setText(shortNativePath(files[i]));
+        _recentFiles[i]->setText(FileUtils::getShortNativePath(files[i]));
         _recentFiles[i]->setData(files[i]);
         _recentFiles[i]->setVisible(true);
     }
