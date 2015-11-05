@@ -389,7 +389,7 @@
   </widget>
   <action name="actionOpen">
    <property name="icon">
-    <iconset theme="document-open" resource="../res/resources.qrc">
+    <iconset theme="document-open" resource="res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-open.png</normaloff>:/icons/22x22/actions/document-open.png</iconset>
    </property>
    <property name="text">
@@ -430,7 +430,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset theme="document-save" resource="../res/resources.qrc">
+    <iconset theme="document-save" resource="res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-save.png</normaloff>:/icons/22x22/actions/document-save.png</iconset>
    </property>
    <property name="text">
@@ -445,7 +445,7 @@
   </action>
   <action name="actionCopy">
    <property name="icon">
-    <iconset theme="edit-copy" resource="../res/resources.qrc">
+    <iconset theme="edit-copy" resource="res/resources.qrc">
      <normaloff>:/icons/22x22/actions/edit-copy.png</normaloff>:/icons/22x22/actions/edit-copy.png</iconset>
    </property>
    <property name="text">
@@ -460,8 +460,8 @@
   </action>
   <action name="actionPaste">
    <property name="icon">
-    <iconset theme="edit-paste">
-     <normaloff>:/images/24x24/edit-paste.png</normaloff>:/images/24x24/edit-paste.png</iconset>
+    <iconset theme="edit-paste" resource="res/resources.qrc">
+     <normaloff>:/icons/22x22/actions/edit-paste.png</normaloff>:/icons/22x22/actions/edit-paste.png</iconset>
    </property>
    <property name="text">
     <string>Paste</string>
@@ -475,8 +475,8 @@
   </action>
   <action name="actionSaveAs">
    <property name="icon">
-    <iconset theme="document-save-as" resource="../res/resources.qrc">
-     <normaloff>:/icons/22x22/actions/document-save.png</normaloff>:/icons/22x22/actions/document-save.png</iconset>
+    <iconset theme="document-save-as" resource="res/resources.qrc">
+     <normaloff>:/icons/22x22/actions/document-save-as.png</normaloff>:/icons/22x22/actions/document-save-as.png</iconset>
    </property>
    <property name="text">
     <string>Save Project As...</string>
@@ -619,7 +619,7 @@
   </action>
   <action name="actionEmptyProject">
    <property name="icon">
-    <iconset theme="document-new" resource="../res/resources.qrc">
+    <iconset theme="document-new" resource="res/resources.qrc">
      <normaloff>:/icons/22x22/actions/document-new.png</normaloff>:/icons/22x22/actions/document-new.png</iconset>
    </property>
    <property name="text">
@@ -668,7 +668,7 @@
   </action>
   <action name="actionUndo">
    <property name="icon">
-    <iconset theme="edit-undo" resource="../res/resources.qrc">
+    <iconset theme="edit-undo" resource="res/resources.qrc">
      <normaloff>:/icons/22x22/actions/edit-undo.png</normaloff>:/icons/22x22/actions/edit-undo.png</iconset>
    </property>
    <property name="text">
@@ -680,7 +680,7 @@
   </action>
   <action name="actionRedo">
    <property name="icon">
-    <iconset theme="edit-redo" resource="../res/resources.qrc">
+    <iconset theme="edit-redo" resource="res/resources.qrc">
      <normaloff>:/icons/22x22/actions/edit-redo.png</normaloff>:/icons/22x22/actions/edit-redo.png</iconset>
    </property>
    <property name="text">
@@ -826,8 +826,8 @@
   </action>
   <action name="actionCut">
    <property name="icon">
-    <iconset theme="edit-cut">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="edit-cut" resource="res/resources.qrc">
+     <normaloff>:/icons/22x22/actions/edit-cut.png</normaloff>:/icons/22x22/actions/edit-cut.png</iconset>
    </property>
    <property name="text">
     <string>Cut</string>
@@ -889,7 +889,7 @@
   <tabstop>charsetWidget</tabstop>
  </tabstops>
  <resources>
-  <include location="../res/resources.qrc"/>
+  <include location="res/resources.qrc"/>
  </resources>
  <connections>
   <connection>
