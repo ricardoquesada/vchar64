@@ -1,6 +1,6 @@
 # VChar64
 
-<img src="https://lh3.googleusercontent.com/-mVvZaASgcec/Vdyeno_jJjI/AAAAAAABTwg/UveprioNQnQ/s640-Ic42/vchar64-0.0.6.png" width=640>
+<img src="https://lh3.googleusercontent.com/-ek5qP9Qnq7w/VjqZJIf3PbI/AAAAAAABUAA/MumlfIxHGk0/s640-Ic42/Screen%252520Shot%2525202015-11-04%252520at%2525203.42.49%252520PM.png" width=640>
 
 ## About
 
@@ -63,8 +63,8 @@ $ git clone https://github.com/ricardoquesada/vchar64.git
 
 ## Download binaries
 
-* [vchar64-v0.0.7 for win32](https://www.dropbox.com/s/2yx9axfe3qg19r4/vchar64-0.0.7.zip?dl=1)
-* [vchar64-v0.0.7 for mac](https://www.dropbox.com/s/5ogv3n9l3poe3ox/vchar64-0.0.7.dmg?dl=1)
+* [vchar64-v0.0.8 for win32](https://www.dropbox.com/s/i0fni0xzy6cp0ef/vchar64-0.0.8.zip?dl=1)
+* [vchar64-v0.0.8 for mac](https://www.dropbox.com/s/nkeporn3nox6x4n/vchar64-0.0.8.dmg?dl=1)
 
 ## License
 
