@@ -331,13 +331,9 @@ void MainWindow::setupStatusBar()
     _labelSelectedColor = new QLabel(tr("Color: Black (0)"), this);
     statusBar()->addPermanentWidget(_labelSelectedColor);
 
-    statusBar()->addPermanentWidget(new QLabel(" | ", this));
-
     _labelCharIdx = new QLabel(tr("Char: 000  $00"), this);
 //    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
     statusBar()->addPermanentWidget(_labelCharIdx);
-
-    statusBar()->addPermanentWidget(new QLabel(" | ", this));
 
     _labelTileIdx = new QLabel(tr("Tile: 000  $00"), this);
 //    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
