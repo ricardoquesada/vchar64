@@ -143,6 +143,9 @@ const QColor& Palette::getColor(int colorIndex)
 
 void Palette::setActivePalette(int paletteIndex)
 {
+    // to make happy the build in release mode. It will complain that MAX_PALETTES
+    // is not being used
+    Q_UNUSED(MAX_PALETTES);
     Q_ASSERT(paletteIndex >= 0 && paletteIndex < MAX_PALETTES);
     _paletteIndex = paletteIndex;
 }
