@@ -1,6 +1,8 @@
 # VChar64
 
 <img src="https://lh3.googleusercontent.com/-ek5qP9Qnq7w/VjqZJIf3PbI/AAAAAAABUAA/MumlfIxHGk0/s640-Ic42/Screen%252520Shot%2525202015-11-04%252520at%2525203.42.49%252520PM.png" width=640>
+[![Build Status](https://api.travis-ci.org/ricardoquesada/vchar64.svg)]
+
 
 ## About
 
