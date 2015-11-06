@@ -613,6 +613,10 @@
    </property>
   </action>
   <action name="actionClearRecentFiles">
+   <property name="icon">
+    <iconset theme="edit-clear" resource="res/resources.qrc">
+     <normaloff>:/icons/22x22/actions/edit-clear.png</normaloff>:/icons/22x22/actions/edit-clear.png</iconset>
+   </property>
    <property name="text">
     <string>Clear Recent Files</string>
    </property>
