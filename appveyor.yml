@@ -5,7 +5,6 @@ environment:
     MINGW: C:\Qt\Tools\mingw492_32
   matrix:
     - QTDIR: C:\Qt\5.5\mingw492_32
-    - QTDIR: C:\Qt\5.5\msvc2013_64
 
 configuration: Release
 
@@ -21,5 +20,5 @@ build_script:
   - if not defined APPVEYOR_REPO_TAG_NAME set BUILD_INFO_VERSION=%COMMITNOW%
   - if not defined APPVEYOR_REPO_TAG_NAME echo Building VChar64 daily %VERSION%... (from %COMMITNOW%)
   - qmake
-  - make
+  - mingw32-make
 
