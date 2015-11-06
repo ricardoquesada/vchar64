@@ -1,0 +1,19 @@
+language: cpp
+sudo: required
+services:
+  - docker
+
+matrix:
+    include:
+        - compiler: gcc
+        - compiler: clang
+          env: QMAKESPEC=linux-clang
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq qt5-default qttools5-dev-tools cppcheck
+  - qmake -version
+script:
+  - qmake
+  - make
+after_script: cppcheck --enable=all -q -Isrc/ `git ls-files src/\*.cpp`
