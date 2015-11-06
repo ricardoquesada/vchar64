@@ -1,20 +1,19 @@
 language: cpp
-sudo: false
+sudo: required
+services:
+  - docker
 
 matrix:
     include:
         - compiler: gcc
         - compiler: clang
           env: QMAKESPEC=linux-clang
-addons:
-  apt:
-    packages:
-      - qt5-default
-      - qttools5-dev-tools
-      - cppcheck
 
 before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq qt5-default qttools5-dev-tools cppcheck
   - qmake -version
+
 script:
   - qmake
   - make
