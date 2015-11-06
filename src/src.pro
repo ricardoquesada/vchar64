@@ -82,8 +82,11 @@ RESOURCES += \
 
 QMAKE_CXXFLAGS += -Werror
 
+win32 {
+    RC_FILE = res/vchar64.rc
+}
 macx {
     TARGET = VChar64
     ICON = res/vchar64-icon-mac.icns
-    QMAKE_INFO_PLIST = Info.plist
+    QMAKE_INFO_PLIST = res/Info.plist
 }
