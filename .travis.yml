@@ -2,21 +2,21 @@ language: cpp
 os:
   - linux
   - osx
+
+compiler:
+  - gcc
+  - clang
+
 sudo: required
 services:
   - docker
 
-matrix:
-    include:
-        - compiler: gcc
-        - compiler: clang
-          env: QMAKESPEC=linux-clang
 
 before_install:
-  - echo $TRAVIS_OS_NAME
   - if [[ "$TRAVIS_OS_NAME" == linux ]]; then sudo apt-get update -qq; fi
   - if [[ "$TRAVIS_OS_NAME" == linux ]]; then sudo apt-get install -qq qt5-default qttools5-dev-tools; fi
   - if [[ "$TRAVIS_OS_NAME" == osx ]]; then brew install qt5; fi
+  - if [[ "$TRAVIS_OS_NAME" == osx ]]; then export PATH=$PATH:/usr/local/Cellar/qt5/5.3.2/bin; fi
   - qmake -version
 
 script:
