@@ -78,7 +78,7 @@ DISTFILES += \
     res/vchar64-icon-mac.icns
 
 RESOURCES += \
-    res/resources.qrc
+    resources.qrc
 
 QMAKE_CXXFLAGS += -Werror
 
