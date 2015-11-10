@@ -3,10 +3,6 @@ os:
   - linux
   - osx
 
-compiler:
-  - gcc
-  - clang
-
 sudo: required
 services:
   - docker
@@ -23,4 +19,7 @@ before_install:
 script:
   - qmake
   - make
+
+notifications:
+  slack: vchar64:8Vmwml28YLQEXSW8my7tx8Os
 
