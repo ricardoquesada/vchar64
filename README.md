@@ -1,4 +1,6 @@
 # VChar64
+
+[![Join the chat at https://gitter.im/ricardoquesada/vchar64](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ricardoquesada/vchar64?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 <img src="https://lh3.googleusercontent.com/-ek5qP9Qnq7w/VjqZJIf3PbI/AAAAAAABUAA/MumlfIxHGk0/s640-Ic42/Screen%252520Shot%2525202015-11-04%252520at%2525203.42.49%252520PM.png" width=640>
 
 ## About
