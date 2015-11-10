@@ -1,6 +1,5 @@
-# VChar64
 [![Build Status](https://travis-ci.org/ricardoquesada/vchar64.svg?branch=master)](https://travis-ci.org/ricardoquesada/vchar64) [![Build status](https://ci.appveyor.com/api/projects/status/q5euvgygdmqf67oj/branch/master?svg=true)](https://ci.appveyor.com/project/ricardoquesada/vchar64/branch/master)
-
+# VChar64
 <img src="https://lh3.googleusercontent.com/-ek5qP9Qnq7w/VjqZJIf3PbI/AAAAAAABUAA/MumlfIxHGk0/s640-Ic42/Screen%252520Shot%2525202015-11-04%252520at%2525203.42.49%252520PM.png" width=640>
 
 
