@@ -3,6 +3,7 @@
 
 ## About
 [![Build Status](https://travis-ci.org/ricardoquesada/vchar64.svg?branch=master)](https://travis-ci.org/ricardoquesada/vchar64) [![Build status](https://ci.appveyor.com/api/projects/status/q5euvgygdmqf67oj/branch/master?svg=true)](https://ci.appveyor.com/project/ricardoquesada/vchar64/branch/master)
+
 An editor for the Commodore 64/128
 
 Tailored for my own needs, but feel free to send patches, to open bugs, etc.
