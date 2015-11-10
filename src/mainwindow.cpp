@@ -310,7 +310,7 @@ void MainWindow::createDefaults()
     _lastDir = _settings.value("dir/lastdir", _lastDir).toString();
 
     auto state = State::getInstance();
-    state->openFile(":/c64-chargen-uppercase.bin");
+    state->openFile(":/res/c64-chargen-uppercase.bin");
 
     State::TileProperties properties;
     properties.size = {1,1};
@@ -435,7 +435,7 @@ void MainWindow::on_actionC64DefaultUppercase_triggered()
     if (maybeSave())
     {
         auto state = State::getInstance();
-        if (state->openFile(":/c64-chargen-uppercase.bin"))
+        if (state->openFile(":/res/c64-chargen-uppercase.bin"))
         {
             State::TileProperties properties;
             properties.size = {1,1};
@@ -454,7 +454,7 @@ void MainWindow::on_actionC64DefaultLowercase_triggered()
     if (maybeSave())
     {
         auto state = State::getInstance();
-        if (state->openFile(":/c64-chargen-lowercase.bin"))
+        if (state->openFile(":/res/c64-chargen-lowercase.bin"))
         {
             State::TileProperties properties;
             properties.size = {1,1};

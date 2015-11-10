@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
-    QApplication::setWindowIcon(QIcon(":/logo512.png"));
+    QApplication::setWindowIcon(QIcon(":/res/logo512.png"));
 
     MainWindow mainWin;
     mainWin.show();
