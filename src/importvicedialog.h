@@ -22,6 +22,8 @@ namespace Ui {
 class ImportVICEDialog;
 }
 
+class State;
+
 class ImportVICEDialog : public QDialog
 {
     Q_OBJECT

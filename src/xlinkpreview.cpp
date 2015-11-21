@@ -18,6 +18,7 @@ limitations under the License.
 #include <QFileInfo>
 
 #include "xlinkpreview.h"
+#include "mainwindow.h"
 
 static XlinkPreview *__instance = nullptr;
 
@@ -84,7 +85,7 @@ void XlinkPreview::updateBackgroundColor()
 {
     if(!_xlink->isLoaded()) return;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
     xlink_poke(0x37, 0x00, 0xd020, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
     xlink_poke(0x37, 0x00, 0xd021, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
 }
@@ -93,7 +94,7 @@ void XlinkPreview::updateForegroundColor()
 {
     if(!isConnected()) return;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
     uchar foreground = state->getColorForPen(State::PEN_FOREGROUND);
     foreground |= state->isMulticolorMode() ? 8 : 0;
 
@@ -105,7 +106,7 @@ void XlinkPreview::updateMulticolor1()
 {
     if(!isConnected()) return;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
     xlink_poke(0x37, 0x00, 0xd022, (uchar) state->getColorForPen(State::PEN_MULTICOLOR1));
 }
 
@@ -113,7 +114,7 @@ void XlinkPreview::updateMulticolor2()
 {
     if(!isConnected()) return;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
     xlink_poke(0x37, 0x00, 0xd023, (uchar) state->getColorForPen(State::PEN_MULTICOLOR2));
 }
 
@@ -121,7 +122,7 @@ void XlinkPreview::updateColorMode()
 {
     if(!isConnected()) return;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
     uchar control = 0x08;
 
     xlink_peek(0x37, 0x00, 0xd016, &control);
@@ -142,7 +143,7 @@ void XlinkPreview::updateCharset()
 {
     if(!isConnected()) return;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
 
     xlink_load(0xb7, 0x00, 0x3000, (uchar*) state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
     xlink_poke(0x37, 0x00, 0xd018, 0x1c);
@@ -187,7 +188,7 @@ void XlinkPreview::byteUpdated(int byteIndex)
 {
     if(!isConnected()) return;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
     xlink_poke(0xb7, 0x00, 0x3000 + byteIndex, state->getCharsetBuffer()[byteIndex]);
 }
 
@@ -195,7 +196,7 @@ void XlinkPreview::bytesUpdated(int pos, int count)
 {
     if(!isConnected()) return;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
     xlink_load(0xb7, 0x00, 0x3000+pos, state->getCharsetBuffer()+pos, count);
 }
 
@@ -203,7 +204,7 @@ void XlinkPreview::tileUpdated(int tileIndex)
 {
     if(!isConnected()) return;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
 
     State::TileProperties properties = state->getTileProperties();
 
@@ -225,7 +226,7 @@ void XlinkPreview::colorSelected()
 {
     if(!isConnected()) return;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
 
     switch(state->getSelectedPen()) {
     case 0: updateBackgroundColor(); break;

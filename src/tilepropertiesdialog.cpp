@@ -20,14 +20,14 @@ limitations under the License.
 #include "state.h"
 #include "commands.h"
 
-TilePropertiesDialog::TilePropertiesDialog(QWidget *parent) :
+TilePropertiesDialog::TilePropertiesDialog(State* state, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::TilePropertiesDialog)
+    ui(new Ui::TilePropertiesDialog),
+    _state(state)
 {
     ui->setupUi(this);
 
-    auto state = State::getInstance();
-    auto properties = state->getTileProperties();
+    auto properties = _state->getTileProperties();
     ui->spinBoxSizeX->setValue(properties.size.width());
     ui->spinBoxSizeY->setValue(properties.size.height());
     ui->spinBoxInterleaved->setValue(properties.interleaved);
@@ -44,12 +44,11 @@ void TilePropertiesDialog::on_buttonBox_accepted()
     int h = ui->spinBoxSizeY->value();
     int interleaved = ui->spinBoxInterleaved->value();
 
-    auto state = State::getInstance();
     State::TileProperties properties;
     properties.size = {w,h};
     properties.interleaved = interleaved;
 
-    state->getUndoStack()->push(new SetTilePropertiesCommand(state, properties));
+    _state->getUndoStack()->push(new SetTilePropertiesCommand(_state, properties));
 }
 
 void TilePropertiesDialog::on_spinBoxSizeX_editingFinished()

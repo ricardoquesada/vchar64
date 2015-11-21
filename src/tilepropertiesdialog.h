@@ -22,12 +22,14 @@ namespace Ui {
 class TilePropertiesDialog;
 }
 
+class State;
+
 class TilePropertiesDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit TilePropertiesDialog(QWidget *parent = 0);
+    explicit TilePropertiesDialog(State *state, QWidget *parent = 0);
     ~TilePropertiesDialog();
 
 private slots:
@@ -39,5 +41,6 @@ private slots:
 
 private:
     Ui::TilePropertiesDialog *ui;
+    State* _state;  // weak ref
 };
 

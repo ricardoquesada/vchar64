@@ -22,13 +22,14 @@ limitations under the License.
 #include <QtEndian>
 
 #include "state.h"
+#include "mainwindow.h"
 
 qint64 StateImport::loadRaw(State* state, QFile& file)
 {
     auto size = file.size() - file.pos();
     if (size % 8 !=0)
     {
-        state->setErrorMessage(QObject::tr("Warning: file is not multiple of 8. Characters might be incomplete"));
+        MainWindow::getInstance()->setErrorMessage(QObject::tr("Warning: file is not multiple of 8. Characters might be incomplete"));
         qDebug() << "File size not multiple of 8 (" << size << "). Characters might be incomplete";
     }
 
@@ -48,7 +49,7 @@ qint64 StateImport::loadPRG(State *state, QFile& file, quint16* outAddress)
 {
     auto size = file.size();
     if (size < 10) { // 2 + 8 (at least one char)
-        state->setErrorMessage(QObject::tr("Error: File size too small"));
+        MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: File size too small"));
         qDebug() << "Error: File Size too small.";
         return -1;
     }
@@ -69,7 +70,7 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
     // only expanded files are supported
     if (!v4header->expanded)
     {
-        state->setErrorMessage(QObject::tr("Error: CTM is not expanded"));
+        MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: CTM is not expanded"));
         qDebug() << "CTM is not expanded. Cannot load it";
         return -1;
     }
@@ -105,7 +106,7 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
 {
     if (v5header->flags & 03)
     {
-        state->setErrorMessage(QObject::tr("Error: CTM is not expanded"));
+        MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: CTM is not expanded"));
         qDebug() << "CTM is not expanded. Cannot load it";
         return -1;
     }
@@ -139,7 +140,7 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
     auto size = file.size();
     if ((std::size_t)size<sizeof(header))
     {
-        state->setErrorMessage(QObject::tr("Error: CTM file too small"));
+        MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: CTM file too small"));
         qDebug() << "Error. File size too small to be CTM (" << size << ").";
         return -1;
     }
@@ -151,7 +152,7 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
     // check header
     if (header.id[0] != 'C' || header.id[1] != 'T' || header.id[2] != 'M')
     {
-        state->setErrorMessage(QObject::tr("Error: invalid CTM file"));
+        MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: invalid CTM file"));
         qDebug() << "Not a valid CTM file";
         return -1;
     }
@@ -163,7 +164,7 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
         return loadCTM5(state, file, &header);
     }
 
-    state->setErrorMessage(QObject::tr("Error: CTM version not supported"));
+    MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: CTM version not supported"));
     qDebug() << "Invalid CTM version: " << header.version;
     return -1;
 }
@@ -174,7 +175,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     auto size = file.size();
     if ((std::size_t)size<sizeof(header))
     {
-        state->setErrorMessage(QObject::tr("Error: Invalid VChar file"));
+        MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: Invalid VChar file"));
         qDebug() << "Error. File size too small to be VChar64 (" << size << ").";
         return -1;
     }
@@ -186,7 +187,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     // check header
     if (header.id[0] != 'V' || header.id[1] != 'C' || header.id[2] != 'h' || header.id[3] != 'a' || header.id[4] != 'r')
     {
-        state->setErrorMessage(QObject::tr("Error: Invalid VChar file"));
+        MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: Invalid VChar file"));
         qDebug() << "Not a valid VChar64 file";
         return -1;
     }
@@ -221,7 +222,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
     static const char VICE_MAGIC[] = "VICE Snapshot File\032";
     static const char VICE_C64MEM[] = "C64MEM";
 
-    auto state = State::getInstance();
+    auto mainwindow = MainWindow::getInstance();
 
     if (!file.isOpen())
         file.open(QIODevice::ReadOnly);
@@ -229,7 +230,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
     auto size = file.size();
     if (size < (qint64)sizeof(VICESnapshotHeader))
     {
-        state->setErrorMessage(QObject::tr("Error: VICE file too small"));
+        mainwindow->setErrorMessage(QObject::tr("Error: VICE file too small"));
         return -1;
     }
 
@@ -237,13 +238,13 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
     size = file.read((char*)&header, sizeof(header));
     if (size != sizeof(header))
     {
-        state->setErrorMessage(QObject::tr("Error: VICE header too small"));
+        mainwindow->setErrorMessage(QObject::tr("Error: VICE header too small"));
         return -1;
     }
 
     if (memcmp(header.id, VICE_MAGIC, sizeof(header.id)) != 0)
     {
-        state->setErrorMessage(QObject::tr("Error: Invalid VICE header Id"));
+        mainwindow->setErrorMessage(QObject::tr("Error: Invalid VICE header Id"));
         return -1;
     }
 
@@ -272,7 +273,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
         size = file.read((char*)&c64mem, sizeof(c64mem));
         if (size != sizeof(c64mem))
         {
-            state->setErrorMessage(QObject::tr("Error: Invalid VICE C64MEM segment"));
+            mainwindow->setErrorMessage(QObject::tr("Error: Invalid VICE C64MEM segment"));
             return -1;
         }
 
@@ -280,7 +281,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
     }
     else
     {
-        state->setErrorMessage(QObject::tr("Error: VICE C64MEM segment not found"));
+        mainwindow->setErrorMessage(QObject::tr("Error: VICE C64MEM segment not found"));
         return -1;
     }
 

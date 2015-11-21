@@ -18,7 +18,9 @@ limitations under the License.
 
 #include <QPainter>
 #include <QPaintEvent>
+#include <QMdiSubWindow>
 
+#include "bigcharwidget.h"
 #include "palette.h"
 #include "state.h"
 #include "mainwindow.h"
@@ -47,8 +49,9 @@ void CharsetWidget::updateCharIndex(int charIndex)
     if (_charIndex != charIndex && charIndex >=0 && charIndex < 256)
     {
         _charIndex = charIndex;
-        auto state = State::getInstance();
-        state->setCharIndex(charIndex);
+        auto state = MainWindow::getCurrentState();
+        if (state)
+            state->setCharIndex(charIndex);
     }
 }
 
@@ -194,6 +197,12 @@ void CharsetWidget::keyPressEvent(QKeyEvent *event)
 
 void CharsetWidget::paintEvent(QPaintEvent *event)
 {
+    auto state = MainWindow::getCurrentState();
+
+    // no open documents?
+    if (!state)
+        return;
+
     QPainter painter;
 
     painter.begin(this);
@@ -201,8 +210,6 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
 
     painter.setBrush(QColor(0,0,0));
     painter.setPen(Qt::NoPen);
-
-    auto state = State::getInstance();
 
     int end_x = 8;
     int pixel_size_x = _pixelSize.width();
@@ -251,7 +258,7 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
 
                     if (!state->shouldBeDisplayedInMulticolor() && color_pen )
                         color_pen = State::PEN_FOREGROUND;
-                    painter.setBrush(Palette::getColorForPen(color_pen));
+                    painter.setBrush(Palette::getColorForPen(state, color_pen));
                     painter.drawRect((w*end_x+x) * pixel_size_x + OFFSET,
                                      (h*8+y) * _pixelSize.height() + OFFSET,
                                      pixel_size_x,
@@ -394,6 +401,8 @@ void CharsetWidget::getSelectionRange(State::CopyRange* copyRange) const
     copyRange->skip = COLUMNS - fixed_size.width();
 
     copyRange->type = State::CopyRange::CHARS;
+    copyRange->tileProperties.size = {-1, -1};
+    copyRange->tileProperties.interleaved = -1;
 }
 
 int CharsetWidget::getCursorPos() const

@@ -21,6 +21,7 @@ limitations under the License.
 
 #include "state.h"
 #include "palette.h"
+#include "mainwindow.h"
 
 ColorRectWidget::ColorRectWidget(QWidget *parent)
     : QWidget(parent)
@@ -52,6 +53,6 @@ void ColorRectWidget::paintEvent(QPaintEvent *event)
     QPainter painter;
     painter.begin(this);
 
-    painter.fillRect(event->rect(), Palette::getColorForPen(_pen));
+    painter.fillRect(event->rect(), Palette::getColorForPen(MainWindow::getCurrentState(), _pen));
     painter.end();
 }

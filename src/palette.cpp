@@ -122,15 +122,24 @@ static const int MAX_PALETTES = sizeof(Palettes) / sizeof(Palettes[0]);
 
 int Palette::_paletteIndex = 1;
 
-const QColor& Palette::getColorForPen(int pen)
+const QColor& Palette::getColorForPen(State* state, int pen)
 {
     Q_ASSERT(pen>=0 && pen<State::PEN_MAX && "Invalid pen value");
-    auto state = State::getInstance();
-    int colorIndex = state->getColorForPen(pen);
 
-    // upper colors should be the same a lower colors on multicolor mode in foreground pen
-    if (pen == State::PEN_FOREGROUND && state->isMulticolorMode() && colorIndex >= 8)
-        colorIndex -= 8;
+    // default colors are used when no state is present.
+    // Import from VICE might use it if no tabs are open
+    int defaultColors[] = {1,5,7,11};
+    int colorIndex = defaultColors[pen];
+
+    // state could be nill if no States (documents) are open
+    if (state)
+    {
+        colorIndex = state->getColorForPen(pen);
+
+        // upper colors should be the same a lower colors on multicolor mode in foreground pen
+        if (pen == State::PEN_FOREGROUND && state->isMulticolorMode() && colorIndex >= 8)
+            colorIndex -= 8;
+    }
 
     return Palettes[_paletteIndex][colorIndex];
 }

@@ -21,14 +21,21 @@ limitations under the License.
 #include <QSettings>
 #include <QVector>
 
+#include "state.h"
+
 QT_BEGIN_NAMESPACE
 class QUndoView;
 class QLabel;
+class QMdiSubWindow;
+class QUndoView;
 QT_END_NAMESPACE
 
 namespace Ui {
 class MainWindow;
 }
+
+class BigCharWidget;
+class State;
 
 class MainWindow : public QMainWindow
 {
@@ -37,12 +44,27 @@ class MainWindow : public QMainWindow
     static constexpr int MAX_RECENT_FILES=20;
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    /**
+     * @brief getInstance returns the singletone
+     * @return the MainWindow
+     */
+    static MainWindow* getInstance();
+
+    /**
+     * @brief getCurrentState returns the current State
+     * @return nullptr if none are present. Otherwise it will return the current State
+     */
+    static State* getCurrentState();
 
     Ui::MainWindow* getUi() const {
         return _ui;
     }
+
+    /**
+     * @brief createState creates a new empty state
+     * @return
+     */
+    State *createState();
 
 public slots:
     void previewConnected();
@@ -56,11 +78,19 @@ public slots:
     void setErrorMessage(const QString& errorMessage);
     void onColorPropertiesUpdated(int pen);
     void onOpenRecentFileTriggered();
+    void onSubWindowActivated(QMdiSubWindow* subwindow);
+    void onSpinBoxValueChanged(int tileIndex);
+    bool on_actionSave_triggered();
+
 
 protected:
+    explicit MainWindow(QWidget *parent = 0);
+    ~MainWindow();
+
     void readSettings();
     void saveSettings();
     void createActions();
+    void closeState(State* state);
     void createDefaults();
     void createUndoView();
     void setupStatusBar();
@@ -69,15 +99,24 @@ protected:
     void setRecentFile(const QString& fileName);
     QStringList recentFiles() const;
 
+    void activateRadioButtonIndex(int pen);
+    void activatePalette(int paletteIndex);
+
+    void updateMenus();
+
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
 
+    BigCharWidget* getBigcharWidget() const;
+    State* getState() const;
+
+    State::CopyRange bufferToClipboard(State* state) const;
+    bool bufferFromClipboard(State::CopyRange *out_range, quint8 *out_buffer) const;
 
 private slots:
 
     void on_actionExit_triggered();
     void on_actionOpen_triggered();
     bool on_actionSaveAs_triggered();
-    bool on_actionSave_triggered();
     void on_actionExport_triggered();
     void on_actionExportAs_triggered();
     void on_actionInvert_triggered();
@@ -107,31 +146,21 @@ private slots:
     void on_radioButton_foreground_clicked();
     void on_radioButton_multicolor1_clicked();
     void on_radioButton_multicolor2_clicked();
-
     void on_checkBox_multicolor_toggled(bool checked);
-
     void on_actionPalette_0_triggered();
     void on_actionPalette_1_triggered();
     void on_actionPalette_2_triggered();
     void on_actionPalette_3_triggered();
     void on_actionPalette_4_triggered();
-
-
     void on_actionDocumentation_triggered();
-
     void on_actionNext_Tile_triggered();
     void on_actionPrevious_Tile_triggered();
-
     void on_actionImport_VICE_snapshot_triggered();
-
     void on_actionReset_Layout_triggered();
+    void on_actionClose_triggered();
+    void on_actionClose_All_triggered();
 
 private:
-
-    bool maybeSave();
-    void activateRadioButtonIndex(int pen);
-    void activatePalette(int paletteIndex);
-
     QVector<QAction*> _recentFiles;
 
     Ui::MainWindow* _ui;
@@ -139,7 +168,7 @@ private:
     QLabel* _labelCharIdx;
     QLabel* _labelTileIdx;
     QLabel* _labelSelectedColor;
+    QUndoView* _undoView;
 
     QSettings _settings;
 };
-

@@ -26,6 +26,7 @@ limitations under the License.
 #include "state.h"
 #include "commands.h"
 #include "palette.h"
+#include "mainwindow.h"
 
 static const int PIXEL_SIZE_X = 24;
 static const int PIXEL_SIZE_Y = 16;
@@ -47,32 +48,32 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
 
     int color = 8 * y + x;
 
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
+    if (state)
+    {
+        int pen = state->getSelectedPen();
+        int oldColor = state->getColorForPen(pen);
 
-    int pen = state->getSelectedPen();
-    int oldColor = state->getColorForPen(pen);
+        if (oldColor != color) {
+            state->getUndoStack()->push(new SetColorCommand(state, color, pen));
 
-    if (oldColor != color) {
-        state->getUndoStack()->push(new SetColorCommand(state, color, pen));
-
-        emit colorSelected();
-        update();
+            emit colorSelected();
+            update();
+        }
     }
 }
 
 void PaletteWidget::paintEvent(QPaintEvent *event)
 {
-    auto state = State::getInstance();
-
     QPainter painter;
     painter.begin(this);
 
     // paint with default background color
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
-
-    int currentColor = state->getCurrentColor();
-    int selectedPen = state->getSelectedPen();
+    auto state = MainWindow::getCurrentState();
+    int currentColor = state ? state->getCurrentColor() : 0;
+    int selectedPen = state ? state->getSelectedPen() : State::PEN_BACKGROUND;
 
 
     QPen pen;

@@ -25,11 +25,14 @@ limitations under the License.
 #include <string>
 #include "stateimport.h"
 
+class BigCharWidget;
+
 class State : public QObject
 {
     Q_OBJECT
 
     friend class StateImport;
+    friend class BigCharWidget;
 
 public:
     // only 256 chars at the time
@@ -77,14 +80,29 @@ public:
         int count;
         /** what to copy: chars or tiles */
         int type;
+        /** tileProperties, only needed when type==TILES. */
+        TileProperties tileProperties;
     };
 
-    static State* getInstance();
+    /**
+     * @brief State constructor
+     */
+    State();
+    /**
+     * @brief ~State destructor
+     */
+    virtual ~State();
 
     /**
      * @brief reset resets the charsets. emits fileLoaded();
      */
     void reset();
+
+    /**
+     * @brief refresh resends all the signals about the current state
+     * so that consumers can update its views
+     */
+    void refresh();
     /**
      * @brief openFile imports a file. emits fileLoaded();
      * @param filename
@@ -218,24 +236,12 @@ public:
     void updateCharset(quint8* buffer);
 
     /**
-      @brief copy a range of bytes to the copy buffer
-      @param copyRange the range of bytes to copy
-     */
-    void copy(const CopyRange& copyRange);
-
-    /**
      * @brief paste paste previously copied range starting from charIndex
      * @param charIndex offset in bytes
      * @param copyRange range to paste
      * @param charsetBuffer buffer that has the 256 chars
      */
     void paste(int charIndex, const CopyRange& copyRange, const quint8* charsetBuffer);
-    const CopyRange& getCopyRange() const;
-    /**
-     * @brief setCopyRange update the CopyRange ivar. Useful for undo/redo command
-     * @param range the Copy Range
-     */
-    void setCopyRange(const CopyRange& range);
 
     //
     // tile manipulation
@@ -257,18 +263,11 @@ public:
     */
     int tileGetPen(int tileIndex, const QPoint& position);
 
-
     /**
-     * @brief setErrorMessage Sets the error message
-     * @param errorMesg
+     * @brief getBigCharWidget returns the parent, the widget that owns the state
+     * @return BigCharWidget
      */
-    void setErrorMessage(const QString& errorMesg);
-
-    /**
-     * @brief getErrorMessage returns the current error message
-     * @return
-     */
-    const QString& getErrorMessage() const;
+    BigCharWidget* getBigCharWidget() const;
 
 signals:
     // file loaded, or new project
@@ -314,11 +313,6 @@ signals:
      */
     void tileIndexUpdated(int);
 
-    /**
-     * @brief errorMessageSet signal emitted when a new error message is set
-     * @param errorMsg
-     */
-    void errorMessageSet(const QString& errorMsg);
 
 public slots:
     /**
@@ -334,9 +328,6 @@ public slots:
 
 
 protected:    
-    State();
-    virtual ~State();
-
     Char getCharFromTile(int tileIndex, int x, int y) const;
     void setCharForTile(int tileIndex, int x, int y, const Char& chr);
 
@@ -380,12 +371,9 @@ protected:
     // -1 for "raw", otherwise it will be a "prg" and the value will have the address
     int _exportedAddress;
 
-    /** @brief buffer that will have a copy of all the chars */
-    quint8 _copyCharset[CHAR_BUFFER_SIZE];
-    CopyRange _copyRange;
 
     QUndoStack* _undoStack;
 
-    QString _lastError;
+    BigCharWidget* _bigCharWidget;          // weak ref
 };
 

@@ -16,33 +16,30 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="leftMargin">
-     <number>6</number>
+     <number>0</number>
     </property>
     <property name="topMargin">
-     <number>6</number>
+     <number>0</number>
     </property>
     <property name="rightMargin">
-     <number>6</number>
+     <number>0</number>
     </property>
     <property name="bottomMargin">
-     <number>6</number>
+     <number>0</number>
     </property>
     <item>
-     <widget class="BigCharWidget" name="bigcharWidget" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>256</width>
-        <height>256</height>
-       </size>
+     <widget class="QMdiArea" name="mdiArea">
+      <property name="viewMode">
+       <enum>QMdiArea::TabbedView</enum>
       </property>
-      <property name="sizeIncrement">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
+      <property name="documentMode">
+       <bool>true</bool>
       </property>
-      <property name="focusPolicy">
-       <enum>Qt::StrongFocus</enum>
+      <property name="tabsClosable">
+       <bool>true</bool>
+      </property>
+      <property name="tabsMovable">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -96,6 +93,9 @@
     <addaction name="actionSaveAs"/>
     <addaction name="actionExport"/>
     <addaction name="actionExportAs"/>
+    <addaction name="separator"/>
+    <addaction name="actionClose"/>
+    <addaction name="actionClose_All"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -430,7 +430,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset theme="document-save">
+    <iconset theme="document-save" resource="resources.qrc">
      <normaloff>:/res/icons/22x22/actions/document-save.png</normaloff>:/res/icons/22x22/actions/document-save.png</iconset>
    </property>
    <property name="text">
@@ -445,7 +445,7 @@
   </action>
   <action name="actionCopy">
    <property name="icon">
-    <iconset theme="edit-copy">
+    <iconset theme="edit-copy" resource="resources.qrc">
      <normaloff>:/res/icons/22x22/actions/edit-copy.png</normaloff>:/res/icons/22x22/actions/edit-copy.png</iconset>
    </property>
    <property name="text">
@@ -460,7 +460,7 @@
   </action>
   <action name="actionPaste">
    <property name="icon">
-    <iconset theme="edit-paste">
+    <iconset theme="edit-paste" resource="resources.qrc">
      <normaloff>:/res/icons/22x22/actions/edit-paste.png</normaloff>:/res/icons/22x22/actions/edit-paste.png</iconset>
    </property>
    <property name="text">
@@ -475,7 +475,7 @@
   </action>
   <action name="actionSaveAs">
    <property name="icon">
-    <iconset theme="document-save-as">
+    <iconset theme="document-save-as" resource="resources.qrc">
      <normaloff>:/res/icons/22x22/actions/document-save-as.png</normaloff>:/res/icons/22x22/actions/document-save-as.png</iconset>
    </property>
    <property name="text">
@@ -614,7 +614,7 @@
   </action>
   <action name="actionClearRecentFiles">
    <property name="icon">
-    <iconset theme="edit-clear">
+    <iconset theme="edit-clear" resource="resources.qrc">
      <normaloff>:/res/icons/22x22/actions/edit-clear.png</normaloff>:/res/icons/22x22/actions/edit-clear.png</iconset>
    </property>
    <property name="text">
@@ -623,7 +623,7 @@
   </action>
   <action name="actionEmptyProject">
    <property name="icon">
-    <iconset theme="document-new">
+    <iconset theme="document-new" resource="resources.qrc">
      <normaloff>:/res/icons/22x22/actions/document-new.png</normaloff>:/res/icons/22x22/actions/document-new.png</iconset>
    </property>
    <property name="text">
@@ -672,7 +672,7 @@
   </action>
   <action name="actionUndo">
    <property name="icon">
-    <iconset theme="edit-undo">
+    <iconset theme="edit-undo" resource="resources.qrc">
      <normaloff>:/res/icons/22x22/actions/edit-undo.png</normaloff>:/res/icons/22x22/actions/edit-undo.png</iconset>
    </property>
    <property name="text">
@@ -684,7 +684,7 @@
   </action>
   <action name="actionRedo">
    <property name="icon">
-    <iconset theme="edit-redo">
+    <iconset theme="edit-redo" resource="resources.qrc">
      <normaloff>:/res/icons/22x22/actions/edit-redo.png</normaloff>:/res/icons/22x22/actions/edit-redo.png</iconset>
    </property>
    <property name="text">
@@ -830,7 +830,7 @@
   </action>
   <action name="actionCut">
    <property name="icon">
-    <iconset theme="edit-cut">
+    <iconset theme="edit-cut" resource="resources.qrc">
      <normaloff>:/res/icons/22x22/actions/edit-cut.png</normaloff>:/res/icons/22x22/actions/edit-cut.png</iconset>
    </property>
    <property name="text">
@@ -845,15 +845,28 @@
     <string>Reset Layout</string>
    </property>
   </action>
+  <action name="actionClose">
+   <property name="icon">
+    <iconset theme="window-close"/>
+   </property>
+   <property name="text">
+    <string>Close</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionClose_All">
+   <property name="text">
+    <string>Close All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+W</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>BigCharWidget</class>
-   <extends>QWidget</extends>
-   <header>bigcharwidget.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>ColorRectWidget</class>
    <extends>QWidget</extends>
@@ -889,7 +902,6 @@
   <tabstop>radioButton_multicolor1</tabstop>
   <tabstop>radioButton_multicolor2</tabstop>
   <tabstop>checkBox_multicolor</tabstop>
-  <tabstop>bigcharWidget</tabstop>
   <tabstop>charsetWidget</tabstop>
  </tabstops>
  <resources>
@@ -903,12 +915,12 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>505</x>
-     <y>273</y>
+     <x>535</x>
+     <y>256</y>
     </hint>
     <hint type="destinationlabel">
-     <x>549</x>
-     <y>122</y>
+     <x>534</x>
+     <y>115</y>
     </hint>
    </hints>
   </connection>
@@ -919,12 +931,12 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>505</x>
-     <y>273</y>
+     <x>535</x>
+     <y>256</y>
     </hint>
     <hint type="destinationlabel">
-     <x>549</x>
-     <y>154</y>
+     <x>534</x>
+     <y>139</y>
     </hint>
    </hints>
   </connection>
@@ -935,12 +947,12 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>505</x>
-     <y>273</y>
+     <x>535</x>
+     <y>256</y>
     </hint>
     <hint type="destinationlabel">
-     <x>549</x>
-     <y>186</y>
+     <x>534</x>
+     <y>163</y>
     </hint>
    </hints>
   </connection>
@@ -951,12 +963,12 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>505</x>
-     <y>273</y>
+     <x>535</x>
+     <y>256</y>
     </hint>
     <hint type="destinationlabel">
-     <x>549</x>
-     <y>218</y>
+     <x>534</x>
+     <y>187</y>
     </hint>
    </hints>
   </connection>
@@ -967,12 +979,12 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>439</x>
-     <y>126</y>
+     <x>455</x>
+     <y>119</y>
     </hint>
     <hint type="destinationlabel">
-     <x>505</x>
-     <y>273</y>
+     <x>535</x>
+     <y>256</y>
     </hint>
    </hints>
   </connection>
@@ -983,12 +995,12 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>439</x>
-     <y>158</y>
+     <x>455</x>
+     <y>143</y>
     </hint>
     <hint type="destinationlabel">
-     <x>505</x>
-     <y>273</y>
+     <x>535</x>
+     <y>256</y>
     </hint>
    </hints>
   </connection>
@@ -999,12 +1011,12 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>439</x>
-     <y>190</y>
+     <x>455</x>
+     <y>167</y>
     </hint>
     <hint type="destinationlabel">
-     <x>505</x>
-     <y>273</y>
+     <x>535</x>
+     <y>256</y>
     </hint>
    </hints>
   </connection>
@@ -1015,12 +1027,12 @@
    <slot>update()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>439</x>
-     <y>222</y>
+     <x>455</x>
+     <y>191</y>
     </hint>
     <hint type="destinationlabel">
-     <x>505</x>
-     <y>273</y>
+     <x>535</x>
+     <y>256</y>
     </hint>
    </hints>
   </connection>
@@ -1051,8 +1063,8 @@
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>404</x>
-     <y>148</y>
+     <x>455</x>
+     <y>143</y>
     </hint>
    </hints>
   </connection>
@@ -1067,8 +1079,8 @@
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>404</x>
-     <y>180</y>
+     <x>455</x>
+     <y>167</y>
     </hint>
    </hints>
   </connection>
@@ -1083,8 +1095,8 @@
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>404</x>
-     <y>212</y>
+     <x>455</x>
+     <y>191</y>
     </hint>
    </hints>
   </connection>
@@ -1099,8 +1111,8 @@
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>463</x>
-     <y>249</y>
+     <x>544</x>
+     <y>218</y>
     </hint>
    </hints>
   </connection>

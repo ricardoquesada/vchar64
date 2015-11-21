@@ -20,6 +20,9 @@ limitations under the License.
 
 #include "state.h"
 
+QT_BEGIN_NAMESPACE
+class QMdiSubWindow;
+QT_END_NAMESPACE
 
 class CharsetWidget : public QWidget
 {

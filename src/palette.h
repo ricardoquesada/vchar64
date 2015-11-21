@@ -18,6 +18,8 @@ limitations under the License.
 
 #include <QColor>
 
+class State;
+
 class Palette
 {
 public:
@@ -30,7 +32,7 @@ public:
     };
 
     static const QColor& getColor(int colorIndex);
-    static const QColor& getColorForPen(int pen);
+    static const QColor& getColorForPen(State *state, int pen);
     static void setActivePalette(int paletteIndex);
     static int getActivePalette();
 

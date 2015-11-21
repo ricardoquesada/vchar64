@@ -23,25 +23,30 @@ limitations under the License.
 #include <stdint.h>
 #include "state.h"
 
-
+/**
+ * @brief The BigCharWidget class
+ * It is the "Document" class. It contains a `State`
+ * object, which could be seen as the Document object.
+ * `BigCharWidget` could be seen a the "view" of the `State`.
+ */
 class BigCharWidget : public QWidget
 {
     Q_OBJECT
 
 public:
     BigCharWidget(QWidget *parent=nullptr);
-    int getTileIndex() const {
-        return _tileIndex;
-    }
+    virtual ~BigCharWidget();
 
-    QSize getTileSize() const {
-        return _tileProperties.size;
-    }
+    int getTileIndex() const;
+    QSize getTileSize() const;
+    State* getState() const;
 
 public slots:
     void onTileIndexUpdated(int tileIndex);
     void onTilePropertiesUpdated();
+    void onTileUpdated(int tileIndex);
     void updateColor();
+    void onMulticolorModeToggled(bool state);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
@@ -50,10 +55,13 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
+    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
 
     void paintChar(QPainter& painter, const QPen& pen, quint8* charPtr, const QPoint& tileToDraw);
     void paintSeparators(QPainter &painter);
     void paintFocus(QPainter &painter);
+
+    bool maybeSave();
 
     void paintPixel(int x, int y, int pen);
     void cyclePixel(int x, int y);
@@ -63,7 +71,9 @@ protected:
     QPoint _cursorPos;
 
     State::TileProperties _tileProperties;
+    State* _state;              // strong ref
 
     QSize _pixelSize;
     bool _commandMergeable;
+
 };

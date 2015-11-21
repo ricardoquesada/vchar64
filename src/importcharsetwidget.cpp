@@ -21,6 +21,7 @@ limitations under the License.
 
 #include "palette.h"
 #include "state.h"
+#include "mainwindow.h"
 
 static const int PIXEL_SIZE = 2;
 static const int COLUMNS = 32;
@@ -94,7 +95,7 @@ void ImportCharsetWidget::paintEvent(QPaintEvent *event)
 
                     if (!_multicolor && color_pen )
                         color_pen = State::PEN_FOREGROUND;
-                    painter.setBrush(Palette::getColorForPen(color_pen));
+                    painter.setBrush(Palette::getColorForPen(MainWindow::getCurrentState(), color_pen));
                     painter.drawRect((w*end_x+x) * pixel_size_x + OFFSET,
                                      (h*8+y) * PIXEL_SIZE + OFFSET,
                                      pixel_size_x,

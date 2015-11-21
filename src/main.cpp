@@ -65,10 +65,10 @@ int main(int argc, char *argv[])
 
     QApplication::setWindowIcon(QIcon(":/res/logo512.png"));
 
-    MainWindow mainWin;
-    mainWin.show();
+    MainWindow* mainWin = MainWindow::getInstance();
+    mainWin->show();
 
-    QObject::connect(&app, &VChar64Application::fileOpenRequest, &mainWin, &MainWindow::openFile);
+    QObject::connect(&app, &VChar64Application::fileOpenRequest, mainWin, &MainWindow::openFile);
 
     return app.exec();
 }

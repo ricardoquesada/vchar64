@@ -27,17 +27,17 @@ limitations under the License.
 #include "mainwindow.h"
 #include "state.h"
 
-ExportDialog::ExportDialog(QWidget *parent) :
+ExportDialog::ExportDialog(State* state, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ExportDialog),
-    _settings()
+    _settings(),
+    _state(state)
 {
     ui->setupUi(this);
 
     auto lastDir = _settings.value("dir/lastdir", QDir::homePath()).toString();
-    auto state = State::getInstance();
 
-    auto fn = state->getExportedFilename();
+    auto fn = _state->getExportedFilename();
     if (fn.length() == 0) {
         fn = state->getLoadedFilename();
 
@@ -76,15 +76,14 @@ void ExportDialog::accept()
 {
     bool ok = false;
     auto filename = ui->editFilename->text();
-    auto state = State::getInstance();
 
     if (ui->radioRaw->isChecked())
     {
-        ok = state->exportRaw(filename);
+        ok = _state->exportRaw(filename);
     }
     else
     {
-        ok = state->exportPRG(filename, ui->spinPRGAddress->value());
+        ok = _state->exportPRG(filename, ui->spinPRGAddress->value());
     }
 
     MainWindow *mainWindow = static_cast<MainWindow*>(parent());
@@ -93,7 +92,7 @@ void ExportDialog::accept()
         QFileInfo info(filename);
         auto dir = info.absolutePath();
         _settings.setValue("dir/lastdir", dir);
-        mainWindow->statusBar()->showMessage(tr("File exported to %1").arg(state->getExportedFilename()), 2000);
+        mainWindow->statusBar()->showMessage(tr("File exported to %1").arg(_state->getExportedFilename()), 2000);
     }
     else
     {

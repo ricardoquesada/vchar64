@@ -55,9 +55,12 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
+    auto state = MainWindow::getCurrentState();
+    if (!state)
+        return;
+
     if (event->button() == Qt::LeftButton)
     {
-        auto state = State::getInstance();
 
         auto pos = event->localPos();
         auto tileProperties = state->getTileProperties();
@@ -115,7 +118,7 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
 
     if (event->buttons() == Qt::LeftButton)
     {
-        auto state = State::getInstance();
+        auto state = MainWindow::getCurrentState();
 
         auto pos = event->localPos();
         auto tileProperties = state->getTileProperties();
@@ -153,6 +156,11 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
 void TilesetWidget::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
+
+    auto state = MainWindow::getCurrentState();
+    if (!state)
+        return;
+
     QPoint point;
 
     switch (event->key()) {
@@ -172,8 +180,6 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
         QWidget::keyPressEvent(event);
         return;
     }
-
-    auto state = State::getInstance();
 
     bool selecting = (event->modifiers() & Qt::ShiftModifier);
 
@@ -218,6 +224,12 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
 
 void TilesetWidget::paintEvent(QPaintEvent *event)
 {
+    auto state = MainWindow::getCurrentState();
+
+    // no open documents?
+    if (!state)
+        return;
+
     QPainter painter;
 
     painter.begin(this);
@@ -225,8 +237,6 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
 
     painter.setBrush(QColor(0,0,0));
     painter.setPen(Qt::NoPen);
-
-    auto state = State::getInstance();
 
     QPen pen;
     pen.setColor({149,195,244,255});
@@ -290,7 +300,7 @@ void TilesetWidget::resizeEvent(QResizeEvent* event)
 //
 void TilesetWidget::paintSelectedTile(QPainter& painter)
 {
-    auto tileProperties = State::getInstance()->getTileProperties();
+    auto tileProperties = MainWindow::getCurrentState()->getTileProperties();
     int tw = tileProperties.size.width();
     int th = tileProperties.size.height();
 
@@ -321,7 +331,7 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
 
 void TilesetWidget::paintPixel(QPainter &painter, int w, int h, quint8* charPtr)
 {
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
 
     int end_x = 8;
     int pixel_size_x = _pixelSize.width();
@@ -356,7 +366,7 @@ void TilesetWidget::paintPixel(QPainter &painter, int w, int h, quint8* charPtr)
 
             if (!state->shouldBeDisplayedInMulticolor() && color_pen )
                 color_pen = State::PEN_FOREGROUND;
-            painter.setBrush(Palette::getColorForPen(color_pen));
+            painter.setBrush(Palette::getColorForPen(state, color_pen));
             painter.drawRect((w * end_x + x) * pixel_size_x + OFFSET,
                              (h * 8 + y) * _pixelSize.height() + OFFSET,
                              pixel_size_x,
@@ -413,7 +423,7 @@ void TilesetWidget::onTileIndexUpdated(int selectedTileIndex)
 
 void TilesetWidget::onTilePropertiesUpdated()
 {
-    auto state = State::getInstance();
+    auto state = MainWindow::getCurrentState();
     auto properties = state->getTileProperties();
 
     _columns = (COLUMNS / properties.size.width()) * properties.size.width();
@@ -444,9 +454,7 @@ void TilesetWidget::getSelectionRange(State::CopyRange* copyRange) const
 {
     Q_ASSERT(copyRange);
 
-    auto tileProperties = State::getInstance()->getTileProperties();
-    int tileSize = tileProperties.size.width() * tileProperties.size.height();
-
+    auto tileProperties = MainWindow::getCurrentState()->getTileProperties();
 
     // if charset has no selection, it works the same
     // since selectingSize will be {1,1}
@@ -467,27 +475,14 @@ void TilesetWidget::getSelectionRange(State::CopyRange* copyRange) const
         fixed_size.setHeight(-_selectingSize.height());
     }
 
-    if (tileProperties.interleaved == 1)
-    {
-        // transform origin/size to offset, blockSize, ...
+    // copying tiles, intead of chars, even if interleaved==1
+    copyRange->offset = fixed_origin.y() * _tileColums + fixed_origin.x();
+    copyRange->blockSize = fixed_size.width();
+    copyRange->count = fixed_size.height();
+    copyRange->skip = _tileColums - fixed_size.width();
 
-        copyRange->offset = (fixed_origin.y() * _tileColums + fixed_origin.x()) * tileSize;
-        copyRange->blockSize = fixed_size.width() * tileSize;
-        copyRange->count = fixed_size.height();
-        copyRange->skip = (_tileColums - fixed_size.width()) * tileSize;
-
-        // Chars, not Tiles when interleaved is 1
-        copyRange->type = State::CopyRange::CHARS;
-    }
-    else
-    {
-        copyRange->offset = fixed_origin.y() * _tileColums + fixed_origin.x();
-        copyRange->blockSize = fixed_size.width();
-        copyRange->count = fixed_size.height();
-        copyRange->skip = _tileColums - fixed_size.width();
-
-        copyRange->type = State::CopyRange::TILES;
-    }
+    copyRange->type = State::CopyRange::TILES;
+    copyRange->tileProperties = tileProperties;
 }
 
 

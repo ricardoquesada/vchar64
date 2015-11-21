@@ -23,20 +23,11 @@ limitations under the License.
 #include <QFileInfo>
 #include <QDebug>
 
+#include "mainwindow.h"
 #include "stateimport.h"
 #include "stateexport.h"
 
-static State *__instance = nullptr;
-
 const int State::CHAR_BUFFER_SIZE;
-
-State* State::getInstance()
-{
-    if (!__instance)
-        __instance = new State();
-
-    return __instance;
-}
 
 State::State()
     : _totalChars(0)
@@ -44,22 +35,16 @@ State::State()
     , _selectedPen(PEN_FOREGROUND)
     , _penColors{1,5,7,11}
     , _tileProperties{{1,1},1}
-    , _charIndex(-1)
-    , _tileIndex(-1)
+    , _charIndex(0)
+    , _tileIndex(0)
     , _loadedFilename("")
     , _savedFilename("")
     , _exportedFilename("")
     , _exportedAddress(-1)
     , _undoStack(nullptr)
+    , _bigCharWidget(nullptr)
 {
-    memset(_copyCharset, 0, sizeof(_copyCharset));
     _undoStack = new QUndoStack;
-
-    // default copy range
-    _copyRange.blockSize = 1;
-    _copyRange.count = 1;
-    _copyRange.offset = 0;
-    _copyRange.skip = 0;
 }
 
 State::~State()
@@ -72,10 +57,10 @@ void State::reset()
     _totalChars = 0;
     _multicolorMode = false;
     _selectedPen = 3;
-    _penColors[0] = 1;
-    _penColors[1] = 12;
-    _penColors[2] = 15;
-    _penColors[3] = 0;
+    _penColors[PEN_BACKGROUND] = 1;
+    _penColors[PEN_MULTICOLOR1] = 5;
+    _penColors[PEN_MULTICOLOR2] = 7;
+    _penColors[PEN_FOREGROUND] = 11;
     _tileProperties.size = {1,1};
     _tileProperties.interleaved = 1;
     _loadedFilename = "";
@@ -89,6 +74,15 @@ void State::reset()
 
     emit fileLoaded();
     emit contentsChanged();
+}
+
+void State::refresh()
+{
+    emit charIndexUpdated(_charIndex);
+    emit tileIndexUpdated(_tileIndex);
+    emit tilePropertiesUpdated();
+    emit multicolorModeToggled(shouldBeDisplayedInMulticolor());
+    emit colorPropertiesUpdated(_selectedPen);
 }
 
 bool State::isModified() const
@@ -260,20 +254,6 @@ bool State::saveProject(const QString& filename)
 }
 
 //
-// Error messages
-//
-void State::setErrorMessage(const QString &errorMesg)
-{
-    _lastError = errorMesg;
-    emit errorMessageSet(_lastError);
-}
-
-const QString& State::getErrorMessage() const
-{
-    return _lastError;
-}
-
-//
 bool State::shouldBeDisplayedInMulticolor() const
 {
     // display char as multicolor only if multicolor is enabled
@@ -441,11 +421,6 @@ quint8* State::getCharsetBuffer()
     return _charset;
 }
 
-quint8* State::getCopyCharsetBuffer()
-{
-    return _copyCharset;
-}
-
 void State::resetCharsetBuffer()
 {
     memset(_charset, 0, sizeof(_charset));
@@ -468,7 +443,7 @@ void State::copyTileFromIndex(int tileIndex, quint8* buffer, int bufferSize)
 
     if (_tileProperties.interleaved == 1)
     {
-        memcpy(buffer, &_charset[tileIndex * tileSize * 8], qMin(tileSize, bufferSize));
+        memcpy(buffer, &_charset[tileIndex * tileSize * 8], qMin(tileSize * 8, bufferSize));
     }
     else
     {
@@ -538,12 +513,6 @@ quint8* State::getCharAtIndex(int charIndex)
     return &_charset[charIndex*8];
 }
 
-void State::copy(const CopyRange& copyRange)
-{
-    memcpy(_copyCharset, _charset, CHAR_BUFFER_SIZE);
-    _copyRange = copyRange;
-}
-
 void State::paste(int charIndex, const CopyRange& copyRange, const quint8* charsetBuffer)
 {
     Q_ASSERT(charIndex >=0 && charIndex< CHAR_BUFFER_SIZE && "Invalid charIndex size");
@@ -571,29 +540,39 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
             count--;
         }
     }
-    else
+    else /* copyRnage.type == CopyRange::TILES */
     {
+        if (copyRange.tileProperties.size != _tileProperties.size)
+        {
+            qDebug() << "Error. Src:" << copyRange.tileProperties.size << " Dst:" << _tileProperties.size;
+            MainWindow::getInstance()->setErrorMessage(tr("Error. Tile size different than src"));
+            return;
+        }
+
+        int tileSize = copyRange.tileProperties.size.width() * copyRange.tileProperties.size.height();
         int tileSrcIdx = copyRange.offset;
         int tileDstIdx = getTileIndexFromCharIndex(charIndex);
-        int tileSize = _tileProperties.size.height() * _tileProperties.size.width();
-        int skip = 0;
+        int interleavedFactorSrc = (copyRange.tileProperties.interleaved == 1) ? tileSize : 1;
+        int interleavedFactorDst = (_tileProperties.interleaved == 1) ? tileSize : 1;
+        int srcskip = 0;
+        int dstskip = 0;
         while (count>0)
         {
             for (int i=0; i<copyRange.blockSize; i++)
             {
-                int dstidx = tileDstIdx + i + skip;
-                int srcidx = tileSrcIdx + i + skip;
+                int srcidx = (tileSrcIdx + i + srcskip) * interleavedFactorSrc;
+                int dstidx = (tileDstIdx + i + dstskip) * interleavedFactorDst;
 
-                if (dstidx >= (256 / tileSize))
+                // when interleaved, break the copy to prevent ugly artifacts
+                if (_tileProperties.interleaved != 1 && dstidx >= (256 / tileSize))
                 {
-                    // don't dst tile already out of bounds
                     count = 0;
                     break;
                 }
 
                 for (int j=0; j < tileSize; j++)
                 {
-                    int charsrc = (srcidx + j * _tileProperties.interleaved) * 8;
+                    int charsrc = (srcidx + j * copyRange.tileProperties.interleaved) * 8;
                     int chardst = (dstidx + j * _tileProperties.interleaved) * 8;
 
                     // don't overflow, don't copy crappy chars
@@ -601,23 +580,14 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
                         memcpy(&_charset[chardst], &charsetBuffer[charsrc], 8);
                 }
             }
-            skip += copyRange.skip + copyRange.blockSize;
+            srcskip += copyRange.skip + copyRange.blockSize;
+            dstskip += copyRange.skip + copyRange.blockSize;
             count--;
         }
     }
 
     emit charsetUpdated();
     emit contentsChanged();
-}
-
-const State::CopyRange& State::getCopyRange() const
-{
-    return _copyRange;
-}
-
-void State::setCopyRange(const State::CopyRange& copyRange)
-{
-    _copyRange = copyRange;
 }
 
 //
@@ -964,7 +934,6 @@ void State::_setTileIndex(int tileIndex)
     }
 }
 
-
 //
 // Helpers
 // They must not emit signals
@@ -987,4 +956,10 @@ void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
     for (int i=0; i<8; i++) {
         _charset[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = chr._char8[i];
     }
+}
+
+
+BigCharWidget* State::getBigCharWidget() const
+{
+    return _bigCharWidget;
 }

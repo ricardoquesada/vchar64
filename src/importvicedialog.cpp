@@ -22,12 +22,13 @@ limitations under the License.
 #include <QDir>
 
 #include "state.h"
+#include "mainwindow.h"
 
-ImportVICEDialog::ImportVICEDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ImportVICEDialog),
-    _validVICEFile(false),
-    _filepath("")
+ImportVICEDialog::ImportVICEDialog(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::ImportVICEDialog)
+    , _validVICEFile(false)
+    , _filepath("")
 {
     ui->setupUi(this);
 
@@ -49,7 +50,7 @@ const QString& ImportVICEDialog::getFilepath() const
 //
 void ImportVICEDialog::on_pushButton_import_clicked()
 {
-    auto state = State::getInstance();
+    auto state = MainWindow::getInstance()->createState();
     state->setMulticolorMode(ui->checkBox->checkState() == Qt::Checked);
     state->importCharset(_filepath, ui->widget->getBuffer() + ui->spinBox->value(), State::CHAR_BUFFER_SIZE);
     accept();

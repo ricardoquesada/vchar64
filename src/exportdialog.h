@@ -23,12 +23,14 @@ namespace Ui {
 class ExportDialog;
 }
 
+class State;
+
 class ExportDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit ExportDialog(QWidget *parent = 0);
+    explicit ExportDialog(State *state, QWidget *parent = 0);
     ~ExportDialog();
 
 private slots:
@@ -43,4 +45,5 @@ private:
 
     Ui::ExportDialog *ui;
     QSettings _settings;
+    State* _state;      // weak ref
 };
