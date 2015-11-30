@@ -32,6 +32,7 @@ ImportVICEDialog::ImportVICEDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
+    ui->lineEdit->setText(QSettings("RetroMoe","VChar64").value("dir/lastdir", QDir::homePath()).toString());
     updateWidgets();
 }
 
@@ -53,6 +54,9 @@ void ImportVICEDialog::on_pushButton_import_clicked()
     auto state = MainWindow::getInstance()->createState();
     state->setMulticolorMode(ui->checkBox->checkState() == Qt::Checked);
     state->importCharset(_filepath, ui->widget->getBuffer() + ui->spinBox->value(), State::CHAR_BUFFER_SIZE);
+
+    QSettings("RetroMoe","VChar64").setValue("dir/lastdir", ui->lineEdit->text());
+
     accept();
 }
 
@@ -80,10 +84,9 @@ void ImportVICEDialog::on_spinBox_valueChanged(int value)
 void ImportVICEDialog::on_pushButton_clicked()
 {
     auto filter = tr("VICE snapshot files");
-    QString lastdir = QSettings("RetroMoe","VChar64").value("dir/lastdir", QDir::homePath()).toString();
     auto fn = QFileDialog::getOpenFileName(this,
                                            tr("Select VICE Snapshot File"),
-                                           lastdir,
+                                           ui->lineEdit->text(),
                                            tr(
                                                "All files (*);;" \
                                                "VICE snapshot files (*.vsf);;"

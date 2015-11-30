@@ -35,7 +35,7 @@ ExportDialog::ExportDialog(State* state, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    auto lastDir = _settings.value("dir/lastdir", QDir::homePath()).toString();
+    auto lastDir = _settings.value(QLatin1String("dir/lastdir"), QDir::homePath()).toString();
 
     auto fn = _state->getExportedFilename();
     if (fn.length() == 0) {
@@ -91,7 +91,7 @@ void ExportDialog::accept()
     if (ok) {
         QFileInfo info(filename);
         auto dir = info.absolutePath();
-        _settings.setValue("dir/lastdir", dir);
+        _settings.setValue(QLatin1String("dir/lastdir"), dir);
         mainWindow->statusBar()->showMessage(tr("File exported to %1").arg(_state->getExportedFilename()), 2000);
     }
     else

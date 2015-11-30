@@ -231,12 +231,12 @@ void MainWindow::readSettings()
 {
     // before restoring settings, save the current layout
     // needed for "reset layout"
-    _settings.setValue("MainWindow/defaultGeometry", saveGeometry());
-    _settings.setValue("MainWindow/defaultWindowState", saveState());
+    _settings.setValue(QLatin1String("MainWindow/defaultGeometry"), saveGeometry());
+    _settings.setValue(QLatin1String("MainWindow/defaultWindowState"), saveState());
 
 
-    auto geom = _settings.value("MainWindow/geometry").toByteArray();
-    auto state = _settings.value("MainWindow/windowState").toByteArray();
+    auto geom = _settings.value(QLatin1String("MainWindow/geometry")).toByteArray();
+    auto state = _settings.value(QLatin1String("MainWindow/windowState")).toByteArray();
 
     restoreState(state);
     restoreGeometry(geom);
@@ -248,15 +248,15 @@ void MainWindow::readSettings()
         _ui->actionPalette_3,
         _ui->actionPalette_4,
     };
-    int index = _settings.value("palette").toInt();
+    int index = _settings.value(QLatin1String("palette")).toInt();
     actions[index]->trigger();
 }
 
 void MainWindow::saveSettings()
 {
-    _settings.setValue("MainWindow/geometry", saveGeometry());
-    _settings.setValue("MainWindow/windowState", saveState());
-    _settings.setValue("palette", Palette::getActivePalette());
+    _settings.setValue(QLatin1String("MainWindow/geometry"), saveGeometry());
+    _settings.setValue(QLatin1String("MainWindow/windowState"), saveState());
+    _settings.setValue(QLatin1String("palette"), Palette::getActivePalette());
 }
 
 State* MainWindow::createState()
@@ -368,7 +368,7 @@ void MainWindow::createActions()
 
 void MainWindow::createDefaults()
 {
-    _lastDir = _settings.value("dir/lastdir", _lastDir).toString();
+    _lastDir = _settings.value(QLatin1String("dir/lastdir"), _lastDir).toString();
 
     // tabify charsetWidget and tilesetWidget
     tabifyDockWidget(_ui->dockWidget_charset, _ui->dockWidget_tileset);
@@ -662,7 +662,7 @@ bool MainWindow::openFile(const QString& path)
 {
     QFileInfo info(path);
     _lastDir = info.absolutePath();
-    _settings.setValue("dir/lastdir", _lastDir);
+    _settings.setValue(QLatin1String("dir/lastdir"), _lastDir);
 
     auto state = createState();
     bool ret = state->openFile(path);
@@ -687,7 +687,7 @@ bool MainWindow::openFile(const QString& path)
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString filter = _settings.value("dir/lastUsedOpenFilter", "All supported files").toString();
+    QString filter = _settings.value(QLatin1String("dir/lastUsedOpenFilter"), tr("All supported files")).toString();
     auto fn = QFileDialog::getOpenFileName(this,
                                            tr("Select File"),
                                            _lastDir,
@@ -704,7 +704,7 @@ void MainWindow::on_actionOpen_triggered()
                                            );
 
     if (fn.length()> 0) {
-        _settings.setValue("dir/lastUsedOpenFilter", filter);
+        _settings.setValue(QLatin1String("dir/lastUsedOpenFilter"), filter);
         openFile(fn);
     }
 }
@@ -1046,8 +1046,8 @@ void MainWindow::on_actionPrevious_Tile_triggered()
 
 void MainWindow::on_actionReset_Layout_triggered()
 {
-    auto geom = _settings.value("MainWindow/defaultGeometry").toByteArray();
-    auto state = _settings.value("MainWindow/defaultWindowState").toByteArray();
+    auto geom = _settings.value(QLatin1String("MainWindow/defaultGeometry")).toByteArray();
+    auto state = _settings.value(QLatin1String("MainWindow/defaultWindowState")).toByteArray();
     restoreState(state);
     restoreGeometry(geom);
 
