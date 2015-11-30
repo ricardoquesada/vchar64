@@ -52,6 +52,11 @@ ExportDialog::ExportDialog(State* state, QWidget *parent) :
         fn = lastDir + "/" + "untitled.bin";
 
     ui->editFilename->setText(fn);
+
+    //
+    connect(ui->radioPRG, &QRadioButton::toggled, [&](bool toogled){
+        ui->spinPRGAddress->setEnabled(toogled);
+    });
 }
 
 ExportDialog::~ExportDialog()

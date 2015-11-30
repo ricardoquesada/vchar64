@@ -83,6 +83,9 @@
         </item>
         <item>
          <widget class="QSpinBox" name="spinPRGAddress">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="prefix">
            <string>$</string>
           </property>
