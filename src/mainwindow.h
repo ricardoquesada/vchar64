@@ -164,7 +164,6 @@ private:
     QVector<QAction*> _recentFiles;
 
     Ui::MainWindow* _ui;
-    QString _lastDir;
     QLabel* _labelCharIdx;
     QLabel* _labelTileIdx;
     QLabel* _labelSelectedColor;

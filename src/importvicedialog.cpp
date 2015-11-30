@@ -32,7 +32,8 @@ ImportVICEDialog::ImportVICEDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->lineEdit->setText(QSettings("RetroMoe","VChar64").value("dir/lastdir", QDir::homePath()).toString());
+    auto lastDir = QSettings("RetroMoe","VChar64").value("dir/lastdir").toString();
+    ui->lineEdit->setText(lastDir);
     updateWidgets();
 }
 
@@ -55,7 +56,8 @@ void ImportVICEDialog::on_pushButton_import_clicked()
     state->setMulticolorMode(ui->checkBox->checkState() == Qt::Checked);
     state->importCharset(_filepath, ui->widget->getBuffer() + ui->spinBox->value(), State::CHAR_BUFFER_SIZE);
 
-    QSettings("RetroMoe","VChar64").setValue("dir/lastdir", ui->lineEdit->text());
+    QFileInfo info(ui->lineEdit->text());
+    QSettings("RetroMoe","VChar64").setValue("dir/lastdir", info.absolutePath());
 
     accept();
 }
@@ -74,11 +76,6 @@ void ImportVICEDialog::on_spinBox_editingFinished()
 
     if (newvalue != oldvalue)
         ui->spinBox->setValue(newvalue);
-}
-
-void ImportVICEDialog::on_spinBox_valueChanged(int value)
-{
-    Q_UNUSED(value);
 }
 
 void ImportVICEDialog::on_pushButton_clicked()

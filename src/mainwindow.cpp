@@ -66,7 +66,6 @@ State* MainWindow::getCurrentState()
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
-    , _lastDir(QDir::homePath())
     , _undoView(nullptr)
     , _settings("RetroMoe","VChar64")
 {
@@ -368,8 +367,6 @@ void MainWindow::createActions()
 
 void MainWindow::createDefaults()
 {
-    _lastDir = _settings.value(QLatin1String("dir/lastdir"), _lastDir).toString();
-
     // tabify charsetWidget and tilesetWidget
     tabifyDockWidget(_ui->dockWidget_charset, _ui->dockWidget_tileset);
 
@@ -661,8 +658,7 @@ void MainWindow::on_actionPalette_4_triggered()
 bool MainWindow::openFile(const QString& path)
 {
     QFileInfo info(path);
-    _lastDir = info.absolutePath();
-    _settings.setValue(QLatin1String("dir/lastdir"), _lastDir);
+    _settings.setValue(QLatin1String("dir/lastdir"), info.absolutePath());
 
     auto state = createState();
     bool ret = state->openFile(path);
@@ -690,7 +686,7 @@ void MainWindow::on_actionOpen_triggered()
     QString filter = _settings.value(QLatin1String("dir/lastUsedOpenFilter"), tr("All supported files")).toString();
     auto fn = QFileDialog::getOpenFileName(this,
                                            tr("Select File"),
-                                           _lastDir,
+                                           _settings.value(QLatin1String("dir/lastdir")).toString(),
                                            tr(
                                                "All files (*);;" \
                                                "All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;" \
@@ -738,7 +734,7 @@ bool MainWindow::on_actionSaveAs_triggered()
     }
     else
     {
-        fn = _lastDir + "/untitled.vchar64proj";
+        fn = _settings.value(QLatin1String("dir/lastdir")).toString() + "/untitled.vchar64proj";
     }
     auto filename = QFileDialog::getSaveFileName(this, tr("Save Project"),
                                              fn,

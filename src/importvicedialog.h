@@ -45,8 +45,6 @@ private slots:
 
     void on_spinBox_editingFinished();
 
-    void on_spinBox_valueChanged(int value);
-
     void on_pushButton_clicked();
 
     void on_lineEdit_editingFinished();
