@@ -1,3 +1,16 @@
+0.0.8 (2 December 2015)
+
+* [NEW] MDI (Multiple Document Interface) support
+* [NEW] Copy & Paste tiles from document to another, even if they have
+        different interleave values. Works only with tiles of the same size
+* [NEW] Better error reporting
+
+* [BUGFIX] Copy & Paste bug fixes
+* [BUGFIX] Disables "PRG Address" if BIN is selected in Export dialog
+* [BUGFIX] Remembers the last used directory correctly
+* [BUGFIX] Better logic when importing VICE snapshots
+
+
 0.0.8 (4 November 2015)
 
 * [NEW] Ctrl+Right / Ctrl-Left display the next tile
