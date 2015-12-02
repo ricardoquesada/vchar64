@@ -4,6 +4,7 @@
 * [NEW] Copy & Paste tiles from document to another, even if they have
         different interleave values. Works only with tiles of the same size
 * [NEW] Better error reporting
+* [NEW] Added License_fonts.md which includes the src of the fonts
 
 * [BUGFIX] Copy & Paste bug fixes
 * [BUGFIX] Disables "PRG Address" if BIN is selected in Export dialog
