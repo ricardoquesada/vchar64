@@ -32,7 +32,6 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 
 In no particular order:
 
-* MDI: copy & paste chars from one document to another one
 * Images support
    * Import images and convert them to charset + color
 * Tilemap editor (similar to CharPad but with Tiled look & feel)
