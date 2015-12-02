@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ricardoquesada/vchar64.svg?branch=master)](https://travis-ci.org/ricardoquesada/vchar64) [![Build status](https://ci.appveyor.com/api/projects/status/q5euvgygdmqf67oj/branch/master?svg=true)](https://ci.appveyor.com/project/ricardoquesada/vchar64/branch/master) [![Join the chat at https://gitter.im/ricardoquesada/vchar64](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ricardoquesada/vchar64?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-<img src="https://lh3.googleusercontent.com/-iE0eqQymBDk/Vl9f_NOGrII/AAAAAAABcow/0sRHClMkr4U/s640-Ic42/Screen%252520Shot%2525202015-12-02%252520at%2525201.16.32%252520PM.png">
+<img src="https://lh3.googleusercontent.com/-iE0eqQymBDk/Vl9f_NOGrII/AAAAAAABcow/0sRHClMkr4U/s400-Ic42/Screen%252520Shot%2525202015-12-02%252520at%2525201.16.32%252520PM.png">
 
 ## About
 
