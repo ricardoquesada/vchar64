@@ -18,7 +18,9 @@ limitations under the License.
 
 #include <string.h>
 
+#include <vector>
 #include <algorithm>
+
 #include <QFile>
 #include <QFileInfo>
 #include <QDebug>
@@ -529,7 +531,8 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
 
         while (count>0)
         {
-            int bytesToCopy = qMin((long)copyRange.blockSize * 8, (long)_charset + 256 * 8 - (long)dst);
+            const auto lastByte = &_charset[sizeof(_charset)-1];
+            int bytesToCopy = qMin((qint64)copyRange.blockSize * 8, (qint64)(lastByte - dst));
             if (bytesToCopy <0)
                 break;
             memcpy(dst, src, bytesToCopy);
@@ -720,7 +723,7 @@ void State::tileRotate(int tileIndex)
 
     // replace the chars in the correct order.
     if (_tileProperties.size.width()>1) {
-        Char tmpchars[_tileProperties.size.width()*_tileProperties.size.height()];
+        std::vector<Char> tmpchars(_tileProperties.size.width()*_tileProperties.size.height());
 
         // place the rotated chars in a rotated tmp buffer
         for (int y=0; y<_tileProperties.size.height(); y++) {
@@ -766,8 +769,8 @@ void State::_tileShiftLeft(int tileIndex)
         // top byte of
         for (int i=0; i<8; i++) {
 
-            bool leftBit = false;
-            bool prevLeftBit = false;
+            quint8 leftBit = false;
+            quint8 prevLeftBit = false;
 
             for (int x=_tileProperties.size.width()-1; x>=0; x--) {
                 leftBit = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<7);
