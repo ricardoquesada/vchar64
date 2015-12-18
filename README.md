@@ -32,7 +32,6 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 
 In no particular order:
 
-* MDI: copy & paste chars from one document to another one
 * Images support
    * Import images and convert them to charset + color
 * Tilemap editor (similar to CharPad but with Tiled look & feel)
@@ -66,8 +65,8 @@ $ git clone https://github.com/ricardoquesada/vchar64.git
 
 ## Download binaries
 
-* [vchar64-v0.0.8 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.0.8/vchar64-0.0.8-win32.zip)
-* [vchar64-v0.0.8 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.0.8/vchar64-0.0.8-mac.dmg)
+* [vchar64-v0.0.9 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.0.9/vchar64-0.0.9.zip)
+* [vchar64-v0.0.9 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.0.9/vchar64-0.0.9.dmg)
 
 ## License
 
