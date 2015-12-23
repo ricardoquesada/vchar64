@@ -37,33 +37,174 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+#include <string.h>
+
 #include "contiki-net.h"
-#include "telnetd.h"
-#include "shell.h"
+#include "sys/cc.h"
+#include "contiki-lib.h"
+
+PROCESS(vchar64d_process, "VChar64 server");
+
+#define BUF_MAX_SIZE 128
+struct vchar64d_buf {
+    char bufmem[BUF_MAX_SIZE];
+    int ptr;
+    int size;
+};
+static struct vchar64d_buf buf;
+
+static uint8_t connected;
+
+struct vchar64d_state {
+    char buf[BUF_MAX_SIZE + 1];
+    char bufptr;
+    uint16_t numsent;
+    uint8_t state;
+#define STATE_NORMAL 0
+#define STATE_CLOSE  6
+};
+static struct vchar64d_state s;
 
 /*---------------------------------------------------------------------------*/
-PROCESS(shell_init_process, "Shell init process");
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_init_process, ev, data)
+static void buf_init(struct vchar64d_buf *buf)
 {
-        printf("hello vchar64\n");
-  PROCESS_BEGIN();
-
-  shell_file_init();
-#ifndef __CC65__
-  shell_httpd_init();
-  shell_irc_init();
-  shell_ps_init();
-  shell_run_init();
-  shell_text_init();
-  shell_time_init();
-#endif /* !__CC65__ */
-#ifndef __C128__
-  shell_wget_init();
-#endif /* !__C128__ */
-
-  PROCESS_END();
+    buf->ptr = 0;
+    buf->size = BUF_MAX_SIZE;
 }
 /*---------------------------------------------------------------------------*/
-AUTOSTART_PROCESSES(&telnetd_process, &shell_init_process);
+static int buf_append(struct vchar64d_buf *buf, const char *data, int len)
+{
+    int copylen;
+
+    copylen = MIN(len, buf->size - buf->ptr);
+    memcpy(&buf->bufmem[buf->ptr], data, copylen);
+    buf->ptr += copylen;
+
+    return copylen;
+}
 /*---------------------------------------------------------------------------*/
+static void buf_copyto(struct vchar64d_buf *buf, char *to, int len)
+{
+    memcpy(to, &buf->bufmem[0], len);
+}
+/*---------------------------------------------------------------------------*/
+static void buf_pop(struct vchar64d_buf *buf, int len)
+{
+    int poplen;
+
+    poplen = MIN(len, buf->ptr);
+    memcpy(&buf->bufmem[0], &buf->bufmem[poplen], buf->ptr - poplen);
+    buf->ptr -= poplen;
+}
+
+/*---------------------------------------------------------------------------*/
+static int buf_len(struct vchar64d_buf *buf)
+{
+    return buf->ptr;
+}
+/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+static void acked(void)
+{
+    buf_pop(&buf, s.numsent);
+}
+/*---------------------------------------------------------------------------*/
+static void senddata(void)
+{
+    int len;
+    len = MIN(buf_len(&buf), uip_mss());
+    buf_copyto(&buf, uip_appdata, len);
+    uip_send(uip_appdata, len);
+    s.numsent = len;
+}
+/*---------------------------------------------------------------------------*/
+static void newdata(void)
+{
+    uint16_t len;
+    uint8_t c;
+    uint8_t *ptr;
+
+    len = uip_datalen();
+
+    ptr = uip_appdata;
+    while(len > 0 && s.bufptr < sizeof(s.buf)) {
+        c = *ptr;
+        ++ptr;
+        --len;
+        printf("%c",c);
+    }
+    buf_append(&buf, "hola", 4);
+}
+
+void vchar64d_appcall(void *ts)
+{
+    if(uip_connected()) {
+        if(!connected) {
+            s.bufptr = 0;
+            s.state = STATE_NORMAL;
+            connected = 1;
+            ts = (char *)0;
+        } else {
+            uip_send("bye bye", 7);
+            ts = (char *)1;
+        }
+        tcp_markconn(uip_conn, ts);
+    }
+
+    if(!ts) {
+        if(s.state == STATE_CLOSE) {
+            s.state = STATE_NORMAL;
+            uip_close();
+            return;
+        }
+        if(uip_closed() || uip_aborted() || uip_timedout()) {
+            connected = 0;
+        }
+        if(uip_acked()) {
+            acked();
+        }
+        if(uip_newdata()) {
+            newdata();
+        }
+        if(uip_rexmit() || uip_newdata() || uip_acked() || uip_connected() || uip_poll()) {
+            senddata();
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+void vchar64d_quit(void)
+{
+    process_exit(&vchar64d_process);
+    LOADER_UNLOAD();
+}
+
+PROCESS_THREAD(vchar64d_process, ev, data)
+{
+    PROCESS_BEGIN();
+
+    tcp_listen(UIP_HTONS(6464));
+
+    while(1) {
+        PROCESS_WAIT_EVENT();
+        if(ev == tcpip_event) {
+            vchar64d_appcall(data);
+        } else if(ev == PROCESS_EVENT_EXIT) {
+            vchar64d_quit();
+        } else {
+        }
+    }
+    PROCESS_END();
+}
+
+void vchar64d_init(void)
+{
+    process_start(&vchar64d_process, NULL);
+}
+
+/*---------------------------------------------------------------------------*/
+AUTOSTART_PROCESSES(&vchar64d_process);
+/*---------------------------------------------------------------------------*/
+
+
