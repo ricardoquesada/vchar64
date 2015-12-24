@@ -164,8 +164,18 @@ void proto_set_charset(struct vchar64d_proto_set_charset* data, int len)
 
 void proto_what(struct vchar64d_proto_set_charset* data, int len)
 {
+    uint8_t  i;
+
     printf("what: %d\n", len);
     buf_append(&buf, "what?", 5);
+
+#define VIC_SCREEN ((unsigned char*)0x400)
+    for(i=0; i<255; ++i)
+    {
+        VIC_SCREEN[i] = i;
+    }
+    // 255
+    VIC_SCREEN[i] = i;
 }
 
 void proto_close(void)
