@@ -32,14 +32,20 @@
  */
 
 #include <string.h>
+#include <c64.h>
+#include <conio.h>
 
 #include "contiki-net.h"
 #include "sys/cc.h"
 #include "contiki-lib.h"
 
+
 PROCESS(vchar64d_process, "VChar64 server");
 
 #define BUF_MAX_SIZE 128
+
+# define outb(addr,val)        (*(addr) = (val))
+# define inb(addr)             (*(addr))
 
 struct vchar64d_buf {
     char bufmem[BUF_MAX_SIZE];
@@ -91,6 +97,41 @@ struct vchar64d_proto_hello
 {
     uint8_t version;
 };
+
+/*---------------------------------------------------------------------------*/
+static void init_vic()
+{
+    uint8_t block;
+    int i;
+
+    __asm__("sei");
+
+    // VIC Bank 2: $8000 - $bfff
+    block = inb (&CIA2.pra);
+    outb (&CIA2.pra, (block & 0xFC) | 1);
+
+    // enable CHARSET at 0xb800, SCREEN at 0xb400
+    // bin: %11011110
+    outb (&VIC.addr, 0xde);
+
+#define MMU_ADDR ((unsigned char*)0x01)
+    block = inb (&MMU_ADDR[0]);
+    outb (&MMU_ADDR[0], 0x32);
+#define OLD_CHARSET ((unsigned char*)0xd000)
+#define NEW_CHARSET ((unsigned char*)0xb800)
+
+    memcpy(NEW_CHARSET, OLD_CHARSET, 8*256);
+    outb (&MMU_ADDR[0], block);
+
+    // clear screen
+#define SCREEN ((unsigned char*)0xb400)
+    memset(SCREEN, 0x20, 40*25);
+    for (i=0; i < 255; ++i)
+        SCREEN[i] = i;
+    SCREEN[i] = i;
+    
+    __asm__("cli");
+}
 
 /*---------------------------------------------------------------------------*/
 static void buf_init(struct vchar64d_buf *buf)
@@ -149,33 +190,37 @@ static void senddata(void)
 
 void proto_hello(struct vchar64d_proto_hello* data, int len)
 {
-    printf("hello: %d\n", len);
+//    printf("hello: %d\n", len);
 }
 
 void proto_set_char(struct vchar64d_proto_set_char* data, int len)
 {
-    printf("set_char: %d\n", len);
+//    printf("set_char: %d\n", len);
 }
 
 void proto_set_charset(struct vchar64d_proto_set_charset* data, int len)
 {
-    printf("set_charset: %d\n", len);
+//    printf("set_charset: %d\n", len);
 }
 
 void proto_what(struct vchar64d_proto_set_charset* data, int len)
 {
-    uint8_t  i;
+    uint8_t i;
 
-    printf("what: %d\n", len);
+//    printf("what: %d\n", len);
     buf_append(&buf, "what?", 5);
 
-#define VIC_SCREEN ((unsigned char*)0x400)
+#define VIC_SCREEN ((unsigned char*)0x8400)
     for(i=0; i<255; ++i)
     {
         VIC_SCREEN[i] = i;
     }
     // 255
     VIC_SCREEN[i] = i;
+
+#define CHARSET ((unsigned char*)0x9800)
+    for (i=0; i<8*8; ++i)
+        CHARSET[i] = CHARSET[i] ^ 255;
 }
 
 void proto_close(void)
@@ -258,6 +303,8 @@ PROCESS_THREAD(vchar64d_process, ev, data)
 {
     PROCESS_BEGIN();
 
+    init_vic();
+
     tcp_listen(UIP_HTONS(6464));
 
     while(1) {
@@ -270,11 +317,6 @@ PROCESS_THREAD(vchar64d_process, ev, data)
         }
     }
     PROCESS_END();
-}
-
-void vchar64d_init(void)
-{
-    process_start(&vchar64d_process, NULL);
 }
 
 /*---------------------------------------------------------------------------*/
