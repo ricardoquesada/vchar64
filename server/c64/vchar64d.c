@@ -1,3 +1,7 @@
+/* VChar64 server
+ * Based on the Telnet server from Contiki
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -25,16 +29,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
- *
- */
-
-/**
- * \file
- *         Example showing how to use the Telnet server
- * \author
- *         Adam Dunkels <adam@sics.se>
  */
 
 #include <string.h>
@@ -46,6 +40,7 @@
 PROCESS(vchar64d_process, "VChar64 server");
 
 #define BUF_MAX_SIZE 128
+
 struct vchar64d_buf {
     char bufmem[BUF_MAX_SIZE];
     int ptr;
@@ -53,17 +48,49 @@ struct vchar64d_buf {
 };
 static struct vchar64d_buf buf;
 
-static uint8_t connected;
-
 struct vchar64d_state {
     char buf[BUF_MAX_SIZE + 1];
     char bufptr;
     uint16_t numsent;
     uint8_t state;
-#define STATE_NORMAL 0
-#define STATE_CLOSE  6
 };
 static struct vchar64d_state s;
+enum {
+    STATE_CLOSED,
+    STATE_CONNECTED,
+    STATE_INITED
+};
+
+/* protocol */
+struct vchar64d_proto_header
+{
+    uint8_t type;
+    /* uint8_t data[0]; */ /* not supported by cc65 */
+};
+enum {
+    TYPE_HELLO,
+    TYPE_SET_CHAR,
+    TYPE_SET_RANGE,
+    TYPE_SET_CHARSET,
+    TYPE_BYEBYE
+};
+
+struct vchar64d_proto_set_char
+{
+    uint8_t idx;
+    uint8_t chardata[8];
+};
+
+struct vchar64d_proto_set_charset
+{
+    uint8_t charset[256 * 8];
+};
+
+#define PROTO_VERSION 0x00
+struct vchar64d_proto_hello
+{
+    uint8_t version;
+};
 
 /*---------------------------------------------------------------------------*/
 static void buf_init(struct vchar64d_buf *buf)
@@ -119,31 +146,73 @@ static void senddata(void)
     s.numsent = len;
 }
 /*---------------------------------------------------------------------------*/
+
+void proto_hello(struct vchar64d_proto_hello* data, int len)
+{
+    printf("hello: %d\n", len);
+}
+
+void proto_set_char(struct vchar64d_proto_set_char* data, int len)
+{
+    printf("set_char: %d\n", len);
+}
+
+void proto_set_charset(struct vchar64d_proto_set_charset* data, int len)
+{
+    printf("set_charset: %d\n", len);
+}
+
+void proto_what(struct vchar64d_proto_set_charset* data, int len)
+{
+    printf("what: %d\n", len);
+    buf_append(&buf, "what?", 5);
+}
+
+void proto_close(void)
+{
+    buf_append(&buf, "what?", 5);
+    s.state = STATE_CLOSED;
+    uip_close();
+}
+
 static void newdata(void)
 {
     uint16_t len;
-    uint8_t c;
-    uint8_t *ptr;
+    struct vchar64d_proto_header* header;
+    void* payload;
 
     len = uip_datalen();
+    header = uip_appdata;
+    payload = &((uint8_t*)uip_appdata)[1];
 
-    ptr = uip_appdata;
-    while(len > 0 && s.bufptr < sizeof(s.buf)) {
-        c = *ptr;
-        ++ptr;
-        --len;
-        printf("%c",c);
+    switch (header->type) {
+        case TYPE_HELLO:
+            proto_hello(payload, len-1);
+            break;
+        case TYPE_SET_CHAR:
+            proto_set_char(payload, len-1);
+            break;
+        case TYPE_SET_CHARSET:
+            proto_set_charset(payload, len-1);
+            break;
+        case TYPE_SET_RANGE:
+            break;
+        case TYPE_BYEBYE:
+            proto_close();
+            break;
+        default:
+            proto_what(payload, len-1);
+            break;
     }
-    buf_append(&buf, "hola", 4);
 }
 
 void vchar64d_appcall(void *ts)
 {
     if(uip_connected()) {
-        if(!connected) {
+        if(s.state == STATE_CLOSED) {
+            buf_init(&buf);
             s.bufptr = 0;
-            s.state = STATE_NORMAL;
-            connected = 1;
+            s.state = STATE_CONNECTED;
             ts = (char *)0;
         } else {
             uip_send("bye bye", 7);
@@ -153,13 +222,8 @@ void vchar64d_appcall(void *ts)
     }
 
     if(!ts) {
-        if(s.state == STATE_CLOSE) {
-            s.state = STATE_NORMAL;
-            uip_close();
-            return;
-        }
         if(uip_closed() || uip_aborted() || uip_timedout()) {
-            connected = 0;
+            s.state = STATE_CLOSED;
         }
         if(uip_acked()) {
             acked();

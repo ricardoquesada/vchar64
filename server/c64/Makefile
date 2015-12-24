@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = vchar64-server
+CONTIKI_PROJECT = vchar64d
 all: $(CONTIKI_PROJECT)
 
 APPS = program-handler
