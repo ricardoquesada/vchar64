@@ -1,8 +1,8 @@
-/* VChar64 server
+/* VChar64 server. 
  * Based on the Telnet server from Contiki
- */
-
-/*
+ *
+ * Copyright (c) 2015 Ricardo Quesada
+ *
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -32,20 +32,23 @@
  */
 
 #include <string.h>
-#include <c64.h>
-#include <conio.h>
 
 #include "contiki-net.h"
-#include "sys/cc.h"
-#include "contiki-lib.h"
 
 
 PROCESS(vchar64d_process, "VChar64 server");
 
-#define BUF_MAX_SIZE 128
+// peek and poke
+#define outb(addr,val)        (*(addr) = (val))
+#define inb(addr)             (*(addr))
 
-# define outb(addr,val)        (*(addr) = (val))
-# define inb(addr)             (*(addr))
+// addresses
+#define MMU_ADDR ((unsigned char*)0x01)
+#define OLD_CHARSET ((unsigned char*)0xd000)
+#define NEW_CHARSET ((unsigned char*)0xb800)
+#define SCREEN ((unsigned char*)0xb400)
+
+#define BUF_MAX_SIZE 128
 
 struct vchar64d_buf {
     char bufmem[BUF_MAX_SIZE];
@@ -55,8 +58,6 @@ struct vchar64d_buf {
 static struct vchar64d_buf buf;
 
 struct vchar64d_state {
-    char buf[BUF_MAX_SIZE + 1];
-    char bufptr;
     uint16_t numsent;
     uint8_t state;
 };
@@ -89,7 +90,9 @@ struct vchar64d_proto_set_char
 
 struct vchar64d_proto_set_charset
 {
-    uint8_t charset[256 * 8];
+    // the charset is sent if 4 blocks of 64 * 8 chars each... is this faster?!?
+    uint8_t idx_64;
+    uint8_t charset[64 * 8];
 };
 
 #define PROTO_VERSION 0x00
@@ -101,34 +104,36 @@ struct vchar64d_proto_hello
 /*---------------------------------------------------------------------------*/
 static void init_vic()
 {
-    uint8_t block;
-    int i;
+    uint8_t old;
+    uint8_t i;
 
     __asm__("sei");
 
     // VIC Bank 2: $8000 - $bfff
-    block = inb (&CIA2.pra);
-    outb (&CIA2.pra, (block & 0xFC) | 1);
+    old = inb (&CIA2.pra);
+    outb (&CIA2.pra, (old & 0xfc) | 1);
 
     // enable CHARSET at 0xb800, SCREEN at 0xb400
     // bin: %11011110
     outb (&VIC.addr, 0xde);
 
-#define MMU_ADDR ((unsigned char*)0x01)
-    block = inb (&MMU_ADDR[0]);
+    // MMU: No BASIC, CHARSET, KERNAL
+    old = inb (&MMU_ADDR[0]);
     outb (&MMU_ADDR[0], 0x32);
-#define OLD_CHARSET ((unsigned char*)0xd000)
-#define NEW_CHARSET ((unsigned char*)0xb800)
 
+    // copy new charset
     memcpy(NEW_CHARSET, OLD_CHARSET, 8*256);
-    outb (&MMU_ADDR[0], block);
+
+    // restore old MMU: No BASIC, IO, KERNAL
+    outb (&MMU_ADDR[0], old);
 
     // clear screen
-#define SCREEN ((unsigned char*)0xb400)
     memset(SCREEN, 0x20, 40*25);
+
+    // paint 256 chars
     for (i=0; i < 255; ++i)
-        SCREEN[i] = i;
-    SCREEN[i] = i;
+        outb (&SCREEN[i], i);
+    outb (&SCREEN[i], i);
     
     __asm__("cli");
 }
@@ -196,11 +201,13 @@ void proto_hello(struct vchar64d_proto_hello* data, int len)
 void proto_set_char(struct vchar64d_proto_set_char* data, int len)
 {
 //    printf("set_char: %d\n", len);
+    memcpy(&NEW_CHARSET[data->idx*8], data->chardata, sizeof(data->chardata));
 }
 
 void proto_set_charset(struct vchar64d_proto_set_charset* data, int len)
 {
 //    printf("set_charset: %d\n", len);
+    memcpy(&NEW_CHARSET[data->idx_64*64*8], data->charset, sizeof(data->charset));
 }
 
 void proto_what(struct vchar64d_proto_set_charset* data, int len)
@@ -256,6 +263,15 @@ static void newdata(void)
             proto_close();
             break;
         default:
+        {
+            struct vchar64d_proto_set_char tmp;
+            uint8_t i;
+
+            tmp.idx = 2;
+            for (i=0;i<8;++i)
+                tmp.chardata[i] = 1 << i;
+            proto_set_char(&tmp, sizeof(tmp));
+        }
             proto_what(payload, len-1);
             break;
     }
@@ -266,7 +282,6 @@ void vchar64d_appcall(void *ts)
     if(uip_connected()) {
         if(s.state == STATE_CLOSED) {
             buf_init(&buf);
-            s.bufptr = 0;
             s.state = STATE_CONNECTED;
             ts = (char *)0;
         } else {
