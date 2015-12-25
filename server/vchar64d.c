@@ -38,6 +38,7 @@
 
 PROCESS(vchar64d_process, "VChar64 server");
 
+#if defined(__C64__) || defined(__C128__)
 // peek and poke
 #define outb(addr,val)        (*(addr) = (val))
 #define inb(addr)             (*(addr))
@@ -47,6 +48,9 @@ PROCESS(vchar64d_process, "VChar64 server");
 #define OLD_CHARSET ((unsigned char*)0xd000)
 #define NEW_CHARSET ((unsigned char*)0xb800)
 #define SCREEN ((unsigned char*)0xb400)
+#else
+#error "Invalid target
+#endif
 
 #define BUF_MAX_SIZE 128
 
@@ -317,6 +321,10 @@ void vchar64d_quit(void)
 PROCESS_THREAD(vchar64d_process, ev, data)
 {
     PROCESS_BEGIN();
+
+    printf("\nPress any key to start servrer");
+    while (!kbhit())
+        ;
 
     init_vic();
 
