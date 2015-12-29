@@ -87,8 +87,7 @@ struct vchar64d_proto_header
 enum {
     TYPE_HELLO,
     TYPE_SET_CHAR,
-    TYPE_SET_RANGE,
-    TYPE_SET_CHARSET,
+    TYPE_SET_CHARS,
     TYPE_BYEBYE
 };
 
@@ -98,11 +97,11 @@ struct vchar64d_proto_set_char
     uint8_t chardata[8];
 };
 
-struct vchar64d_proto_set_charset
+struct vchar64d_proto_set_chars
 {
-    // the charset is sent if 4 blocks of 64 * 8 chars each... is this faster?!?
-    uint8_t idx_64;
-    uint8_t charset[64 * 8];
+    uint8_t idx;
+    uint8_t count;
+    uint8_t *charsdata;
 };
 
 #define PROTO_VERSION 0x00
@@ -125,10 +124,10 @@ static void init_vic()
     __asm__("lda #$ff");
     __asm__("sta $d8");
 
-    // CHAREN: disable ROM Charset... no really needed
-    __asm__("lda $01");
-    __asm__("ora #$04");
-    __asm__("sta $01");
+    // CHAREN: disable ROM Charset... not really needed
+//    __asm__("lda $01");
+//    __asm__("ora #$04");
+//    __asm__("sta $01");
 #endif
 
     // VIC Bank 2: $8000 - $bfff
@@ -216,87 +215,83 @@ static void senddata(void)
 }
 /*---------------------------------------------------------------------------*/
 
-void proto_hello(struct vchar64d_proto_hello* data, int len)
+uint16_t proto_hello(struct vchar64d_proto_hello* data, int len)
 {
 //    printf("hello: %d\n", len);
+    return sizeof(*data);
 }
 
-void proto_set_char(struct vchar64d_proto_set_char* data, int len)
+uint16_t proto_set_char(struct vchar64d_proto_set_char* data, int len)
 {
 //    printf("set_char: %d\n", len);
     memcpy(&NEW_CHARSET[data->idx*8], data->chardata, sizeof(data->chardata));
+    return sizeof(*data);
 }
 
-void proto_set_charset(struct vchar64d_proto_set_charset* data, int len)
+uint16_t proto_set_chars(struct vchar64d_proto_set_chars* data, int len)
 {
-//    printf("set_charset: %d\n", len);
-    memcpy(&NEW_CHARSET[data->idx_64*64*8], data->charset, sizeof(data->charset));
+//    printf("proto_set_chars: %d\n", len);
+    memcpy(&NEW_CHARSET[data->idx*8], data->charsdata, data->count*8);
+    // don't include the pointer
+    return sizeof(*data) + data->count * 8 - sizeof(data->charsdata);
 }
 
-void proto_what(struct vchar64d_proto_set_charset* data, int len)
+uint16_t proto_what(void)
 {
-    uint8_t i;
-
-//    printf("what: %d\n", len);
     buf_append(&buf, "what?", 5);
-
-#define VIC_SCREEN ((unsigned char*)0x8400)
-    for(i=0; i<255; ++i)
-    {
-        VIC_SCREEN[i] = i;
-    }
-    // 255
-    VIC_SCREEN[i] = i;
-
-#define CHARSET ((unsigned char*)0x9800)
-    for (i=0; i<8*8; ++i)
-        CHARSET[i] = CHARSET[i] ^ 255;
+    return 10000;
 }
 
-void proto_close(void)
+uint16_t proto_close(void)
 {
     buf_append(&buf, "what?", 5);
     s.state = STATE_CLOSED;
     uip_close();
+
+    // after close,
+    return 10000;
 }
 
 static void newdata(void)
 {
-    uint16_t len;
+    uint16_t len, sofar;
     struct vchar64d_proto_header* header;
     void* payload;
 
+    sofar = 0;
     len = uip_datalen();
     header = uip_appdata;
-    payload = &((uint8_t*)uip_appdata)[1];
 
-    switch (header->type) {
-        case TYPE_HELLO:
-            proto_hello(payload, len-1);
-            break;
-        case TYPE_SET_CHAR:
-            proto_set_char(payload, len-1);
-            break;
-        case TYPE_SET_CHARSET:
-            proto_set_charset(payload, len-1);
-            break;
-        case TYPE_SET_RANGE:
-            break;
-        case TYPE_BYEBYE:
-            proto_close();
-            break;
-        default:
-        {
-            struct vchar64d_proto_set_char tmp;
-            uint8_t i;
+    while (sofar < len)
+    {
+        payload = &((uint8_t*)uip_appdata)[sofar];
 
-            tmp.idx = 2;
-            for (i=0;i<8;++i)
-                tmp.chardata[i] = 1 << i;
-            proto_set_char(&tmp, sizeof(tmp));
+        switch (header->type) {
+            case TYPE_HELLO:
+                sofar += proto_hello(payload, len-1);
+                break;
+            case TYPE_SET_CHAR:
+                sofar += proto_set_char(payload, len-1);
+                break;
+            case TYPE_SET_CHARS:
+                sofar += proto_set_chars(payload, len-1);
+                break;
+            case TYPE_BYEBYE:
+                sofar += proto_close();
+                break;
+            default:
+            {
+                struct vchar64d_proto_set_char tmp;
+                uint8_t i;
+
+                tmp.idx = 2;
+                for (i=0;i<8;++i)
+                    tmp.chardata[i] = 1 << i;
+                proto_set_char(&tmp, sizeof(tmp));
+            }
+                sofar += proto_what();
+                break;
         }
-            proto_what(payload, len-1);
-            break;
     }
 }
 
