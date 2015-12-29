@@ -44,10 +44,16 @@ PROCESS(vchar64d_process, "VChar64 server");
 #define inb(addr)             (*(addr))
 
 // addresses
+#if defined(__C64__)
 #define MMU_ADDR ((unsigned char*)0x01)
+#define OUTBASIC_INKERNAL_INCHARSET 0x32
+#elif defined(__C128__)
+#define MMU_ADDR ((unsigned char*)0xff00)
+#define OUTBASIC_INKERNAL_INCHARSET 0x0f
+#endif
 #define OLD_CHARSET ((unsigned char*)0xd000)
-#define NEW_CHARSET ((unsigned char*)0xb800)
-#define SCREEN ((unsigned char*)0xb400)
+#define NEW_CHARSET ((unsigned char*)0xa800)
+#define SCREEN ((unsigned char*)0xa400)
 #else
 #error "Invalid target
 #endif
@@ -113,17 +119,30 @@ static void init_vic()
 
     __asm__("sei");
 
+#if defined(__C128__)
+    // disable interrupt driven screen editor, in order
+    // to avoid using the c128 shadow variables
+    __asm__("lda #$ff");
+    __asm__("sta $d8");
+
+    // CHAREN: disable ROM Charset... no really needed
+    __asm__("lda $01");
+    __asm__("ora #$04");
+    __asm__("sta $01");
+#endif
+
     // VIC Bank 2: $8000 - $bfff
     old = inb (&CIA2.pra);
     outb (&CIA2.pra, (old & 0xfc) | 1);
 
-    // enable CHARSET at 0xb800, SCREEN at 0xb400
-    // bin: %11011110
-    outb (&VIC.addr, 0xde);
+    // enable CHARSET at 0xa800: XXXX101X
+    //         SCREEN at 0xa400: 1001XXXX
+    // bin: %10011010
+    outb (&VIC.addr, 0x9a);
 
-    // MMU: No BASIC, CHARSET, KERNAL
+    // MMU: out BASIC, in CHARSET, in KERNAL
     old = inb (&MMU_ADDR[0]);
-    outb (&MMU_ADDR[0], 0x32);
+    outb (&MMU_ADDR[0], OUTBASIC_INKERNAL_INCHARSET);
 
     // copy new charset
     memcpy(NEW_CHARSET, OLD_CHARSET, 8*256);
@@ -138,7 +157,7 @@ static void init_vic()
     for (i=0; i < 255; ++i)
         outb (&SCREEN[i], i);
     outb (&SCREEN[i], i);
-    
+
     __asm__("cli");
 }
 
