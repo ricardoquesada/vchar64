@@ -85,7 +85,7 @@ enum {
 static void init_vic()
 {
     uint8_t old;
-    uint8_t i;
+    uint8_t i,j,k;
 
     __asm__("sei");
 
@@ -105,9 +105,15 @@ static void init_vic()
     memset(SCREEN, 0x20, 40*25);
 
     // paint 256 chars
-    for (i=0; i < 255; ++i)
-        outb (&SCREEN[i], i);
-    outb (&SCREEN[i], i);
+    i = 0;
+    for (j=0; j<8; ++j)
+    {
+        for (k=0; k<32; ++k)
+        {
+            outb(&SCREEN[j*40+k], i);
+            ++i;
+        }
+    }
 
     // VIC Bank 2: $8000 - $bfff
     old = inb (&CIA2.pra);
