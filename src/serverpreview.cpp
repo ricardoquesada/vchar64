@@ -112,8 +112,6 @@ void ServerPreview::updateForegroundColor()
 
     auto state = MainWindow::getCurrentState();
     uchar foreground = state->getColorForPen(State::PEN_FOREGROUND);
-    foreground |= state->isMulticolorMode() ? 8 : 0;
-
     protoFill(0xd800, foreground, 40 * 25);
 }
 

@@ -780,12 +780,12 @@ void State::_tileShiftLeft(int tileIndex)
                 charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] <<= 1;
 
                 charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 254;
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= prevLeftBit;
+                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (quint8)prevLeftBit;
 
                 prevLeftBit = leftBit;
             }
             charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 254;
-            charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= leftBit;
+            charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (quint8)leftBit;
         }
     }
 }
