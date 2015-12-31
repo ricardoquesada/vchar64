@@ -110,7 +110,8 @@ bool ServerPreview::connect(const QString &ipaddress)
 
 void ServerPreview::disconnect()
 {
-    _socket->disconnect();
+    if (_socket)
+        _socket->disconnect();
 }
 
 // SLOTS
