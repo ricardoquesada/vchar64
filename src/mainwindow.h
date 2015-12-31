@@ -67,8 +67,10 @@ public:
     State *createState();
 
 public slots:
-    void previewConnected();
-    void previewDisconnected();
+    void xlinkConnected();
+    void xlinkDisconnected();
+    void serverConnected();
+    void serverDisconnected();
     void documentWasModified();
     void updateWindow();
     void onCharIndexUpdated(int);
@@ -139,7 +141,6 @@ private slots:
     void on_actionC64DefaultUppercase_triggered();
     void on_actionC64DefaultLowercase_triggered();
     void on_actionTilesProperties_triggered();
-    void on_actionXlinkConnection_triggered();
     void on_actionUndo_triggered();
     void on_actionRedo_triggered();
     void on_radioButton_background_clicked();
@@ -159,6 +160,9 @@ private slots:
     void on_actionReset_Layout_triggered();
     void on_actionClose_triggered();
     void on_actionClose_All_triggered();
+
+    void on_actionXlinkConnection_triggered();
+    void on_actionServerConnection_triggered();
 
 private:
     QVector<QAction*> _recentFiles;

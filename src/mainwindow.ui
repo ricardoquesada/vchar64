@@ -139,9 +139,22 @@
    </widget>
    <widget class="QMenu" name="menuPreview">
     <property name="title">
-     <string>Xlink</string>
+     <string>Preview</string>
     </property>
-    <addaction name="actionXlinkConnection"/>
+    <widget class="QMenu" name="menuXlink">
+     <property name="title">
+      <string>Xlink</string>
+     </property>
+     <addaction name="actionXlinkConnection"/>
+    </widget>
+    <widget class="QMenu" name="menuVChar64_Server">
+     <property name="title">
+      <string>TCP/IP Server</string>
+     </property>
+     <addaction name="actionServerConnection"/>
+    </widget>
+    <addaction name="menuVChar64_Server"/>
+    <addaction name="menuXlink"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -654,14 +667,6 @@
     <string>Ctrl+E</string>
    </property>
   </action>
-  <action name="actionXlinkConnection">
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Connect</string>
-   </property>
-  </action>
   <action name="actionC64DefaultLowercase">
    <property name="text">
     <string>C64 Default Lowercase Charset</string>
@@ -847,7 +852,8 @@
   </action>
   <action name="actionClose">
    <property name="icon">
-    <iconset theme="window-close"/>
+    <iconset theme="window-close">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Close</string>
@@ -862,6 +868,16 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+W</string>
+   </property>
+  </action>
+  <action name="actionXlinkConnection">
+   <property name="text">
+    <string>Connect</string>
+   </property>
+  </action>
+  <action name="actionServerConnection">
+   <property name="text">
+    <string>Connect</string>
    </property>
   </action>
  </widget>

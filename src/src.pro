@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -17,7 +17,7 @@ win32 {
     DESTDIR = ../bin
 }
 TEMPLATE = app
-VERSION = 0.0.9
+VERSION = 0.0.10
 GIT_VERSION = $$system(git describe --abbrev=4 --dirty --always --tags)
 DEFINES += GIT_VERSION=\\\"$$GIT_VERSION\\\"
 
@@ -44,7 +44,9 @@ SOURCES += main.cpp\
     vchar64application.cpp \
     importvicedialog.cpp \
     importcharsetwidget.cpp \
-    fileutils.cpp
+    fileutils.cpp \
+    serverpreview.cpp \
+    serverconnectdialog.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -64,13 +66,16 @@ HEADERS  += mainwindow.h \
     vchar64application.h \
     importvicedialog.h \
     importcharsetwidget.h \
-    fileutils.h
+    fileutils.h \
+    serverpreview.h \
+    serverconnectdialog.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \
     exportdialog.ui \
     tilepropertiesdialog.ui \
-    importvicedialog.ui
+    importvicedialog.ui \
+    serverconnectdialog.ui
 
 INCLUDEPATH += src
 
@@ -80,9 +85,7 @@ DISTFILES += \
 RESOURCES += \
     resources.qrc
 
-!win32{
-    QMAKE_CXXFLAGS += -Werror
-}
+QMAKE_CXXFLAGS += -Werror
 
 win32 {
     RC_FILE = res/vchar64.rc
