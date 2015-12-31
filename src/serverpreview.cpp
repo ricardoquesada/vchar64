@@ -15,6 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+#include "serverpreview.h"
+
 #include <QFile>
 #include <QFileInfo>
 #include <QTcpSocket>
@@ -22,47 +24,8 @@ limitations under the License.
 
 #include <string.h>
 
-#include "serverpreview.h"
+#include "serverprotocol.h"
 #include "mainwindow.h"
-
-#pragma pack(push)
-#pragma pack(1)
-struct vchar64d_proto_header
-{
-    uint8_t type;
-    /* uint8_t data[0]; */ /* not supported by cc65 */
-};
-enum {
-    TYPE_HELLO,
-    TYPE_SET_BYTE,
-    TYPE_SET_CHAR,
-    TYPE_SET_CHARS,
-    TYPE_SET_COLORS,
-    TYPE_BYEBYE
-};
-
-// one byte
-struct vchar64d_proto_set_byte
-{
-    uint16_t idx;
-    uint8_t byte;
-};
-
-// 8 bytes
-struct vchar64d_proto_set_char
-{
-    uint8_t idx;
-    uint8_t chardata[8];
-};
-
-// multiple 8 bytes
-struct vchar64d_proto_set_chars
-{
-    uint8_t idx;
-    uint8_t count;
-    uint8_t* charsdata;
-};
-#pragma pack(pop)
 
 static ServerPreview *__instance = nullptr;
 

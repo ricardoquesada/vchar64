@@ -34,6 +34,7 @@
 #include <string.h>
 
 #include "contiki-net.h"
+#include "serverprotocol.h"
 
 #define SERVER_PORT 6464
 
@@ -59,6 +60,8 @@ PROCESS(vchar64d_process, "VChar64 server");
 #error "Invalid target
 #endif
 
+#define ZERO_ADDR ((unsigned char*)0)
+
 #define BUF_MAX_SIZE 128
 
 struct vchar64d_buf {
@@ -79,48 +82,6 @@ enum {
     STATE_INITED
 };
 
-/* protocol */
-struct vchar64d_proto_header
-{
-    uint8_t type;
-    /* uint8_t data[0]; */ /* not supported by cc65 */
-};
-enum {
-    TYPE_HELLO,
-    TYPE_SET_BYTE,
-    TYPE_SET_CHAR,
-    TYPE_SET_CHARS,
-    TYPE_SET_COLORS,
-    TYPE_BYEBYE
-};
-
-// one byte
-struct vchar64d_proto_set_byte
-{
-    uint16_t idx;
-    uint8_t byte;
-};
-
-// 8 bytes
-struct vchar64d_proto_set_char
-{
-    uint8_t idx;
-    uint8_t chardata[8];
-};
-
-// multiple 8 bytes
-struct vchar64d_proto_set_chars
-{
-    uint8_t idx;
-    uint8_t count;
-    uint8_t *charsdata;
-};
-
-#define PROTO_VERSION 0x00
-struct vchar64d_proto_hello
-{
-    uint8_t version;
-};
 
 /*---------------------------------------------------------------------------*/
 static void init_vic()
@@ -142,6 +103,14 @@ static void init_vic()
 //    __asm__("sta $01");
 #endif
 
+    // clear screen
+    memset(SCREEN, 0x20, 40*25);
+
+    // paint 256 chars
+    for (i=0; i < 255; ++i)
+        outb (&SCREEN[i], i);
+    outb (&SCREEN[i], i);
+
     // VIC Bank 2: $8000 - $bfff
     old = inb (&CIA2.pra);
     outb (&CIA2.pra, (old & 0xfc) | 1);
@@ -161,13 +130,7 @@ static void init_vic()
     // restore old MMU: No BASIC, IO, KERNAL
     outb (&MMU_ADDR[0], old);
 
-    // clear screen
-    memset(SCREEN, 0x20, 40*25);
 
-    // paint 256 chars
-    for (i=0; i < 255; ++i)
-        outb (&SCREEN[i], i);
-    outb (&SCREEN[i], i);
 
     __asm__("cli");
 }
@@ -233,10 +196,17 @@ uint16_t proto_hello(struct vchar64d_proto_hello* data)
     return sizeof(*data);
 }
 
+uint16_t proto_poke(struct vchar64d_proto_poke* data)
+{
+    // data->idx: is already in little endian
+    outb(&ZERO_ADDR[data->addr], data->value);
+    return sizeof(*data);
+}
+
 uint16_t proto_set_byte(struct vchar64d_proto_set_byte* data)
 {
     // data->idx: is already in little endian
-    NEW_CHARSET[data->idx] = data->byte;
+    outb(&NEW_CHARSET[data->idx], data->byte);
     return sizeof(*data);
 }
 
@@ -283,7 +253,7 @@ static void newdata(void)
     while (count < len)
     {
         header = &((struct vchar64d_proto_header*)uip_appdata)[count];
-        payload = &((uint8_t*)uip_appdata)[count+1];
+        payload = &((uint8_t*)uip_appdata)[++count];
 
         switch (header->type) {
             case TYPE_HELLO:
@@ -298,20 +268,15 @@ static void newdata(void)
             case TYPE_SET_CHARS:
                 count += proto_set_chars(payload);
                 break;
+            case TYPE_POKE:
+                count += proto_poke(payload);
+                break;
             case TYPE_BYEBYE:
                 count += proto_close();
                 break;
             default:
-            {
-                struct vchar64d_proto_set_char tmp;
-                uint8_t i;
-
-                tmp.idx = 2;
-                for (i=0;i<8;++i)
-                    tmp.chardata[i] = 1 << i;
-                proto_set_char(&tmp);
-            }
-                count += proto_what();
+                __asm__("inc $d020");
+                count = len;
                 break;
         }
     }
@@ -360,8 +325,9 @@ PROCESS_THREAD(vchar64d_process, ev, data)
 
     printf("\nListening in port: %d\n", SERVER_PORT);
     printf("Press any key to start servrer");
-    while (!kbhit())
-        ;
+    while (!kbhit()) {
+/*        __asm__("inc $d020"); */
+    }
 
     init_vic();
 

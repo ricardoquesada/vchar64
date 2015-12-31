@@ -68,7 +68,8 @@ HEADERS  += mainwindow.h \
     importcharsetwidget.h \
     fileutils.h \
     serverpreview.h \
-    serverconnectdialog.h
+    serverconnectdialog.h \
+    serverprotocol.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \

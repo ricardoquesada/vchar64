@@ -16,7 +16,7 @@ define makes
 $1-makes:
 	$(MAKE) -C $(CONTIKI)/cpu/6502/ethconfig        TARGET=$1
 	$(MAKE) -C $(CONTIKI)/cpu/6502/ipconfig         TARGET=$1
-	$(MAKE) -f Makefile.vchar64d         		TARGET=$1
+	$(MAKE) -f Makefile.vchar64d                    TARGET=$1
 endef
 
 $(eval $(call makes,c64))
