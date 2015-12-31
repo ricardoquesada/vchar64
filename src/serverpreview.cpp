@@ -44,7 +44,6 @@ enum {
 // one byte
 struct vchar64d_proto_set_byte
 {
-    struct vchar64d_proto_header header;
     uint16_t idx;
     uint8_t byte;
 };
@@ -52,7 +51,6 @@ struct vchar64d_proto_set_byte
 // 8 bytes
 struct vchar64d_proto_set_char
 {
-    struct vchar64d_proto_header header;
     uint8_t idx;
     uint8_t chardata[8];
 };
@@ -60,10 +58,9 @@ struct vchar64d_proto_set_char
 // multiple 8 bytes
 struct vchar64d_proto_set_chars
 {
-    struct vchar64d_proto_header header;
     uint8_t idx;
     uint8_t count;
-    uint8_t *charsdata;
+    uint8_t* charsdata;
 };
 #pragma pack(pop)
 
@@ -238,10 +235,17 @@ void ServerPreview::byteUpdated(int byteIndex)
     if(!isConnected()) return;
     auto state = MainWindow::getCurrentState();
 
-    struct vchar64d_proto_set_byte data;
+#pragma pack(push)
+#pragma pack(1)
+    struct {
+        struct vchar64d_proto_header header;
+        struct vchar64d_proto_set_byte payload;
+    } data;
+#pragma pack(pop)
+
     data.header.type = TYPE_SET_BYTE;
-    data.idx = qToLittleEndian((uint16_t)byteIndex);
-    data.byte = state->getCharsetBuffer()[byteIndex];
+    data.payload.idx = qToLittleEndian((uint16_t)byteIndex);
+    data.payload.byte = state->getCharsetBuffer()[byteIndex];
     _socket->write((const char*)&data, sizeof(data));
     _socket->flush();
 }
@@ -251,46 +255,31 @@ void ServerPreview::bytesUpdated(int pos, int count)
     Q_ASSERT(pos % 8 == 0 && "Invalid pos value");
     Q_ASSERT(count % 8 == 0 && "Invalid count value");
 
-    struct vchar64d_proto_set_chars* data;
-
     if(!isConnected()) return;
     auto state = MainWindow::getCurrentState();
 
-    int size = (sizeof(*data) - sizeof(data->charsdata)) + count;
-    data = (struct vchar64d_proto_set_chars*) malloc(size);
-
-    data->header.type = TYPE_SET_CHARS;
-    data->idx = pos / 8;
-    data->count = count / 8;
-    memcpy(&data->charsdata, &state->getCharsetBuffer()[pos], count);
-
-    _socket->write((char*)data, size);
-    _socket->flush();
-    free(data);
+    sendChars(pos, state->getCharAtIndex(pos/8), count);
 }
 
 void ServerPreview::tileUpdated(int tileIndex)
 {
     if(!isConnected()) return;
+    auto state = MainWindow::getCurrentState();
 
-    Q_UNUSED(tileIndex);
+    State::TileProperties properties = state->getTileProperties();
 
-//    auto state = MainWindow::getCurrentState();
+    int charIndex = state->getCharIndexFromTileIndex(tileIndex);
+    int numChars = properties.size.width() * properties.size.height();
 
-//    State::TileProperties properties = state->getTileProperties();
-
-//    int charIndex = state->getCharIndexFromTileIndex(tileIndex);
-//    int numChars = properties.size.width() * properties.size.height();
-
-//    if(properties.interleaved == 1) {
-//        xlink_load(0xb7, 0x00, 0x3000 + charIndex * 8, (uchar*) state->getCharAtIndex(charIndex), numChars*8);
-//    }
-//    else {
-//        for(int sent=0; sent<numChars; sent++) {
-//            xlink_load(0xb7, 0x00, 0x3000 + charIndex * 8, (uchar*) state->getCharAtIndex(charIndex), 8);
-//            charIndex += properties.interleaved;
-//        }
-//    }
+    if(properties.interleaved == 1) {
+        sendChars(charIndex, state->getCharAtIndex(charIndex), numChars);
+    }
+    else {
+        for(int sent=0; sent<numChars; sent++) {
+            sendChars(charIndex, state->getCharAtIndex(charIndex), 1);
+            charIndex += properties.interleaved;
+        }
+    }
 }
 
 void ServerPreview::colorSelected()
@@ -313,3 +302,26 @@ void ServerPreview::colorPropertiesUpdated()
 
     updateColorMode();
 }
+
+// helper
+void ServerPreview::sendChars(int charIdx, quint8* charBuf, int totalChars)
+{
+    struct vchar64d_proto_header* header;
+    struct vchar64d_proto_set_chars* payload;
+
+    int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->charsdata)) + totalChars * 8;
+    char* data = (char*) malloc(size);
+
+    header = (struct vchar64d_proto_header*) data;
+    payload = (struct vchar64d_proto_set_chars*) (data + sizeof(*header));
+
+    header->type = TYPE_SET_CHARS;
+    payload->idx = charIdx;
+    payload->count = totalChars;
+    memcpy(&payload->charsdata, charBuf, totalChars * 8);
+
+    _socket->write(data, size);
+    _socket->flush();
+    free(data);
+}
+

@@ -64,6 +64,8 @@ protected:
     ServerPreview();
     virtual ~ServerPreview();
 
+    void sendChars(int charIdx, quint8 *charBuf, int totalChars);
+
     void updateBackgroundColor();
     void updateForegroundColor();
     void updateMulticolor1();
