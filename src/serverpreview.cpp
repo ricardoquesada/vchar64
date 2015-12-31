@@ -258,7 +258,7 @@ void ServerPreview::bytesUpdated(int pos, int count)
     if(!isConnected()) return;
     auto state = MainWindow::getCurrentState();
 
-    sendChars(pos, state->getCharAtIndex(pos/8), count);
+    sendChars(pos/8, state->getCharAtIndex(pos/8), count/8);
 }
 
 void ServerPreview::tileUpdated(int tileIndex)
