@@ -235,6 +235,7 @@ uint16_t proto_hello(struct vchar64d_proto_hello* data)
 
 uint16_t proto_set_byte(struct vchar64d_proto_set_byte* data)
 {
+    // data->idx: is already in little endian
     NEW_CHARSET[data->idx] = data->byte;
     return sizeof(*data);
 }

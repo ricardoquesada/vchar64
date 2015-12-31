@@ -18,6 +18,7 @@ limitations under the License.
 #include <QFile>
 #include <QFileInfo>
 #include <QTcpSocket>
+#include <QtEndian>
 
 #include <string.h>
 
@@ -43,6 +44,7 @@ enum {
 // one byte
 struct vchar64d_proto_set_byte
 {
+    struct vchar64d_proto_header header;
     uint16_t idx;
     uint8_t byte;
 };
@@ -50,6 +52,7 @@ struct vchar64d_proto_set_byte
 // 8 bytes
 struct vchar64d_proto_set_char
 {
+    struct vchar64d_proto_header header;
     uint8_t idx;
     uint8_t chardata[8];
 };
@@ -57,6 +60,7 @@ struct vchar64d_proto_set_char
 // multiple 8 bytes
 struct vchar64d_proto_set_chars
 {
+    struct vchar64d_proto_header header;
     uint8_t idx;
     uint8_t count;
     uint8_t *charsdata;
@@ -235,7 +239,8 @@ void ServerPreview::byteUpdated(int byteIndex)
     auto state = MainWindow::getCurrentState();
 
     struct vchar64d_proto_set_byte data;
-    data.idx = byteIndex;
+    data.header.type = TYPE_SET_BYTE;
+    data.idx = qToLittleEndian((uint16_t)byteIndex);
     data.byte = state->getCharsetBuffer()[byteIndex];
     _socket->write((const char*)&data, sizeof(data));
     _socket->flush();
@@ -254,6 +259,7 @@ void ServerPreview::bytesUpdated(int pos, int count)
     int size = sizeof(*data) + count - sizeof(data->charsdata);
     data = (struct vchar64d_proto_set_chars*) malloc(size);
 
+    data->header.type = TYPE_SET_CHARS;
     data->idx = pos / 8;
     data->count = count / 8;
     memcpy(data->charsdata, &state->getCharsetBuffer()[pos], count);
