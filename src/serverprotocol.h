@@ -24,6 +24,8 @@ limitations under the License.
 #pragma pack(1)
 #endif  /* __CC65__ */
 
+#define VCHAR64_SERVER_LISTEN_PORT 6464
+
 struct vchar64d_proto_header
 {
     uint8_t type;
@@ -35,14 +37,21 @@ enum {
     TYPE_SET_CHARS,
     TYPE_SET_COLORS,
     TYPE_POKE,
+    TYPE_FILL,
     TYPE_BYEBYE
 };
 
-// one byte
 struct vchar64d_proto_poke
 {
     uint16_t addr;
     uint8_t value;
+};
+
+struct vchar64d_proto_fill
+{
+    uint16_t addr;
+    uint8_t value;
+    uint16_t count;
 };
 
 // one byte of the char

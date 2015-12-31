@@ -36,8 +36,6 @@
 #include "contiki-net.h"
 #include "serverprotocol.h"
 
-#define SERVER_PORT 6464
-
 PROCESS(vchar64d_process, "VChar64 server");
 
 #if defined(__C64__) || defined(__C128__)
@@ -203,6 +201,12 @@ uint16_t proto_poke(struct vchar64d_proto_poke* data)
     return sizeof(*data);
 }
 
+uint16_t proto_fill(struct vchar64d_proto_fill* data)
+{
+    memset((void*)data->addr, data->value, data->count);
+    return sizeof(*data);
+}
+
 uint16_t proto_set_byte(struct vchar64d_proto_set_byte* data)
 {
     // data->idx: is already in little endian
@@ -271,6 +275,9 @@ static void newdata(void)
             case TYPE_POKE:
                 count += proto_poke(payload);
                 break;
+            case TYPE_FILL:
+                count += proto_fill(payload);
+                break;
             case TYPE_BYEBYE:
                 count += proto_close();
                 break;
@@ -323,7 +330,7 @@ PROCESS_THREAD(vchar64d_process, ev, data)
 {
     PROCESS_BEGIN();
 
-    printf("\nListening in port: %d\n", SERVER_PORT);
+    printf("\nListening in port: %d\n", VCHAR64_SERVER_LISTEN_PORT);
     printf("Press any key to start servrer");
     while (!kbhit()) {
 /*        __asm__("inc $d020"); */
@@ -332,7 +339,7 @@ PROCESS_THREAD(vchar64d_process, ev, data)
     init_vic();
 
     // server port
-    tcp_listen(UIP_HTONS(SERVER_PORT));
+    tcp_listen(UIP_HTONS(VCHAR64_SERVER_LISTEN_PORT));
 
     while(1) {
         PROCESS_WAIT_EVENT();

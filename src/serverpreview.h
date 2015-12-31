@@ -64,7 +64,19 @@ protected:
     ServerPreview();
     virtual ~ServerPreview();
 
-    void sendChars(int charIdx, quint8 *charBuf, int totalChars);
+    // Proto: generic
+    void protoFlush();
+    void protoPoke(quint16 addr, quint8 value);
+    quint8 protoPeek(quint16 addr);
+    void protoFill(quint16 addr, quint8 value, quint16 count);
+
+    // Proto: chars related
+    void protoSetByte(quint16 addr, quint8 value);
+    void protoSetChar(int charIdx, quint8 *charBuf);
+    void protoSetChars(int charIdx, quint8 *charBuf, int totalChars);
+
+
+    //
 
     void updateBackgroundColor();
     void updateForegroundColor();

@@ -60,10 +60,10 @@ bool ServerPreview::connect(const QString &ipaddress)
     QObject::connect(_socket, &QTcpSocket::bytesWritten, this, &ServerPreview::onBytesWritten);
     QObject::connect(_socket, &QTcpSocket::readyRead, this, &ServerPreview::onReadyRead);
 
-    _socket->connectToHost(ipaddress, 6464);
+    _socket->connectToHost(ipaddress, VCHAR64_SERVER_LISTEN_PORT);
 
     // we need to wait...
-    if(!_socket->waitForConnected(5000))
+    if(!_socket->waitForConnected(3000))
     {
         qDebug() << "Error: " << _socket->errorString();
         return false;
@@ -101,9 +101,9 @@ void ServerPreview::onDisconnected()
 //
 void ServerPreview::updateBackgroundColor()
 {
-//    auto state = MainWindow::getCurrentState();
-//    xlink_poke(0x37, 0x00, 0xd020, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
-//    xlink_poke(0x37, 0x00, 0xd021, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
+    auto state = MainWindow::getCurrentState();
+    protoPoke(0xd020, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
+    protoPoke(0xd021, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
 }
 
 void ServerPreview::updateForegroundColor()
@@ -114,35 +114,34 @@ void ServerPreview::updateForegroundColor()
     uchar foreground = state->getColorForPen(State::PEN_FOREGROUND);
     foreground |= state->isMulticolorMode() ? 8 : 0;
 
-//    xlink_fill(0xb7, 0x00, 0xd800, foreground, 1000);
-//    xlink_poke(0x37, 0x00, 0x0286, foreground);
+    protoFill(0xd800, foreground, 40 * 25);
 }
 
 void ServerPreview::updateMulticolor1()
 {
     if(!isConnected()) return;
 
-//    auto state = MainWindow::getCurrentState();
-//    xlink_poke(0x37, 0x00, 0xd022, (uchar) state->getColorForPen(State::PEN_MULTICOLOR1));
+    auto state = MainWindow::getCurrentState();
+    protoPoke(0xd022, (uchar) state->getColorForPen(State::PEN_MULTICOLOR1));
 }
 
 void ServerPreview::updateMulticolor2()
 {
     if(!isConnected()) return;
 
-//    auto state = MainWindow::getCurrentState();
-//    xlink_poke(0x37, 0x00, 0xd023, (uchar) state->getColorForPen(State::PEN_MULTICOLOR2));
+    auto state = MainWindow::getCurrentState();
+    protoPoke(0xd023, (uchar) state->getColorForPen(State::PEN_MULTICOLOR2));
 }
 
 void ServerPreview::updateColorMode()
 {
     if(!isConnected()) return;
 
-//    auto state = MainWindow::getCurrentState();
+    auto state = MainWindow::getCurrentState();
 //    uchar control = 0x08;
 
 //    xlink_peek(0x37, 0x00, 0xd016, &control);
-//    xlink_poke(0x37, 0x00, 0xd016, state->isMulticolorMode() ? 0x18 : 0x08);
+    protoPoke(0xd016, state->isMulticolorMode() ? 0x18 : 0x08);
 
     updateForegroundColor();
 }
@@ -199,19 +198,8 @@ void ServerPreview::byteUpdated(int byteIndex)
     if(!isConnected()) return;
     auto state = MainWindow::getCurrentState();
 
-#pragma pack(push)
-#pragma pack(1)
-    struct {
-        struct vchar64d_proto_header header;
-        struct vchar64d_proto_set_byte payload;
-    } data;
-#pragma pack(pop)
-
-    data.header.type = TYPE_SET_BYTE;
-    data.payload.idx = qToLittleEndian((uint16_t)byteIndex);
-    data.payload.byte = state->getCharsetBuffer()[byteIndex];
-    _socket->write((const char*)&data, sizeof(data));
-    _socket->flush();
+    protoSetByte(byteIndex, state->getCharsetBuffer()[byteIndex]);
+    protoFlush();
 }
 
 void ServerPreview::bytesUpdated(int pos, int count)
@@ -222,7 +210,8 @@ void ServerPreview::bytesUpdated(int pos, int count)
     if(!isConnected()) return;
     auto state = MainWindow::getCurrentState();
 
-    sendChars(pos/8, state->getCharAtIndex(pos/8), count/8);
+    protoSetChars(pos/8, state->getCharAtIndex(pos/8), count/8);
+    protoFlush();
 }
 
 void ServerPreview::tileUpdated(int tileIndex)
@@ -236,14 +225,15 @@ void ServerPreview::tileUpdated(int tileIndex)
     int numChars = properties.size.width() * properties.size.height();
 
     if(properties.interleaved == 1) {
-        sendChars(charIndex, state->getCharAtIndex(charIndex), numChars);
+        protoSetChars(charIndex, state->getCharAtIndex(charIndex), numChars);
     }
     else {
         for(int sent=0; sent<numChars; sent++) {
-            sendChars(charIndex, state->getCharAtIndex(charIndex), 1);
+            protoSetChars(charIndex, state->getCharAtIndex(charIndex), 1);
             charIndex += properties.interleaved;
         }
     }
+    protoFlush();
 }
 
 void ServerPreview::colorSelected()
@@ -267,8 +257,87 @@ void ServerPreview::colorPropertiesUpdated()
     updateColorMode();
 }
 
-// helper
-void ServerPreview::sendChars(int charIdx, quint8* charBuf, int totalChars)
+//
+// Proto methods
+//
+void  ServerPreview::protoFlush()
+{
+    _socket->flush();
+}
+
+void ServerPreview::protoPoke(quint16 addr, quint8 value)
+{
+#pragma pack(push)
+#pragma pack(1)
+    struct {
+        struct vchar64d_proto_header header;
+        struct vchar64d_proto_poke payload;
+    } data;
+#pragma pack(pop)
+
+    data.header.type = TYPE_POKE;
+    data.payload.addr = qToLittleEndian(addr);
+    data.payload.value = value;
+    _socket->write((char*)&data, sizeof(data));
+}
+
+quint8 ServerPreview::protoPeek(quint16 addr)
+{
+    Q_UNUSED(addr);
+    return 0;
+}
+
+
+void ServerPreview::protoFill(quint16 addr, quint8 value, quint16 count)
+{
+#pragma pack(push)
+#pragma pack(1)
+    struct {
+        struct vchar64d_proto_header header;
+        struct vchar64d_proto_fill payload;
+    } data;
+#pragma pack(pop)
+
+    data.header.type = TYPE_FILL;
+    data.payload.addr = qToLittleEndian(addr);
+    data.payload.value = value;
+    data.payload.count = count;
+    _socket->write((char*)&data, sizeof(data));
+}
+
+void ServerPreview::protoSetByte(quint16 addr, quint8 value)
+{
+#pragma pack(push)
+#pragma pack(1)
+    struct {
+        struct vchar64d_proto_header header;
+        struct vchar64d_proto_set_byte payload;
+    } data;
+#pragma pack(pop)
+
+    data.header.type = TYPE_SET_BYTE;
+    data.payload.idx = qToLittleEndian(addr);
+    data.payload.byte = value;
+    _socket->write((const char*)&data, sizeof(data));
+}
+
+void ServerPreview::protoSetChar(int charIdx, quint8 *charBuf)
+{
+#pragma pack(push)
+#pragma pack(1)
+    struct {
+        struct vchar64d_proto_header header;
+        struct vchar64d_proto_set_char payload;
+    } data;
+#pragma pack(pop)
+
+    data.header.type = TYPE_SET_CHAR;
+    data.payload.idx = charIdx;
+    memcpy(data.payload.chardata, charBuf, sizeof(data.payload.chardata));
+    _socket->write((const char*)&data, sizeof(data));
+}
+
+void ServerPreview::protoSetChars(int charIdx, quint8* charBuf, int totalChars)
 {
     struct vchar64d_proto_header* header;
     struct vchar64d_proto_set_chars* payload;
@@ -285,7 +354,5 @@ void ServerPreview::sendChars(int charIdx, quint8* charBuf, int totalChars)
     memcpy(&payload->charsdata, charBuf, totalChars * 8);
 
     _socket->write(data, size);
-    _socket->flush();
     free(data);
 }
-
