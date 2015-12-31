@@ -533,7 +533,7 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
             if (bytesToCopy <0)
                 break;
             memcpy(dst, src, bytesToCopy);
-            emit bytesUpdated(charIndex * 8, bytesToCopy);
+            emit bytesUpdated((dst - _charset), bytesToCopy);
 
             dst += (copyRange.blockSize + copyRange.skip) * 8;
             src += (copyRange.blockSize + copyRange.skip) * 8;
@@ -576,8 +576,10 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
                     int chardst = (dstidx + j * _tileProperties.interleaved) * 8;
 
                     // don't overflow, don't copy crappy chars
-                    if ((CHAR_BUFFER_SIZE - chardst) >= 8 && (CHAR_BUFFER_SIZE - charsrc) >= 8)
+                    if ((CHAR_BUFFER_SIZE - chardst) >= 8 && (CHAR_BUFFER_SIZE - charsrc) >= 8) {
                         memcpy(&_charset[chardst], &charsetBuffer[charsrc], 8);
+                        emit bytesUpdated(chardst, 8);
+                    }
                 }
             }
             srcskip += copyRange.skip + copyRange.blockSize;

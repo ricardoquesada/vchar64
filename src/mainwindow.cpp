@@ -45,6 +45,8 @@ limitations under the License.
 #include "palette.h"
 #include "importvicedialog.h"
 #include "fileutils.h"
+#include "serverconnectdialog.h"
+#include "serverpreview.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 
@@ -89,15 +91,26 @@ MainWindow::~MainWindow()
 //
 // public slots
 //
-void MainWindow::previewConnected()
+void MainWindow::xlinkConnected()
 {
     _ui->actionXlinkConnection->setText(tr("Disconnect"));
 }
 
-void MainWindow::previewDisconnected()
+void MainWindow::xlinkDisconnected()
 {
     _ui->actionXlinkConnection->setText(tr("Connect"));
 }
+
+void MainWindow::serverConnected()
+{
+    _ui->actionServerConnection->setText(tr("Disconnect"));
+}
+
+void MainWindow::serverDisconnected()
+{
+    _ui->actionServerConnection->setText(tr("Connect"));
+}
+
 
 void MainWindow::documentWasModified()
 {
@@ -266,16 +279,23 @@ State* MainWindow::createState()
     subwindow->showMaximized();
     subwindow->layout()->setContentsMargins(2, 2, 2, 2);
 
-
     auto state = bigcharWidget->getState();
-    auto preview = XlinkPreview::getInstance();
 
-    connect(state, &State::fileLoaded, preview, &XlinkPreview::fileLoaded);
-    connect(state, &State::byteUpdated, preview, &XlinkPreview::byteUpdated);
-    connect(state, &State::bytesUpdated, preview, &XlinkPreview::bytesUpdated);
-    connect(state, &State::tileUpdated, preview, &XlinkPreview::tileUpdated);
-    connect(state, &State::colorPropertiesUpdated, preview, &XlinkPreview::colorPropertiesUpdated);
-    connect(state, &State::multicolorModeToggled, preview, &XlinkPreview::colorPropertiesUpdated);
+    auto xlinkpreview = XlinkPreview::getInstance();
+    connect(state, &State::fileLoaded, xlinkpreview, &XlinkPreview::fileLoaded);
+    connect(state, &State::byteUpdated, xlinkpreview, &XlinkPreview::byteUpdated);
+    connect(state, &State::bytesUpdated, xlinkpreview, &XlinkPreview::bytesUpdated);
+    connect(state, &State::tileUpdated, xlinkpreview, &XlinkPreview::tileUpdated);
+    connect(state, &State::colorPropertiesUpdated, xlinkpreview, &XlinkPreview::colorPropertiesUpdated);
+    connect(state, &State::multicolorModeToggled, xlinkpreview, &XlinkPreview::colorPropertiesUpdated);
+
+    auto serverpreview = ServerPreview::getInstance();
+    connect(state, &State::fileLoaded, serverpreview, &ServerPreview::fileLoaded);
+    connect(state, &State::byteUpdated, serverpreview, &ServerPreview::byteUpdated);
+    connect(state, &State::bytesUpdated, serverpreview, &ServerPreview::bytesUpdated);
+    connect(state, &State::tileUpdated, serverpreview, &ServerPreview::tileUpdated);
+    connect(state, &State::colorPropertiesUpdated, serverpreview, &ServerPreview::colorPropertiesUpdated);
+    connect(state, &State::multicolorModeToggled, serverpreview, &ServerPreview::colorPropertiesUpdated);
 
     connect(state, &State::tilePropertiesUpdated, this, &MainWindow::onTilePropertiesUpdated);
     connect(state, &State::tilePropertiesUpdated, bigcharWidget, &BigCharWidget::onTilePropertiesUpdated);
@@ -335,12 +355,16 @@ void MainWindow::createActions()
     _ui->colorRectWidget_2->setPen(State::PEN_MULTICOLOR1);
     _ui->colorRectWidget_3->setPen(State::PEN_MULTICOLOR2);
 
-    auto preview = XlinkPreview::getInstance();
+    auto xlinkPreview = XlinkPreview::getInstance();
+    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, xlinkPreview, &XlinkPreview::colorSelected);
+    connect(xlinkPreview, &XlinkPreview::previewConnected, this, &MainWindow::xlinkConnected);
+    connect(xlinkPreview, &XlinkPreview::previewDisconnected, this, &MainWindow::xlinkDisconnected);
+    _ui->menuXlink->setEnabled(xlinkPreview->isAvailable());
 
-
-    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, preview, &XlinkPreview::colorSelected);
-    connect(preview, &XlinkPreview::previewConnected, this, &MainWindow::previewConnected);
-    connect(preview, &XlinkPreview::previewDisconnected, this, &MainWindow::previewDisconnected);
+    auto serverPreview = ServerPreview::getInstance();
+    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, serverPreview, &ServerPreview::colorSelected);
+    connect(serverPreview, &ServerPreview::previewConnected, this, &MainWindow::serverConnected);
+    connect(serverPreview, &ServerPreview::previewDisconnected, this, &MainWindow::serverDisconnected);
 
     connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->charsetWidget, &CharsetWidget::updateColor);
     connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->tilesetWidget, &TilesetWidget::updateColor);
@@ -349,7 +373,6 @@ void MainWindow::createActions()
 
     connect(_ui->spinBox_tileIndex, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged(int)));
 
-    _ui->menuPreview->setEnabled(preview->isAvailable());
 
 //
     _ui->menuViews->addAction(_ui->dockWidget_charset->toggleViewAction());
@@ -360,8 +383,8 @@ void MainWindow::createActions()
     _ui->mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     _ui->mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
-     if(preview->isConnected()) {
-          previewConnected();
+     if(xlinkPreview->isConnected()) {
+          xlinkConnected();
     }
 }
 
@@ -1023,6 +1046,29 @@ void MainWindow::on_actionXlinkConnection_triggered()
             msgBox.exec();
         }
 }
+
+void MainWindow::on_actionServerConnection_triggered()
+{
+    auto preview = ServerPreview::getInstance();
+    if (preview->isConnected())
+    {
+        preview->disconnect();
+    }
+    else
+    {
+        ServerConnectDialog dialog(this);
+        if (dialog.exec())
+        {
+            auto ipaddress = dialog.getIPAddress();
+            if (!preview->connect(ipaddress))
+            {
+                QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote server"), 0, this);
+                msgBox.exec();
+            }
+        }
+    }
+}
+
 
 void MainWindow::on_actionNext_Tile_triggered()
 {

@@ -35,6 +35,7 @@
 
 #include "contiki-net.h"
 
+#define SERVER_PORT 6464
 
 PROCESS(vchar64d_process, "VChar64 server");
 
@@ -86,17 +87,28 @@ struct vchar64d_proto_header
 };
 enum {
     TYPE_HELLO,
+    TYPE_SET_BYTE,
     TYPE_SET_CHAR,
     TYPE_SET_CHARS,
+    TYPE_SET_COLORS,
     TYPE_BYEBYE
 };
 
+// one byte
+struct vchar64d_proto_set_byte
+{
+    uint16_t idx;
+    uint8_t byte;
+};
+
+// 8 bytes
 struct vchar64d_proto_set_char
 {
     uint8_t idx;
     uint8_t chardata[8];
 };
 
+// multiple 8 bytes
 struct vchar64d_proto_set_chars
 {
     uint8_t idx;
@@ -215,20 +227,26 @@ static void senddata(void)
 }
 /*---------------------------------------------------------------------------*/
 
-uint16_t proto_hello(struct vchar64d_proto_hello* data, int len)
+uint16_t proto_hello(struct vchar64d_proto_hello* data)
 {
 //    printf("hello: %d\n", len);
     return sizeof(*data);
 }
 
-uint16_t proto_set_char(struct vchar64d_proto_set_char* data, int len)
+uint16_t proto_set_byte(struct vchar64d_proto_set_byte* data)
+{
+    NEW_CHARSET[data->idx] = data->byte;
+    return sizeof(*data);
+}
+
+uint16_t proto_set_char(struct vchar64d_proto_set_char* data)
 {
 //    printf("set_char: %d\n", len);
     memcpy(&NEW_CHARSET[data->idx*8], data->chardata, sizeof(data->chardata));
     return sizeof(*data);
 }
 
-uint16_t proto_set_chars(struct vchar64d_proto_set_chars* data, int len)
+uint16_t proto_set_chars(struct vchar64d_proto_set_chars* data)
 {
 //    printf("proto_set_chars: %d\n", len);
     memcpy(&NEW_CHARSET[data->idx*8], data->charsdata, data->count*8);
@@ -254,30 +272,33 @@ uint16_t proto_close(void)
 
 static void newdata(void)
 {
-    uint16_t len, sofar;
+    uint16_t len, count;
     struct vchar64d_proto_header* header;
     void* payload;
 
-    sofar = 0;
+    count = 0;
     len = uip_datalen();
-    header = uip_appdata;
 
-    while (sofar < len)
+    while (count < len)
     {
-        payload = &((uint8_t*)uip_appdata)[sofar];
+        header = &((struct vchar64d_proto_header*)uip_appdata)[count];
+        payload = &((uint8_t*)uip_appdata)[count+1];
 
         switch (header->type) {
             case TYPE_HELLO:
-                sofar += proto_hello(payload, len-1);
+                count += proto_hello(payload);
+                break;
+            case TYPE_SET_BYTE:
+                count += proto_set_byte(payload);
                 break;
             case TYPE_SET_CHAR:
-                sofar += proto_set_char(payload, len-1);
+                count += proto_set_char(payload);
                 break;
             case TYPE_SET_CHARS:
-                sofar += proto_set_chars(payload, len-1);
+                count += proto_set_chars(payload);
                 break;
             case TYPE_BYEBYE:
-                sofar += proto_close();
+                count += proto_close();
                 break;
             default:
             {
@@ -287,9 +308,9 @@ static void newdata(void)
                 tmp.idx = 2;
                 for (i=0;i<8;++i)
                     tmp.chardata[i] = 1 << i;
-                proto_set_char(&tmp, sizeof(tmp));
+                proto_set_char(&tmp);
             }
-                sofar += proto_what();
+                count += proto_what();
                 break;
         }
     }
@@ -336,13 +357,15 @@ PROCESS_THREAD(vchar64d_process, ev, data)
 {
     PROCESS_BEGIN();
 
-    printf("\nPress any key to start servrer");
+    printf("\nListening in port: %d\n", SERVER_PORT);
+    printf("Press any key to start servrer");
     while (!kbhit())
         ;
 
     init_vic();
 
-    tcp_listen(UIP_HTONS(6464));
+    // server port
+    tcp_listen(UIP_HTONS(SERVER_PORT));
 
     while(1) {
         PROCESS_WAIT_EVENT();
