@@ -256,13 +256,13 @@ void ServerPreview::bytesUpdated(int pos, int count)
     if(!isConnected()) return;
     auto state = MainWindow::getCurrentState();
 
-    int size = sizeof(*data) + count - sizeof(data->charsdata);
+    int size = (sizeof(*data) - sizeof(data->charsdata)) + count;
     data = (struct vchar64d_proto_set_chars*) malloc(size);
 
     data->header.type = TYPE_SET_CHARS;
     data->idx = pos / 8;
     data->count = count / 8;
-    memcpy(data->charsdata, &state->getCharsetBuffer()[pos], count);
+    memcpy(&data->charsdata, &state->getCharsetBuffer()[pos], count);
 
     _socket->write((char*)data, size);
     _socket->flush();
