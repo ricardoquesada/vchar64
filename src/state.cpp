@@ -771,8 +771,8 @@ void State::_tileShiftLeft(int tileIndex)
         // top byte of
         for (int i=0; i<8; i++) {
 
-            quint8 leftBit = false;
-            quint8 prevLeftBit = false;
+            bool leftBit = false;
+            bool prevLeftBit = false;
 
             for (int x=_tileProperties.size.width()-1; x>=0; x--) {
                 leftBit = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<7);
