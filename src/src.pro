@@ -86,7 +86,9 @@ DISTFILES += \
 RESOURCES += \
     resources.qrc
 
-QMAKE_CXXFLAGS += -Werror
+!win32 {
+    QMAKE_CXXFLAGS += -Werror
+}
 
 win32 {
     RC_FILE = res/vchar64.rc
