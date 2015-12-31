@@ -19,7 +19,8 @@ limitations under the License.
 
 #include <QRegExp>
 #include <QRegExpValidator>
-#include <QDebug>
+#include <QSettings>
+
 
 ServerConnectDialog::ServerConnectDialog(QWidget *parent) :
     QDialog(parent),
@@ -30,6 +31,9 @@ ServerConnectDialog::ServerConnectDialog(QWidget *parent) :
     auto regexp = QRegExp ("^[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]$");
     auto validator = new QRegExpValidator(regexp, this);
     ui->lineEdit->setValidator(validator);
+
+    auto ipaddress = QSettings("RetroMoe","VChar64").value("server/ipaddress", "10.0.1.64").toString();
+    ui->lineEdit->setText(ipaddress);
 }
 
 QString ServerConnectDialog::getIPAddress() const
@@ -39,6 +43,7 @@ QString ServerConnectDialog::getIPAddress() const
 
 ServerConnectDialog::~ServerConnectDialog()
 {
+    QSettings("RetroMoe","VChar64").setValue("server/ipaddress", ui->lineEdit->text());
     delete ui;
 }
 
