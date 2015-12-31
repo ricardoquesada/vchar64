@@ -15,7 +15,7 @@ limitations under the License.
 ****************************************************************************/
 
 #include "serverconnectdialog.h"
-#include "ui_connectdialog.h"
+#include "ui_serverconnectdialog.h"
 
 #include <QRegExp>
 #include <QRegExpValidator>
