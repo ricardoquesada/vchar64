@@ -243,14 +243,14 @@ uint16_t proto_set_byte(struct vchar64d_proto_set_byte* data)
 uint16_t proto_set_char(struct vchar64d_proto_set_char* data)
 {
 //    printf("set_char: %d\n", len);
-    memcpy(&NEW_CHARSET[data->idx*8], data->chardata, sizeof(data->chardata));
+    memcpy(&NEW_CHARSET[data->idx*8], &data->chardata, sizeof(data->chardata));
     return sizeof(*data);
 }
 
 uint16_t proto_set_chars(struct vchar64d_proto_set_chars* data)
 {
 //    printf("proto_set_chars: %d\n", len);
-    memcpy(&NEW_CHARSET[data->idx*8], data->charsdata, data->count*8);
+    memcpy(&NEW_CHARSET[data->idx*8], &data->charsdata, data->count*8);
     // don't include the pointer
     return sizeof(*data) + data->count * 8 - sizeof(data->charsdata);
 }
