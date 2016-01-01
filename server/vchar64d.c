@@ -235,6 +235,19 @@ uint16_t proto_set_chars(struct vchar64d_proto_set_chars* data)
     return sizeof(*data) + data->count * 8 - sizeof(data->charsdata);
 }
 
+uint16_t proto_ping(struct vchar64d_proto_ping* data)
+{
+    struct {
+        struct vchar64d_proto_header hdr;
+        struct vchar64d_proto_ping payload;
+    } s;
+
+    s.hdr.type = TYPE_PONG;
+    s.payload.somethig = data.something;
+    buf_append(&buf, &s, sizeof(s));
+    return sizeof(*data);
+}
+
 uint16_t proto_what(void)
 {
     buf_append(&buf, "what?", 5);
@@ -283,6 +296,9 @@ static void newdata(void)
                 break;
             case TYPE_FILL:
                 count += proto_fill(payload);
+                break;
+            case TYPE_PING:
+                count += proto_ping(payload);
                 break;
             case TYPE_BYEBYE:
                 count += proto_close();

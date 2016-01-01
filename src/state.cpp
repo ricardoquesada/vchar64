@@ -428,14 +428,6 @@ void State::resetCharsetBuffer()
     memset(_charset, 0, sizeof(_charset));
 }
 
-void State::updateCharset(quint8 *buffer)
-{
-    memcpy(_charset, buffer, sizeof(_charset));
-
-    emit charsetUpdated();
-    emit contentsChanged();
-}
-
 // buffer must be at least 8x8*8 bytes big
 void State::copyTileFromIndex(int tileIndex, quint8* buffer, int bufferSize)
 {

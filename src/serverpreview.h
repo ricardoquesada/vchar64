@@ -66,6 +66,7 @@ protected:
 
     // Proto: generic
     void protoFlush();
+    void protoPing(quint8 pingValue);
     void protoPoke(quint16 addr, quint8 value);
     quint8 protoPeek(quint16 addr);
     void protoFill(quint16 addr, quint8 value, quint16 count);

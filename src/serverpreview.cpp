@@ -138,7 +138,6 @@ void ServerPreview::updateColorMode()
 
     auto state = MainWindow::getCurrentState();
 //    uchar control = 0x08;
-
 //    xlink_peek(0x37, 0x00, 0xd016, &control);
     protoPoke(0xd016, state->isMulticolorMode() ? 0x18 : 0x08);
 
@@ -155,12 +154,17 @@ void ServerPreview::updateColorProperties()
 
 void ServerPreview::updateCharset()
 {
-    if(!isConnected()) return;
+    auto state = MainWindow::getCurrentState();
+    auto charset = state->getCharsetBuffer();
 
-//    auto state = MainWindow::getCurrentState();
+    // send the charset in 4 parts to avoid filling the C64 MTU buffer
+    for (int i=0; i<4; i++)
+    {
+        protoSetChars(64*i, &charset[64*8*i], 64);
 
-//    xlink_load(0xb7, 0x00, 0x3000, (uchar*) state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
-//    xlink_poke(0x37, 0x00, 0xd018, 0x1c);
+        // ping will also flush
+        protoPing(i);
+    }
 }
 
 bool ServerPreview::updateScreen(const QString& filename)
@@ -190,6 +194,8 @@ bool ServerPreview::updateScreen(const QString& filename)
 void ServerPreview::fileLoaded()
 {
     if(!isConnected()) return;
+    updateCharset();
+    updateColorProperties();
 }
 
 void ServerPreview::byteUpdated(int byteIndex)
@@ -262,6 +268,29 @@ void ServerPreview::colorPropertiesUpdated()
 void  ServerPreview::protoFlush()
 {
     _socket->flush();
+}
+
+void  ServerPreview::protoPing(quint8 pingValue)
+{
+#pragma pack(push)
+#pragma pack(1)
+    struct {
+        struct vchar64d_proto_header header;
+        struct vchar64d_proto_ping payload;
+    } data;
+#pragma pack(pop)
+
+    data.header.type = TYPE_PING;
+    data.payload.something = pingValue;
+    _socket->write((char*)&data, sizeof(data));
+    _socket->flush();
+
+    memset(&data, 0, sizeof(data));
+    auto r = _socket->read((char*)&data, sizeof(data));
+    if (r == sizeof(data) && data.header.type == TYPE_PONG && data.payload.something == pingValue)
+        return;
+
+    qDebug() << "Error in ping";
 }
 
 void ServerPreview::protoPoke(quint16 addr, quint8 value)

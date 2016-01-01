@@ -38,6 +38,8 @@ enum {
     TYPE_SET_COLORS,
     TYPE_POKE,
     TYPE_FILL,
+    TYPE_PING,
+    TYPE_PONG,
     TYPE_BYEBYE
 };
 
@@ -74,6 +76,12 @@ struct vchar64d_proto_set_chars
     uint8_t idx;
     uint8_t count;
     uint8_t *charsdata;
+};
+
+// a synced ping
+struct vchar64d_proto_ping
+{
+    uint8_t something;
 };
 
 #define PROTO_VERSION 0x00

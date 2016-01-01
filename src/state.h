@@ -228,12 +228,6 @@ public:
     quint8* getCharsetBuffer();
     quint8* getCopyCharsetBuffer();
     void resetCharsetBuffer();
-    /**
-     * @brief updateCharset replace current charset with a new one.
-     * Emit `charsetUpdated()` and `contentsChanged()` signals
-     * @param buffer that contains 256 chars
-     */
-    void updateCharset(quint8* buffer);
 
     /**
      * @brief paste paste previously copied range starting from charIndex
