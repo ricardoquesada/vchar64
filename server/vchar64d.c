@@ -243,8 +243,8 @@ uint16_t proto_ping(struct vchar64d_proto_ping* data)
     } s;
 
     s.hdr.type = TYPE_PONG;
-    s.payload.somethig = data.something;
-    buf_append(&buf, &s, sizeof(s));
+    s.payload.something = data->something;
+    buf_append(&buf, (char*)&s, sizeof(s));
     return sizeof(*data);
 }
 
