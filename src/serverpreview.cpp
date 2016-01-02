@@ -85,7 +85,6 @@ void ServerPreview::onBytesWritten(qint64 bytes)
 
 void ServerPreview::onReadyRead()
 {
-
 }
 
 void ServerPreview::onConnected()
@@ -283,11 +282,26 @@ void  ServerPreview::protoPing(quint8 pingValue)
     data.header.type = TYPE_PING;
     data.payload.something = pingValue;
     _socket->write((char*)&data, sizeof(data));
-    _socket->flush();
+    _socket->waitForBytesWritten();
+
+    while (_socket->bytesAvailable() < sizeof(data))
+    {
+        if (!_socket->waitForReadyRead(2000))
+        {
+            qDebug() << "Error waiting";
+            return;
+        }
+    }
 
     memset(&data, 0, sizeof(data));
     auto r = _socket->read((char*)&data, sizeof(data));
-    if (r == sizeof(data) && data.header.type == TYPE_PONG && data.payload.something == pingValue)
+    if (r<0)
+    {
+        qDebug() << "Error reading";
+        return;
+    }
+
+    if (data.header.type == TYPE_PONG && data.payload.something == pingValue)
         return;
 
     qDebug() << "Error in ping";
