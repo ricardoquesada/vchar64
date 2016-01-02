@@ -80,6 +80,7 @@ void State::reset()
 
 void State::refresh()
 {
+    emit charsetUpdated();
     emit charIndexUpdated(_charIndex);
     emit tileIndexUpdated(_tileIndex);
     emit tilePropertiesUpdated();

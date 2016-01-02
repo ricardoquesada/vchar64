@@ -288,6 +288,7 @@ State* MainWindow::createState()
     connect(state, &State::tileUpdated, xlinkpreview, &XlinkPreview::tileUpdated);
     connect(state, &State::colorPropertiesUpdated, xlinkpreview, &XlinkPreview::colorPropertiesUpdated);
     connect(state, &State::multicolorModeToggled, xlinkpreview, &XlinkPreview::colorPropertiesUpdated);
+    connect(state, &State::charsetUpdated, xlinkpreview, &XlinkPreview::fileLoaded);
 
     auto serverpreview = ServerPreview::getInstance();
     connect(state, &State::fileLoaded, serverpreview, &ServerPreview::fileLoaded);
@@ -296,6 +297,7 @@ State* MainWindow::createState()
     connect(state, &State::tileUpdated, serverpreview, &ServerPreview::tileUpdated);
     connect(state, &State::colorPropertiesUpdated, serverpreview, &ServerPreview::colorPropertiesUpdated);
     connect(state, &State::multicolorModeToggled, serverpreview, &ServerPreview::colorPropertiesUpdated);
+    connect(state, &State::charsetUpdated, serverpreview, &ServerPreview::fileLoaded);
 
     connect(state, &State::tilePropertiesUpdated, this, &MainWindow::onTilePropertiesUpdated);
     connect(state, &State::tilePropertiesUpdated, bigcharWidget, &BigCharWidget::onTilePropertiesUpdated);

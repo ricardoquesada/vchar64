@@ -240,6 +240,31 @@ bool ServerPreview::updateScreen(const QString& filename)
 void ServerPreview::fileLoaded()
 {
     if(!isConnected()) return;
+
+    // flush queued commands
+    for (auto it=_tmpCommands.begin(); it!=_tmpCommands.end();)
+    {
+        auto command = *it;
+        free(command->_data);
+        it = _tmpCommands.erase(it);
+        delete command;
+    }
+    _tmpCommands.clear();
+
+
+    // flush queued commands
+    for (auto it=_commands.begin(); it!=_commands.end();)
+    {
+        auto command = *it;
+        free(command->_data);
+        it = _commands.erase(it);
+        delete command;
+    }
+    _commands.clear();
+
+    _bytesSent = 0;
+    _alreadyQueued = false;
+
     updateCharset();
     updateColorProperties();
 }
