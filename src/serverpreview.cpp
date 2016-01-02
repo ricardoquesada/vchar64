@@ -128,7 +128,11 @@ void ServerPreview::onReadyRead()
         }
         _readOnlyQueue = false;
 
-        _commands.append(_tmpCommands);
+        // not supported in Qt 5.3 (needed for Travis)
+//        _commands.append(_tmpCommands);
+        for (const auto& tmpCommand: _tmpCommands)
+            _commands.append(tmpCommand);
+
         _tmpCommands.clear();
     }
     else
