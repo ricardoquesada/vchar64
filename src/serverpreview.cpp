@@ -284,7 +284,7 @@ void  ServerPreview::protoPing(quint8 pingValue)
     _socket->write((char*)&data, sizeof(data));
     _socket->waitForBytesWritten();
 
-    while (_socket->bytesAvailable() < sizeof(data))
+    while (_socket->bytesAvailable() < (qint64) sizeof(data))
     {
         if (!_socket->waitForReadyRead(2000))
         {

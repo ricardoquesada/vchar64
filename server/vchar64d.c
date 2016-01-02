@@ -240,11 +240,11 @@ uint16_t proto_ping(struct vchar64d_proto_ping* data)
     struct {
         struct vchar64d_proto_header hdr;
         struct vchar64d_proto_ping payload;
-    } s;
+    } response;
 
-    s.hdr.type = TYPE_PONG;
-    s.payload.something = data->something;
-    buf_append(&buf, (char*)&s, sizeof(s));
+    response.hdr.type = TYPE_PONG;
+    response.payload.something = data->something;
+    buf_append(&buf, (char*)&response, sizeof(response));
     return sizeof(*data);
 }
 
