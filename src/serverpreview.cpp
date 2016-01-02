@@ -156,10 +156,12 @@ void ServerPreview::updateCharset()
     auto state = MainWindow::getCurrentState();
     auto charset = state->getCharsetBuffer();
 
-    // send the charset in 4 parts to avoid filling the C64 MTU buffer
-    for (int i=0; i<4; i++)
+    // send the charset in 2 parts to avoid filling the C64 MTU buffer
+    const int segments = 2;
+    const int segmentSize = 256 / segments;
+    for (int i=0; i<segments; i++)
     {
-        protoSetChars(64*i, &charset[64*8*i], 64);
+        protoSetChars(segmentSize*i, &charset[segmentSize*8*i], segmentSize);
 
         // ping will also flush
         protoPing(i);
