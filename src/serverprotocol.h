@@ -26,6 +26,10 @@ limitations under the License.
 
 #define VCHAR64_SERVER_LISTEN_PORT 6464
 
+// can't send packets bigger than this size
+// before "syncing"
+#define VCHAR64_SERVER_BUFFER_SIZE 1400
+
 struct vchar64d_proto_header
 {
     uint8_t type;

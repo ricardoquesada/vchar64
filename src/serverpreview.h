@@ -17,6 +17,7 @@ limitations under the License.
 #pragma once
 
 #include <QObject>
+#include <QVector>
 
 QT_BEGIN_NAMESPACE
 class QTcpSocket;
@@ -66,16 +67,19 @@ protected:
 
     // Proto: generic
     void protoFlush();
-    void protoPing(quint8 pingValue);
     void protoPoke(quint16 addr, quint8 value);
-    quint8 protoPeek(quint16 addr);
+    void protoPeek(quint16 addr, quint8* value);
     void protoFill(quint16 addr, quint8 value, quint16 count);
+    // don't call it directly. It is used internally for syncing purposes
+    void protoPing(quint8 pingValue);
 
     // Proto: chars related
     void protoSetByte(quint16 addr, quint8 value);
     void protoSetChar(int charIdx, quint8 *charBuf);
     void protoSetChars(int charIdx, quint8 *charBuf, int totalChars);
 
+    void sendOrQueueData(char* buffer, int bufferSize);
+    void sendData(char* buffer, int bufferSize);
 
     //
 
@@ -88,5 +92,23 @@ protected:
     bool updateScreen(const QString &filename);
     void updateColorProperties();
 
+
     QTcpSocket* _socket;
+
+    int _bytesSent;
+
+    class ServerCommand
+    {
+    public:
+        explicit ServerCommand(char* data, int dataSize)
+            : _data(data)
+            , _dataSize(dataSize)
+        {}
+        char* _data;
+        int _dataSize;
+
+    };
+
+    bool _pingQueued;
+    QVector<ServerCommand*> _commands;
 };

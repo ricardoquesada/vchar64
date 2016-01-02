@@ -85,6 +85,43 @@ void ServerPreview::onBytesWritten(qint64 bytes)
 
 void ServerPreview::onReadyRead()
 {
+#pragma pack(push)
+#pragma pack(1)
+    struct {
+        struct vchar64d_proto_header header;
+        struct vchar64d_proto_ping payload;
+    } data;
+#pragma pack(pop)
+
+    // read pong or peek
+    while (_socket->bytesAvailable() < (qint64) sizeof(data))
+    {
+        if (!_socket->waitForReadyRead(2000))
+        {
+            qDebug() << "Error waiting";
+            return;
+        }
+    }
+
+    auto r = _socket->read((char*)&data, sizeof(data));
+    if (r<0)
+    {
+        qDebug() << "Error reading";
+        return;
+    }
+
+    if (data.header.type == TYPE_PONG && data.payload.something == 0)
+    {
+        for (auto it = _commands.begin(); it != _commands.end(); ++it)
+        {
+            auto command = *it;
+            sendOrQueueData(command->_data, command->_dataSize);
+            it = _commands.erase(it);
+            delete command;
+        }
+    }
+    else
+        qDebug() << "Error in ping";
 }
 
 void ServerPreview::onConnected()
@@ -162,9 +199,6 @@ void ServerPreview::updateCharset()
     for (int i=0; i<segments; i++)
     {
         protoSetChars(segmentSize*i, &charset[segmentSize*8*i], segmentSize);
-
-        // ping will also flush
-        protoPing(i);
     }
 }
 
@@ -275,60 +309,64 @@ void  ServerPreview::protoPing(quint8 pingValue)
 {
 #pragma pack(push)
 #pragma pack(1)
-    struct {
+    struct _data {
         struct vchar64d_proto_header header;
         struct vchar64d_proto_ping payload;
-    } data;
+    };
 #pragma pack(pop)
 
-    data.header.type = TYPE_PING;
-    data.payload.something = pingValue;
-    _socket->write((char*)&data, sizeof(data));
-    _socket->waitForBytesWritten();
+    struct _data* data = (struct _data*) malloc(sizeof(*data));
 
-    while (_socket->bytesAvailable() < (qint64) sizeof(data))
-    {
-        if (!_socket->waitForReadyRead(2000))
-        {
-            qDebug() << "Error waiting";
-            return;
-        }
-    }
+    data->header.type = TYPE_PING;
+    data->payload.something = pingValue;
+    sendData((char*)data, sizeof(*data));
 
-    memset(&data, 0, sizeof(data));
-    auto r = _socket->read((char*)&data, sizeof(data));
-    if (r<0)
-    {
-        qDebug() << "Error reading";
-        return;
-    }
+//    _socket->waitForBytesWritten();
+//    while (_socket->bytesAvailable() < (qint64) sizeof(data))
+//    {
+//        if (!_socket->waitForReadyRead(2000))
+//        {
+//            qDebug() << "Error waiting";
+//            return;
+//        }
+//    }
 
-    if (data.header.type == TYPE_PONG && data.payload.something == pingValue)
-        return;
+//    memset(&data, 0, sizeof(data));
+//    auto r = _socket->read((char*)&data, sizeof(data));
+//    if (r<0)
+//    {
+//        qDebug() << "Error reading";
+//        return;
+//    }
 
-    qDebug() << "Error in ping";
+//    if (data.header.type == TYPE_PONG && data.payload.something == pingValue)
+//        return;
+
+//    qDebug() << "Error in ping";
 }
 
 void ServerPreview::protoPoke(quint16 addr, quint8 value)
 {
 #pragma pack(push)
 #pragma pack(1)
-    struct {
+    struct _data{
         struct vchar64d_proto_header header;
         struct vchar64d_proto_poke payload;
-    } data;
+    };
 #pragma pack(pop)
 
-    data.header.type = TYPE_POKE;
-    data.payload.addr = qToLittleEndian(addr);
-    data.payload.value = value;
-    _socket->write((char*)&data, sizeof(data));
+    struct _data* data = (struct _data*) malloc(sizeof(*data));
+
+    data->header.type = TYPE_POKE;
+    data->payload.addr = qToLittleEndian(addr);
+    data->payload.value = value;
+    sendOrQueueData((char*)data, sizeof(*data));
 }
 
-quint8 ServerPreview::protoPeek(quint16 addr)
+void ServerPreview::protoPeek(quint16 addr, quint8* value)
 {
     Q_UNUSED(addr);
-    return 0;
+    Q_UNUSED(value);
 }
 
 
@@ -336,49 +374,56 @@ void ServerPreview::protoFill(quint16 addr, quint8 value, quint16 count)
 {
 #pragma pack(push)
 #pragma pack(1)
-    struct {
+    struct _data{
         struct vchar64d_proto_header header;
         struct vchar64d_proto_fill payload;
-    } data;
+    };
 #pragma pack(pop)
 
-    data.header.type = TYPE_FILL;
-    data.payload.addr = qToLittleEndian(addr);
-    data.payload.value = value;
-    data.payload.count = count;
-    _socket->write((char*)&data, sizeof(data));
+    struct _data* data = (struct _data*) malloc(sizeof(*data));
+
+    data->header.type = TYPE_FILL;
+    data->payload.addr = qToLittleEndian(addr);
+    data->payload.value = value;
+    data->payload.count = count;
+    sendOrQueueData((char*)data, sizeof(*data));
 }
 
 void ServerPreview::protoSetByte(quint16 addr, quint8 value)
 {
 #pragma pack(push)
 #pragma pack(1)
-    struct {
+    struct _data {
         struct vchar64d_proto_header header;
         struct vchar64d_proto_set_byte payload;
-    } data;
+    };
 #pragma pack(pop)
 
-    data.header.type = TYPE_SET_BYTE;
-    data.payload.idx = qToLittleEndian(addr);
-    data.payload.byte = value;
-    _socket->write((const char*)&data, sizeof(data));
+    struct _data* data = (struct _data*) malloc(sizeof(*data));
+
+    data->header.type = TYPE_SET_BYTE;
+    data->payload.idx = qToLittleEndian(addr);
+    data->payload.byte = value;
+    sendOrQueueData((char*)data, sizeof(*data));
 }
 
 void ServerPreview::protoSetChar(int charIdx, quint8 *charBuf)
 {
 #pragma pack(push)
 #pragma pack(1)
-    struct {
+    struct _data {
         struct vchar64d_proto_header header;
         struct vchar64d_proto_set_char payload;
-    } data;
+    };
 #pragma pack(pop)
 
-    data.header.type = TYPE_SET_CHAR;
-    data.payload.idx = charIdx;
-    memcpy(data.payload.chardata, charBuf, sizeof(data.payload.chardata));
-    _socket->write((const char*)&data, sizeof(data));
+    struct _data* data = (struct _data*) malloc(sizeof(*data));
+
+    data->header.type = TYPE_SET_CHAR;
+    data->payload.idx = charIdx;
+    memcpy(data->payload.chardata, charBuf, sizeof(data->payload.chardata));
+
+    sendOrQueueData((char*)data, sizeof(*data));
 }
 
 void ServerPreview::protoSetChars(int charIdx, quint8* charBuf, int totalChars)
@@ -397,6 +442,27 @@ void ServerPreview::protoSetChars(int charIdx, quint8* charBuf, int totalChars)
     payload->count = totalChars;
     memcpy(&payload->charsdata, charBuf, totalChars * 8);
 
-    _socket->write(data, size);
-    free(data);
+    sendOrQueueData(data, size);
+}
+
+void ServerPreview::sendOrQueueData(char* buffer, int bufferSize)
+{
+    if (_commands.size() > 0 || _bytesSent + bufferSize > VCHAR64_SERVER_BUFFER_SIZE)
+    {
+        // won't enter into infinite loop since
+        // it will go directly to sendData() and sendData() doesn't sync
+        protoPing(0);
+        _commands.append(new ServerCommand(buffer, bufferSize));
+    }
+    else
+    {
+        sendData(buffer, bufferSize);
+    }
+}
+
+void ServerPreview::sendData(char* buffer, int bufferSize)
+{
+    _socket->write(buffer, bufferSize);
+    free(buffer);
+    _bytesSent += bufferSize;
 }
