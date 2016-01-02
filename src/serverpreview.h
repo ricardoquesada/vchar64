@@ -92,11 +92,6 @@ protected:
     bool updateScreen(const QString &filename);
     void updateColorProperties();
 
-
-    QTcpSocket* _socket;
-
-    int _bytesSent;
-
     class ServerCommand
     {
     public:
@@ -109,6 +104,10 @@ protected:
 
     };
 
-    bool _pingQueued;
+    QTcpSocket* _socket;
+    int _bytesSent;
+    bool _alreadyQueued;
+    bool _readOnlyQueue;
     QVector<ServerCommand*> _commands;
+    QVector<ServerCommand*> _tmpCommands;
 };

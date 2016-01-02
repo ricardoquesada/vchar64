@@ -39,6 +39,9 @@ ServerPreview* ServerPreview::getInstance()
 
 ServerPreview::ServerPreview()
     : _socket(nullptr)
+    , _bytesSent(0)
+    , _alreadyQueued(false)
+    , _readOnlyQueue(false)
 {
 }
 
@@ -112,13 +115,21 @@ void ServerPreview::onReadyRead()
 
     if (data.header.type == TYPE_PONG && data.payload.something == 0)
     {
-        for (auto it = _commands.begin(); it != _commands.end(); ++it)
+        _bytesSent = 0;
+        _alreadyQueued = false;
+        _readOnlyQueue = true;
+        auto it = _commands.begin();
+        while (it != _commands.end())
         {
             auto command = *it;
             sendOrQueueData(command->_data, command->_dataSize);
             it = _commands.erase(it);
             delete command;
         }
+        _readOnlyQueue = false;
+
+        _commands.append(_tmpCommands);
+        _tmpCommands.clear();
     }
     else
         qDebug() << "Error in ping";
@@ -447,12 +458,17 @@ void ServerPreview::protoSetChars(int charIdx, quint8* charBuf, int totalChars)
 
 void ServerPreview::sendOrQueueData(char* buffer, int bufferSize)
 {
-    if (_commands.size() > 0 || _bytesSent + bufferSize > VCHAR64_SERVER_BUFFER_SIZE)
+    if (_alreadyQueued || _bytesSent + bufferSize > VCHAR64_SERVER_BUFFER_SIZE)
     {
         // won't enter into infinite loop since
         // it will go directly to sendData() and sendData() doesn't sync
-        protoPing(0);
-        _commands.append(new ServerCommand(buffer, bufferSize));
+        if (!_alreadyQueued)
+            protoPing(0);
+        if (_readOnlyQueue)
+            _tmpCommands.append(new ServerCommand(buffer, bufferSize));
+        else
+            _commands.append(new ServerCommand(buffer, bufferSize));
+        _alreadyQueued = true;
     }
     else
     {
