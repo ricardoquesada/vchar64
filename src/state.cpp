@@ -529,7 +529,6 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
             if (bytesToCopy <0)
                 break;
             memcpy(dst, src, bytesToCopy);
-            qDebug() << "Bytes to copy" << bytesToCopy;
             emit bytesUpdated((dst - _charset), bytesToCopy);
 
             dst += (copyRange.blockSize + copyRange.skip) * 8;
