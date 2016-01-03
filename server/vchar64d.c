@@ -111,6 +111,7 @@ static void init_vic()
         for (k=0; k<32; ++k)
         {
             outb(&SCREEN[j*40+k], i);
+            outb(&SCREEN[40*12+j*40+k], i);
             ++i;
         }
     }

@@ -234,9 +234,9 @@ void ServerPreview::updateTiles()
         static const quint16 CHARS_TO_COPY = 40 * 10; // 10 lines
 
         // FIXME: Fragile. Both in the c64 and c128 the screen memory
-        // was remapped to a800, but the best way to do it,
+        // was remapped to a400, but the best way to do it,
         // is to query the server.
-        static const quint16 SCREEN_MEMORY = 0xa800 + 12 * 40;
+        static const quint16 SCREEN_MEMORY = 0xa400 + 12 * 40;
 
         int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
         char* data = (char*) malloc(size);
