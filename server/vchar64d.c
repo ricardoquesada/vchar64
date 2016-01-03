@@ -216,7 +216,7 @@ uint16_t proto_fill(struct vchar64d_proto_fill* data)
 
 uint16_t proto_set_mem(struct vchar64d_proto_set_mem* data)
 {
-    memcpy((void*)data->addr, data->data, data->count);
+    memcpy((void*)data->addr, &data->data, data->count);
     // don't include the pointer
     return sizeof(*data) + data->count - sizeof(data->data);
 }
