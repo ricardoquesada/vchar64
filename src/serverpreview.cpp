@@ -142,6 +142,8 @@ void ServerPreview::onReadyRead()
 void ServerPreview::onConnected()
 {
     emit previewConnected();
+
+    updateCharset();
     updateColorProperties();
 }
 
