@@ -279,19 +279,20 @@ void ServerPreview::byteUpdated(int byteIndex)
     auto state = MainWindow::getCurrentState();
 
     protoSetByte(byteIndex, state->getCharsetBuffer()[byteIndex]);
-    protoFlush();
 }
 
 void ServerPreview::bytesUpdated(int pos, int count)
 {
-    Q_ASSERT(pos % 8 == 0 && "Invalid pos value");
-    Q_ASSERT(count % 8 == 0 && "Invalid count value");
-
     if(!isConnected()) return;
+
+    if (pos % 8 != 0 || count % 8 != 0)
+    {
+        qDebug() << "Invalid values for bytesUpdated:" << pos << count;
+        return;
+    }
     auto state = MainWindow::getCurrentState();
 
     protoSetChars(pos/8, state->getCharAtIndex(pos/8), count/8);
-    protoFlush();
 }
 
 void ServerPreview::tileUpdated(int tileIndex)
@@ -313,7 +314,6 @@ void ServerPreview::tileUpdated(int tileIndex)
             charIndex += properties.interleaved;
         }
     }
-    protoFlush();
 }
 
 void ServerPreview::colorSelected()
