@@ -226,12 +226,12 @@ void ServerPreview::updateCharset()
 void ServerPreview::updateTiles()
 {
     auto currentTileProperties = MainWindow::getCurrentState()->getTileProperties();
-    if (currentTileProperties.interleaved != _prevTileProperties.interleaved && currentTileProperties.size != _prevTileProperties.size)
+    if (currentTileProperties.interleaved != _prevTileProperties.interleaved || currentTileProperties.size != _prevTileProperties.size)
     {
         struct vchar64d_proto_header* header;
         struct vchar64d_proto_set_mem* payload;
 
-        static const quint16 CHARS_TO_COPY = 40 * 10; // 10 lines
+        static const quint16 CHARS_TO_COPY = 256;
 
         // FIXME: Fragile. Both in the c64 and c128 the screen memory
         // was remapped to a400, but the best way to do it,
@@ -243,14 +243,42 @@ void ServerPreview::updateTiles()
 
         header = (struct vchar64d_proto_header*) data;
         payload = (struct vchar64d_proto_set_mem*) (data + sizeof(*header));
-        auto chars = payload->data;
+        quint8* chars = (quint8*)&payload->data;
 
         header->type = TYPE_SET_MEM;
         payload->addr = qToLittleEndian(SCREEN_MEMORY);
         payload->count = qToLittleEndian(CHARS_TO_COPY);
 
-        memset(chars, 0x28, 400);
+        // clean the screen memory since "fill" won't fill everything
+        memset(chars, 0x20, CHARS_TO_COPY);
 
+        // fill the screen memory
+        int tw = currentTileProperties.size.width();
+        int th = currentTileProperties.size.height();
+
+        int max_tiles = 256 / (tw*th);
+
+        int columns = (40 / currentTileProperties.size.width()) * currentTileProperties.size.width();
+
+
+        for (int i=0; i<max_tiles;i++)
+        {
+            quint8 index = currentTileProperties.interleaved == 1 ?
+                        i * tw * th :
+                        i;
+            int w = (i * tw) % columns;
+            int h = th * ((i * tw) / columns);
+
+            for (int char_idx=0; char_idx < (tw * th); char_idx++)
+            {
+                int local_w = w + char_idx % tw;
+                int local_h = h + char_idx / tw;
+
+                chars[local_h * 40 + local_w] = index;
+
+                index += currentTileProperties.interleaved;
+            }
+        }
 
         sendOrQueueData(data, size);
 
