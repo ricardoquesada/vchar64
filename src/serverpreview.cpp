@@ -43,6 +43,9 @@ ServerPreview::ServerPreview()
     , _alreadyQueued(false)
     , _readOnlyQueue(false)
 {
+    // default is 1x1, 1: server must display it by itself
+    _prevTileProperties.interleaved = 1;
+    _prevTileProperties.size = {1, 1};
 }
 
 ServerPreview::~ServerPreview()
@@ -145,6 +148,7 @@ void ServerPreview::onConnected()
 
     updateCharset();
     updateColorProperties();
+    updateTiles();
 }
 
 void ServerPreview::onDisconnected()
@@ -219,28 +223,39 @@ void ServerPreview::updateCharset()
     }
 }
 
-bool ServerPreview::updateScreen(const QString& filename)
+void ServerPreview::updateTiles()
 {
-    if(!isConnected()) return false;
+    auto currentTileProperties = MainWindow::getCurrentState()->getTileProperties();
+    if (currentTileProperties.interleaved != _prevTileProperties.interleaved && currentTileProperties.size != _prevTileProperties.size)
+    {
+        struct vchar64d_proto_header* header;
+        struct vchar64d_proto_set_mem* payload;
 
-    Q_UNUSED(filename);
+        static const quint16 CHARS_TO_COPY = 40 * 10; // 10 lines
 
-//    QFile file(filename);
+        // FIXME: Fragile. Both in the c64 and c128 the screen memory
+        // was remapped to a800, but the best way to do it,
+        // is to query the server.
+        static const quint16 SCREEN_MEMORY = 0xa800 + 12 * 40;
 
-//    if (!file.open(QIODevice::ReadOnly))
-//        return false;
+        int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
+        char* data = (char*) malloc(size);
 
-//    char *screen = (char*) calloc(1000, sizeof(char));
-//    if(screen == NULL) return false;
+        header = (struct vchar64d_proto_header*) data;
+        payload = (struct vchar64d_proto_set_mem*) (data + sizeof(*header));
+        auto chars = payload->data;
 
-//    int size = file.read(screen, 1000);
-//    file.close();
+        header->type = TYPE_SET_MEM;
+        payload->addr = qToLittleEndian(SCREEN_MEMORY);
+        payload->count = qToLittleEndian(CHARS_TO_COPY);
 
-//    xlink_load(0x37, 0x00, 0x0400, (uchar*) screen, size);
+        memset(chars, 0x28, 400);
 
-//    free(screen);
 
-        return true;
+        sendOrQueueData(data, size);
+
+        _prevTileProperties = currentTileProperties;
+    }
 }
 
 void ServerPreview::fileLoaded()
@@ -273,6 +288,7 @@ void ServerPreview::fileLoaded()
 
     updateCharset();
     updateColorProperties();
+    updateTiles();
 }
 
 void ServerPreview::byteUpdated(int byteIndex)
@@ -443,7 +459,7 @@ void ServerPreview::protoSetByte(quint16 addr, quint8 value)
 
     struct _data* data = (struct _data*) malloc(sizeof(*data));
 
-    data->header.type = TYPE_SET_BYTE;
+    data->header.type = TYPE_SET_BYTE_FOR_CHAR;
     data->payload.idx = qToLittleEndian(addr);
     data->payload.byte = value;
     sendOrQueueData((char*)data, sizeof(*data));

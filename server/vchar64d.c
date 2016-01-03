@@ -213,6 +213,13 @@ uint16_t proto_fill(struct vchar64d_proto_fill* data)
     return sizeof(*data);
 }
 
+uint16_t proto_set_mem(struct vchar64d_proto_set_mem* data)
+{
+    memcpy((void*)data->addr, data->data, data->count);
+    // don't include the pointer
+    return sizeof(*data) + data->count - sizeof(data->data);
+}
+
 uint16_t proto_set_byte(struct vchar64d_proto_set_byte* data)
 {
     // data->idx: is already in little endian
@@ -279,10 +286,8 @@ static void newdata(void)
         payload = &((uint8_t*)uip_appdata)[++count];
 
         switch (header->type) {
-            case TYPE_HELLO:
-                count += proto_hello(payload);
-                break;
-            case TYPE_SET_BYTE:
+                // charset related
+            case TYPE_SET_BYTE_FOR_CHAR:
                 count += proto_set_byte(payload);
                 break;
             case TYPE_SET_CHAR:
@@ -291,11 +296,18 @@ static void newdata(void)
             case TYPE_SET_CHARS:
                 count += proto_set_chars(payload);
                 break;
+                // generic
+            case TYPE_HELLO:
+                count += proto_hello(payload);
+                break;
             case TYPE_POKE:
                 count += proto_poke(payload);
                 break;
             case TYPE_FILL:
                 count += proto_fill(payload);
+                break;
+            case TYPE_SET_MEM:
+                count += proto_set_mem(payload);
                 break;
             case TYPE_PING:
                 count += proto_ping(payload);

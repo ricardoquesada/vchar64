@@ -36,10 +36,14 @@ struct vchar64d_proto_header
 };
 enum {
     TYPE_HELLO,
-    TYPE_SET_BYTE,
+
+    // FIXME: char related: could be replaced
+    // with TYPE_POKE and TYPE_SET_MEM
+    TYPE_SET_BYTE_FOR_CHAR,
     TYPE_SET_CHAR,
     TYPE_SET_CHARS,
-    TYPE_SET_COLORS,
+
+    TYPE_SET_MEM,
     TYPE_POKE,
     TYPE_FILL,
     TYPE_PING,
@@ -51,6 +55,13 @@ struct vchar64d_proto_poke
 {
     uint16_t addr;
     uint8_t value;
+};
+
+struct vchar64d_proto_set_mem
+{
+    uint16_t addr;
+    uint16_t count;
+    uint8_t* data;
 };
 
 struct vchar64d_proto_fill
@@ -79,7 +90,7 @@ struct vchar64d_proto_set_chars
 {
     uint8_t idx;
     uint8_t count;
-    uint8_t *charsdata;
+    uint8_t* charsdata;
 };
 
 // a synced ping

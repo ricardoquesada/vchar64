@@ -19,6 +19,8 @@ limitations under the License.
 #include <QObject>
 #include <QVector>
 
+#include "state.h"
+
 QT_BEGIN_NAMESPACE
 class QTcpSocket;
 QT_END_NAMESPACE
@@ -89,7 +91,7 @@ protected:
     void updateMulticolor2();
     void updateColorMode();
     void updateCharset();
-    bool updateScreen(const QString &filename);
+    void updateTiles();
     void updateColorProperties();
 
     class ServerCommand
@@ -108,6 +110,8 @@ protected:
     int _bytesSent;
     bool _alreadyQueued;
     bool _readOnlyQueue;
+    State::TileProperties _prevTileProperties;
+
     QVector<ServerCommand*> _commands;
     QVector<ServerCommand*> _tmpCommands;
 };
