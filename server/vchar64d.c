@@ -104,17 +104,23 @@ static void init_vic()
     // clear screen
     memset(SCREEN, 0x20, 40*25);
 
-    // paint 256 chars
+    // chars
     i = 0;
     for (j=0; j<8; ++j)
     {
         for (k=0; k<32; ++k)
         {
             outb(&SCREEN[j*40+k], i);
-            outb(&SCREEN[40*12+j*40+k], i);
             ++i;
         }
     }
+
+    // tiles
+    for (i=0; i<255; ++i)
+    {
+        outb(&SCREEN[40*12+i],i);
+    }
+    outb(&SCREEN[255],255);
 
     // VIC Bank 2: $8000 - $bfff
     old = inb (&CIA2.pra);
