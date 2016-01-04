@@ -3,8 +3,8 @@
 ## Install 3rd party tools
 
 * Download and install [cc65][1] from github
-* Download [Contiki OS](2) from github
-* Download and install [c1541](3) (bundled with VICE)
+* Download [Contiki OS][2] from github
+* Download and install [c1541][3] (bundled with VICE)
 * Setup the following environtment variables:
     * `CONTIKI`: Path to Contiki OS root
     * `CC65_HOME`: Path to cc65 root
@@ -20,7 +20,7 @@ export C1541=~/Applications/VICE/tools/c1541
 
 ### Mac only
 
-* Install `make` from [brew](7), since `make` that comes with Xcode doesn't parse Contiki's makefiles correctly
+* Install `make` from [brew][7], since `make` that comes with Xcode doesn't parse Contiki's makefiles correctly
 
 ```brew install make```
 
@@ -35,13 +35,13 @@ export C1541=~/Applications/VICE/tools/c1541
 
 ## Testing the server
 
-### Real hardware requirements
+### Hardware requirements
 
-* Install an [RR-NET](4) or [compatible](5) card in your c64 or c128, and load and run the server
+* Install an [RR-NET][4] or [compatible][5] card in your c64 or c128, and load and run the server
 
 ### Emulator requirements
 
-* Compile VICE with `--enable-ethernet` or download a [nightly build](6) which already has ethernet support
+* Compile VICE with `--enable-ethernet` or download a [nightly build][6] which already has ethernet support
 * Windows only: Install WinPCAP
 * Mac & Linux only: Run `x64` / `x128` as root
 
@@ -50,8 +50,18 @@ eg:
 $ sudo x64 vchar64d-c64.d64
 ```
 
+### What's inside the .d64 / .d71 images
 
+* `vchar64-server`: the server
+* `ipconfig`: the DHCP client, needed in order to setup the IP address. Only run it once.
+* `contiki.cfg`: Configuration file that stores the IP address.
 
+### Running the server
+
+```
+LOAD"VCHAR64-SERVER",8,1
+RUN
+```
 
 [1]: https://github.com/cc65/cc65
 [2]: https://github.com/contiki-os/contiki
