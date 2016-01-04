@@ -258,7 +258,8 @@ void ServerPreview::updateTiles()
 
         int max_tiles = 256 / (tw*th);
 
-        int columns = (40 / currentTileProperties.size.width()) * currentTileProperties.size.width();
+        // 32 columns
+        int columns = (32 / currentTileProperties.size.width()) * currentTileProperties.size.width();
 
 
         for (int i=0; i<max_tiles;i++)

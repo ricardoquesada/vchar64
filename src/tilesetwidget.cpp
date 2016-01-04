@@ -354,7 +354,7 @@ void TilesetWidget::paintPixel(QPainter &painter, int w, int h, quint8* charPtr)
         {
             // Warning: Don't use 'char'. Instead use 'unsigned char'.
             // 'char' doesn't work Ok with << and >>
-            // only mask the bits are needed
+            // only mask the needed bits
             unsigned char mask = bits_to_mask << (((end_x-1)-x) * increment_x);
 
             unsigned char color = letter & mask;
