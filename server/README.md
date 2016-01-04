@@ -61,7 +61,7 @@ $ sudo x64 vchar64d-c64.d64
 * `vchar64-server`: the server
 * `ethconfig`: to setupt the ethernet driver. Not needed if you are already have an RR-Net card
 * `ipconfig`: the DHCP client, needed in order to setup the IP address. Only run it once.
-* `contiki.cfg`: Configuration file that stores the IP address.
+* `contiki.cfg`: Configuration file that stores the IP address and the ethernet driver to be used
 * `cs8900a.eth`: TFE / RR-Net driver
 * `lan91c96.eth`: ETH64 driver
 
