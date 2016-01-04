@@ -2,9 +2,9 @@
 
 ## Install 3rd party tools
 
-* Download and install [cc65][1] from github
-* Download [Contiki OS][2] from github
-* Download and install [c1541][3] (bundled with VICE)
+* Download and install [cc65][1] from github (C compiler for 6502) 
+* Download [Contiki OS][2] from github (TCP/IP stack plus other utilities) 
+* Download and install [c1541][3] bundled with VICE (needed to create the .d64 and .d71 images)
 * Setup the following environtment variables:
     * `CONTIKI`: Path to Contiki OS root
     * `CC65_HOME`: Path to cc65 root
@@ -20,7 +20,7 @@ export C1541=~/Applications/VICE/tools/c1541
 
 ### Mac only
 
-* Install `make` from [brew][7], since `make` that comes with Xcode doesn't parse Contiki's makefiles correctly
+* Install `make` from [brew][7], since the `make` that comes with Xcode doesn't parse Contiki's makefiles correctly
 
 ```brew install make```
 
@@ -29,7 +29,7 @@ export C1541=~/Applications/VICE/tools/c1541
 
 ## Compiling the server
 
-Once all the needed 3rd party tools were installed and setup, just do:
+Once all the needed 3rd party tools were installed and setup correctly, just do:
 
 * `make c64`: to generate a `.d64` file for the c64
 * `make c128`: to generate a `.d71` file for the c128
@@ -49,7 +49,9 @@ Once all the needed 3rd party tools were installed and setup, just do:
 * Windows only: Install [WinPCAP][8]
 * Mac & Linux only: Run `x64` / `x128` as root
 
-eg:
+And in case you are lost, here is a [tutorial][11]
+
+Example:
 ```
 $ sudo x64 vchar64d-c64.d64
 ```
@@ -98,3 +100,4 @@ There is no need to run steps 1) and 2) again once you have setup the ethernet c
 [8]: http://www.winpcap.org/
 [9]: http://www.ide64.org/eth64.html
 [10]: http://dunkels.com/adam/tfe/
+[11]: https://www.commodoreserver.com/BlogEntryView.asp?EID=CDB68A9028654CCEA758D37C6DB3E05B
