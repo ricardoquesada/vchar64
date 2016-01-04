@@ -33,7 +33,7 @@ export C1541=~/Applications/VICE/tools/c1541
 * `make c128`: will generate a `.d71` file for the c128
 
 
-## Testing the server
+## Running the server
 
 ### Hardware requirements
 
@@ -59,7 +59,7 @@ $ sudo x64 vchar64d-c64.d64
 * `cs8900a.eth`: TFE / RR-Net driver (?)
 * `lan91c96.eth`: ETH64 driver (?)
 
-### Running the server
+### Running the server and its utilities
 
 1) Setup the Ethernet card with `ethconfig` (not needed if your card is RR-Net):
 
