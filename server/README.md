@@ -42,7 +42,7 @@ export C1541=~/Applications/VICE/tools/c1541
 ### Emulator requirements
 
 * Compile VICE with `--enable-ethernet` or download a [nightly build][6] which already has ethernet support
-* Windows only: Install WinPCAP
+* Windows only: Install [WinPCAP][8]
 * Mac & Linux only: Run `x64` / `x128` as root
 
 eg:
@@ -57,25 +57,25 @@ $ sudo x64 vchar64d-c64.d64
 * `ipconfig`: the DHCP client, needed in order to setup the IP address. Only run it once.
 * `contiki.cfg`: Configuration file that stores the IP address.
 * `cs8900a.eth`: TFE / RR-Net driver (?)
-* `lan91c96.eth: ETH64 driver (?)
+* `lan91c96.eth`: ETH64 driver (?)
 
 ### Running the server
 
-1. Setup the Ethernet card with `ethconfig` (not needed if your card is RR-Net):
+1) Setup the Ethernet card with `ethconfig` (not needed if your card is RR-Net):
 
 ```
 LOAD"ETHCONFIG",8,1
 RUN
 ```
 
-2. Setup the IP address with `ipconfig`:
+2) Setup the IP address with `ipconfig`:
 
 ```
 LOAD"IPCONFIG",8,1
 RUN
 ```
 
-3. Run the server
+3) Run the server
 
 ```
 LOAD"VCHAR64-SERVER",8,1
@@ -91,3 +91,4 @@ There is no need to run steps 1) and 2) again once you have setup the ethernet c
 [5]: http://www.go4retro.com/products/64nic/
 [6]: http://vice.pokefinder.org/
 [7]: http://brew.sh/
+[8]: http://www.winpcap.org/
