@@ -110,17 +110,14 @@ static void init_vic()
     {
         for (k=0; k<32; ++k)
         {
+            // charset at the top
             outb(&SCREEN[j*40+k], i);
+
+            // tileset at the middle
+            outb(&SCREEN[40*12+j*40+k], i);
             ++i;
         }
     }
-
-    // tiles
-    for (i=0; i<255; ++i)
-    {
-        outb(&SCREEN[40*12+i],i);
-    }
-    outb(&SCREEN[255],255);
 
     // VIC Bank 2: $8000 - $bfff
     old = inb (&CIA2.pra);

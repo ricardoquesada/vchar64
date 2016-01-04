@@ -231,7 +231,7 @@ void ServerPreview::updateTiles()
         struct vchar64d_proto_header* header;
         struct vchar64d_proto_set_mem* payload;
 
-        static const quint16 CHARS_TO_COPY = 256;
+        static const quint16 CHARS_TO_COPY = 40 * 10;
 
         // FIXME: Fragile. Both in the c64 and c128 the screen memory
         // was remapped to a400, but the best way to do it,
