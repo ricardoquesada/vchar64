@@ -13,9 +13,9 @@
 Example:
 
 ```
-export CONTIKI=~/src/c64/contiki
+export CONTIKI=~/src/contiki
 export CC65_HOME=~/src/cc65
-export C1541=~/Applications/VICE/tools/c1541
+export C1541=~/bin/VICE/tools/c1541
 ```
 
 ### Mac only
