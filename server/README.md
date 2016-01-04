@@ -39,7 +39,9 @@ Once all the needed 3rd party tools were installed and setup, just do:
 
 ### Hardware requirements
 
-* Install an [RR-Net][4] (or [compatible][5]) or an TFE or an ETH64 card in your c64 or c128, and load and run the server
+* A [RR-Net][4] (or [compatible][5]) ethernet card
+* or a [TFE][10] ethernet card
+* or an [ETH64][9] ethernet card
 
 ### Emulator requirements
 
@@ -58,8 +60,8 @@ $ sudo x64 vchar64d-c64.d64
 * `ethconfig`: to setupt the ethernet driver. Not needed if you are already have an RR-Net card
 * `ipconfig`: the DHCP client, needed in order to setup the IP address. Only run it once.
 * `contiki.cfg`: Configuration file that stores the IP address.
-* `cs8900a.eth`: TFE / RR-Net driver (?)
-* `lan91c96.eth`: ETH64 driver (?)
+* `cs8900a.eth`: TFE / RR-Net driver
+* `lan91c96.eth`: ETH64 driver
 
 ### Running the server and its utilities
 
@@ -94,3 +96,5 @@ There is no need to run steps 1) and 2) again once you have setup the ethernet c
 [6]: http://vice.pokefinder.org/
 [7]: http://brew.sh/
 [8]: http://www.winpcap.org/
+[9]: http://www.ide64.org/eth64.html
+[10]: http://dunkels.com/adam/tfe/
