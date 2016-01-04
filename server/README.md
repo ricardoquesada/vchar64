@@ -37,7 +37,7 @@ export C1541=~/Applications/VICE/tools/c1541
 
 ### Hardware requirements
 
-* Install an [RR-NET][4] or [compatible][5] card in your c64 or c128, and load and run the server
+* Install an [RR-Net][4] (or [compatible][5]) or an TFE or an ETH64 card in your c64 or c128, and load and run the server
 
 ### Emulator requirements
 
@@ -53,15 +53,36 @@ $ sudo x64 vchar64d-c64.d64
 ### What's inside the .d64 / .d71 images
 
 * `vchar64-server`: the server
+* `ethconfig`: to setupt the ethernet driver. Not needed if you are already have an RR-Net card
 * `ipconfig`: the DHCP client, needed in order to setup the IP address. Only run it once.
 * `contiki.cfg`: Configuration file that stores the IP address.
+* `cs8900a.eth`: TFE / RR-Net driver (?)
+* `lan91c96.eth: ETH64 driver (?)
 
 ### Running the server
+
+1. Setup the Ethernet card with `ethconfig` (not needed if your card is RR-Net):
+
+```
+LOAD"ETHCONFIG",8,1
+RUN
+```
+
+2. Setup the IP address with `ipconfig`:
+
+```
+LOAD"IPCONFIG",8,1
+RUN
+```
+
+3. Run the server
 
 ```
 LOAD"VCHAR64-SERVER",8,1
 RUN
 ```
+There is no need to run steps 1) and 2) again once you have setup the ethernet card and IP address.
+
 
 [1]: https://github.com/cc65/cc65
 [2]: https://github.com/contiki-os/contiki
