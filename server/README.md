@@ -2,7 +2,7 @@
 
 ## Install 3rd party tools
 
-* Download and install [cc65](1) from github
+* Download and install [cc65][1] from github
 * Download [Contiki OS](2) from github
 * Download and install [c1541](3) (bundled with VICE)
 * Setup the following environtment variables:
