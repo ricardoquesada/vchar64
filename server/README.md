@@ -27,10 +27,12 @@ export C1541=~/Applications/VICE/tools/c1541
 * Use `gmake` instead of `make`
 
 
-## Compilation options
+## Compiling the server
 
-* `make c64`: will generate a `.d64` file for the c64
-* `make c128`: will generate a `.d71` file for the c128
+Once all the needed 3rd party tools were installed and setup, just do:
+
+* `make c64`: to generate a `.d64` file for the c64
+* `make c128`: to generate a `.d71` file for the c128
 
 
 ## Running the server
