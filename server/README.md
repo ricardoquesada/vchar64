@@ -29,8 +29,8 @@ export C1541=~/Applications/VICE/tools/c1541
 
 ## Compilation options
 
-`make c64`: will generate a `.d64` file for the c64
-`make c128`: will generate a `.d71` file for the c128
+* `make c64`: will generate a `.d64` file for the c64
+* `make c128`: will generate a `.d71` file for the c128
 
 
 ## Testing the server
