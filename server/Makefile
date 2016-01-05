@@ -34,10 +34,10 @@ vchar64d-c64.d64: c64-makes
 
 $(eval $(call makes,c128))
 
-c128: vchar64d-c128.d71
+c128: vchar64d-c128.d64
 
-vchar64d-c128.d71: c128-makes
-	$(C1541) -format contiki-1,00 d71 $@
+vchar64d-c128.d64: c128-makes
+	$(C1541) -format contiki-1,00 d64 $@
 	$(C1541) -attach $@ -write vchar64d.c128 				        vchar64-server,p
 	$(C1541) -attach $@ -write $(CONTIKI)/cpu/6502/ethconfig/ethconfig.c128     	ethconfig,p
 	$(C1541) -attach $@ -write $(CONTIKI)/cpu/6502/ipconfig/ipconfig.c128         	ipconfig,p
