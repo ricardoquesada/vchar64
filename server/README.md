@@ -56,6 +56,9 @@ Example:
 $ sudo x64 vchar64d-c64.d64
 ```
 
+**IMPORTANT**: Don't run the client and the server (by using VICE) in the same machine since most probably they won't see each other.
+VICE uses PCAP to "listen to" incoming packets, but it won't see packets that are emitted by that same machine.
+
 ### What's inside the .d64 / .d71 images
 
 * `vchar64-server`: the server
