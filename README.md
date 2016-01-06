@@ -27,8 +27,8 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 * Exports to Raw and Prg
 * Emulates different palettes: VICE, Pepto, Frodo, etc...
 * Two Live Preview modes:
-    * [TCP/IP server](https://github.com/ricardoquesada/vchar64/blob/master/server/README.md)
-    * [xlink](http://henning-bekel.de/xlink/) support. Video showing xlink in action: https://www.youtube.com/watch?v=ZaSR_mxRfmo
+    * [TCP/IP server](https://github.com/ricardoquesada/vchar64/blob/master/server/README.md) support. Video: https://www.youtube.com/watch?v=yNCK_wZbo40
+    * [xlink](http://henning-bekel.de/xlink/) support. Video: https://www.youtube.com/watch?v=ZaSR_mxRfmo
 
 ## Roadmap
 
