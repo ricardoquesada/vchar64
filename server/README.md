@@ -1,5 +1,7 @@
 # How to compile the server
 
+![VChar64 client and server](https://lh3.googleusercontent.com/-cZJk3bEjVTE/VoxwitEGf4I/AAAAAAABc3I/HeFkTAKQra8/s640-Ic42/IMG_3489.JPG)
+
 ## Install 3rd party tools
 
 * Download and install [cc65][1] from github (C compiler for 6502) 
