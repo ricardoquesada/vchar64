@@ -26,7 +26,9 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 * Imports CharPad 1.8 and 2.0 projects
 * Exports to Raw and Prg
 * Emulates different palettes: VICE, Pepto, Frodo, etc...
-* [xlink](http://henning-bekel.de/xlink/) support. Video showing xlink in action: https://www.youtube.com/watch?v=ZaSR_mxRfmo
+* Two Live Preview modes:
+    * [TCP/IP server](https://github.com/ricardoquesada/vchar64/blob/master/server/README.md)
+    * [xlink](http://henning-bekel.de/xlink/) support. Video showing xlink in action: https://www.youtube.com/watch?v=ZaSR_mxRfmo
 
 ## Roadmap
 
