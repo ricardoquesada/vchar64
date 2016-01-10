@@ -34,6 +34,7 @@ ImportKoalaWidget::ImportKoalaWidget(QWidget *parent)
     : QWidget(parent)
 {
     memset(_framebuffer, 0, sizeof(_framebuffer));
+    memset(_colorsUsed, 0, sizeof(_colorsUsed));
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
                  PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 }
@@ -94,7 +95,9 @@ void ImportKoalaWidget::findUniqueChars()
             {
                 for (int j=0; j<4; ++j)
                 {
-                    key[i*4+j] = hex[_framebuffer[(y * 8 + i) * 160 + (x * 4 + j)]];
+                    auto colorIndex = _framebuffer[(y * 8 + i) * 160 + (x * 4 + j)];
+                    key[i*4+j] = hex[colorIndex];
+                    _colorsUsed[colorIndex]++;
                 }
             }
             std::string skey(key);
@@ -112,6 +115,10 @@ void ImportKoalaWidget::findUniqueChars()
     }
 
     qDebug() << "Total unique chars: " << _uniqueChars.size();
+    for (int i=0; i<16; i++)
+    {
+        qDebug() << "Color: " << i << " = " << _colorsUsed[i];
+    }
 }
 
 void ImportKoalaWidget::toFrameBuffer()

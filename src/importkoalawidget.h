@@ -56,6 +56,7 @@ protected:
     int _offsetY;
 
     std::unordered_map<std::string, int> _uniqueChars;
+    int _colorsUsed[16];
 
 #pragma pack(pop)
 };
