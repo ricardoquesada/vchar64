@@ -17,7 +17,7 @@ win32 {
     DESTDIR = ../bin
 }
 TEMPLATE = app
-VERSION = 0.0.10
+VERSION = 0.0.11
 GIT_VERSION = $$system(git describe --abbrev=4 --dirty --always --tags)
 DEFINES += GIT_VERSION=\\\"$$GIT_VERSION\\\"
 
@@ -46,7 +46,9 @@ SOURCES += main.cpp\
     importcharsetwidget.cpp \
     fileutils.cpp \
     serverpreview.cpp \
-    serverconnectdialog.cpp
+    serverconnectdialog.cpp \
+    importkoaladialog.cpp \
+    importkoalawidget.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -69,14 +71,17 @@ HEADERS  += mainwindow.h \
     fileutils.h \
     serverpreview.h \
     serverconnectdialog.h \
-    serverprotocol.h
+    serverprotocol.h \
+    importkoaladialog.h \
+    importkoalawidget.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \
     exportdialog.ui \
     tilepropertiesdialog.ui \
     importvicedialog.ui \
-    serverconnectdialog.ui
+    serverconnectdialog.ui \
+    importkoaladialog.ui
 
 INCLUDEPATH += src
 

@@ -164,6 +164,8 @@ private slots:
     void on_actionXlinkConnection_triggered();
     void on_actionServerConnection_triggered();
 
+    void on_actionImport_Koala_image_triggered();
+
 private:
     QVector<QAction*> _recentFiles;
 

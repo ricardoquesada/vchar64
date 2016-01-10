@@ -44,6 +44,7 @@ limitations under the License.
 #include "commands.h"
 #include "palette.h"
 #include "importvicedialog.h"
+#include "importkoaladialog.h"
 #include "fileutils.h"
 #include "serverconnectdialog.h"
 #include "serverpreview.h"
@@ -738,6 +739,17 @@ void MainWindow::on_actionImport_VICE_snapshot_triggered()
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(dialog.getFilepath());
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(QFileInfo(dialog.getFilepath()).baseName());
         setWindowFilePath(dialog.getFilepath());
+    }
+}
+
+void MainWindow::on_actionImport_Koala_image_triggered()
+{
+    ImportKoalaDialog dialog(this);
+    if (dialog.exec())
+    {
+//        _ui->mdiArea->currentSubWindow()->setWindowFilePath(dialog.getFilepath());
+//        _ui->mdiArea->currentSubWindow()->setWindowFilePath(QFileInfo(dialog.getFilepath()).baseName());
+//        setWindowFilePath(dialog.getFilepath());
     }
 }
 
