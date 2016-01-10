@@ -16,6 +16,8 @@ limitations under the License.
 
 #pragma once
 
+#include <unordered_map>
+
 #include <QWidget>
 #include "state.h"
 
@@ -31,6 +33,7 @@ protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
 
     void toFrameBuffer();
+    void findUniqueChars();
 
 #pragma pack(push)
 #pragma pack(1)
@@ -51,6 +54,8 @@ protected:
     // Offset in bit for converting
     int _offsetX;
     int _offsetY;
+
+    std::unordered_map<std::string, int> _uniqueChars;
 
 #pragma pack(pop)
 };

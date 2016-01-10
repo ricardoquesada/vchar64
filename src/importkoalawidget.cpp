@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "ImportKoalaWidget.h"
+#include "importkoalawidget.h"
 
 #include <QPainter>
 #include <QPaintEvent>
@@ -75,6 +75,43 @@ void ImportKoalaWidget::loadKoala(const QString& koalaFilepath)
     file.read((char*)&_koala, sizeof(_koala));
 
     toFrameBuffer();
+    findUniqueChars();
+}
+
+void ImportKoalaWidget::findUniqueChars()
+{
+    static const char hex[] = "01234567890ABCDEF";
+
+    for (int y=0; y<25; ++y)
+    {
+        for (int x=0; x<40; ++x)
+        {
+            // 8 * 4
+            char key[33];
+            key[32] = 0;
+
+            for (int i=0; i<8; ++i)
+            {
+                for (int j=0; j<4; ++j)
+                {
+                    key[i*4+j] = hex[_framebuffer[(y * 8 + i) * 160 + (x * 4 + j)]];
+                }
+            }
+            std::string skey(key);
+            qDebug() << "Adding key: " << key;
+
+            if (_uniqueChars.find(skey) == _uniqueChars.end())
+            {
+                _uniqueChars[skey] = 1;
+            }
+            else
+            {
+                _uniqueChars[skey]++;
+            }
+        }
+    }
+
+    qDebug() << "Total unique chars: " << _uniqueChars.size();
 }
 
 void ImportKoalaWidget::toFrameBuffer()
@@ -86,18 +123,18 @@ void ImportKoalaWidget::toFrameBuffer()
         for (int x=0; x<COLUMNS; ++x)
         {
             // 8 pixels Y
-            for (int j=0; j<8; ++j)
+            for (int i=0; i<8; ++i)
             {
-                quint8 byte = _koala.bitmap[(y * COLUMNS + x) * 8 + j];
+                quint8 byte = _koala.bitmap[(y * COLUMNS + x) * 8 + i];
 
                 const quint8 masks[] = {192, 48, 12, 3};
                 // 4 wide-pixels X
-                for (int k=0; k<4; ++k)
+                for (int j=0; j<4; ++j)
                 {
                     quint8 colorIndex = 0;
                     // get the two bits that reprent the color
-                    quint8 color = byte & masks[k];
-                    color >>= 6-k*2;
+                    quint8 color = byte & masks[j];
+                    color >>= 6-j*2;
 
                     switch (color)
                     {
@@ -125,7 +162,7 @@ void ImportKoalaWidget::toFrameBuffer()
                         break;
                     }
 
-                    _framebuffer[(y * 8 + j) * 160 + (x * 4 + k)] = colorIndex;
+                    _framebuffer[(y * 8 + i) * 160 + (x * 4 + j)] = colorIndex;
                 }
             }
         }
