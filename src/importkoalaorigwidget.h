@@ -25,6 +25,7 @@ class ImportKoalaOrigWidget : public QWidget
 {
     Q_OBJECT
 
+    friend class ImportKoalaDialog;
 public:
     ImportKoalaOrigWidget(QWidget *parent=nullptr);
     void loadKoala(const QString &koalaFilepath);
@@ -60,8 +61,14 @@ protected:
     int _offsetX;
     int _offsetY;
 
-    std::unordered_map<std::string, int> _uniqueChars;
+    // key: color sequence
+    // data: positions in screen ram
+    std::unordered_map<std::string, std::vector<std::pair<int,int>>> _uniqueChars;
+
+    // first: count, second: color index
     std::vector<std::pair<int,int>> _colorsUsed;
-    std::vector<int> _d02xColors;  // colors to be used for d021, d022 and d023
+
+    // colors to be used for d021, d022 and d023
+    quint8 _d02xColors[3];
 };
 

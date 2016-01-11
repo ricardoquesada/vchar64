@@ -46,6 +46,25 @@ ImportKoalaConvWidget::ImportKoalaConvWidget(QWidget *parent)
     _d02x[2] = 2;
 }
 
+void ImportKoalaConvWidget::populateScreenAndColorRAM(const std::vector<std::pair<int,int>>& coords, quint8 screenRAM, quint8 colorRAM)
+{
+    for (const auto& pair: coords)
+    {
+        int x = pair.first;
+        int y = pair.second;
+        _screenRAM[y * 40 + x] = screenRAM;
+        _colorRAM[y * 40 + x] = colorRAM;
+    }
+}
+
+void ImportKoalaConvWidget::setCharset(int charIndex, quint8* chardef)
+{
+    for (int i=0; i<8; i++)
+    {
+        _charset[charIndex*8+i] = chardef[i];
+    }
+}
+
 //
 // Overriden
 //
@@ -114,7 +133,3 @@ void ImportKoalaConvWidget::paintEvent(QPaintEvent *event)
     }
     painter.end();
 }
-
-//
-// public
-//

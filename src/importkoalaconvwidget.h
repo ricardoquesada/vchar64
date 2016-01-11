@@ -22,10 +22,15 @@ limitations under the License.
 class ImportKoalaConvWidget : public QWidget
 {
     Q_OBJECT
+
+    friend class ImportKoalaDialog;
+
 public:
     explicit ImportKoalaConvWidget(QWidget *parent = 0);
 
     void paintEvent(QPaintEvent *event);
+    void populateScreenAndColorRAM(const std::vector<std::pair<int,int>>& coords, quint8 screenRAM, quint8 colorRAM);
+    void setCharset(int charIndex, quint8* chardef);
 
 signals:
 

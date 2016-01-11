@@ -34,7 +34,8 @@ public:
 
 protected:
     bool validateKoalaFile(const QString& filepath);
-    void updateWidgets();
+    bool processChardef(const std::string& key, quint8 *outKey, quint8* outColorRAM);
+
 
 private slots:
     void on_pushButton_clicked();
@@ -42,6 +43,7 @@ private slots:
     void on_pushButtonConvert_clicked();
 
 private:
+
     Ui::ImportKoalaDialog *ui;
     bool _validKoalaFile;
     QString _filepath;

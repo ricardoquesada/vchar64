@@ -77,8 +77,9 @@ void ImportKoalaOrigWidget::loadKoala(const QString& koalaFilepath)
     for (int i=0; i<16; i++)
         _colorsUsed.push_back(std::make_pair(0,i));
     _uniqueChars.clear();
-    _d02xColors.clear();
-    _d02xColors.reserve(3);
+
+    for (int i=0; i<3; i++)
+    _d02xColors[i] = -1;
 
 
     QFile file(koalaFilepath);
@@ -114,11 +115,13 @@ void ImportKoalaOrigWidget::findUniqueChars()
 
             if (_uniqueChars.find(skey) == _uniqueChars.end())
             {
-                _uniqueChars[skey] = 1;
+                std::vector<std::pair<int,int>> v;
+                v.push_back(std::make_pair(x,y));
+                _uniqueChars[skey] = v;
             }
             else
             {
-                _uniqueChars[skey]++;
+                _uniqueChars[skey].push_back(std::make_pair(x,y));
             }
         }
     }
@@ -133,14 +136,6 @@ void ImportKoalaOrigWidget::findUniqueChars()
     {
         qDebug() << "Color: " << _colorsUsed[i].second << " = " << _colorsUsed[i].first;
     }
-
-    strategyHiColorsUseFixedColors();
-    reportResults();
-
-    _d02xColors.clear();
-
-    strategyMostUsedColorsUseFixedColors();
-    reportResults();
 }
 
 void ImportKoalaOrigWidget::toFrameBuffer()
@@ -237,12 +232,14 @@ void ImportKoalaOrigWidget::reportResults()
 
         if (keyIsValid)
         {
-            validChars += it->second;
+            // it->second is the vector<pair<int,int>>
+            validChars += it->second.size();
             validUniqueChars++;
         }
         else
         {
-            invalidChars += it->second;
+            // it->second is the vector<pair<int,int>>
+            invalidChars += it->second.size();
             invalidUniqueChars++;
         }
     }
@@ -263,8 +260,8 @@ void ImportKoalaOrigWidget::strategyHiColorsUseFixedColors()
     for (auto& color: _colorsUsed)
     {
         if (color.second >= 8 && color.first > 0) {
-            _d02xColors.push_back(color.second);
-            if (++found == 3)
+            _d02xColors[found++] = color.second;
+            if (found == 3)
                 break;
         }
     }
@@ -275,8 +272,7 @@ void ImportKoalaOrigWidget::strategyHiColorsUseFixedColors()
     {
         if (_colorsUsed[j].second < 8 && _colorsUsed[j].first > 0)
         {
-            _d02xColors.push_back(_colorsUsed[j].second);
-            found++;
+            _d02xColors[found++] = _colorsUsed[j].second;
         }
     }
 }
@@ -285,5 +281,5 @@ void ImportKoalaOrigWidget::strategyMostUsedColorsUseFixedColors()
 {
     // three most used colors are the ones to be used for d021, d022 and d023
     for (int i=0; i<3; ++i)
-        _d02xColors.push_back(_colorsUsed[i].second);
+        _d02xColors[i] = _colorsUsed[i].second;
 }
