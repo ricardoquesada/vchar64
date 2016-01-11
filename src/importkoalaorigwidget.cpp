@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2016 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -156,7 +156,7 @@ void ImportKoalaOrigWidget::toFrameBuffer()
             {
                 quint8 byte = _koala.bitmap[(y * COLUMNS + x) * 8 + i];
 
-                const quint8 masks[] = {192, 48, 12, 3};
+                static const quint8 masks[] = {192, 48, 12, 3};
                 // 4 wide-pixels X
                 for (int j=0; j<4; ++j)
                 {
