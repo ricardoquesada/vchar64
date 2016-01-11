@@ -39,6 +39,8 @@ protected:
 private slots:
     void on_pushButton_clicked();
 
+    void on_pushButtonConvert_clicked();
+
 private:
     Ui::ImportKoalaDialog *ui;
     bool _validKoalaFile;

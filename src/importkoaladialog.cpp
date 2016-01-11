@@ -71,8 +71,13 @@ bool ImportKoalaDialog::validateKoalaFile(const QString& filepath)
 
     if (info.exists() && info.isFile() && (info.size() == 10003 || info.size() == 10002))
     {
-        ui->widget->loadKoala(filepath);
+        ui->widgetKoala->loadKoala(filepath);
         return true;
     }
     return false;
+}
+
+void ImportKoalaDialog::on_pushButtonConvert_clicked()
+{
+
 }

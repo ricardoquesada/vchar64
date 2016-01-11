@@ -48,7 +48,8 @@ SOURCES += main.cpp\
     serverpreview.cpp \
     serverconnectdialog.cpp \
     importkoaladialog.cpp \
-    importkoalawidget.cpp
+    importkoalaorigwidget.cpp \
+    importkoalaconvwidget.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -73,7 +74,8 @@ HEADERS  += mainwindow.h \
     serverconnectdialog.h \
     serverprotocol.h \
     importkoaladialog.h \
-    importkoalawidget.h
+    importkoalaconvwidget.h \
+    importkoalaorigwidget.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \

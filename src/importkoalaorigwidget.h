@@ -21,12 +21,12 @@ limitations under the License.
 #include <QWidget>
 #include "state.h"
 
-class ImportKoalaWidget : public QWidget
+class ImportKoalaOrigWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    ImportKoalaWidget(QWidget *parent=nullptr);
+    ImportKoalaOrigWidget(QWidget *parent=nullptr);
     void loadKoala(const QString &koalaFilepath);
 
 protected:
@@ -34,6 +34,10 @@ protected:
 
     void toFrameBuffer();
     void findUniqueChars();
+
+    void reportResults();
+    void strategyHiColorsUseFixedColors();
+    void strategyMostUsedColorsUseFixedColors();
 
 #pragma pack(push)
 #pragma pack(1)
@@ -45,6 +49,7 @@ protected:
         quint8 colorRAM[40 * 25];
         quint8 backgroundColor;
     } _koala;
+#pragma pack(pop)
 
     // one byte per pixel, although only the
     // 4 LSB will be used. Bits 7-4 are ignored
@@ -56,8 +61,7 @@ protected:
     int _offsetY;
 
     std::unordered_map<std::string, int> _uniqueChars;
-    int _colorsUsed[16];
-
-#pragma pack(pop)
+    std::vector<std::pair<int,int>> _colorsUsed;
+    std::vector<int> _d02xColors;  // colors to be used for d021, d022 and d023
 };
 

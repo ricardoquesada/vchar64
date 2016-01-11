@@ -14,7 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "importkoalawidget.h"
+#include "importkoalaorigwidget.h"
+
+#include <functional>
 
 #include <QPainter>
 #include <QPaintEvent>
@@ -25,16 +27,15 @@ limitations under the License.
 #include "state.h"
 #include "mainwindow.h"
 
-static const int PIXEL_SIZE = 2;
+static const int PIXEL_SIZE = 1;
 static const int COLUMNS = 40;
 static const int ROWS = 25;
 static const int OFFSET = 0;
 
-ImportKoalaWidget::ImportKoalaWidget(QWidget *parent)
+ImportKoalaOrigWidget::ImportKoalaOrigWidget(QWidget *parent)
     : QWidget(parent)
 {
     memset(_framebuffer, 0, sizeof(_framebuffer));
-    memset(_colorsUsed, 0, sizeof(_colorsUsed));
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
                  PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 }
@@ -42,7 +43,7 @@ ImportKoalaWidget::ImportKoalaWidget(QWidget *parent)
 //
 // Overriden
 //
-void ImportKoalaWidget::paintEvent(QPaintEvent *event)
+void ImportKoalaOrigWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
 
@@ -69,8 +70,17 @@ void ImportKoalaWidget::paintEvent(QPaintEvent *event)
 //
 // public
 //
-void ImportKoalaWidget::loadKoala(const QString& koalaFilepath)
+void ImportKoalaOrigWidget::loadKoala(const QString& koalaFilepath)
 {
+    // reset state
+    _colorsUsed.clear();
+    for (int i=0; i<16; i++)
+        _colorsUsed.push_back(std::make_pair(0,i));
+    _uniqueChars.clear();
+    _d02xColors.clear();
+    _d02xColors.reserve(3);
+
+
     QFile file(koalaFilepath);
     file.open(QIODevice::ReadOnly);
     file.read((char*)&_koala, sizeof(_koala));
@@ -79,7 +89,7 @@ void ImportKoalaWidget::loadKoala(const QString& koalaFilepath)
     findUniqueChars();
 }
 
-void ImportKoalaWidget::findUniqueChars()
+void ImportKoalaOrigWidget::findUniqueChars()
 {
     static const char hex[] = "01234567890ABCDEF";
 
@@ -97,11 +107,10 @@ void ImportKoalaWidget::findUniqueChars()
                 {
                     auto colorIndex = _framebuffer[(y * 8 + i) * 160 + (x * 4 + j)];
                     key[i*4+j] = hex[colorIndex];
-                    _colorsUsed[colorIndex]++;
+                    _colorsUsed[colorIndex].first++;
                 }
             }
             std::string skey(key);
-            qDebug() << "Adding key: " << key;
 
             if (_uniqueChars.find(skey) == _uniqueChars.end())
             {
@@ -115,13 +124,26 @@ void ImportKoalaWidget::findUniqueChars()
     }
 
     qDebug() << "Total unique chars: " << _uniqueChars.size();
+
+    // FIXME: descending sort... just pass a "greater" function instead of reversing the result
+    std::sort(std::begin(_colorsUsed), std::end(_colorsUsed));
+    std::reverse(std::begin(_colorsUsed), std::end(_colorsUsed));
+
     for (int i=0; i<16; i++)
     {
-        qDebug() << "Color: " << i << " = " << _colorsUsed[i];
+        qDebug() << "Color: " << _colorsUsed[i].second << " = " << _colorsUsed[i].first;
     }
+
+    strategyHiColorsUseFixedColors();
+    reportResults();
+
+    _d02xColors.clear();
+
+    strategyMostUsedColorsUseFixedColors();
+    reportResults();
 }
 
-void ImportKoalaWidget::toFrameBuffer()
+void ImportKoalaOrigWidget::toFrameBuffer()
 {
     // 25 rows
     for (int y=0; y<ROWS; ++y)
@@ -176,4 +198,92 @@ void ImportKoalaWidget::toFrameBuffer()
     }
 
     update();
+}
+
+void ImportKoalaOrigWidget::reportResults()
+{
+    int validChars = 0;
+    int invalidChars = 0;
+    int validUniqueChars = 0;
+    int invalidUniqueChars = 0;
+
+    for (auto it=_uniqueChars.begin(); it!=_uniqueChars.end(); ++it)
+    {
+        bool keyIsValid = true;
+        auto key = it->first;
+        // key is 4 * 32 bytes long. Each element of
+        // the key, is a pixel
+        for (int i=0; i<(int)key.size(); i++)
+        {
+            // convert Hex to int
+            char c = key[i] - '0';
+            if (c > 9)
+                c -= 7;         // 'A' - '9'
+
+            int color = c;
+
+            // determine whether or not the char can be drawn with current selected colors
+
+            // c in d021/d022/d023?
+            if (std::find(std::begin(_d02xColors), std::end(_d02xColors), color) != std::end(_d02xColors))
+                continue;
+
+            if (c<8)
+            {
+                keyIsValid = false;
+                break;
+            }
+        }
+
+        if (keyIsValid)
+        {
+            validChars += it->second;
+            validUniqueChars++;
+        }
+        else
+        {
+            invalidChars += it->second;
+            invalidUniqueChars++;
+        }
+    }
+
+    qDebug() << "Valid chars: " << validChars << " Valid Unique chars: " << validUniqueChars;
+    qDebug() << "Invalid chars:" << invalidChars << " Invalid Unique chars: " << invalidUniqueChars;
+}
+
+void ImportKoalaOrigWidget::strategyHiColorsUseFixedColors()
+{
+    // three most used colors whose values are >=8 are going to be used for d021, d022 and d023
+    // if can't find 3 colors, list is completed with most used colors whose value is < 8
+
+    // colors are already sorted: use most used colors whose values is >= 8
+    // values < 8 are reserved screen color
+
+    int found = 0;
+    for (auto& color: _colorsUsed)
+    {
+        if (color.second >= 8 && color.first > 0) {
+            _d02xColors.push_back(color.second);
+            if (++found == 3)
+                break;
+        }
+    }
+
+    // make sure that 3 colors where selected.
+    // if not complete the list with most used colors where color < 8
+    for (int j=0,i=0; i<3-found; ++i, ++j)
+    {
+        if (_colorsUsed[j].second < 8 && _colorsUsed[j].first > 0)
+        {
+            _d02xColors.push_back(_colorsUsed[j].second);
+            found++;
+        }
+    }
+}
+
+void ImportKoalaOrigWidget::strategyMostUsedColorsUseFixedColors()
+{
+    // three most used colors are the ones to be used for d021, d022 and d023
+    for (int i=0; i<3; ++i)
+        _d02xColors.push_back(_colorsUsed[i].second);
 }
