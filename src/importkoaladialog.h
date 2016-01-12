@@ -35,10 +35,13 @@ public:
 protected:
     bool validateKoalaFile(const QString& filepath);
     bool processChardef(const std::string& key, quint8 *outKey, quint8* outColorRAM);
-    int pass1(const std::vector<std::pair<int,int>>& usedColors);
-    int pass2(const std::vector<std::pair<int,int>>& usedColors);
-    void simplifyKey(char* key);
-    bool tryChangeKey(int x, int y, char* key, quint8 mask);
+
+    int pass1(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor);
+    int pass2(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor);
+    int findColorRAM(const std::vector<std::pair<int,int>>& usedColors, int *outHiColor);
+
+    void simplifyKey(char* key, int hiColorRAM);
+    bool tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM);
 
 private slots:
     void on_pushButton_clicked();

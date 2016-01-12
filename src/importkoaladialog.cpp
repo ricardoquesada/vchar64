@@ -78,13 +78,13 @@ bool ImportKoalaDialog::validateKoalaFile(const QString& filepath)
     return false;
 }
 
-int ImportKoalaDialog::pass1(const std::vector<std::pair<int,int>>& usedColors)
+int ImportKoalaDialog::pass1(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor)
 {
+    const int conv_colors[] = {-1, -1, -1, -1, -1, -1, -1, -1,
+                               -1, -1, -1, -1, -1,  5,  6, -1};
+
     for (int i=0; i<16; i++)
     {
-        const int conv_colors[] = {-1, -1, -1, -1, -1, -1, -1, -1,
-                                   -1, -1, -1, -1, -1,  5,  6, -1};
-
         auto color = usedColors[i].second;
         if (color != ui->widgetKoala->_d02xColors[0] &&
                 color != ui->widgetKoala->_d02xColors[1] &&
@@ -98,6 +98,7 @@ int ImportKoalaDialog::pass1(const std::vector<std::pair<int,int>>& usedColors)
             {
                 if (conv_colors[color] != -1)
                 {
+                    *outHiColor = color;
                     return conv_colors[color];
                 }
             }
@@ -107,24 +108,40 @@ int ImportKoalaDialog::pass1(const std::vector<std::pair<int,int>>& usedColors)
     return -1;
 }
 
-int ImportKoalaDialog::pass2(const std::vector<std::pair<int,int>>& usedColors)
+int ImportKoalaDialog::pass2(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor)
 {
+    const int conv_colors[] = {-1, -1, -1, -1, -1, -1, -1, -1,
+                                2,  2,  2,  0,  1, -1, -1,  1};
+
     for (int i=0; i<16; i++)
     {
-        const int conv_colors[] = {-1, -1, -1, -1, -1, -1, -1, -1,
-                                    2,  2,  2,  0,  1, -1, -1,  1};
-
         auto color = usedColors[i].second;
         if (color != ui->widgetKoala->_d02xColors[0] &&
                 color != ui->widgetKoala->_d02xColors[1] &&
                 color != ui->widgetKoala->_d02xColors[2])
         {
+            // inform which is the Hi Color used to create the Color Ram
+            *outHiColor = color;
             return conv_colors[color];
         }
-        return -1;
     }
     return -1;
 }
+
+int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor)
+{
+    // 1st pass: assign to colorRAM the most used color that is not d021,d022,d023
+    //  - if color is <8
+    //  - or color use non-aggressive conversion table
+    int colorConvertedToRAMColor = pass1(usedColors, outHiColor);
+
+    // 2nd pass: if 1st pass failed, use agressive conversion table
+    if (colorConvertedToRAMColor == -1)
+        colorConvertedToRAMColor = pass2(usedColors, outHiColor);
+
+    return colorConvertedToRAMColor;
+}
+
 
 static int getValueFromKey(int x, int y, const char* key)
 {
@@ -136,8 +153,9 @@ static int getValueFromKey(int x, int y, const char* key)
     return c;
 }
 
-bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask)
+bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM)
 {
+    static const char* hex ="0123456789ABCDEF";
     static const int masks[8][2] = {
         {-1, 1},   // top-left
         { 0, 1},   // top
@@ -157,50 +175,67 @@ bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask)
             colorIndex != ui->widgetKoala->_d02xColors[1] &&
             colorIndex != ui->widgetKoala->_d02xColors[2])
     {
-        std::vector<std::pair<int,int>> usedColors;
-        for (int i=0; i<16; i++)
-            usedColors.push_back(std::make_pair(0,i));
-
-        for (int i=0; i<totalMasks; ++i)
+        if (hiColorRAM != -1 && colorIndex == hiColorRAM)
         {
-            if (mask && (1<<i))
-            {
-                int xdiff = masks[i][0];
-                int ydiff = masks[i][1];
-
-                int neighborColor = getValueFromKey(x+xdiff, y+ydiff, key);
-                if (neighborColor != -1)
-                    usedColors[neighborColor].first++;
-            }
+            key[y*4+x] = hex[_colorRAM];
         }
-
-        // use the color the most frequently color used by the neighbors
-        std::sort(std::begin(usedColors), std::end(usedColors));
-        int neighColor = usedColors[15].second;
-        if (neighColor == _colorRAM ||
-                neighColor == ui->widgetKoala->_d02xColors[0] ||
-                neighColor == ui->widgetKoala->_d02xColors[1] ||
-                neighColor == ui->widgetKoala->_d02xColors[2])
+        else
         {
-            static const char* hex ="0123456789ABCDEF";
-            key[y*4+x] = hex[neighColor];
-            return true;
+            std::vector<std::pair<int,int>> usedColors;
+            for (int i=0; i<16; i++)
+                usedColors.push_back(std::make_pair(0,i));
+
+            for (int i=0; i<totalMasks; ++i)
+            {
+                if (mask && (1<<i))
+                {
+                    int xdiff = masks[i][0];
+                    int ydiff = masks[i][1];
+
+                    int neighborColor = getValueFromKey(x+xdiff, y+ydiff, key);
+                    if (neighborColor != -1)
+                        usedColors[neighborColor].first++;
+                }
+            }
+
+            // use the color the most frequently color used by the neighbors
+            std::sort(std::begin(usedColors), std::end(usedColors));
+            int neighColor = usedColors[15].second;
+            if (neighColor == _colorRAM ||
+                    neighColor == ui->widgetKoala->_d02xColors[0] ||
+                    neighColor == ui->widgetKoala->_d02xColors[1] ||
+                    neighColor == ui->widgetKoala->_d02xColors[2])
+            {
+                key[y*4+x] = hex[neighColor];
+                return true;
+            }
         }
     }
     return false;
 }
 
-void ImportKoalaDialog::simplifyKey(char* key)
+void ImportKoalaDialog::simplifyKey(char* key, int hiColorRAM)
 {
     quint8 masks[]
     {
+        // 8
         0xff,       // 111-1_1-111: all positions
+
+        // 4
         0x5a,       // 010-1_1-010: H-V
         0xa5,       // 101-0_0-101: Diag
+
+        // 2
         0x18,       // 000-1_1-000: H
         0x42,       // 010-0_0-010: V
         0x81,       // 100-0_0-001: Dd
         0x24,       // 001-0_0-100: Du
+
+        // 1
+        0x40,       // 010-0_0-000: t
+        0x10,       // 000-1_0-000: l
+        0x08,       // 000-0_1-000: r
+        0x02,       // 000-0_0-010: b
     };
     const int totalMasks = sizeof(masks) / sizeof(masks[0]);
 
@@ -212,7 +247,7 @@ void ImportKoalaDialog::simplifyKey(char* key)
             {
                 for (int x=0; x<4; ++x)
                 {
-                    keyChanged = tryChangeKey(x, y, key, masks[maskIndex]);
+                    keyChanged = tryChangeKey(x, y, key, masks[maskIndex], hiColorRAM);
                 }
             }
         } while(keyChanged);
@@ -256,33 +291,25 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
     std::sort(std::begin(usedColors), std::end(usedColors));
     std::reverse(std::begin(usedColors), std::end(usedColors));
 
+    int hiColorRAM = -1;
+    _colorRAM = findColorRAM(usedColors, &hiColorRAM);
 
-    // 1st pass: assign to colorRAM the most used color that is not d021,d022,d023
-    //  - if color is <8
-    //  - or color use non-aggressive conversion table
-    int colorConvertedToRAMColor = pass1(usedColors);
-
-    // 2nd pass: if 1st pass failed, use agressive conversion table
-    if (colorConvertedToRAMColor == -1)
-        colorConvertedToRAMColor = pass2(usedColors);
-
-    // 3rd pass: no colorRAM is needed. All colors are d020, d021, d022
-    if (colorConvertedToRAMColor == -1)
+    // no colorRAM detected? That means that all colors are d020, d021, d022
+    if (_colorRAM == -1)
     {
-        // this is valid only if there are no invalidCoords
-        Q_ASSERT(invalidCoords.size() == 0 && "Error in heuristic logic");
+        Q_ASSERT(invalidCoords.size()==0 && "error in heuristic");
         // pick a random color for RAMcolor... like black
-        colorConvertedToRAMColor = 0;
+        _colorRAM = 0;
     }
 
-    _colorRAM = colorConvertedToRAMColor + 8;
 
     if (invalidCoords.size() > 0)
     {
-        char copyKey[8*4];
+        char copyKey[8*4 + 1];
         memcpy(copyKey, key.c_str(), sizeof(copyKey));
+        copyKey[8*4] = 0;       // used when printing the key
 
-        simplifyKey(copyKey);
+        simplifyKey(copyKey, hiColorRAM);
 
         // by now, all invalid colors should have valid ones in the key
         for (auto& coord: invalidCoords)
@@ -298,15 +325,32 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
                 outKey[y] |= (1 << (6-(x*2)));
             else if (colorIndex == ui->widgetKoala->_d02xColors[2])
                 outKey[y] |= (2 << (6-(x*2)));
-            else if (colorIndex == colorConvertedToRAMColor)
+            else if (colorIndex == _colorRAM)
                 outKey[y] |= (3 << (6-(x*2)));
             else {
-                qDebug() << "Ouch... key not converted yet at (" << x << "," << y << ") " << colorIndex << " key: " << key.c_str();
+                qDebug() << "Ouch... key not converted yet at (" << x << "," << y << ") " << colorIndex
+                         << " key: " << key.c_str() \
+                         << "new key: " << copyKey \
+                         << " (" << ui->widgetKoala->_d02xColors[0] << "," \
+                         << ui->widgetKoala->_d02xColors[1] << "," \
+                         << ui->widgetKoala->_d02xColors[2] << ","\
+                         << _colorRAM << ")";
+
+                for (auto& pair: usedColors)
+                {
+                    qDebug() << pair.second << " = " << pair.first;
+                }
             }
         }
     }
 
-    *outColorRAM = _colorRAM;
+    *outColorRAM = _colorRAM + 8;
+
+    qDebug() << " key: " << key.c_str() \
+             << " (" << ui->widgetKoala->_d02xColors[0] << "," \
+             << ui->widgetKoala->_d02xColors[1] << "," \
+             << ui->widgetKoala->_d02xColors[2] << ","\
+             << _colorRAM << ")";
 
     return true;
 }
