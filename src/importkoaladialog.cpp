@@ -449,10 +449,10 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
 
     *outColorRAM = _colorRAM + 8;
 
-//    qDebug() << "key:" << key.c_str() \
-//             << "(" << ui->widgetKoala->_d02xColors[0] << "," \
-//             << ui->widgetKoala->_d02xColors[1] << "," \
-//             << ui->widgetKoala->_d02xColors[2] << ","\
+//    qDebug() << "key:" << key.c_str()
+//             << "(" << ui->widgetKoala->_d02xColors[0] << ","
+//             << ui->widgetKoala->_d02xColors[1] << ","
+//             << ui->widgetKoala->_d02xColors[2] << ","
 //             << _colorRAM << ")";
 
     return true;
