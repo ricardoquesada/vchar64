@@ -34,6 +34,9 @@ static const int OFFSET = 0;
 
 ImportKoalaOrigWidget::ImportKoalaOrigWidget(QWidget *parent)
     : QWidget(parent)
+    , _offsetX(0)
+    , _offsetY(0)
+    , _displayGrid(true)
 {
     memset(_framebuffer, 0, sizeof(_framebuffer));
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
@@ -64,6 +67,21 @@ void ImportKoalaOrigWidget::paintEvent(QPaintEvent *event)
                              PIXEL_SIZE);
         }
     }
+
+    if (_displayGrid)
+    {
+        auto pen = painter.pen();
+        pen.setColor(QColor(0,255,0));
+        pen.setStyle(Qt::DotLine);
+        painter.setPen(pen);
+
+        for (int y=0; y<=200; y=y+8)
+            painter.drawLine(QPointF(0,y), QPointF(320,y));
+
+        for (int x=0; x<=320; x=x+8)
+            painter.drawLine(QPointF(x,0), QPointF(x,200));
+    }
+
     painter.end();
 }
 
@@ -72,6 +90,34 @@ void ImportKoalaOrigWidget::paintEvent(QPaintEvent *event)
 //
 void ImportKoalaOrigWidget::loadKoala(const QString& koalaFilepath)
 {
+    // call it before updating the _koalaBuffer
+    resetOffset();
+    resetColors();
+
+    QFile file(koalaFilepath);
+    file.open(QIODevice::ReadOnly);
+    file.read((char*)&_koalaCopy, sizeof(_koalaCopy));
+
+    _koala = _koalaCopy;
+
+    toFrameBuffer();
+    findUniqueChars();
+}
+
+void ImportKoalaOrigWidget::enableGrid(bool enabled)
+{
+    if (_displayGrid != enabled)
+    {
+        _displayGrid = enabled;
+        update();
+    }
+}
+
+//
+// protected
+//
+void ImportKoalaOrigWidget::resetColors()
+{
     // reset state
     _colorsUsed.clear();
     for (int i=0; i<16; i++)
@@ -79,20 +125,34 @@ void ImportKoalaOrigWidget::loadKoala(const QString& koalaFilepath)
     _uniqueChars.clear();
 
     for (int i=0; i<3; i++)
-    _d02xColors[i] = -1;
+        _d02xColors[i] = -1;
+}
 
+void ImportKoalaOrigWidget::resetOffset()
+{
+    if (_offsetX != 0 || _offsetY != 0)
+    {
+        _koala = _koalaCopy;
+        _offsetX = 0;
+        _offsetY = 0;
+    }
+}
 
-    QFile file(koalaFilepath);
-    file.open(QIODevice::ReadOnly);
-    file.read((char*)&_koala, sizeof(_koala));
-
-    toFrameBuffer();
-    findUniqueChars();
+void ImportKoalaOrigWidget::setOffset(int offsetx, int offsety)
+{
+    // offset Y first
+    for (int x=0; x<40; ++x)
+    {
+        for (int y=0; y<25; ++y)
+        {
+            offsetx = offsety;
+        }
+    }
 }
 
 void ImportKoalaOrigWidget::findUniqueChars()
 {
-    static const char hex[] = "01234567890ABCDEF";
+    static const char hex[] = "0123456789ABCDEF";
 
     for (int y=0; y<25; ++y)
     {
@@ -126,16 +186,15 @@ void ImportKoalaOrigWidget::findUniqueChars()
         }
     }
 
-    qDebug() << "Total unique chars: " << _uniqueChars.size();
+    qDebug() << "Total unique chars:" << _uniqueChars.size();
 
     // FIXME: descending sort... just pass a "greater" function instead of reversing the result
     std::sort(std::begin(_colorsUsed), std::end(_colorsUsed));
     std::reverse(std::begin(_colorsUsed), std::end(_colorsUsed));
 
+    auto deb = qDebug();
     for (int i=0; i<16; i++)
-    {
-        qDebug() << "Color: " << _colorsUsed[i].second << " = " << _colorsUsed[i].first;
-    }
+         deb << "Color:" << _colorsUsed[i].second << "=" << _colorsUsed[i].first << ",";
 }
 
 void ImportKoalaOrigWidget::toFrameBuffer()
@@ -283,3 +342,4 @@ void ImportKoalaOrigWidget::strategyMostUsedColorsUseFixedColors()
     for (int i=0; i<3; ++i)
         _d02xColors[i] = _colorsUsed[i].second;
 }
+

@@ -29,10 +29,14 @@ class ImportKoalaOrigWidget : public QWidget
 public:
     ImportKoalaOrigWidget(QWidget *parent=nullptr);
     void loadKoala(const QString &koalaFilepath);
+    void enableGrid(bool enabled);
+    void setOffset(int offsetx, int offsety);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
 
+    void resetColors();
+    void resetOffset();
     void toFrameBuffer();
     void findUniqueChars();
 
@@ -49,15 +53,18 @@ protected:
         quint8 screenRAM[40 * 25];
         quint8 colorRAM[40 * 25];
         quint8 backgroundColor;
-    } _koala;
+    };
 #pragma pack(pop)
+
+    struct koala _koala;
+    struct koala _koalaCopy;
 
     // one byte per pixel, although only the
     // 4 LSB will be used. Bits 7-4 are ignored
     // Bits 0-3 contains the C64 colors
     quint8 _framebuffer[160 * 200];
 
-    // Offset in bit for converting
+    // Koala Offset
     int _offsetX;
     int _offsetY;
 
@@ -70,5 +77,7 @@ protected:
 
     // colors to be used for d021, d022 and d023
     quint8 _d02xColors[3];
+
+    bool _displayGrid;
 };
 

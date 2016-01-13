@@ -34,6 +34,7 @@ static const int OFFSET = 0;
 
 ImportKoalaConvWidget::ImportKoalaConvWidget(QWidget *parent)
     : QWidget(parent)
+    , _displayGrid(true)
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
                  PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
@@ -116,7 +117,7 @@ void ImportKoalaConvWidget::paintEvent(QPaintEvent *event)
 
                     // bitmask 11: color RAM
                     case 0x3:
-                        colorIndex = _colorRAM[y * 40 + x] >> 1;
+                        colorIndex = _colorRAM[y * 40 + x] - 8;
                         break;
                     default:
                         qDebug() << "ImportKoalaWidget::paintEvent Invalid color: " << color << " at x,y=" << x << y;
@@ -131,5 +132,29 @@ void ImportKoalaConvWidget::paintEvent(QPaintEvent *event)
             }
         }
     }
+
+    if (_displayGrid)
+    {
+        auto pen = painter.pen();
+        pen.setColor(QColor(0,255,0));
+        pen.setStyle(Qt::DotLine);
+        painter.setPen(pen);
+
+        for (int y=0; y<=200; y=y+8)
+            painter.drawLine(QPointF(0,y), QPointF(320,y));
+
+        for (int x=0; x<=320; x=x+8)
+            painter.drawLine(QPointF(x,0), QPointF(x,200));
+    }
+
     painter.end();
+}
+
+void ImportKoalaConvWidget::enableGrid(bool enabled)
+{
+    if (_displayGrid != enabled)
+    {
+        _displayGrid = enabled;
+        update();
+    }
 }

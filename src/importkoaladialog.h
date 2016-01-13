@@ -36,16 +36,30 @@ protected:
     bool validateKoalaFile(const QString& filepath);
     bool processChardef(const std::string& key, quint8 *outKey, quint8* outColorRAM);
 
-    int pass1(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor);
-    int pass2(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor);
     int findColorRAM(const std::vector<std::pair<int,int>>& usedColors, int *outHiColor);
 
     void simplifyKey(char* key, int hiColorRAM);
     bool tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM);
+    void convert();
 
 private slots:
     void on_pushButton_clicked();
-    void on_pushButtonConvert_clicked();
+
+    void on_radioForegroundMostUsed_clicked();
+
+    void on_radioForegroundMostUsedLow_clicked();
+
+    void on_radioMostUsedColors_clicked();
+
+    void on_radioMostUsedHiColors_clicked();
+
+    void on_radioManual_clicked();
+
+    void on_checkBoxGrid_clicked();
+
+    void on_pushButton_6_clicked();
+
+    void on_pushButton_5_clicked();
 
 private:
 

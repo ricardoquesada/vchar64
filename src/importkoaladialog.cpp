@@ -78,68 +78,48 @@ bool ImportKoalaDialog::validateKoalaFile(const QString& filepath)
     return false;
 }
 
-int ImportKoalaDialog::pass1(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor)
+int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor)
 {
     const int conv_colors[] = {-1, -1, -1, -1, -1, -1, -1, -1,
-                               -1, -1, -1, -1, -1,  5,  6, -1};
+                                0,  1,  2,  3,  4,  5,  6,  7};
+//                                2,  2,  2,  0,  1,  5,  6,  1};
 
+    int cacheColor = -1;
     for (int i=0; i<16; i++)
     {
         auto color = usedColors[i].second;
-        if (color != ui->widgetKoala->_d02xColors[0] &&
+        if (usedColors[i].first > 0 &&
+                color != ui->widgetKoala->_d02xColors[0] &&
                 color != ui->widgetKoala->_d02xColors[1] &&
                 color != ui->widgetKoala->_d02xColors[2])
         {
+            // valid both for "low" and "any"
             if (color < 8)
             {
                 return color;
             }
-            else
+
+            // only for "any"
+            if (ui->radioForegroundMostUsed->isChecked())
             {
-                if (conv_colors[color] != -1)
-                {
-                    *outHiColor = color;
-                    return conv_colors[color];
-                }
+                // inform which is the Hi Color used to create the Color Ram
+                *outHiColor = color;
+                return conv_colors[color];
             }
-            return -1;
+
+            // color to return in case looking fro "low"
+            // there is no "low".
+            if (cacheColor == -1)
+                cacheColor = color;
         }
     }
-    return -1;
-}
 
-int ImportKoalaDialog::pass2(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor)
-{
-    const int conv_colors[] = {-1, -1, -1, -1, -1, -1, -1, -1,
-                                2,  2,  2,  0,  1, -1, -1,  1};
-
-    for (int i=0; i<16; i++)
+    if (cacheColor != -1)
     {
-        auto color = usedColors[i].second;
-        if (color != ui->widgetKoala->_d02xColors[0] &&
-                color != ui->widgetKoala->_d02xColors[1] &&
-                color != ui->widgetKoala->_d02xColors[2])
-        {
-            // inform which is the Hi Color used to create the Color Ram
-            *outHiColor = color;
-            return conv_colors[color];
-        }
+        *outHiColor = cacheColor;
+        return conv_colors[cacheColor];
     }
     return -1;
-}
-
-int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor)
-{
-    // 1st pass: assign to colorRAM the most used color that is not d021,d022,d023
-    //  - if color is <8
-    //  - or color use non-aggressive conversion table
-    int colorConvertedToRAMColor = pass1(usedColors, outHiColor);
-
-    // 2nd pass: if 1st pass failed, use agressive conversion table
-    if (colorConvertedToRAMColor == -1)
-        colorConvertedToRAMColor = pass2(usedColors, outHiColor);
-
-    return colorConvertedToRAMColor;
 }
 
 
@@ -216,6 +196,9 @@ bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int h
 
 void ImportKoalaDialog::simplifyKey(char* key, int hiColorRAM)
 {
+    if (strcmp(key, "00000000000000000000000000000000") == 0)
+        qDebug() << "Yeah!";
+
     quint8 masks[]
     {
         // 8
@@ -311,6 +294,7 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
 
         simplifyKey(copyKey, hiColorRAM);
 
+        bool error = false;
         // by now, all invalid colors should have valid ones in the key
         for (auto& coord: invalidCoords)
         {
@@ -328,26 +312,33 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
             else if (colorIndex == _colorRAM)
                 outKey[y] |= (3 << (6-(x*2)));
             else {
-                qDebug() << "Ouch... key not converted yet at (" << x << "," << y << ") " << colorIndex
-                         << " key: " << key.c_str() \
-                         << "new key: " << copyKey \
-                         << " (" << ui->widgetKoala->_d02xColors[0] << "," \
-                         << ui->widgetKoala->_d02xColors[1] << "," \
-                         << ui->widgetKoala->_d02xColors[2] << ","\
-                         << _colorRAM << ")";
-
-                for (auto& pair: usedColors)
-                {
-                    qDebug() << pair.second << " = " << pair.first;
-                }
+                error = true;
             }
+        }
+        if (error)
+        {
+            auto deb = qDebug();
+            deb << "Key with error" \
+                     << "key:" << key.c_str() \
+                     << "new key:" << copyKey \
+                     << "(" << ui->widgetKoala->_d02xColors[0] << "," \
+                     << ui->widgetKoala->_d02xColors[1] << "," \
+                     << ui->widgetKoala->_d02xColors[2] << ","\
+                     << _colorRAM << ")" \
+                     << "\n";
+
+            for (auto& pair: usedColors)
+            {
+                 deb << pair.second << "=" << pair.first << ",";
+            }
+
         }
     }
 
     *outColorRAM = _colorRAM + 8;
 
-    qDebug() << " key: " << key.c_str() \
-             << " (" << ui->widgetKoala->_d02xColors[0] << "," \
+    qDebug() << "key:" << key.c_str() \
+             << "(" << ui->widgetKoala->_d02xColors[0] << "," \
              << ui->widgetKoala->_d02xColors[1] << "," \
              << ui->widgetKoala->_d02xColors[2] << ","\
              << _colorRAM << ")";
@@ -355,7 +346,7 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
     return true;
 }
 
-void ImportKoalaDialog::on_pushButtonConvert_clicked()
+void ImportKoalaDialog::convert()
 {
     auto orig = ui->widgetKoala;
     auto conv = ui->widgetCharset;
@@ -387,4 +378,44 @@ void ImportKoalaDialog::on_pushButtonConvert_clicked()
     }
 
     conv->update();
+}
+
+void ImportKoalaDialog::on_radioForegroundMostUsed_clicked()
+{
+    convert();
+}
+
+void ImportKoalaDialog::on_radioForegroundMostUsedLow_clicked()
+{
+    convert();
+}
+
+void ImportKoalaDialog::on_radioMostUsedColors_clicked()
+{
+    convert();
+}
+
+void ImportKoalaDialog::on_radioMostUsedHiColors_clicked()
+{
+    convert();
+}
+
+void ImportKoalaDialog::on_radioManual_clicked()
+{
+
+}
+
+void ImportKoalaDialog::on_checkBoxGrid_clicked()
+{
+    auto checked = ui->checkBoxGrid->isChecked();
+    ui->widgetCharset->enableGrid(checked);
+    ui->widgetKoala->enableGrid(checked);
+}
+
+void ImportKoalaDialog::on_pushButton_6_clicked()
+{
+}
+
+void ImportKoalaDialog::on_pushButton_5_clicked()
+{
 }
