@@ -83,45 +83,6 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="1" column="1">
-         <widget class="QPushButton" name="pushButton_6">
-          <property name="text">
-           <string>^</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QPushButton" name="pushButton_3">
-          <property name="text">
-           <string>reset</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QPushButton" name="pushButton_5">
-          <property name="text">
-           <string>V</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QPushButton" name="pushButton_2">
-          <property name="text">
-           <string>&gt;</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QPushButton" name="pushButton_4">
-          <property name="text">
-           <string>&lt;</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
        <widget class="QGroupBox" name="groupBox">
         <property name="title">
          <string>Colors $D021, $D022 &amp; $D023</string>
@@ -141,13 +102,6 @@
           <widget class="QRadioButton" name="radioMostUsedHiColors">
            <property name="text">
             <string>+ Used colors &gt;= 8</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioManual">
-           <property name="text">
-            <string>Manual</string>
            </property>
           </widget>
          </item>
@@ -177,32 +131,19 @@
            </property>
           </widget>
          </item>
-         <item>
-          <spacer name="verticalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
         </layout>
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox_3">
+       <widget class="QGroupBox" name="groupBox_4">
         <property name="title">
-         <string>GroupBox</string>
+         <string>Invalid Colors</string>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_5">
+        <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
-          <widget class="QCheckBox" name="checkBoxGrid">
+          <widget class="QRadioButton" name="radioButtonPalette">
            <property name="text">
-            <string>Display Grid</string>
+            <string>Palette association</string>
            </property>
            <property name="checked">
             <bool>true</bool>
@@ -210,33 +151,40 @@
           </widget>
          </item>
          <item>
-          <spacer name="verticalSpacer_4">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
+          <widget class="QRadioButton" name="radioButtonNeighbor">
+           <property name="text">
+            <string>Neighbor proximity</string>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
+           <property name="checked">
+            <bool>false</bool>
            </property>
-          </spacer>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="radioButtonColorRAM">
+           <property name="text">
+            <string>Use Color RAM</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
       </item>
       <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="title">
+         <string>Options</string>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <widget class="QCheckBox" name="checkBoxGrid">
+           <property name="text">
+            <string>Display Grid</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </widget>

@@ -36,7 +36,7 @@ ImportKoalaOrigWidget::ImportKoalaOrigWidget(QWidget *parent)
     : QWidget(parent)
     , _offsetX(0)
     , _offsetY(0)
-    , _displayGrid(true)
+    , _displayGrid(false)
 {
     memset(_framebuffer, 0, sizeof(_framebuffer));
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
@@ -71,7 +71,7 @@ void ImportKoalaOrigWidget::paintEvent(QPaintEvent *event)
     if (_displayGrid)
     {
         auto pen = painter.pen();
-        pen.setColor(QColor(0,255,0));
+        pen.setColor(QColor(0,128,0));
         pen.setStyle(Qt::DotLine);
         painter.setPen(pen);
 
@@ -93,6 +93,9 @@ void ImportKoalaOrigWidget::loadKoala(const QString& koalaFilepath)
     // call it before updating the _koalaBuffer
     resetOffset();
     resetColors();
+
+    // in case the loaded file has less bytes than required, fill the buffer with zeroes
+    memset(&_koalaCopy, 0, sizeof(_koalaCopy));
 
     QFile file(koalaFilepath);
     file.open(QIODevice::ReadOnly);
@@ -140,14 +143,8 @@ void ImportKoalaOrigWidget::resetOffset()
 
 void ImportKoalaOrigWidget::setOffset(int offsetx, int offsety)
 {
-    // offset Y first
-    for (int x=0; x<40; ++x)
-    {
-        for (int y=0; y<25; ++y)
-        {
-            offsetx = offsety;
-        }
-    }
+    Q_UNUSED(offsetx);
+    Q_UNUSED(offsety);
 }
 
 void ImportKoalaOrigWidget::findUniqueChars()
@@ -194,7 +191,7 @@ void ImportKoalaOrigWidget::findUniqueChars()
 
     auto deb = qDebug();
     for (int i=0; i<16; i++)
-         deb << "Color:" << _colorsUsed[i].second << "=" << _colorsUsed[i].first << ",";
+         deb << "Color:" << _colorsUsed[i].second << "=" << _colorsUsed[i].first << "\n";
 }
 
 void ImportKoalaOrigWidget::toFrameBuffer()
@@ -305,11 +302,12 @@ void ImportKoalaOrigWidget::reportResults()
 
     qDebug() << "Valid chars: " << validChars << " Valid Unique chars: " << validUniqueChars;
     qDebug() << "Invalid chars:" << invalidChars << " Invalid Unique chars: " << invalidUniqueChars;
+    qDebug() << "$d021,22,23=" << _d02xColors[0] << _d02xColors[1] << _d02xColors[2];
 }
 
-void ImportKoalaOrigWidget::strategyHiColorsUseFixedColors()
+void ImportKoalaOrigWidget::strategyD02xAbove8()
 {
-    // three most used colors whose values are >=8 are going to be used for d021, d022 and d023
+    // the most used colors whose values are >=8 are going to be used for d021, d022 and d023
     // if can't find 3 colors, list is completed with most used colors whose value is < 8
 
     // colors are already sorted: use most used colors whose values is >= 8
@@ -336,7 +334,7 @@ void ImportKoalaOrigWidget::strategyHiColorsUseFixedColors()
     }
 }
 
-void ImportKoalaOrigWidget::strategyMostUsedColorsUseFixedColors()
+void ImportKoalaOrigWidget::strategyD02xAny()
 {
     // three most used colors are the ones to be used for d021, d022 and d023
     for (int i=0; i<3; ++i)

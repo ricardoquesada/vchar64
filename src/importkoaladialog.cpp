@@ -21,6 +21,8 @@ limitations under the License.
 #include <QSettings>
 #include <QDebug>
 
+static const char* _hex ="0123456789ABCDEF";
+
 ImportKoalaDialog::ImportKoalaDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ImportKoalaDialog)
@@ -73,6 +75,7 @@ bool ImportKoalaDialog::validateKoalaFile(const QString& filepath)
     if (info.exists() && info.isFile() && (info.size() == 10003 || info.size() == 10002))
     {
         ui->widgetKoala->loadKoala(filepath);
+        convert();
         return true;
     }
     return false;
@@ -82,7 +85,6 @@ int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int,int>>& usedC
 {
     const int conv_colors[] = {-1, -1, -1, -1, -1, -1, -1, -1,
                                 0,  1,  2,  3,  4,  5,  6,  7};
-//                                2,  2,  2,  0,  1,  5,  6,  1};
 
     int cacheColor = -1;
     for (int i=0; i<16; i++)
@@ -135,7 +137,6 @@ static int getValueFromKey(int x, int y, const char* key)
 
 bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM)
 {
-    static const char* hex ="0123456789ABCDEF";
     static const int masks[8][2] = {
         {-1, 1},   // top-left
         { 0, 1},   // top
@@ -155,50 +156,49 @@ bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int h
             colorIndex != ui->widgetKoala->_d02xColors[1] &&
             colorIndex != ui->widgetKoala->_d02xColors[2])
     {
+        // both colorIndex and hiColorRAM could be -1 at the same time (valid scenario)
+        // prevent that case.
         if (hiColorRAM != -1 && colorIndex == hiColorRAM)
         {
-            key[y*4+x] = hex[_colorRAM];
+            key[y*4+x] = _hex[_colorRAM];
+            return true;
         }
-        else
+
+        // else
+        std::vector<std::pair<int,int>> usedColors = {
+            {0,0}, {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,7},
+            {0,8}, {0,9}, {0,10}, {0,11}, {0,12}, {0,13}, {0,14}, {0,15}
+        };
+
+        for (int i=0; i<totalMasks; ++i)
         {
-            std::vector<std::pair<int,int>> usedColors;
-            for (int i=0; i<16; i++)
-                usedColors.push_back(std::make_pair(0,i));
-
-            for (int i=0; i<totalMasks; ++i)
+            if (mask && (1<<i))
             {
-                if (mask && (1<<i))
-                {
-                    int xdiff = masks[i][0];
-                    int ydiff = masks[i][1];
+                int xdiff = masks[i][0];
+                int ydiff = masks[i][1];
 
-                    int neighborColor = getValueFromKey(x+xdiff, y+ydiff, key);
-                    if (neighborColor != -1)
-                        usedColors[neighborColor].first++;
-                }
+                int neighborColor = getValueFromKey(x+xdiff, y+ydiff, key);
+                if (neighborColor != -1)
+                    usedColors[neighborColor].first++;
             }
+        }
 
-            // use the color the most frequently color used by the neighbors
-            std::sort(std::begin(usedColors), std::end(usedColors));
-            int neighColor = usedColors[15].second;
-            if (neighColor == _colorRAM ||
-                    neighColor == ui->widgetKoala->_d02xColors[0] ||
-                    neighColor == ui->widgetKoala->_d02xColors[1] ||
-                    neighColor == ui->widgetKoala->_d02xColors[2])
-            {
-                key[y*4+x] = hex[neighColor];
-                return true;
-            }
+        // use the most frequently color from neighbors
+        std::sort(std::begin(usedColors), std::end(usedColors));
+        int neighColor = usedColors[15].second;
+        if (neighColor == _colorRAM ||
+                neighColor == ui->widgetKoala->_d02xColors[0] ||
+                neighColor == ui->widgetKoala->_d02xColors[1] ||
+                neighColor == ui->widgetKoala->_d02xColors[2])
+        {
+            key[y*4+x] = _hex[neighColor];
+            return true;
         }
     }
     return false;
 }
-
-void ImportKoalaDialog::simplifyKey(char* key, int hiColorRAM)
+void ImportKoalaDialog::simplifyWithNeighborStrategy(char* key, int hiColorRAM)
 {
-    if (strcmp(key, "00000000000000000000000000000000") == 0)
-        qDebug() << "Yeah!";
-
     quint8 masks[]
     {
         // 8
@@ -226,25 +226,130 @@ void ImportKoalaDialog::simplifyKey(char* key, int hiColorRAM)
     {
         bool keyChanged = false;
         do {
+            keyChanged = false;
             for (int y=0; y<8; ++y)
             {
                 for (int x=0; x<4; ++x)
-                {
-                    keyChanged = tryChangeKey(x, y, key, masks[maskIndex], hiColorRAM);
-                }
+                    keyChanged |= tryChangeKey(x, y, key, masks[maskIndex], hiColorRAM);
             }
         } while(keyChanged);
     }
 }
+
+int ImportKoalaDialog::convertToValidColor(int colorIndex)
+{
+    Q_UNUSED(colorIndex);
+
+    // Color RAM strategy
+    if (ui->radioButtonColorRAM->isChecked())
+        return _colorRAM;
+
+    // cycle colors taken from:
+    // http://codebase64.org/doku.php?id=base:vic-ii_color_cheatsheet
+    int cycle1[] = {0, 6, 0xb, 4, 0xe, 5, 3, 0xd, 1};
+    const int cycle1Max = sizeof(cycle1) / sizeof(cycle1[0]);
+
+    int cycle2[] = {0, 9, 2, 8, 0xc, 0xa, 0xf, 1};
+    const int cycle2Max = sizeof(cycle2) / sizeof(cycle2[0]);
+
+    int cycle3[] = {0, 6, 0xc, 0xf, 1};
+    const int cycle3Max = sizeof(cycle3) / sizeof(cycle3[0]);
+
+    int cycle4[] = {9, 6, 8, 0xc, 0xa, 0xf, 0xd};
+    const int cycle4Max = sizeof(cycle4) / sizeof(cycle4[0]);
+
+    int cycle5[] = {0, 6, 2, 4, 0xe, 5, 3, 7, 1};
+    const int cycle5Max = sizeof(cycle5) / sizeof(cycle5[0]);
+
+    std::vector<std::pair<int,int>> usedColors = {
+        {0,0}, {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,7},
+        {0,8}, {0,9}, {0,10}, {0,11}, {0,12}, {0,13}, {0,14}, {0,15}
+    };
+
+    struct {
+        int *array;
+        int arrayLength;
+    } cycles[] = {
+        {cycle1, cycle1Max},
+        {cycle2, cycle2Max},
+        {cycle3, cycle3Max},
+        {cycle4, cycle4Max},
+        {cycle5, cycle5Max},
+    };
+    const int cyclesMax = sizeof(cycles) / sizeof(cycles[0]);
+
+    for (int i=0; i<cyclesMax; ++i)
+    {
+        // find indexColor;
+        int idx = -1;
+        for (int j=0; j<cycles[i].arrayLength; j++)
+        {
+            if (cycles[i].array[j] == colorIndex) {
+                idx = j;
+                break;
+            }
+        }
+        // calculate distances
+        if (idx != -1)
+        {
+            for (int j=0; j<cycles[i].arrayLength; j++)
+            {
+                int tmpColor = cycles[i].array[j];
+                if (tmpColor == ui->widgetKoala->_d02xColors[0]
+                        || tmpColor == ui->widgetKoala->_d02xColors[1]
+                        || tmpColor == ui->widgetKoala->_d02xColors[2]
+                        || tmpColor == _colorRAM)
+                {
+                    usedColors[tmpColor].first += 10 - abs(idx-j);
+                }
+            }
+        }
+    }
+
+    std::sort(std::begin(usedColors), std::end(usedColors));
+    return usedColors[15].second;
+}
+
+void ImportKoalaDialog::simplifyWithPaletteStrategy(char* key, int hiColorRAM)
+{
+    Q_UNUSED(hiColorRAM);
+
+    for (int y=0; y<8; ++y)
+    {
+        for (int x=0; x<4; ++x)
+        {
+            int colorIndex = getValueFromKey(x, y, key);
+
+            if (colorIndex != _colorRAM &&
+                    colorIndex != ui->widgetKoala->_d02xColors[0] &&
+                    colorIndex != ui->widgetKoala->_d02xColors[1] &&
+                    colorIndex != ui->widgetKoala->_d02xColors[2])
+            {
+                int newColor = convertToValidColor(colorIndex);
+                key[y*4+x] = _hex[newColor];
+            }
+        }
+    }
+}
+
+void ImportKoalaDialog::simplifyKey(char* key, int hiColorRAM)
+{
+    if (ui->radioButtonNeighbor->isChecked())
+        simplifyWithNeighborStrategy(key, hiColorRAM);
+    else /* palette or color ram */
+        simplifyWithPaletteStrategy(key, hiColorRAM);
+}
+
 
 bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, quint8* outColorRAM)
 {
     // For the heuristic:
     // used colors that are not the same as d021, d022 and d023
     // vector<used_colors,color_index>
-    std::vector<std::pair<int,int>> usedColors;
-    for (int i=0; i<16; i++)
-        usedColors.push_back(std::make_pair(0,i));
+    std::vector<std::pair<int,int>> usedColors = {
+        {0,0}, {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,7},
+        {0,8}, {0,9}, {0,10}, {0,11}, {0,12}, {0,13}, {0,14}, {0,15}
+    };
 
     // vector<x,y>
     std::vector<std::pair<int,int>> invalidCoords;
@@ -337,11 +442,11 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
 
     *outColorRAM = _colorRAM + 8;
 
-    qDebug() << "key:" << key.c_str() \
-             << "(" << ui->widgetKoala->_d02xColors[0] << "," \
-             << ui->widgetKoala->_d02xColors[1] << "," \
-             << ui->widgetKoala->_d02xColors[2] << ","\
-             << _colorRAM << ")";
+//    qDebug() << "key:" << key.c_str() \
+//             << "(" << ui->widgetKoala->_d02xColors[0] << "," \
+//             << ui->widgetKoala->_d02xColors[1] << "," \
+//             << ui->widgetKoala->_d02xColors[2] << ","\
+//             << _colorRAM << ")";
 
     return true;
 }
@@ -352,9 +457,10 @@ void ImportKoalaDialog::convert()
     auto conv = ui->widgetCharset;
 
     if (ui->radioMostUsedColors->isChecked())
-        orig->strategyHiColorsUseFixedColors();
+        orig->strategyD02xAny();
     else
-        orig->strategyMostUsedColorsUseFixedColors();
+        orig->strategyD02xAbove8();
+
     orig->reportResults();
 
 
@@ -400,9 +506,19 @@ void ImportKoalaDialog::on_radioMostUsedHiColors_clicked()
     convert();
 }
 
-void ImportKoalaDialog::on_radioManual_clicked()
+void ImportKoalaDialog::on_radioButtonNeighbor_clicked()
 {
+    convert();
+}
 
+void ImportKoalaDialog::on_radioButtonPalette_clicked()
+{
+    convert();
+}
+
+void ImportKoalaDialog::on_radioButtonColorRAM_clicked()
+{
+    convert();
 }
 
 void ImportKoalaDialog::on_checkBoxGrid_clicked()
@@ -410,12 +526,4 @@ void ImportKoalaDialog::on_checkBoxGrid_clicked()
     auto checked = ui->checkBoxGrid->isChecked();
     ui->widgetCharset->enableGrid(checked);
     ui->widgetKoala->enableGrid(checked);
-}
-
-void ImportKoalaDialog::on_pushButton_6_clicked()
-{
-}
-
-void ImportKoalaDialog::on_pushButton_5_clicked()
-{
 }

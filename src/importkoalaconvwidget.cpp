@@ -34,7 +34,7 @@ static const int OFFSET = 0;
 
 ImportKoalaConvWidget::ImportKoalaConvWidget(QWidget *parent)
     : QWidget(parent)
-    , _displayGrid(true)
+    , _displayGrid(false)
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
                  PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
@@ -136,7 +136,7 @@ void ImportKoalaConvWidget::paintEvent(QPaintEvent *event)
     if (_displayGrid)
     {
         auto pen = painter.pen();
-        pen.setColor(QColor(0,255,0));
+        pen.setColor(QColor(0,128,0));
         pen.setStyle(Qt::DotLine);
         painter.setPen(pen);
 

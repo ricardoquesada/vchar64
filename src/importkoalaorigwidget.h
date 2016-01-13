@@ -41,8 +41,8 @@ protected:
     void findUniqueChars();
 
     void reportResults();
-    void strategyHiColorsUseFixedColors();
-    void strategyMostUsedColorsUseFixedColors();
+    void strategyD02xAbove8();
+    void strategyD02xAny();
 
 #pragma pack(push)
 #pragma pack(1)
