@@ -85,7 +85,7 @@
       <item>
        <widget class="QGroupBox" name="groupBox">
         <property name="title">
-         <string>Colors $D021, $D022 &amp; $D023</string>
+         <string>Global Colors: D021, D022 &amp; D023</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
@@ -143,7 +143,7 @@
          <item>
           <widget class="QRadioButton" name="radioButtonPalette">
            <property name="text">
-            <string>Palette association</string>
+            <string>Palette proximity</string>
            </property>
            <property name="checked">
             <bool>true</bool>
@@ -163,7 +163,7 @@
          <item>
           <widget class="QRadioButton" name="radioButtonColorRAM">
            <property name="text">
-            <string>Use Color RAM</string>
+            <string>Color RAM</string>
            </property>
           </widget>
          </item>

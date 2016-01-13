@@ -83,9 +83,6 @@ bool ImportKoalaDialog::validateKoalaFile(const QString& filepath)
 
 int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor)
 {
-    const int conv_colors[] = {-1, -1, -1, -1, -1, -1, -1, -1,
-                                0,  1,  2,  3,  4,  5,  6,  7};
-
     int cacheColor = -1;
     for (int i=0; i<16; i++)
     {
@@ -97,29 +94,36 @@ int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int,int>>& usedC
         {
             // valid both for "low" and "any"
             if (color < 8)
-            {
                 return color;
-            }
 
             // only for "any"
-            if (ui->radioForegroundMostUsed->isChecked())
+            if (ui->radioForegroundMostUsed->isChecked() || cacheColor == -1)
             {
-                // inform which is the Hi Color used to create the Color Ram
-                *outHiColor = color;
-                return conv_colors[color];
-            }
+                std::vector<int> colorsToFind;
+                for (int i=0; i<8; i++)
+                {
+                    if (i != ui->widgetKoala->_d02xColors[0] &&
+                        i != ui->widgetKoala->_d02xColors[1] &&
+                        i != ui->widgetKoala->_d02xColors[2])
+                        colorsToFind.push_back(i);
+                }
 
-            // color to return in case looking fro "low"
-            // there is no "low".
-            if (cacheColor == -1)
-                cacheColor = color;
+                cacheColor = getColorByPaletteProximity(color, colorsToFind);
+
+                // inform which is the Hi Color used to create the Color Ram
+                if (ui->radioForegroundMostUsed->isChecked())
+                {
+                    *outHiColor = cacheColor;
+                    return *outHiColor;
+                }
+            }
         }
     }
 
     if (cacheColor != -1)
     {
         *outHiColor = cacheColor;
-        return conv_colors[cacheColor];
+        return cacheColor;
     }
     return -1;
 }
@@ -236,14 +240,8 @@ void ImportKoalaDialog::simplifyWithNeighborStrategy(char* key, int hiColorRAM)
     }
 }
 
-int ImportKoalaDialog::convertToValidColor(int colorIndex)
+int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vector<int>& colorsToFind)
 {
-    Q_UNUSED(colorIndex);
-
-    // Color RAM strategy
-    if (ui->radioButtonColorRAM->isChecked())
-        return _colorRAM;
-
     // cycle colors taken from:
     // http://codebase64.org/doku.php?id=base:vic-ii_color_cheatsheet
     int cycle1[] = {0, 6, 0xb, 4, 0xe, 5, 3, 0xd, 1};
@@ -295,12 +293,9 @@ int ImportKoalaDialog::convertToValidColor(int colorIndex)
             for (int j=0; j<cycles[i].arrayLength; j++)
             {
                 int tmpColor = cycles[i].array[j];
-                if (tmpColor == ui->widgetKoala->_d02xColors[0]
-                        || tmpColor == ui->widgetKoala->_d02xColors[1]
-                        || tmpColor == ui->widgetKoala->_d02xColors[2]
-                        || tmpColor == _colorRAM)
+                if (std::find(std::begin(colorsToFind), std::end(colorsToFind), tmpColor) != std::end(colorsToFind))
                 {
-                    usedColors[tmpColor].first += 10 - abs(idx-j);
+                    usedColors[tmpColor].first += 4 - abs(idx-j);
                 }
             }
         }
@@ -325,7 +320,19 @@ void ImportKoalaDialog::simplifyWithPaletteStrategy(char* key, int hiColorRAM)
                     colorIndex != ui->widgetKoala->_d02xColors[1] &&
                     colorIndex != ui->widgetKoala->_d02xColors[2])
             {
-                int newColor = convertToValidColor(colorIndex);
+                int newColor = -1;
+                if (ui->radioButtonColorRAM->isChecked())
+                    // Color RAM strategy
+                    newColor = _colorRAM;
+                else
+                {
+                    // Palette proximity Strategy
+                    std::vector<int> colorsToFind = {ui->widgetKoala->_d02xColors[0],
+                                                     ui->widgetKoala->_d02xColors[1],
+                                                     ui->widgetKoala->_d02xColors[2],
+                                                     _colorRAM};
+                    newColor = getColorByPaletteProximity(colorIndex, colorsToFind);
+                }
                 key[y*4+x] = _hex[newColor];
             }
         }
@@ -379,7 +386,7 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
     std::sort(std::begin(usedColors), std::end(usedColors));
     std::reverse(std::begin(usedColors), std::end(usedColors));
 
-    int hiColorRAM = -1;
+    int hiColorRAM = _colorRAM = -1;
     _colorRAM = findColorRAM(usedColors, &hiColorRAM);
 
     // no colorRAM detected? That means that all colors are d020, d021, d022

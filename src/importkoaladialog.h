@@ -42,7 +42,7 @@ protected:
     void simplifyWithPaletteStrategy(char* key, int hiColorRAM);
     void simplifyWithNeighborStrategy(char* key, int hiColorRAM);
     bool tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM);
-    int convertToValidColor(int colorIndex);
+    int getColorByPaletteProximity(int colorIndex, const std::vector<int> &colorsToFind);
 
     void convert();
 
