@@ -34,6 +34,8 @@ public:
     const QString& getFilepath() const;
 
 protected:
+    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+
     bool validateKoalaFile(const QString& filepath);
     bool processChardef(const std::string& key, quint8 *outKey, quint8* outColorRAM);
 
@@ -49,12 +51,14 @@ protected:
     void updateWidgets();
 
 private slots:
+    void on_radioD02xManual_clicked();
+    void on_radioD02xMostUsed_clicked();
+    void on_radioD02xMostUsedHi_clicked();
     void on_radioForegroundMostUsed_clicked();
     void on_radioForegroundMostUsedLow_clicked();
-    void on_radioMostUsedColors_clicked();
-    void on_radioMostUsedHiColors_clicked();
     void on_radioButtonNeighbor_clicked();
     void on_radioButtonPalette_clicked();
+
     void on_checkBoxGrid_clicked();
 
     // browse directories
@@ -63,6 +67,7 @@ private slots:
 
     void on_pushButtonImport_clicked();
     void on_pushButtonCancel_clicked();
+
 
 private:
 

@@ -25,10 +25,11 @@ class ColorRectWidget : public QWidget
     Q_OBJECT
 public:
     enum {
-        // uses pen (based on the current state) for the colors
-        PEN_MODE,
-        // uses a fixed color.
-        COLOR_MODE,
+        // displays the color based on a pen
+        SHOW_PEN_MODE,
+
+        // displays the color based on a color index
+        SHOW_COLOR_MODE,
     };
 
 
@@ -40,7 +41,11 @@ public:
     int getPen() const;
 
     // Color mode
-    void setColor(const QColor& color);
+    void setColorIndex(int colorIndex);
+    int getColorIndex() const;
+
+    // when selected draws a rect around it
+    void setSelected(bool selected);
 
 signals:
 
@@ -52,6 +57,7 @@ protected:
     // PEN or COLOR
     int _mode;
     int _pen;
-    QColor _color;
+    int _colorIndex;
+    bool _selected;
 };
 

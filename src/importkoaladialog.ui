@@ -67,137 +67,172 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="frame_2">
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QGroupBox" name="groupBox">
-        <property name="title">
-         <string>Global Colors: D021, D022 &amp; D023</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
-          <widget class="QRadioButton" name="radioMostUsedColors">
-           <property name="text">
-            <string>+ Used Colors</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioMostUsedHiColors">
-           <property name="text">
-            <string>+ Used colors &gt;= 8</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="groupBox_2">
-        <property name="title">
-         <string>Color RAM (1 per cell)</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="QRadioButton" name="radioForegroundMostUsed">
-           <property name="text">
-            <string>+ Used Color</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioForegroundMostUsedLow">
-           <property name="text">
-            <string>+ Used color &lt; 8</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="groupBox_4">
-        <property name="title">
-         <string>Invalid Colors</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_4">
-         <item>
-          <widget class="QRadioButton" name="radioButtonPalette">
-           <property name="text">
-            <string>Palette proximity</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radioButtonNeighbor">
-           <property name="text">
-            <string>Neighbor proximity</string>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Global Colors:</string>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Global Colors: D021, D022 &amp; D023</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QRadioButton" name="radioD02xMostUsed">
+            <property name="text">
+             <string>+ Used Colors</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioD02xMostUsedHi">
+            <property name="text">
+             <string>+ Used colors &gt;= 8</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioD02xManual">
+            <property name="text">
+             <string>Manual</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+         <zorder>radioD02xMostUsed</zorder>
+         <zorder>radioD02xMostUsedHi</zorder>
+         <zorder>radioD02xManual</zorder>
+         <zorder>widgetD022</zorder>
+         <zorder>widgetD023</zorder>
+         <zorder>widgetD021</zorder>
+         <zorder>widgetD023</zorder>
+         <zorder>widgetD021</zorder>
+         <zorder>widgetD022</zorder>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="ColorRectWidget" name="widgetD021" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="ColorRectWidget" name="widgetD022" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="ColorRectWidget" name="widgetD023" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="title">
+        <string>Color RAM (1 per cell)</string>
        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QRadioButton" name="radioForegroundMostUsed">
+          <property name="text">
+           <string>+ Used Color</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioForegroundMostUsedLow">
+          <property name="text">
+           <string>+ Used color &lt; 8</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
-      <widget class="ColorRectWidget" name="widgetD021" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="title">
+        <string>Invalid Colors</string>
        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QRadioButton" name="radioButtonPalette">
+          <property name="text">
+           <string>Palette proximity</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButtonNeighbor">
+          <property name="text">
+           <string>Neighbor proximity</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </widget>
      </item>
-     <item>
-      <widget class="ColorRectWidget" name="widgetD022" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="ColorRectWidget" name="widgetD023" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-      </widget>
-     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
      <item>
       <widget class="QLabel" name="labelUnique">
        <property name="text">

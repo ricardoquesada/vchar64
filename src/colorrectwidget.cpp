@@ -22,11 +22,14 @@ limitations under the License.
 #include "state.h"
 #include "palette.h"
 #include "mainwindow.h"
+#include "selectcolordialog.h"
 
 ColorRectWidget::ColorRectWidget(QWidget *parent)
     : QWidget(parent)
-    , _mode(PEN_MODE)
+    , _mode(SHOW_PEN_MODE)
     , _pen(0)
+    , _colorIndex(-1)
+    , _selected(false)
 {
     setMinimumSize(60,10);
 }
@@ -41,7 +44,7 @@ void ColorRectWidget::setPen(int pen)
     Q_ASSERT(pen>=0 && pen<State::PEN_MAX && "Invalid colorIndex");
     if (_pen != pen) {
         _pen = pen;
-        _mode = PEN_MODE;
+        _mode = SHOW_PEN_MODE;
         repaint();
     }
 }
@@ -51,11 +54,28 @@ int ColorRectWidget::getPen() const
     return _pen;
 }
 
-void ColorRectWidget::setColor(const QColor& color)
+void ColorRectWidget::setColorIndex(int colorIndex)
 {
-    _color = color;
-    _mode = COLOR_MODE;
-    repaint();
+    if (_colorIndex != colorIndex)
+    {
+        _colorIndex = colorIndex;
+        _mode = SHOW_COLOR_MODE;
+        repaint();
+    }
+}
+
+int ColorRectWidget::getColorIndex() const
+{
+    return _colorIndex;
+}
+
+void ColorRectWidget::setSelected(bool selected)
+{
+    if (_selected != selected)
+    {
+        _selected = selected;
+        repaint();
+    }
 }
 
 void ColorRectWidget::paintEvent(QPaintEvent *event)
@@ -63,9 +83,22 @@ void ColorRectWidget::paintEvent(QPaintEvent *event)
     QPainter painter;
     painter.begin(this);
 
-    if (_mode == PEN_MODE)
+    if (_mode == SHOW_PEN_MODE)
         painter.fillRect(event->rect(), Palette::getColorForPen(MainWindow::getCurrentState(), _pen));
     else
-        painter.fillRect(event->rect(), _color);
+        painter.fillRect(event->rect(), Palette::getColor(_colorIndex));
+
+    if (_selected)
+    {
+        QPen pen;
+        pen.setColor(Qt::red);
+        pen.setWidth(3);
+        pen.setStyle(Qt::PenStyle::SolidLine);
+        painter.setPen(pen);
+
+        painter.drawRect(0, 0, width(), height());
+    }
+
     painter.end();
 }
+

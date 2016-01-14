@@ -49,7 +49,8 @@ SOURCES += main.cpp\
     serverconnectdialog.cpp \
     importkoaladialog.cpp \
     importkoalaorigwidget.cpp \
-    importkoalaconvwidget.cpp
+    importkoalaconvwidget.cpp \
+    selectcolordialog.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -75,7 +76,8 @@ HEADERS  += mainwindow.h \
     serverprotocol.h \
     importkoaladialog.h \
     importkoalaconvwidget.h \
-    importkoalaorigwidget.h
+    importkoalaorigwidget.h \
+    selectcolordialog.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \
@@ -83,7 +85,8 @@ FORMS    += mainwindow.ui \
     tilepropertiesdialog.ui \
     importvicedialog.ui \
     serverconnectdialog.ui \
-    importkoaladialog.ui
+    importkoaladialog.ui \
+    selectcolordialog.ui
 
 INCLUDEPATH += src
 

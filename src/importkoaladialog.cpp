@@ -22,9 +22,11 @@ limitations under the License.
 #include <QFileDialog>
 #include <QSettings>
 #include <QDebug>
+#include <QMouseEvent>
 
 #include "mainwindow.h"
 #include "palette.h"
+#include "selectcolordialog.h"
 
 static const char* _hex ="0123456789ABCDEF";
 
@@ -479,10 +481,16 @@ void ImportKoalaDialog::convert()
     auto orig = ui->widgetKoala;
     auto conv = ui->widgetCharset;
 
-    if (ui->radioMostUsedColors->isChecked())
+    if (ui->radioD02xMostUsed->isChecked())
         orig->strategyD02xAny();
-    else
+    else if (ui->radioD02xMostUsedHi->isChecked())
         orig->strategyD02xAbove8();
+    else /* manual */
+    {
+        orig->_d02xColors[0] = ui->widgetD021->getColorIndex();
+        orig->_d02xColors[1] = ui->widgetD022->getColorIndex();
+        orig->_d02xColors[2] = ui->widgetD023->getColorIndex();
+    }
 
     orig->reportResults();
 
@@ -490,9 +498,9 @@ void ImportKoalaDialog::convert()
 
     for (int i=0; i<3; ++i)
         conv->_d02x[i] = orig->_d02xColors[i];
-    ui->widgetD021->setColor(Palette::getColor(orig->_d02xColors[0]));
-    ui->widgetD022->setColor(Palette::getColor(orig->_d02xColors[1]));
-    ui->widgetD023->setColor(Palette::getColor(orig->_d02xColors[2]));
+    ui->widgetD021->setColorIndex(orig->_d02xColors[0]);
+    ui->widgetD022->setColorIndex(orig->_d02xColors[1]);
+    ui->widgetD023->setColorIndex(orig->_d02xColors[2]);
 
     int charsetCount = 0;
 
@@ -523,12 +531,18 @@ void ImportKoalaDialog::on_radioForegroundMostUsedLow_clicked()
     convert();
 }
 
-void ImportKoalaDialog::on_radioMostUsedColors_clicked()
+
+void ImportKoalaDialog::on_radioD02xManual_clicked()
 {
     convert();
 }
 
-void ImportKoalaDialog::on_radioMostUsedHiColors_clicked()
+void ImportKoalaDialog::on_radioD02xMostUsed_clicked()
+{
+    convert();
+}
+
+void ImportKoalaDialog::on_radioD02xMostUsedHi_clicked()
 {
     convert();
 }
@@ -581,8 +595,9 @@ void ImportKoalaDialog::updateWidgets()
         ui->radioButtonPalette,
         ui->radioForegroundMostUsed,
         ui->radioForegroundMostUsedLow,
-        ui->radioMostUsedColors,
-        ui->radioMostUsedHiColors,
+        ui->radioD02xManual,
+        ui->radioD02xMostUsed,
+        ui->radioD02xMostUsedHi,
         ui->widgetCharset,
         ui->widgetKoala,
         ui->lineEditUnique,
@@ -598,4 +613,34 @@ void ImportKoalaDialog::updateWidgets()
     {
         widgets[i]->setEnabled(_validKoalaFile);
     }
+}
+
+void ImportKoalaDialog::mousePressEvent(QMouseEvent* event)
+{
+    ColorRectWidget *widgets[] = {
+        ui->widgetD021,
+        ui->widgetD022,
+        ui->widgetD023
+    };
+
+    for (int i=0; i<3; i++)
+    {
+        auto localPos = widgets[i]->mapFromParent(event->pos());
+        if (widgets[i]->isEnabled() && widgets[i]->rect().contains(localPos))
+        {
+            // will also trigger convert
+            ui->radioD02xManual->setChecked(true);
+
+            SelectColorDialog diag(this);
+            diag.setCurrentColor(widgets[i]->getColorIndex());
+            if (diag.exec())
+            {
+                widgets[i]->setColorIndex(diag.getSelectedColor());
+                convert();
+            }
+            event->accept();
+            return;
+        }
+    }
+    event->ignore();
 }
