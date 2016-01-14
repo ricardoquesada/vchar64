@@ -38,7 +38,7 @@ signals:
 public slots:
 
 private:
-    quint8 _colorRAM[40*25];
+    quint8 _colorRAMForChars[256];
     quint8 _screenRAM[40*25];
     quint8 _d02x[3];
     quint8 _charset[256*8];

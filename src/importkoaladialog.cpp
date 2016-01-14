@@ -23,16 +23,21 @@ limitations under the License.
 #include <QSettings>
 #include <QDebug>
 
+#include "mainwindow.h"
+
 static const char* _hex ="0123456789ABCDEF";
 
-ImportKoalaDialog::ImportKoalaDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ImportKoalaDialog)
+ImportKoalaDialog::ImportKoalaDialog(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::ImportKoalaDialog)
+    , _validKoalaFile(false)
 {
     ui->setupUi(this);
 
     auto lastDir = QSettings("RetroMoe","VChar64").value("dir/lastdir").toString();
     ui->lineEdit->setText(lastDir);
+
+    updateWidgets();
 }
 
 ImportKoalaDialog::~ImportKoalaDialog()
@@ -62,8 +67,17 @@ void ImportKoalaDialog::on_pushButton_clicked()
             ui->lineEdit->setText(fn);
 
             _validKoalaFile = validateKoalaFile(fn);
+
+            updateWidgets();
         }
     }
+}
+
+void ImportKoalaDialog::on_lineEdit_editingFinished()
+{
+    auto filepath = ui->lineEdit->text();
+    _validKoalaFile = validateKoalaFile(filepath);
+    updateWidgets();
 }
 
 
@@ -203,7 +217,7 @@ bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int h
     }
     return false;
 }
-void ImportKoalaDialog::simplifyWithNeighborStrategy(char* key, int hiColorRAM)
+void ImportKoalaDialog::normalizeWithNeighborStrategy(char* key, int hiColorRAM)
 {
     quint8 masks[]
     {
@@ -240,20 +254,6 @@ void ImportKoalaDialog::simplifyWithNeighborStrategy(char* key, int hiColorRAM)
             }
         } while(keyChanged);
     }
-}
-
-int ImportKoalaDialog::getColorByLuck(int colorIndex, const std::vector<int>& colorsToFind)
-{
-    int idx = -1;
-    if (_randomColorsCache.find(colorIndex) != std::end(_randomColorsCache))
-        idx = _randomColorsCache[colorIndex];
-    else
-    {
-        idx = (std::rand() / (float)RAND_MAX) * colorsToFind.size();
-        _randomColorsCache[colorIndex] = idx;
-    }
-
-    return colorsToFind[idx];
 }
 
 int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vector<int>& colorsToFind)
@@ -325,7 +325,7 @@ int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vec
     return usedColors[15].second;
 }
 
-void ImportKoalaDialog::simplifyWithPaletteStrategy(char* key, int hiColorRAM)
+void ImportKoalaDialog::normalizeWithPaletteStrategy(char* key, int hiColorRAM)
 {
     Q_UNUSED(hiColorRAM);
 
@@ -346,24 +346,20 @@ void ImportKoalaDialog::simplifyWithPaletteStrategy(char* key, int hiColorRAM)
                                                  ui->widgetKoala->_d02xColors[2],
                                                  _colorRAM};
 
-                if (ui->radioButtonRandom->isChecked())
-                    // Luck strategy
-                    newColor = getColorByLuck(colorIndex, colorsToFind);
-                else
-                    // Palette proximity Strategy
-                    newColor = getColorByPaletteProximity(colorIndex, colorsToFind);
+                // Palette proximity Strategy
+                newColor = getColorByPaletteProximity(colorIndex, colorsToFind);
                 key[y*4+x] = _hex[newColor];
             }
         }
     }
 }
 
-void ImportKoalaDialog::simplifyKey(char* key, int hiColorRAM)
+void ImportKoalaDialog::normalizeKey(char* key, int hiColorRAM)
 {
     if (ui->radioButtonNeighbor->isChecked())
-        simplifyWithNeighborStrategy(key, hiColorRAM);
+        normalizeWithNeighborStrategy(key, hiColorRAM);
     else /* palette or random */
-        simplifyWithPaletteStrategy(key, hiColorRAM);
+        normalizeWithPaletteStrategy(key, hiColorRAM);
 }
 
 
@@ -423,7 +419,7 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
         memcpy(copyKey, key.c_str(), sizeof(copyKey));
         copyKey[8*4] = 0;       // used when printing the key
 
-        simplifyKey(copyKey, hiColorRAM);
+        normalizeKey(copyKey, hiColorRAM);
 
         bool error = false;
         // by now, all invalid colors should have valid ones in the key
@@ -479,8 +475,6 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
 
 void ImportKoalaDialog::convert()
 {
-    _randomColorsCache.clear();
-
     auto orig = ui->widgetKoala;
     auto conv = ui->widgetCharset;
 
@@ -544,14 +538,55 @@ void ImportKoalaDialog::on_radioButtonPalette_clicked()
     convert();
 }
 
-void ImportKoalaDialog::on_radioButtonRandom_clicked()
-{
-    convert();
-}
-
 void ImportKoalaDialog::on_checkBoxGrid_clicked()
 {
     auto checked = ui->checkBoxGrid->isChecked();
     ui->widgetCharset->enableGrid(checked);
     ui->widgetKoala->enableGrid(checked);
+}
+
+void ImportKoalaDialog::on_pushButtonImport_clicked()
+{
+    auto state = MainWindow::getInstance()->createState();
+    state->importCharset(_filepath, ui->widgetCharset->_charset, State::CHAR_BUFFER_SIZE);
+    state->setColorForPen(State::PEN_BACKGROUND, ui->widgetCharset->_d02x[0]);
+    state->setColorForPen(State::PEN_MULTICOLOR1, ui->widgetCharset->_d02x[1]);
+    state->setColorForPen(State::PEN_MULTICOLOR2, ui->widgetCharset->_d02x[2]);
+    // FIXME
+    state->setColorForPen(State::PEN_FOREGROUND, ui->widgetCharset->_colorRAMForChars[0]);
+    state->setMulticolorMode(true);
+
+    // update last used dir
+    QFileInfo info(ui->lineEdit->text());
+    QSettings("RetroMoe","VChar64").setValue("dir/lastdir", info.absolutePath());
+
+    accept();
+}
+
+void ImportKoalaDialog::on_pushButtonCancel_clicked()
+{
+    reject();
+}
+
+void ImportKoalaDialog::updateWidgets()
+{
+    QWidget* widgets[] =
+    {
+        ui->radioButtonNeighbor,
+        ui->radioButtonPalette,
+        ui->radioForegroundMostUsed,
+        ui->radioForegroundMostUsedLow,
+        ui->radioMostUsedColors,
+        ui->radioMostUsedHiColors,
+        ui->widgetCharset,
+        ui->widgetKoala,
+        ui->pushButtonImport
+    };
+
+    const int COUNT = sizeof(widgets) / sizeof(widgets[0]);
+
+    for (int i=0; i<COUNT; i++)
+    {
+        widgets[i]->setEnabled(_validKoalaFile);
+    }
 }

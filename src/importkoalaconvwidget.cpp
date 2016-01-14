@@ -40,7 +40,7 @@ ImportKoalaConvWidget::ImportKoalaConvWidget(QWidget *parent)
                  PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 
     memset(_screenRAM, 0, sizeof(_screenRAM));
-    memset(_colorRAM, 0, sizeof(_colorRAM));
+    memset(_colorRAMForChars, 0, sizeof(_colorRAMForChars));
     memset(_charset, 0, sizeof(_charset));
     _d02x[0] = 0;
     _d02x[1] = 1;
@@ -54,8 +54,9 @@ void ImportKoalaConvWidget::populateScreenAndColorRAM(const std::vector<std::pai
         int x = pair.first;
         int y = pair.second;
         _screenRAM[y * 40 + x] = screenRAM;
-        _colorRAM[y * 40 + x] = colorRAM;
     }
+
+    _colorRAMForChars[screenRAM] = colorRAM;
 }
 
 void ImportKoalaConvWidget::setCharset(int charIndex, quint8* chardef)
@@ -117,7 +118,7 @@ void ImportKoalaConvWidget::paintEvent(QPaintEvent *event)
 
                     // bitmask 11: color RAM
                     case 0x3:
-                        colorIndex = _colorRAM[y * 40 + x] - 8;
+                        colorIndex = _colorRAMForChars[c] -8 ;
                         break;
                     default:
                         qDebug() << "ImportKoalaWidget::paintEvent Invalid color: " << color << " at x,y=" << x << y;

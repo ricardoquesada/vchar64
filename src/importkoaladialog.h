@@ -39,14 +39,14 @@ protected:
 
     int findColorRAM(const std::vector<std::pair<int,int>>& usedColors, int *outHiColor);
 
-    void simplifyKey(char* key, int hiColorRAM);
-    void simplifyWithPaletteStrategy(char* key, int hiColorRAM);
-    void simplifyWithNeighborStrategy(char* key, int hiColorRAM);
+    void normalizeKey(char* key, int hiColorRAM);
+    void normalizeWithPaletteStrategy(char* key, int hiColorRAM);
+    void normalizeWithNeighborStrategy(char* key, int hiColorRAM);
     bool tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM);
     int getColorByPaletteProximity(int colorIndex, const std::vector<int> &colorsToFind);
-    int getColorByLuck(int colorIndex, const std::vector<int> &colorsToFind);
 
     void convert();
+    void updateWidgets();
 
 private slots:
     void on_radioForegroundMostUsed_clicked();
@@ -59,8 +59,10 @@ private slots:
 
     // browse directories
     void on_pushButton_clicked();
+    void on_lineEdit_editingFinished();
 
-    void on_radioButtonRandom_clicked();
+    void on_pushButtonImport_clicked();
+    void on_pushButtonCancel_clicked();
 
 private:
 
@@ -68,5 +70,4 @@ private:
     Ui::ImportKoalaDialog *ui;
     bool _validKoalaFile;
     QString _filepath;
-    std::unordered_map<int,int> _randomColorsCache;
 };
