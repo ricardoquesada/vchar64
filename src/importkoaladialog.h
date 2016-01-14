@@ -16,6 +16,7 @@ limitations under the License.
 
 #pragma once
 
+#include <unordered_map>
 #include <QDialog>
 
 namespace Ui {
@@ -43,6 +44,7 @@ protected:
     void simplifyWithNeighborStrategy(char* key, int hiColorRAM);
     bool tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM);
     int getColorByPaletteProximity(int colorIndex, const std::vector<int> &colorsToFind);
+    int getColorByLuck(int colorIndex, const std::vector<int> &colorsToFind);
 
     void convert();
 
@@ -53,11 +55,12 @@ private slots:
     void on_radioMostUsedHiColors_clicked();
     void on_radioButtonNeighbor_clicked();
     void on_radioButtonPalette_clicked();
-    void on_radioButtonColorRAM_clicked();
     void on_checkBoxGrid_clicked();
 
     // browse directories
     void on_pushButton_clicked();
+
+    void on_radioButtonRandom_clicked();
 
 private:
 
@@ -65,4 +68,5 @@ private:
     Ui::ImportKoalaDialog *ui;
     bool _validKoalaFile;
     QString _filepath;
+    std::unordered_map<int,int> _randomColorsCache;
 };

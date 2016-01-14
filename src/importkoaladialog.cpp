@@ -17,6 +17,8 @@ limitations under the License.
 #include "importkoaladialog.h"
 #include "ui_importkoaladialog.h"
 
+#include <random>
+
 #include <QFileDialog>
 #include <QSettings>
 #include <QDebug>
@@ -240,8 +242,26 @@ void ImportKoalaDialog::simplifyWithNeighborStrategy(char* key, int hiColorRAM)
     }
 }
 
+int ImportKoalaDialog::getColorByLuck(int colorIndex, const std::vector<int>& colorsToFind)
+{
+    int idx = -1;
+    if (_randomColorsCache.find(colorIndex) != std::end(_randomColorsCache))
+        idx = _randomColorsCache[colorIndex];
+    else
+    {
+        idx = (std::rand() / (float)RAND_MAX) * colorsToFind.size();
+        _randomColorsCache[colorIndex] = idx;
+    }
+
+    return colorsToFind[idx];
+}
+
 int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vector<int>& colorsToFind)
 {
+    // FIXME:
+    // better to have an static table instead of this "magic" heuristic.
+    // In fact, I don't know if this heuristic is good enough or not
+
     // cycle colors taken from:
     // http://codebase64.org/doku.php?id=base:vic-ii_color_cheatsheet
     int cycle1[] = {0, 6, 0xb, 4, 0xe, 5, 3, 0xd, 1};
@@ -295,7 +315,7 @@ int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vec
                 int tmpColor = cycles[i].array[j];
                 if (std::find(std::begin(colorsToFind), std::end(colorsToFind), tmpColor) != std::end(colorsToFind))
                 {
-                    usedColors[tmpColor].first += 4 - abs(idx-j);
+                    usedColors[tmpColor].first += std::max(0, 4 - abs(idx-j));
                 }
             }
         }
@@ -321,18 +341,17 @@ void ImportKoalaDialog::simplifyWithPaletteStrategy(char* key, int hiColorRAM)
                     colorIndex != ui->widgetKoala->_d02xColors[2])
             {
                 int newColor = -1;
-                if (ui->radioButtonColorRAM->isChecked())
-                    // Color RAM strategy
-                    newColor = _colorRAM;
+                const std::vector<int> colorsToFind = {ui->widgetKoala->_d02xColors[0],
+                                                 ui->widgetKoala->_d02xColors[1],
+                                                 ui->widgetKoala->_d02xColors[2],
+                                                 _colorRAM};
+
+                if (ui->radioButtonRandom->isChecked())
+                    // Luck strategy
+                    newColor = getColorByLuck(colorIndex, colorsToFind);
                 else
-                {
                     // Palette proximity Strategy
-                    std::vector<int> colorsToFind = {ui->widgetKoala->_d02xColors[0],
-                                                     ui->widgetKoala->_d02xColors[1],
-                                                     ui->widgetKoala->_d02xColors[2],
-                                                     _colorRAM};
                     newColor = getColorByPaletteProximity(colorIndex, colorsToFind);
-                }
                 key[y*4+x] = _hex[newColor];
             }
         }
@@ -343,7 +362,7 @@ void ImportKoalaDialog::simplifyKey(char* key, int hiColorRAM)
 {
     if (ui->radioButtonNeighbor->isChecked())
         simplifyWithNeighborStrategy(key, hiColorRAM);
-    else /* palette or color ram */
+    else /* palette or random */
         simplifyWithPaletteStrategy(key, hiColorRAM);
 }
 
@@ -460,6 +479,8 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
 
 void ImportKoalaDialog::convert()
 {
+    _randomColorsCache.clear();
+
     auto orig = ui->widgetKoala;
     auto conv = ui->widgetCharset;
 
@@ -523,7 +544,7 @@ void ImportKoalaDialog::on_radioButtonPalette_clicked()
     convert();
 }
 
-void ImportKoalaDialog::on_radioButtonColorRAM_clicked()
+void ImportKoalaDialog::on_radioButtonRandom_clicked()
 {
     convert();
 }

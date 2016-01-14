@@ -161,9 +161,9 @@
           </widget>
          </item>
          <item>
-          <widget class="QRadioButton" name="radioButtonColorRAM">
+          <widget class="QRadioButton" name="radioButtonRandom">
            <property name="text">
-            <string>Color RAM</string>
+            <string>Random</string>
            </property>
           </widget>
          </item>
