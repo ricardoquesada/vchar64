@@ -24,6 +24,7 @@ limitations under the License.
 #include <QDebug>
 
 #include "mainwindow.h"
+#include "palette.h"
 
 static const char* _hex ="0123456789ABCDEF";
 
@@ -485,9 +486,13 @@ void ImportKoalaDialog::convert()
 
     orig->reportResults();
 
+    ui->lineEditUnique->setText(QString::number(orig->_uniqueChars.size()));
 
     for (int i=0; i<3; ++i)
         conv->_d02x[i] = orig->_d02xColors[i];
+    ui->widgetD021->setColor(Palette::getColor(orig->_d02xColors[0]));
+    ui->widgetD022->setColor(Palette::getColor(orig->_d02xColors[1]));
+    ui->widgetD023->setColor(Palette::getColor(orig->_d02xColors[2]));
 
     int charsetCount = 0;
 
@@ -580,6 +585,10 @@ void ImportKoalaDialog::updateWidgets()
         ui->radioMostUsedHiColors,
         ui->widgetCharset,
         ui->widgetKoala,
+        ui->lineEditUnique,
+        ui->widgetD021,
+        ui->widgetD022,
+        ui->widgetD023,
         ui->pushButtonImport
     };
 

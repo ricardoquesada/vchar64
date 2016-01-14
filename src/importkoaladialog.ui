@@ -60,6 +60,13 @@
     </layout>
    </item>
    <item>
+    <widget class="QCheckBox" name="checkBoxGrid">
+     <property name="text">
+      <string>Show grid</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QFrame" name="frame_2">
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -149,24 +156,91 @@
         </layout>
        </widget>
       </item>
-      <item>
-       <widget class="QGroupBox" name="groupBox_3">
-        <property name="title">
-         <string>Options</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_5">
-         <item>
-          <widget class="QCheckBox" name="checkBoxGrid">
-           <property name="text">
-            <string>Display Grid</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Global Colors:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="ColorRectWidget" name="widgetD021" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="ColorRectWidget" name="widgetD022" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="ColorRectWidget" name="widgetD023" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="labelUnique">
+       <property name="text">
+        <string>Unique Chars:</string>
+       </property>
+       <property name="buddy">
+        <cstring>lineEditUnique</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditUnique">
+       <property name="maximumSize">
+        <size>
+         <width>40</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+       <property name="maxLength">
+        <number>10</number>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
    <item>
     <spacer name="verticalSpacer">
@@ -228,6 +302,12 @@
    <class>ImportKoalaConvWidget</class>
    <extends>QWidget</extends>
    <header>importkoalaconvwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ColorRectWidget</class>
+   <extends>QWidget</extends>
+   <header>colorrectwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

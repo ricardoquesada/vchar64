@@ -25,6 +25,7 @@ limitations under the License.
 
 ColorRectWidget::ColorRectWidget(QWidget *parent)
     : QWidget(parent)
+    , _mode(PEN_MODE)
     , _pen(0)
 {
     setMinimumSize(60,10);
@@ -34,11 +35,13 @@ ColorRectWidget::~ColorRectWidget()
 {
 }
 
+
 void ColorRectWidget::setPen(int pen)
 {
     Q_ASSERT(pen>=0 && pen<State::PEN_MAX && "Invalid colorIndex");
     if (_pen != pen) {
         _pen = pen;
+        _mode = PEN_MODE;
         repaint();
     }
 }
@@ -48,11 +51,21 @@ int ColorRectWidget::getPen() const
     return _pen;
 }
 
+void ColorRectWidget::setColor(const QColor& color)
+{
+    _color = color;
+    _mode = COLOR_MODE;
+    repaint();
+}
+
 void ColorRectWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
     painter.begin(this);
 
-    painter.fillRect(event->rect(), Palette::getColorForPen(MainWindow::getCurrentState(), _pen));
+    if (_mode == PEN_MODE)
+        painter.fillRect(event->rect(), Palette::getColorForPen(MainWindow::getCurrentState(), _pen));
+    else
+        painter.fillRect(event->rect(), _color);
     painter.end();
 }
