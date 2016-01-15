@@ -2,10 +2,18 @@
 <ui version="4.0">
  <class>ImportKoalaDialog</class>
  <widget class="QDialog" name="ImportKoalaDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>676</width>
+    <height>546</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Import Koala</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QFrame" name="frame">
      <property name="frameShape">
@@ -67,93 +75,104 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
+    <layout class="QGridLayout" name="gridLayout_3">
+     <property name="verticalSpacing">
+      <number>0</number>
+     </property>
+     <item row="0" column="0">
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string>Global Colors: D021, D022 &amp; D023</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <property name="topMargin">
+         <number>5</number>
+        </property>
+        <property name="bottomMargin">
+         <number>5</number>
+        </property>
+        <item>
+         <widget class="QRadioButton" name="radioD02xMostUsed">
+          <property name="text">
+           <string>+ Used Colors</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioD02xMostUsedHi">
+          <property name="text">
+           <string>+ Used colors &gt;= 8</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioD02xManual">
+          <property name="text">
+           <string>Manual</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="title">
-          <string>Global Colors: D021, D022 &amp; D023</string>
+        <widget class="ColorRectWidget" name="widgetD021" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <widget class="QRadioButton" name="radioD02xMostUsed">
-            <property name="text">
-             <string>+ Used Colors</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioD02xMostUsedHi">
-            <property name="text">
-             <string>+ Used colors &gt;= 8</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioD02xManual">
-            <property name="text">
-             <string>Manual</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-         <zorder>radioD02xMostUsed</zorder>
-         <zorder>radioD02xMostUsedHi</zorder>
-         <zorder>radioD02xManual</zorder>
          <zorder>widgetD022</zorder>
          <zorder>widgetD023</zorder>
-         <zorder>widgetD021</zorder>
-         <zorder>widgetD023</zorder>
-         <zorder>widgetD021</zorder>
+         <zorder>groupBox</zorder>
          <zorder>widgetD022</zorder>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="ColorRectWidget" name="widgetD021" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="ColorRectWidget" name="widgetD022" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="ColorRectWidget" name="widgetD023" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="ColorRectWidget" name="widgetD022" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <zorder>widgetD021</zorder>
+        </widget>
+       </item>
+       <item>
+        <widget class="ColorRectWidget" name="widgetD023" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <zorder>widgetD021</zorder>
+        </widget>
        </item>
       </layout>
      </item>
-     <item>
+     <item row="0" column="1" rowspan="2">
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
         <string>Color RAM (1 per cell)</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="topMargin">
+         <number>5</number>
+        </property>
+        <property name="bottomMargin">
+         <number>5</number>
+        </property>
         <item>
          <widget class="QRadioButton" name="radioForegroundMostUsed">
           <property name="text">
@@ -187,12 +206,18 @@
        </layout>
       </widget>
      </item>
-     <item>
+     <item row="0" column="2" rowspan="2">
       <widget class="QGroupBox" name="groupBox_4">
        <property name="title">
         <string>Invalid Colors</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
+        <property name="topMargin">
+         <number>5</number>
+        </property>
+        <property name="bottomMargin">
+         <number>5</number>
+        </property>
         <item>
          <widget class="QRadioButton" name="radioButtonPalette">
           <property name="text">
@@ -325,6 +350,10 @@
     </layout>
    </item>
   </layout>
+  <zorder>frame</zorder>
+  <zorder>checkBoxGrid</zorder>
+  <zorder></zorder>
+  <zorder>gridLayoutWidget</zorder>
  </widget>
  <customwidgets>
   <customwidget>

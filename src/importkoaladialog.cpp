@@ -318,13 +318,18 @@ int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vec
                 int tmpColor = cycles[i].array[j];
                 if (std::find(std::begin(colorsToFind), std::end(colorsToFind), tmpColor) != std::end(colorsToFind))
                 {
-                    usedColors[tmpColor].first += std::max(0, 4 - abs(idx-j));
+                    usedColors[tmpColor].first += std::max(0, 9 - abs(idx-j));
                 }
             }
         }
     }
 
     std::sort(std::begin(usedColors), std::end(usedColors));
+
+    if (std::find(std::begin(colorsToFind), std::end(colorsToFind), usedColors[15].second) == std::end(colorsToFind))
+    {
+        qDebug() << "a la perinola";
+    }
     return usedColors[15].second;
 }
 
