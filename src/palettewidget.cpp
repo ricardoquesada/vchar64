@@ -24,7 +24,6 @@ limitations under the License.
 
 #include "palette.h"
 #include "state.h"
-#include "commands.h"
 #include "palette.h"
 #include "mainwindow.h"
 
@@ -55,8 +54,7 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
         int oldColor = state->getColorForPen(pen);
 
         if (oldColor != color) {
-            state->getUndoStack()->push(new SetColorCommand(state, color, pen));
-
+            state->setColorForPen(pen, color);
             emit colorSelected();
             update();
         }

@@ -44,7 +44,7 @@ void PaintTileCommand::redo()
     _state->copyTileFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
 
     for (int i = 0; i < _points.size(); ++i) {
-        _state->tileSetPen(_tileIndex, _points.at(i), _pen);
+        _state->_tileSetPen(_tileIndex, _points.at(i), _pen);
     }
 }
 
@@ -83,12 +83,12 @@ void ClearTileCommand::undo()
 void ClearTileCommand::redo()
 {
     _state->copyTileFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
-    _state->tileClear(_tileIndex);
+    _state->_tileClear(_tileIndex);
 }
 
 // PasteCommand
 
-PasteCommand::PasteCommand(State *state, int charIndex, const State::CopyRange& copyRange, quint8* charsetBuffer, QUndoCommand *parent)
+PasteCommand::PasteCommand(State *state, int charIndex, const State::CopyRange& copyRange, const quint8* charsetBuffer, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
     _charIndex = charIndex;
@@ -114,7 +114,7 @@ void PasteCommand::undo()
 void PasteCommand::redo()
 {
     memcpy(_origBuffer, _state->getCharsetBuffer(), sizeof(_origBuffer));
-    _state->paste(_charIndex, _copyRange, _copyBuffer);
+    _state->_paste(_charIndex, _copyRange, _copyBuffer);
 }
 
 // CutCommand
@@ -136,13 +136,13 @@ void CutCommand::undo()
     memcpy(&reversedCopyRange, &_copyRange, sizeof(State::CopyRange));
     reversedCopyRange.offset = _charIndex;
 
-    _state->paste(_charIndex, reversedCopyRange, _origBuffer);
+    _state->_paste(_charIndex, reversedCopyRange, _origBuffer);
 }
 
 void CutCommand::redo()
 {
     memcpy(_origBuffer, _state->getCharsetBuffer(), sizeof(_origBuffer));
-    _state->paste(_charIndex, _copyRange, _zeroBuffer);
+    _state->_paste(_charIndex, _copyRange, _zeroBuffer);
 }
 // FlipTileHCommand
 
@@ -157,12 +157,12 @@ FlipTileHCommand::FlipTileHCommand(State *state, int tileIndex, QUndoCommand *pa
 
 void FlipTileHCommand::undo()
 {
-    _state->tileFlipHorizontally(_tileIndex);
+    _state->_tileFlipHorizontally(_tileIndex);
 }
 
 void FlipTileHCommand::redo()
 {
-    _state->tileFlipHorizontally(_tileIndex);
+    _state->_tileFlipHorizontally(_tileIndex);
 }
 
 // FlipTileVCommand
@@ -178,12 +178,12 @@ FlipTileVCommand::FlipTileVCommand(State *state, int tileIndex, QUndoCommand *pa
 
 void FlipTileVCommand::undo()
 {
-    _state->tileFlipVertically(_tileIndex);
+    _state->_tileFlipVertically(_tileIndex);
 }
 
 void FlipTileVCommand::redo()
 {
-    _state->tileFlipVertically(_tileIndex);
+    _state->_tileFlipVertically(_tileIndex);
 }
 
 // RotateTileCommand
@@ -199,14 +199,14 @@ RotateTileCommand::RotateTileCommand(State *state, int tileIndex, QUndoCommand *
 
 void RotateTileCommand::undo()
 {
-    _state->tileRotate(_tileIndex);
-    _state->tileRotate(_tileIndex);
-    _state->tileRotate(_tileIndex);
+    _state->_tileRotate(_tileIndex);
+    _state->_tileRotate(_tileIndex);
+    _state->_tileRotate(_tileIndex);
 }
 
 void RotateTileCommand::redo()
 {
-    _state->tileRotate(_tileIndex);
+    _state->_tileRotate(_tileIndex);
 }
 
 // InvertTile
@@ -222,12 +222,12 @@ InvertTileCommand::InvertTileCommand(State *state, int tileIndex, QUndoCommand *
 
 void InvertTileCommand::undo()
 {
-    _state->tileInvert(_tileIndex);
+    _state->_tileInvert(_tileIndex);
 }
 
 void InvertTileCommand::redo()
 {
-    _state->tileInvert(_tileIndex);
+    _state->_tileInvert(_tileIndex);
 }
 
 // Shift left
@@ -243,12 +243,12 @@ ShiftLeftTileCommand::ShiftLeftTileCommand(State *state, int tileIndex, QUndoCom
 
 void ShiftLeftTileCommand::undo()
 {
-    _state->tileShiftRight(_tileIndex);
+    _state->_tileShiftRight(_tileIndex);
 }
 
 void ShiftLeftTileCommand::redo()
 {
-    _state->tileShiftLeft(_tileIndex);
+    _state->_tileShiftLeft(_tileIndex);
 }
 
 // Shift Right
@@ -264,12 +264,12 @@ ShiftRightTileCommand::ShiftRightTileCommand(State *state, int tileIndex, QUndoC
 
 void ShiftRightTileCommand::undo()
 {
-    _state->tileShiftLeft(_tileIndex);
+    _state->_tileShiftLeft(_tileIndex);
 }
 
 void ShiftRightTileCommand::redo()
 {
-    _state->tileShiftRight(_tileIndex);
+    _state->_tileShiftRight(_tileIndex);
 }
 
 // Shift Up
@@ -285,12 +285,12 @@ ShiftUpTileCommand::ShiftUpTileCommand(State *state, int tileIndex, QUndoCommand
 
 void ShiftUpTileCommand::undo()
 {
-    _state->tileShiftDown(_tileIndex);
+    _state->_tileShiftDown(_tileIndex);
 }
 
 void ShiftUpTileCommand::redo()
 {
-    _state->tileShiftUp(_tileIndex);
+    _state->_tileShiftUp(_tileIndex);
 }
 
 // Shift Down
@@ -306,12 +306,12 @@ ShiftDownTileCommand::ShiftDownTileCommand(State *state, int tileIndex, QUndoCom
 
 void ShiftDownTileCommand::undo()
 {
-    _state->tileShiftUp(_tileIndex);
+    _state->_tileShiftUp(_tileIndex);
 }
 
 void ShiftDownTileCommand::redo()
 {
-    _state->tileShiftDown(_tileIndex);
+    _state->_tileShiftDown(_tileIndex);
 }
 
 // SetTilePropertiesCommand
@@ -331,13 +331,13 @@ SetTilePropertiesCommand::SetTilePropertiesCommand(State *state, const State::Ti
 
 void SetTilePropertiesCommand::undo()
 {
-    _state->setTileProperties(_old);
+    _state->_setTileProperties(_old);
 }
 
 void SetTilePropertiesCommand::redo()
 {
     _old = _state->getTileProperties();
-    _state->setTileProperties(_new);
+    _state->_setTileProperties(_new);
 }
 
 
@@ -357,13 +357,13 @@ SetMulticolorModeCommand::SetMulticolorModeCommand(State *state, bool multicolor
 
 void SetMulticolorModeCommand::undo()
 {
-    _state->setMulticolorMode(_old);
+    _state->_setMulticolorMode(_old);
 }
 
 void SetMulticolorModeCommand::redo()
 {
     _old = _state->isMulticolorMode();
-    _state->setMulticolorMode(_new);
+    _state->_setMulticolorMode(_new);
 }
 
 // SetColorCommand
@@ -383,11 +383,11 @@ SetColorCommand::SetColorCommand(State *state, int color, int pen, QUndoCommand 
 
 void SetColorCommand::undo()
 {
-    _state->setColorForPen(_pen, _old);
+    _state->_setColorForPen(_pen, _old);
 }
 
 void SetColorCommand::redo()
 {
     _old = _state->getColorForPen(_pen);
-    _state->setColorForPen(_pen, _new);
+    _state->_setColorForPen(_pen, _new);
 }

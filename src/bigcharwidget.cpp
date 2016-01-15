@@ -22,7 +22,6 @@ limitations under the License.
 #include <QMessageBox>
 
 #include "state.h"
-#include "commands.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "palette.h"
@@ -68,8 +67,7 @@ void BigCharWidget::paintPixel(int x, int y, int pen)
     {
         if (!_state->shouldBeDisplayedInMulticolor() && pen)
             pen = 1;
-
-        _state->getUndoStack()->push(new PaintTileCommand(_state, _tileIndex, QPoint(x,y), pen, _commandMergeable));
+        _state->tilePaint(_tileIndex, QPoint(x,y), pen, _commandMergeable);
     }
 
     // redraw cursor

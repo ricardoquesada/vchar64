@@ -33,6 +33,21 @@ class State : public QObject
 
     friend class StateImport;
     friend class BigCharWidget;
+    friend class PaintTileCommand;
+    friend class PasteCommand;
+    friend class CutCommand;
+    friend class FlipTileHCommand;
+    friend class FlipTileVCommand;
+    friend class ShiftDownTileCommand;
+    friend class ShiftUpTileCommand;
+    friend class ShiftLeftTileCommand;
+    friend class ShiftRightTileCommand;
+    friend class RotateTileCommand;
+    friend class InvertTileCommand;
+    friend class ClearTileCommand;
+    friend class SetMulticolorModeCommand;
+    friend class SetTilePropertiesCommand;
+    friend class SetColorCommand;
 
 public:
     // only 256 chars at the time
@@ -231,15 +246,18 @@ public:
 
     /**
      * @brief paste paste previously copied range starting from charIndex
-     * @param charIndex offset in bytes
+     * @param offset offset in bytes
      * @param copyRange range to paste
      * @param charsetBuffer buffer that has the 256 chars
      */
-    void paste(int charIndex, const CopyRange& copyRange, const quint8* charsetBuffer);
+    void paste(int offset, const CopyRange& copyRange, const quint8* charsetBuffer);
+
+    void cut(int offset, const CopyRange& copyRange);
 
     //
     // tile manipulation
     //
+    void tilePaint(int tileIndex, const QPoint& point, int pen, bool mergeable=false);
     void tileInvert(int tileIndex);
     void tileClear(int tileIndex);
     void tileFlipHorizontally(int tileIndex);
@@ -249,7 +267,6 @@ public:
     void tileShiftRight(int tileIndex);
     void tileShiftUp(int tileIndex);
     void tileShiftDown(int tileIndex);
-    void tileSetPen(int tileIndex, const QPoint& position, int pen);
 
     /** Returns the used pen for a certain bit of a tile.
         returns 0 or 1 in normal mode
@@ -328,8 +345,21 @@ protected:
     void _setCharIndex(int charIndex);
     void _setTileIndex(int tileIndex);
 
+    void _paste(int charIndex, const CopyRange& copyRange, const quint8* charsetBuffer);
+    void _tileInvert(int tileIndex);
+    void _tileClear(int tileIndex);
+    void _tileFlipHorizontally(int tileIndex);
+    void _tileFlipVertically(int tileIndex);
+    void _tileRotate(int tileIndex);
     void _tileShiftLeft(int tileIndex);
     void _tileShiftRight(int tileIndex);
+    void _tileShiftUp(int tileIndex);
+    void _tileShiftDown(int tileIndex);
+
+    void _tileSetPen(int tileIndex, const QPoint& position, int pen);
+    void _setMulticolorMode(bool enabled);
+    void _setTileProperties(const TileProperties& properties);
+    void _setColorForPen(int pen, int color);
 
     int _totalChars;
 

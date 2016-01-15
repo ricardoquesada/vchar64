@@ -41,7 +41,6 @@ limitations under the License.
 #include "exportdialog.h"
 #include "tilepropertiesdialog.h"
 #include "bigcharwidget.h"
-#include "commands.h"
 #include "palette.h"
 #include "importvicedialog.h"
 #include "importkoaladialog.h"
@@ -602,8 +601,7 @@ void MainWindow::on_checkBox_multicolor_toggled(bool checked)
 
         _ui->actionEnable_Multicolor->setChecked(checked);
 
-        if (state)
-            state->getUndoStack()->push(new SetMulticolorModeCommand(state, checked));
+        state ->setMulticolorMode(checked);
     }
 }
 
@@ -882,16 +880,14 @@ void MainWindow::on_actionInvert_triggered()
 {
     auto state = getState();
     int tileIndex = getBigcharWidget()->getTileIndex();
-
-    state->getUndoStack()->push(new InvertTileCommand(state, tileIndex));
+    state->tileInvert(tileIndex);
 }
 
 void MainWindow::on_actionFlipHorizontally_triggered()
 {
     auto state = getState();
     int tileIndex = getBigcharWidget()->getTileIndex();
-
-    state->getUndoStack()->push(new FlipTileHCommand(state, tileIndex));
+    state->tileFlipHorizontally(tileIndex);
 }
 
 void MainWindow::on_actionFlipVertically_triggered()
@@ -899,7 +895,7 @@ void MainWindow::on_actionFlipVertically_triggered()
     auto state = getState();
     int tileIndex = getBigcharWidget()->getTileIndex();
 
-    state->getUndoStack()->push(new FlipTileVCommand(state, tileIndex));
+    state->tileFlipVertically(tileIndex);
 }
 
 void MainWindow::on_actionRotate_triggered()
@@ -907,7 +903,7 @@ void MainWindow::on_actionRotate_triggered()
     auto state = getState();
     int tileIndex = getBigcharWidget()->getTileIndex();
 
-    state->getUndoStack()->push(new RotateTileCommand(state, tileIndex));
+    state->tileRotate(tileIndex);
 }
 
 void MainWindow::on_actionClearCharacter_triggered()
@@ -915,7 +911,7 @@ void MainWindow::on_actionClearCharacter_triggered()
     auto state = getState();
     int tileIndex = getBigcharWidget()->getTileIndex();
 
-    state->getUndoStack()->push(new ClearTileCommand(state, tileIndex));
+    state->tileClear(tileIndex);
 }
 
 void MainWindow::on_actionShiftLeft_triggered()
@@ -923,7 +919,7 @@ void MainWindow::on_actionShiftLeft_triggered()
     auto state = getState();
     int tileIndex = getBigcharWidget()->getTileIndex();
 
-    state->getUndoStack()->push(new ShiftLeftTileCommand(state, tileIndex));
+    state->tileShiftLeft(tileIndex);
 }
 
 void MainWindow::on_actionShiftRight_triggered()
@@ -931,7 +927,7 @@ void MainWindow::on_actionShiftRight_triggered()
     auto state = getState();
     int tileIndex = getBigcharWidget()->getTileIndex();
 
-    state->getUndoStack()->push(new ShiftRightTileCommand(state, tileIndex));
+    state->tileShiftRight(tileIndex);
 }
 
 void MainWindow::on_actionShiftUp_triggered()
@@ -939,7 +935,7 @@ void MainWindow::on_actionShiftUp_triggered()
     auto state = getState();
     int tileIndex = getBigcharWidget()->getTileIndex();
 
-    state->getUndoStack()->push(new ShiftUpTileCommand(state, tileIndex));
+    state->tileShiftUp(tileIndex);
 }
 
 void MainWindow::on_actionShiftDown_triggered()
@@ -947,9 +943,8 @@ void MainWindow::on_actionShiftDown_triggered()
     auto state = getState();
     int tileIndex = getBigcharWidget()->getTileIndex();
 
-    state->getUndoStack()->push(new ShiftDownTileCommand(state, tileIndex));
+    state->tileShiftDown(tileIndex);
 }
-
 
 void MainWindow::on_actionCut_triggered()
 {
@@ -957,9 +952,8 @@ void MainWindow::on_actionCut_triggered()
     auto copyRange = bufferToClipboard(state);
 
     int indexChar = copyRange.offset;
-    state->getUndoStack()->push(new CutCommand(state, indexChar, copyRange));
+    state->cut(indexChar, copyRange);
 }
-
 
 void MainWindow::on_actionCopy_triggered()
 {
@@ -989,7 +983,7 @@ void MainWindow::on_actionPaste_triggered()
             return;
         }
 
-        state->getUndoStack()->push(new PasteCommand(state, cursorPos, range, buffer));
+        state->paste(cursorPos, range, buffer);
     }
 }
 

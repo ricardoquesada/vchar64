@@ -62,7 +62,7 @@ private:
 class PasteCommand : public QUndoCommand
 {
 public:
-    PasteCommand(State *state, int charIndex, const State::CopyRange &copyRange, quint8* charsetBuffer, QUndoCommand *parent = nullptr);
+    PasteCommand(State *state, int charIndex, const State::CopyRange &copyRange, const quint8* charsetBuffer, QUndoCommand *parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -228,7 +228,6 @@ private:
     bool _old;
     bool _new;
 };
-
 
 // SetColorCommand
 class SetColorCommand : public QUndoCommand

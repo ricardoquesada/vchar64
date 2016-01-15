@@ -28,6 +28,7 @@ limitations under the License.
 #include "mainwindow.h"
 #include "stateimport.h"
 #include "stateexport.h"
+#include "commands.h"
 
 const int State::CHAR_BUFFER_SIZE;
 
@@ -271,6 +272,11 @@ bool State::isMulticolorMode() const
 
 void State::setMulticolorMode(bool enabled)
 {
+    getUndoStack()->push(new SetMulticolorModeCommand(this, enabled));
+}
+
+void State::_setMulticolorMode(bool enabled)
+{
     if (_multicolorMode != enabled)
     {
         _multicolorMode = enabled;
@@ -281,6 +287,11 @@ void State::setMulticolorMode(bool enabled)
 }
 
 void State::setColorForPen(int pen, int color)
+{
+    getUndoStack()->push(new SetColorCommand(this, color, pen));
+}
+
+void State::_setColorForPen(int pen, int color)
 {
     Q_ASSERT(pen >=0 && pen < PEN_MAX);
     Q_ASSERT(color >=0 && color < 16);
@@ -359,7 +370,7 @@ int State::tileGetPen(int tileIndex, const QPoint& position)
     return ret;
 }
 
-void State::tileSetPen(int tileIndex, const QPoint& position, int pen)
+void State::_tileSetPen(int tileIndex, const QPoint& position, int pen)
 {
     Q_ASSERT(tileIndex>=0 && tileIndex<=getTileIndexFromCharIndex(255) && "invalid index value");
     Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
@@ -405,6 +416,11 @@ void State::tileSetPen(int tileIndex, const QPoint& position, int pen)
 }
 
 void State::setTileProperties(const TileProperties& properties)
+{
+    getUndoStack()->push(new SetTilePropertiesCommand(this, properties));
+}
+
+void State::_setTileProperties(const TileProperties& properties)
 {
     if (memcmp(&_tileProperties, &properties, sizeof(_tileProperties)) != 0) {
         _tileProperties = properties;
@@ -508,7 +524,17 @@ quint8* State::getCharAtIndex(int charIndex)
     return &_charset[charIndex*8];
 }
 
-void State::paste(int charIndex, const CopyRange& copyRange, const quint8* charsetBuffer)
+void State::cut(int offset, const CopyRange &copyRange)
+{
+    getUndoStack()->push(new CutCommand(this, offset, copyRange));
+}
+
+void State::paste(int offset, const CopyRange& copyRange, const quint8* charsetBuffer)
+{
+    getUndoStack()->push(new PasteCommand(this, offset, copyRange, charsetBuffer));
+}
+
+void State::_paste(int charIndex, const CopyRange& copyRange, const quint8* charsetBuffer)
 {
     Q_ASSERT(charIndex >=0 && charIndex< CHAR_BUFFER_SIZE && "Invalid charIndex size");
 
@@ -591,7 +617,18 @@ void State::paste(int charIndex, const CopyRange& copyRange, const quint8* chars
 //
 // tile manipulation
 //
+
+void State::tilePaint(int tileIndex, const QPoint& point, int pen, bool mergeable)
+{
+    getUndoStack()->push(new PaintTileCommand(this, tileIndex, point, pen, mergeable));
+}
+
 void State::tileInvert(int tileIndex)
+{
+    getUndoStack()->push(new InvertTileCommand(this, tileIndex));
+}
+
+void State::_tileInvert(int tileIndex)
 {
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
@@ -610,6 +647,11 @@ void State::tileInvert(int tileIndex)
 
 void State::tileClear(int tileIndex)
 {
+    getUndoStack()->push(new ClearTileCommand(this, tileIndex));
+}
+
+void State::_tileClear(int tileIndex)
+{
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
@@ -626,6 +668,11 @@ void State::tileClear(int tileIndex)
 }
 
 void State::tileFlipHorizontally(int tileIndex)
+{
+    getUndoStack()->push(new FlipTileHCommand(this, tileIndex));
+}
+
+void State::_tileFlipHorizontally(int tileIndex)
 {
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
@@ -661,6 +708,11 @@ void State::tileFlipHorizontally(int tileIndex)
 
 void State::tileFlipVertically(int tileIndex)
 {
+    getUndoStack()->push(new FlipTileVCommand(this, tileIndex));
+}
+
+void State::_tileFlipVertically(int tileIndex)
+{
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
@@ -690,6 +742,11 @@ void State::tileFlipVertically(int tileIndex)
 }
 
 void State::tileRotate(int tileIndex)
+{
+    getUndoStack()->push(new RotateTileCommand(this, tileIndex));
+}
+
+void State::_tileRotate(int tileIndex)
 {
     Q_ASSERT(_tileProperties.size.width() == _tileProperties.size.height() && "Only square tiles can be rotated");
 
@@ -742,14 +799,7 @@ void State::tileRotate(int tileIndex)
 
 void State::tileShiftLeft(int tileIndex)
 {
-    _tileShiftLeft(tileIndex);
-
-    // double shift if in multicolor
-    if (shouldBeDisplayedInMulticolor())
-        _tileShiftLeft(tileIndex);
-
-    emit tileUpdated(tileIndex);
-    emit contentsChanged();
+    getUndoStack()->push(new ShiftLeftTileCommand(this, tileIndex));
 }
 
 void State::_tileShiftLeft(int tileIndex)
@@ -757,42 +807,43 @@ void State::_tileShiftLeft(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
+    int times = shouldBeDisplayedInMulticolor() ? 2 : 1;
 
-    // top tile first
-    for (int y=0; y<_tileProperties.size.height(); y++) {
+    // shift two times in multicolor mode
+    for (int i=0; i<times; ++i)
+    {
+        // top tile first
+        for (int y=0; y<_tileProperties.size.height(); y++) {
 
-        // top byte of
-        for (int i=0; i<8; i++) {
+            // top byte of
+            for (int i=0; i<8; i++) {
 
-            bool leftBit = false;
-            bool prevLeftBit = false;
+                bool leftBit = false;
+                bool prevLeftBit = false;
 
-            for (int x=_tileProperties.size.width()-1; x>=0; x--) {
-                leftBit = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<7);
+                for (int x=_tileProperties.size.width()-1; x>=0; x--) {
+                    leftBit = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<7);
 
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] <<= 1;
+                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] <<= 1;
 
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 254;
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (quint8)prevLeftBit;
+                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 254;
+                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (quint8)prevLeftBit;
 
-                prevLeftBit = leftBit;
+                    prevLeftBit = leftBit;
+                }
+                charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 254;
+                charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (quint8)leftBit;
             }
-            charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 254;
-            charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (quint8)leftBit;
         }
     }
+
+    emit tileUpdated(tileIndex);
+    emit contentsChanged();
 }
 
 void State::tileShiftRight(int tileIndex)
 {
-    _tileShiftRight(tileIndex);
-
-    // double shift in multicolor mode
-    if (shouldBeDisplayedInMulticolor())
-        _tileShiftRight(tileIndex);
-
-    emit tileUpdated(tileIndex);
-    emit contentsChanged();
+    getUndoStack()->push(new ShiftRightTileCommand(this, tileIndex));
 }
 
 void State::_tileShiftRight(int tileIndex)
@@ -800,33 +851,46 @@ void State::_tileShiftRight(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
+    // shift two times in multicolor mode
+    int times = shouldBeDisplayedInMulticolor() ? 2 : 1;
+    for (int i=0; i<times; i++)
+    {
+        // top tile first
+        for (int y=0; y<_tileProperties.size.height(); y++) {
 
-    // top tile first
-    for (int y=0; y<_tileProperties.size.height(); y++) {
+            // top byte of
+            for (int i=0; i<8; i++) {
 
-        // top byte of
-        for (int i=0; i<8; i++) {
+                bool rightBit = false;
+                bool prevRightBit = false;
 
-            bool rightBit = false;
-            bool prevRightBit = false;
+                for (int x=0; x<_tileProperties.size.width(); x++) {
+                    rightBit = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<0);
 
-            for (int x=0; x<_tileProperties.size.width(); x++) {
-                rightBit = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<0);
+                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] >>= 1;
 
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] >>= 1;
+                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 127;
+                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (prevRightBit<<7);
 
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 127;
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (prevRightBit<<7);
-
-                prevRightBit = rightBit;
+                    prevRightBit = rightBit;
+                }
+                charPtr[i+(0+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 127;
+                charPtr[i+(0+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (rightBit<<7);
             }
-            charPtr[i+(0+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 127;
-            charPtr[i+(0+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (rightBit<<7);
         }
     }
+
+    emit tileUpdated(tileIndex);
+    emit contentsChanged();
+
 }
 
 void State::tileShiftUp(int tileIndex)
+{
+    getUndoStack()->push(new ShiftUpTileCommand(this, tileIndex));
+}
+
+void State::_tileShiftUp(int tileIndex)
 {
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
@@ -856,6 +920,11 @@ void State::tileShiftUp(int tileIndex)
 }
 
 void State::tileShiftDown(int tileIndex)
+{
+    getUndoStack()->push(new ShiftDownTileCommand(this, tileIndex));
+}
+
+void State::_tileShiftDown(int tileIndex)
 {
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
