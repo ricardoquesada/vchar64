@@ -79,6 +79,7 @@ MainWindow::MainWindow(QWidget *parent)
     createActions();
     createDefaults();
     createUndoView();
+    createMapView();
     setupStatusBar();
 
     readSettings();
@@ -239,6 +240,17 @@ void MainWindow::createUndoView()
 
     _ui->menuViews->addAction(undoDock->toggleViewAction());
 }
+
+void MainWindow::createMapView()
+{
+    auto undoDock = new QDockWidget(tr("Map"), this);
+
+    undoDock->setFloating(true);
+    undoDock->hide();
+
+    _ui->menuViews->addAction(undoDock->toggleViewAction());
+}
+
 
 void MainWindow::readSettings()
 {

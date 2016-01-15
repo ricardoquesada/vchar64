@@ -82,7 +82,7 @@
      <item row="0" column="0">
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
-        <string>Global Colors: D021, D022 &amp; D023</string>
+        <string>Global Colors ($D021, $D022 &amp; $D023)</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <property name="topMargin">
@@ -131,10 +131,6 @@
            <height>20</height>
           </size>
          </property>
-         <zorder>widgetD022</zorder>
-         <zorder>widgetD023</zorder>
-         <zorder>groupBox</zorder>
-         <zorder>widgetD022</zorder>
         </widget>
        </item>
        <item>
@@ -145,7 +141,6 @@
            <height>20</height>
           </size>
          </property>
-         <zorder>widgetD021</zorder>
         </widget>
        </item>
        <item>
@@ -156,7 +151,6 @@
            <height>20</height>
           </size>
          </property>
-         <zorder>widgetD021</zorder>
         </widget>
        </item>
       </layout>
@@ -164,7 +158,7 @@
      <item row="0" column="1" rowspan="2">
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
-        <string>Color RAM (1 per cell)</string>
+        <string>Color RAM ($D800...)</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <property name="topMargin">
@@ -353,7 +347,6 @@
   <zorder>frame</zorder>
   <zorder>checkBoxGrid</zorder>
   <zorder></zorder>
-  <zorder>gridLayoutWidget</zorder>
  </widget>
  <customwidgets>
   <customwidget>
