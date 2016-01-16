@@ -145,7 +145,7 @@ void XlinkPreview::updateCharset()
 
     auto state = MainWindow::getCurrentState();
 
-    xlink_load(0xb7, 0x00, 0x3000, (uchar*) state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
+    xlink_load(0xb7, 0x00, 0x3000, (const uchar*) state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
     xlink_poke(0x37, 0x00, 0xd018, 0x1c);
 }
 

@@ -22,7 +22,7 @@ limitations under the License.
 #include "state.h"
 
 typedef bool (*xlink_ping_t)(void);
-typedef bool (*xlink_load_t)(uchar, uchar, ushort, uchar*, int);
+typedef bool (*xlink_load_t)(uchar, uchar, ushort, const uchar*, int);
 typedef bool (*xlink_peek_t)(uchar, uchar, ushort, uchar*);
 typedef bool (*xlink_poke_t)(uchar, uchar, ushort, uchar);
 typedef bool (*xlink_fill_t)(uchar, uchar, ushort, uchar, uint);

@@ -48,6 +48,10 @@ State::State()
     , _bigCharWidget(nullptr)
 {
     _undoStack = new QUndoStack;
+
+    memset(_charset, 0, sizeof(_charset));
+    memset(_charAttribs, 0, sizeof(_charAttribs));
+    memset(_map, 0, sizeof(_map));
 }
 
 State::~State()
@@ -59,7 +63,7 @@ void State::reset()
 {
     _totalChars = 0;
     _multicolorMode = false;
-    _selectedPen = 3;
+    _selectedPen = PEN_FOREGROUND;
     _penColors[PEN_BACKGROUND] = 1;
     _penColors[PEN_MULTICOLOR1] = 5;
     _penColors[PEN_MULTICOLOR2] = 7;
@@ -435,7 +439,7 @@ State::TileProperties State::getTileProperties() const
 }
 
 // charset methods
-quint8* State::getCharsetBuffer()
+const quint8* State::getCharsetBuffer() const
 {
     return _charset;
 }

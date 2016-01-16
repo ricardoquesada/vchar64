@@ -77,8 +77,8 @@ protected:
 
     // Proto: chars related
     void protoSetByte(quint16 addr, quint8 value);
-    void protoSetChar(int charIdx, quint8 *charBuf);
-    void protoSetChars(int charIdx, quint8 *charBuf, int totalChars);
+    void protoSetChar(int charIdx, const quint8 *charBuf);
+    void protoSetChars(int charIdx, const quint8 *charBuf, int totalChars);
 
     void sendOrQueueData(char* buffer, int bufferSize);
     void sendData(char* buffer, int bufferSize);

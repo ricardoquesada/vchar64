@@ -550,12 +550,6 @@ void MainWindow::on_actionC64DefaultUppercase_triggered()
     auto state = createState();
     if (state->openFile(":/res/c64-chargen-uppercase.bin"))
     {
-        State::TileProperties properties;
-        properties.size = {1,1};
-        properties.interleaved = 1;
-        state->setTileProperties(properties);
-        state->setMulticolorMode(false);
-
         updateWindow();
         setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
@@ -568,12 +562,6 @@ void MainWindow::on_actionC64DefaultLowercase_triggered()
     auto state = createState();
     if (state->openFile(":/res/c64-chargen-lowercase.bin"))
     {
-        State::TileProperties properties;
-        properties.size = {1,1};
-        properties.interleaved = 1;
-        state->setTileProperties(properties);
-        state->setMulticolorMode(false);
-
         updateWindow();
         setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
@@ -1189,7 +1177,7 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
     auto clipboard = QApplication::clipboard();
     auto mimeData = new QMimeData;
     QByteArray array((char*)&copyRange, sizeof(copyRange));
-    array.append((char*)state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
+    array.append((const char*)state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
     mimeData->setData("vchar64/charsetrange", array);
     clipboard->setMimeData(mimeData);
 

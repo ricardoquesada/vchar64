@@ -494,7 +494,7 @@ void ServerPreview::protoSetByte(quint16 addr, quint8 value)
     sendOrQueueData((char*)data, sizeof(*data));
 }
 
-void ServerPreview::protoSetChar(int charIdx, quint8 *charBuf)
+void ServerPreview::protoSetChar(int charIdx, const quint8 *charBuf)
 {
 #pragma pack(push)
 #pragma pack(1)
@@ -513,7 +513,7 @@ void ServerPreview::protoSetChar(int charIdx, quint8 *charBuf)
     sendOrQueueData((char*)data, sizeof(*data));
 }
 
-void ServerPreview::protoSetChars(int charIdx, quint8* charBuf, int totalChars)
+void ServerPreview::protoSetChars(int charIdx, const quint8* charBuf, int totalChars)
 {
     struct vchar64d_proto_header* header;
     struct vchar64d_proto_set_chars* payload;

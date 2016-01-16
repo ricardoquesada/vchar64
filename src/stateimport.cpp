@@ -38,7 +38,7 @@ qint64 StateImport::loadRaw(State* state, QFile& file)
     // clean previous memory in case not all the chars are loaded
     state->resetCharsetBuffer();
 
-    auto total = file.read((char*)state->getCharsetBuffer(), toRead);
+    auto total = file.read((char*)state->_charset, toRead);
 
     Q_ASSERT(total == toRead && "Failed to read file");
 
@@ -86,7 +86,7 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
     // clean previous memory in case not all the chars are loaded
     state->resetCharsetBuffer();
 
-    auto total = file.read((char*)state->getCharsetBuffer(), toRead);
+    auto total = file.read((char*)state->_charset, toRead);
 
     for (int i=0; i<4; i++)
         state->setColorForPen(i, v4header->colors[i]);
@@ -117,7 +117,7 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
     // clean previous memory in case not all the chars are loaded
     state->resetCharsetBuffer();
 
-    auto total = file.read((char*)state->getCharsetBuffer(), toRead);
+    auto total = file.read((char*)state->_charset, toRead);
 
     for (int i=0; i<4; i++)
         state->setColorForPen(i, v5header->colors[i]);
@@ -199,7 +199,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     // clean previous memory in case not all the chars are loaded
     state->resetCharsetBuffer();
 
-    auto total = file.read((char*)state->getCharsetBuffer(), toRead);
+    auto total = file.read((char*)state->_charset, toRead);
 
     for (int i=0; i<4; i++)
         state->setColorForPen(i, header.colors[i]);

@@ -53,6 +53,12 @@ public:
     // only 256 chars at the time
     const static int CHAR_BUFFER_SIZE = 8 * 256;
 
+    // char attributes: color (4-bit LSB)
+    const static int CHAR_ATTRIBS = 256;
+
+    // FIXME: map size= should by dynamic
+    const static int MAP_SIZE = 40 * 25;
+
     // Max Tile size: 8x8
     const static int MAX_TILE_WIDTH = 8;
     const static int MAX_TILE_HEIGHT = 8;
@@ -240,7 +246,7 @@ public:
     //
     // charset
     //
-    quint8* getCharsetBuffer();
+    const quint8* getCharsetBuffer() const;
     quint8* getCopyCharsetBuffer();
     void resetCharsetBuffer();
 
@@ -364,6 +370,8 @@ protected:
     int _totalChars;
 
     quint8 _charset[State::CHAR_BUFFER_SIZE];
+    quint8 _charAttribs[State::CHAR_ATTRIBS];
+    quint8 _map[State::MAP_SIZE];
 
     bool _multicolorMode;
 
@@ -398,6 +406,6 @@ protected:
 
     QUndoStack* _undoStack;
 
-    BigCharWidget* _bigCharWidget;          // weak ref
+    BigCharWidget* _bigCharWidget;          // weak ref to parent
 };
 
