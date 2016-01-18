@@ -26,7 +26,6 @@ class MapWidget : public QWidget
 public:
     explicit MapWidget(QWidget *parent = 0);
 
-    void paintEvent(QPaintEvent *event);
     void enableGrid(bool enabled);
 
 signals:
@@ -34,6 +33,20 @@ signals:
 public slots:
     void updateColor();
 
+protected:
+    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    QSize sizeHint() const Q_DECL_OVERRIDE;
+
+    void updateSelectedChar();
+
 private:
     bool _displayGrid;
+    QSize _sizeHint;
+    bool _selecting;
+    QSize _selectingSize;
+    QPoint _cursorPos;
+    QSize _mapSize;
 };

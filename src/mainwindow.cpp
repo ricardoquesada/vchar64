@@ -81,10 +81,7 @@ MainWindow::MainWindow(QWidget *parent)
     createUndoView();
     setupStatusBar();
 
-    readSettings();
-
-    // and after everything was created, open a document
-//    on_actionC64DefaultUppercase_triggered();
+//    readSettings();
 }
 
 MainWindow::~MainWindow()
@@ -253,12 +250,12 @@ void MainWindow::readSettings()
 {
     // before restoring settings, save the current layout
     // needed for "reset layout"
-    _settings.setValue(QLatin1String("MainWindow/defaultGeometry"), saveGeometry());
-    _settings.setValue(QLatin1String("MainWindow/defaultWindowState"), saveState());
+    _settings.setValue(QLatin1String("MainWindow/0.11/defaultGeometry"), saveGeometry());
+    _settings.setValue(QLatin1String("MainWindow/0.11/defaultWindowState"), saveState());
 
 
-    auto geom = _settings.value(QLatin1String("MainWindow/geometry")).toByteArray();
-    auto state = _settings.value(QLatin1String("MainWindow/windowState")).toByteArray();
+    auto geom = _settings.value(QLatin1String("MainWindow/0.11/geometry")).toByteArray();
+    auto state = _settings.value(QLatin1String("MainWindow/0.11/windowState")).toByteArray();
 
     restoreState(state);
     restoreGeometry(geom);
@@ -276,8 +273,8 @@ void MainWindow::readSettings()
 
 void MainWindow::saveSettings()
 {
-    _settings.setValue(QLatin1String("MainWindow/geometry"), saveGeometry());
-    _settings.setValue(QLatin1String("MainWindow/windowState"), saveState());
+    _settings.setValue(QLatin1String("MainWindow/0.11/geometry"), saveGeometry());
+    _settings.setValue(QLatin1String("MainWindow/0.11/windowState"), saveState());
     _settings.setValue(QLatin1String("palette"), Palette::getActivePalette());
 }
 
@@ -651,6 +648,25 @@ void MainWindow::on_radioButton_multicolor1_clicked()
 void MainWindow::on_radioButton_multicolor2_clicked()
 {
     activateRadioButtonIndex(State::PEN_MULTICOLOR2);
+}
+
+void MainWindow::on_radioButton_charColorGlobal_clicked()
+{
+    auto state = getState();
+    if (state)
+        state->setCharColorMode(State::CHAR_COLOR_GLOBAL);
+}
+
+void MainWindow::on_radioButton_charColorPerChar_clicked()
+{
+    auto state = getState();
+    if (state)
+        state->setCharColorMode(State::CHAR_COLOR_PER_CHAR);
+}
+
+void MainWindow::on_checkBox_map_clicked(bool checked)
+{
+    _ui->mapWidget->enableGrid(checked);
 }
 
 void MainWindow::activatePalette(int paletteIndex)
@@ -1117,8 +1133,8 @@ void MainWindow::on_actionPrevious_Tile_triggered()
 
 void MainWindow::on_actionReset_Layout_triggered()
 {
-    auto geom = _settings.value(QLatin1String("MainWindow/defaultGeometry")).toByteArray();
-    auto state = _settings.value(QLatin1String("MainWindow/defaultWindowState")).toByteArray();
+    auto geom = _settings.value(QLatin1String("MainWindow/0.11/defaultGeometry")).toByteArray();
+    auto state = _settings.value(QLatin1String("MainWindow/0.11/defaultWindowState")).toByteArray();
     restoreState(state);
     restoreGeometry(geom);
 

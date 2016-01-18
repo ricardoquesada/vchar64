@@ -228,7 +228,6 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
             utilsDrawChar(state, &painter, _pixelSize, QPoint(OFFSET, OFFSET), w, h, index);
         }
     }
-    painter.setPen(Qt::NoPen);
 
     if (_selecting) {
         pen.setColor({149,195,244,255});

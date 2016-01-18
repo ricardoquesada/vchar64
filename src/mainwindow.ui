@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>548</width>
-    <height>516</height>
+    <width>775</width>
+    <height>652</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -62,7 +62,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>548</width>
+     <width>775</width>
      <height>22</height>
     </rect>
    </property>
@@ -322,6 +322,32 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string>Foreground Color</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QRadioButton" name="radioButton_charColorGlobal">
+          <property name="text">
+           <string>Global</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_charColorPerChar">
+          <property name="text">
+           <string>One Per Char</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -411,7 +437,18 @@
    <widget class="QWidget" name="dockWidgetContents_4">
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <item>
-      <widget class="MapWidget" name="mapWidget" native="true"/>
+      <widget class="MapWidget" name="mapWidget" native="true">
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkBox_map">
+       <property name="text">
+        <string>Enable Grid</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>

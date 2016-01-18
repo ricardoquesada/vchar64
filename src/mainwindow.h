@@ -173,6 +173,11 @@ private slots:
 
     void on_actionImport_Koala_image_triggered();
 
+    void on_radioButton_charColorGlobal_clicked();
+    void on_radioButton_charColorPerChar_clicked();
+
+    void on_checkBox_map_clicked(bool checked);
+
 private:
     QVector<QAction*> _recentFiles;
 
