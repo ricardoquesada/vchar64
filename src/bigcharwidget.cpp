@@ -26,16 +26,17 @@ limitations under the License.
 #include "ui_mainwindow.h"
 #include "palette.h"
 
-BigCharWidget::BigCharWidget(QWidget *parent)
+BigCharWidget::BigCharWidget(State* state, QWidget *parent)
     : QWidget(parent)
     , _tileIndex(0)
     , _charIndex(0)
     , _cursorPos({0,0})
     , _tileProperties({{1,1},1})
+    , _state(state)
     , _pixelSize({32,32})
     , _commandMergeable(false)
 {
-    _state = new State;
+    Q_ASSERT(state && "Invalid State");
     _state->_bigCharWidget = this;
 
     setAttribute(Qt::WA_DeleteOnClose);

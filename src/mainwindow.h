@@ -61,10 +61,10 @@ public:
     }
 
     /**
-     * @brief createState creates a new empty state
+     * @brief createsDocument creates a document with a State
      * @return
      */
-    State *createState();
+    BigCharWidget *createDocument(State* state);
 
 public slots:
     void xlinkConnected();

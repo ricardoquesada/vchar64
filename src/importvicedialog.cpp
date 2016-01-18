@@ -52,10 +52,13 @@ const QString& ImportVICEDialog::getFilepath() const
 //
 void ImportVICEDialog::on_pushButton_import_clicked()
 {
-    auto state = MainWindow::getInstance()->createState();
+    auto state = new State;
     state->setMulticolorMode(ui->checkBox->checkState() == Qt::Checked);
+
+    // FIXME: must be called after 'setMulticolorMode' since it reset the undo stack
     state->importCharset(_filepath, ui->widget->getBuffer() + ui->spinBox->value(), State::CHAR_BUFFER_SIZE);
 
+    MainWindow::getInstance()->createDocument(state);
     QFileInfo info(ui->lineEdit->text());
     QSettings("RetroMoe","VChar64").setValue("dir/lastdir", info.absolutePath());
 

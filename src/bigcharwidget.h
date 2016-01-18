@@ -34,7 +34,7 @@ class BigCharWidget : public QWidget
     Q_OBJECT
 
 public:
-    BigCharWidget(QWidget *parent=nullptr);
+    BigCharWidget(State *state, QWidget *parent=nullptr);
     virtual ~BigCharWidget();
 
     int getTileIndex() const;

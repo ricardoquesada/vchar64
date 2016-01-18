@@ -108,9 +108,18 @@ public:
     };
 
     /**
-     * @brief State constructor
+     * @brief State the Target constructor
+     * @param charset charset to use or nullptr
+     * @param charAttribs charAttribs to use or nullptr
+     * @param map map to use or nullPtr
+     * @param mapSize map size
+     */
+    State(quint8* charset, quint8* charAttribs, quint8* map, const QSize &mapSize);
+    /**
+     * @brief State constructor (a delegating constructor)
      */
     State();
+
     /**
      * @brief ~State destructor
      */
@@ -251,9 +260,27 @@ public:
     // is the state "dirty" ?
     bool isModified() const;
 
-    QUndoStack* getUndoStack() const {
-        return _undoStack;
-    }
+    /**
+     * @brief undo undoes the last change to the state
+     */
+    void undo();
+
+    /**
+     * @brief redo redoes the previous undo
+     */
+    void redo();
+
+    /**
+     * @brief getUndoStack returns the QUndoStack
+     * @return returns the QUndoStack
+     */
+    QUndoStack* getUndoStack() const;
+
+
+    /**
+     * @brief clearUndoStack clears the UndoStack
+     */
+    void clearUndoStack();
 
     //
     // chars buffer manipulation

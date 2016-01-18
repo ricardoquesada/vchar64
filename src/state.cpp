@@ -32,9 +32,10 @@ limitations under the License.
 
 const int State::CHAR_BUFFER_SIZE;
 
-State::State()
+// target constructor
+State::State(quint8 *charset, quint8 *charAttribs, quint8 *map, const QSize& mapSize)
     : _totalChars(0)
-    , _mapSize({40,25})
+    , _mapSize(mapSize)
     , _multicolorMode(false)
     , _charColorMode(CHAR_COLOR_GLOBAL)
     , _selectedPen(PEN_FOREGROUND)
@@ -51,10 +52,27 @@ State::State()
 {
     _undoStack = new QUndoStack;
 
-    memset(_charset, 0, sizeof(_charset));
-    memset(_charAttribs, 0, sizeof(_charAttribs));
+    if (charset)
+        memcpy(_charset, charset, sizeof(_charset));
+    else
+        memset(_charset, 0, sizeof(_charset));
+
+    if (charAttribs)
+        memcpy(_charAttribs, charAttribs, sizeof(_charAttribs));
+    else
+        memset(_charAttribs, 0, sizeof(_charAttribs));
+
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
-    memset(_map, 0, _mapSize.width() * _mapSize.height());
+    if (map)
+        memcpy(_map, map, _mapSize.width() * _mapSize.height());
+    else
+        memset(_charAttribs, 0, sizeof(_charAttribs));
+}
+
+// Delegating constructor
+State::State()
+    : State(nullptr, nullptr, nullptr, QSize(40,25))
+{
 }
 
 State::~State()
@@ -1051,6 +1069,26 @@ void State::_setTileIndex(int tileIndex)
         _tileIndex = tileIndex;
         emit tileIndexUpdated(tileIndex);
     }
+}
+
+void State::undo()
+{
+    _undoStack->undo();
+}
+
+void State::redo()
+{
+    _undoStack->redo();
+}
+
+QUndoStack* State::getUndoStack() const
+{
+    return _undoStack;
+}
+
+void State::clearUndoStack()
+{
+    _undoStack->clear();
 }
 
 //

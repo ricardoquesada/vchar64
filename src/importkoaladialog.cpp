@@ -328,7 +328,7 @@ int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vec
 
     if (std::find(std::begin(colorsToFind), std::end(colorsToFind), usedColors[15].second) == std::end(colorsToFind))
     {
-        qDebug() << "a la perinola";
+        qDebug() << "ouch";
     }
     return usedColors[15].second;
 }
@@ -571,14 +571,20 @@ void ImportKoalaDialog::on_checkBoxGrid_clicked()
 
 void ImportKoalaDialog::on_pushButtonImport_clicked()
 {
-    auto state = MainWindow::getInstance()->createState();
-    state->importCharset(_filepath, ui->widgetCharset->_charset, State::CHAR_BUFFER_SIZE);
+    auto state = new State(ui->widgetCharset->_charset, ui->widgetCharset->_colorRAMForChars, ui->widgetCharset->_screenRAM, QSize(40,25));
+
     state->setColorForPen(State::PEN_BACKGROUND, ui->widgetCharset->_d02x[0]);
     state->setColorForPen(State::PEN_MULTICOLOR1, ui->widgetCharset->_d02x[1]);
     state->setColorForPen(State::PEN_MULTICOLOR2, ui->widgetCharset->_d02x[2]);
     // FIXME
     state->setColorForPen(State::PEN_FOREGROUND, ui->widgetCharset->_colorRAMForChars[0]);
     state->setMulticolorMode(true);
+    state->setCharColorMode(State::CHAR_COLOR_PER_CHAR);
+
+    // since the setters populates the undo stack
+    state->clearUndoStack();
+
+    MainWindow::getInstance()->createDocument(state);
 
     // update last used dir
     QFileInfo info(ui->lineEdit->text());

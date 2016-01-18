@@ -287,15 +287,13 @@ void MainWindow::saveSettings()
     _settings.setValue(QLatin1String("palette"), Palette::getActivePalette());
 }
 
-State* MainWindow::createState()
+BigCharWidget* MainWindow::createDocument(State* state)
 {
-    auto bigcharWidget = new BigCharWidget(this);
+    auto bigcharWidget = new BigCharWidget(state, this);
     auto subwindow = _ui->mdiArea->addSubWindow(bigcharWidget, Qt::Widget);
     _ui->mdiArea->setActiveSubWindow(subwindow);
     subwindow->showMaximized();
     subwindow->layout()->setContentsMargins(2, 2, 2, 2);
-
-    auto state = bigcharWidget->getState();
 
     auto xlinkpreview = XlinkPreview::getInstance();
     connect(state, &State::fileLoaded, xlinkpreview, &XlinkPreview::fileLoaded);
@@ -341,7 +339,7 @@ State* MainWindow::createState()
 
     connect(_ui->paletteWidget, &PaletteWidget::colorSelected, bigcharWidget, &BigCharWidget::updateColor);
 
-    return state;
+    return bigcharWidget;
 }
 
 void MainWindow::closeState(State* state)
@@ -541,8 +539,12 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_actionEmptyProject_triggered()
 {
-    auto state = createState();
+    auto state = new State;
+
+    // FIXME: needed to to emit a callback
     state->reset();
+
+    createDocument(state);
     updateWindow();
     setWindowFilePath(tr("(untitled)"));
     _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
@@ -551,25 +553,35 @@ void MainWindow::on_actionEmptyProject_triggered()
 
 void MainWindow::on_actionC64DefaultUppercase_triggered()
 {
-    auto state = createState();
+    auto state = new State;
     if (state->openFile(":/res/c64-chargen-uppercase.bin"))
     {
+        createDocument(state);
         updateWindow();
         setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowTitle(tr("(untitled)"));
     }
+    else
+    {
+        delete state;
+    }
 }
 
 void MainWindow::on_actionC64DefaultLowercase_triggered()
 {
-    auto state = createState();
+    auto state = new State;
     if (state->openFile(":/res/c64-chargen-lowercase.bin"))
     {
+        createDocument(state);
         updateWindow();
         setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowTitle(tr("(untitled)"));
+    }
+    else
+    {
+        delete state;
     }
 }
 
@@ -688,13 +700,13 @@ bool MainWindow::openFile(const QString& path)
     QFileInfo info(path);
     _settings.setValue(QLatin1String("dir/lastdir"), info.absolutePath());
 
-    auto state = createState();
-    bool ret = state->openFile(path);
-    if (ret)
+    bool ret = false;
+    auto state = new State;
+    if ( (ret=state->openFile(path)))
     {
+        createDocument(state);
         setRecentFile(path);
 
-        auto state = getState();
         _ui->checkBox_multicolor->setChecked(state->isMulticolorMode());
 
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(info.filePath());
@@ -703,6 +715,7 @@ bool MainWindow::openFile(const QString& path)
     }
     else
     {
+        delete state;
         QMessageBox::warning(this, tr("Application"), tr("Error loading file: ") + path, QMessageBox::Ok);
     }
 
@@ -985,13 +998,13 @@ void MainWindow::on_actionPaste_triggered()
 void MainWindow::on_actionUndo_triggered()
 {
     auto state = getState();
-    state->getUndoStack()->undo();
+    state->undo();
 }
 
 void MainWindow::on_actionRedo_triggered()
 {
     auto state = getState();
-    state->getUndoStack()->redo();
+    state->redo();
 }
 
 //
