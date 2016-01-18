@@ -95,7 +95,7 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
                 qBound(-_cursorPos.x(), _selectingSize.width(), _tileColums - _cursorPos.x()),
                 qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows - _cursorPos.y())
             };
-            repaint();
+            update();
         }
         else
         {
@@ -107,7 +107,7 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
 
                 _cursorPos = {x,y};
                 state->setTileIndex(tileIndex);
-                repaint();
+                update();
             }
         }
     }
@@ -150,7 +150,7 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
 
         _selecting = true;
 
-        repaint();
+        update();
     }
 }
 
@@ -220,7 +220,7 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
     }
 
     _selecting = selecting;
-    repaint();
+    update();
 }
 
 void TilesetWidget::paintEvent(QPaintEvent *event)
@@ -372,7 +372,7 @@ void TilesetWidget::onTileIndexUpdated(int selectedTileIndex)
     if (_cursorPos.x() != x || _cursorPos.y() != y)
     {
         _cursorPos = {x, y};
-        repaint();
+        update();
     }
 }
 
@@ -391,12 +391,12 @@ void TilesetWidget::onTilePropertiesUpdated()
 
     _sizeHint = QSize(_pixelSize.width() * _columns * 8 + OFFSET * 2,
                  _pixelSize.height() * _rows * 8 + OFFSET * 2);
-    repaint();
+    update();
 }
 
 void TilesetWidget::updateColor()
 {
-    repaint();
+    update();
 }
 
 // public

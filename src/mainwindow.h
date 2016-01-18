@@ -64,7 +64,14 @@ public:
      * @brief createsDocument creates a document with a State
      * @return
      */
-    BigCharWidget *createDocument(State* state);
+    BigCharWidget* createDocument(State* state);
+
+    /**
+     * @brief openDefaultDocument open the default document. Either the last one that was opened
+     * or a new one
+     * @return returns the newly created BigCharWidget
+     */
+    void openDefaultDocument();
 
 public slots:
     void xlinkConnected();

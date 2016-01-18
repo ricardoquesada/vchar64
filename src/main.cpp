@@ -70,5 +70,7 @@ int main(int argc, char *argv[])
 
     QObject::connect(&app, &VChar64Application::fileOpenRequest, mainWin, &MainWindow::openFile);
 
+    mainWin->openDefaultDocument();
+
     return app.exec();
 }

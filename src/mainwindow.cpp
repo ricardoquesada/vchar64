@@ -281,6 +281,11 @@ void MainWindow::saveSettings()
     _settings.setValue(QLatin1String("palette"), Palette::getActivePalette());
 }
 
+void MainWindow::openDefaultDocument()
+{
+    on_actionC64DefaultUppercase_triggered();
+}
+
 BigCharWidget* MainWindow::createDocument(State* state)
 {
     auto bigcharWidget = new BigCharWidget(state, this);

@@ -101,7 +101,7 @@ void CharsetWidget::mousePressEvent(QMouseEvent * event)
             updateCharIndex(charIndex);
         }
 
-        repaint();
+        update();
     }
 }
 
@@ -131,7 +131,7 @@ void CharsetWidget::mouseMoveEvent(QMouseEvent * event)
 
         _selecting = true;
 
-        repaint();
+        update();
     }
 }
 
@@ -193,7 +193,7 @@ void CharsetWidget::keyPressEvent(QKeyEvent *event)
     }
 
     _selecting = selecting;
-    repaint();
+    update();
 }
 
 void CharsetWidget::paintEvent(QPaintEvent *event)
@@ -313,12 +313,12 @@ void CharsetWidget::onCharIndexUpdated(int charIndex)
 
     _cursorPos.setX(charIndex % COLUMNS);
     _cursorPos.setY(charIndex / COLUMNS);
-    repaint();
+    update();
 }
 
 void CharsetWidget::updateColor()
 {
-    repaint();
+    update();
 }
 
 //
