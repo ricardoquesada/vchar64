@@ -156,6 +156,6 @@ void ImportKoalaConvWidget::enableGrid(bool enabled)
     if (_displayGrid != enabled)
     {
         _displayGrid = enabled;
-        update();
+        repaint();
     }
 }

@@ -50,7 +50,9 @@ SOURCES += main.cpp\
     importkoaladialog.cpp \
     importkoalaorigwidget.cpp \
     importkoalaconvwidget.cpp \
-    selectcolordialog.cpp
+    selectcolordialog.cpp \
+    mapwidget.cpp \
+    utils.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -77,7 +79,9 @@ HEADERS  += mainwindow.h \
     importkoaladialog.h \
     importkoalaconvwidget.h \
     importkoalaorigwidget.h \
-    selectcolordialog.h
+    selectcolordialog.h \
+    mapwidget.h \
+    utils.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \

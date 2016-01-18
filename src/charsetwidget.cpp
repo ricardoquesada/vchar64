@@ -25,6 +25,7 @@ limitations under the License.
 #include "state.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "utils.h"
 
 static const int COLUMNS = 32;
 static const int ROWS = 8;
@@ -211,19 +212,6 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
     painter.setBrush(QColor(0,0,0));
     painter.setPen(Qt::NoPen);
 
-    int end_x = 8;
-    int pixel_size_x = _pixelSize.width();
-    int increment_x = 1;
-    int bits_to_mask = 1;
-
-    if (state->shouldBeDisplayedInMulticolor())
-    {
-        end_x = 4;
-        pixel_size_x = _pixelSize.width() * 2;
-        increment_x = 2;
-        bits_to_mask = 3;
-    }
-
     QPen pen;
     pen.setColor({149,195,244,255});
     if (hasFocus())
@@ -236,39 +224,11 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
         for (int h=0; h<ROWS; h++) {
 
             int index = w + h * COLUMNS;
-            quint8* charPtr = state->getCharAtIndex(index);
 
-            for (int y=0; y<8; y++) {
-
-                char letter = charPtr[y];
-
-                for (int x=0; x<end_x; x++) {
-
-                    // Warning: Don't use 'char'. Instead use 'unsigned char'.
-                    // 'char' doesn't work Ok with << and >>
-                    // only mask the bits are needed
-                    unsigned char mask = bits_to_mask << (((end_x-1)-x) * increment_x);
-
-                    unsigned char color = letter & mask;
-                    // now transform those bits into values from 0-3 since those are the
-                    // possible colors
-
-                    int bits_to_shift = (((end_x-1)-x) * increment_x);
-                    int color_pen = color >> bits_to_shift;
-
-                    if (!state->shouldBeDisplayedInMulticolor() && color_pen )
-                        color_pen = State::PEN_FOREGROUND;
-                    painter.setBrush(Palette::getColorForPen(state, color_pen));
-                    painter.drawRect((w*end_x+x) * pixel_size_x + OFFSET,
-                                     (h*8+y) * _pixelSize.height() + OFFSET,
-                                     pixel_size_x,
-                                     _pixelSize.height());
-                }
-            }
-
-            painter.setPen(Qt::NoPen);
+            utilsDrawChar(state, &painter, _pixelSize, QPoint(OFFSET, OFFSET), w, h, index);
         }
     }
+    painter.setPen(Qt::NoPen);
 
     if (_selecting) {
         pen.setColor({149,195,244,255});

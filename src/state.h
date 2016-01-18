@@ -56,20 +56,22 @@ public:
     // char attributes: color (4-bit LSB)
     const static int CHAR_ATTRIBS = 256;
 
-    // FIXME: map size= should by dynamic
-    const static int MAP_SIZE = 40 * 25;
-
     // Max Tile size: 8x8
     const static int MAX_TILE_WIDTH = 8;
     const static int MAX_TILE_HEIGHT = 8;
 
     enum {
-        PEN_BACKGROUND,
-        PEN_MULTICOLOR1,
-        PEN_MULTICOLOR2,
-        PEN_FOREGROUND,
+        PEN_BACKGROUND,     /* $d021 */
+        PEN_MULTICOLOR1,    /* $d022 */
+        PEN_MULTICOLOR2,    /* $d023 */
+        PEN_FOREGROUND,     /* color RAM: $d800-... */
 
         PEN_MAX
+    };
+
+    enum {
+        CHAR_COLOR_GLOBAL,
+        CHAR_COLOR_PER_CHAR
     };
 
     union Char {
@@ -192,12 +194,34 @@ public:
     bool isMulticolorMode() const;
 
     /**
+     * @brief setCharColorMode sets CHAR_COLOR_GLOBAL or CHAR_COLOR_PER_CHAR.
+     * In GLOBAL mode, all chars share the same "foreground" color.
+     * In PER_CHAR, each char has its own color.
+     * @param mode
+     */
+    void setCharColorMode(int mode);
+
+    /**
+     * @brief getCharColorMode
+     * @return
+     */
+    int getCharColorMode() const;
+
+    /**
      * @brief shouldBeDisplayedInMulticolor whether or not the char should be displayed as multicolor.
      * Even if multicolor mode is enabled, if Foreground color is <= 7, then char should not be
      * displayed in multicolor mode
      * @return whether or not the char/tile should be displayed in multicolor mode
      */
     bool shouldBeDisplayedInMulticolor() const;
+
+    /**
+     * @brief shouldBeDisplayedInMulticolor whether or not the char should be displayed as multicolor.
+     * Even if multicolor mode is enabled, if Foreground color is <= 7, then char should not be
+     * displayed in multicolor mode
+     * @return whether or not the char/tile should be displayed in multicolor mode
+     */
+    bool shouldBeDisplayedInMulticolor2(quint8 charidx) const;
 
     QString getLoadedFilename() const {
         return _loadedFilename;
@@ -244,10 +268,13 @@ public:
     void copyTileToIndex(int tileIndex, quint8* buffer, int bufferSize);
 
     //
-    // charset
+    // charset, map, and related
     //
     const quint8* getCharsetBuffer() const;
-    quint8* getCopyCharsetBuffer();
+    const quint8* getMapBuffer() const;
+    const QSize& getMapSize() const;
+    const quint8* getCharAttribs() const;
+
     void resetCharsetBuffer();
 
     /**
@@ -364,6 +391,7 @@ protected:
 
     void _tileSetPen(int tileIndex, const QPoint& position, int pen);
     void _setMulticolorMode(bool enabled);
+    void _setCharColorMode(int mode);
     void _setTileProperties(const TileProperties& properties);
     void _setColorForPen(int pen, int color);
 
@@ -371,9 +399,11 @@ protected:
 
     quint8 _charset[State::CHAR_BUFFER_SIZE];
     quint8 _charAttribs[State::CHAR_ATTRIBS];
-    quint8 _map[State::MAP_SIZE];
+    quint8 *_map;
+    QSize _mapSize;
 
     bool _multicolorMode;
+    int _charColorMode;
 
     int _selectedPen;
     int _penColors[PEN_MAX];

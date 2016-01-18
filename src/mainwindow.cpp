@@ -47,6 +47,7 @@ limitations under the License.
 #include "fileutils.h"
 #include "serverconnectdialog.h"
 #include "serverpreview.h"
+#include "mapwidget.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 
@@ -243,11 +244,14 @@ void MainWindow::createUndoView()
 void MainWindow::createMapView()
 {
     auto undoDock = new QDockWidget(tr("Map"), this);
+    auto mapWidget = new MapWidget(undoDock);
 
-    undoDock->setFloating(true);
-    undoDock->hide();
+    undoDock->setWidget(mapWidget);
+//    undoDock->setFloating(true);
+//    undoDock->hide();
 
     _ui->menuViews->addAction(undoDock->toggleViewAction());
+
 }
 
 

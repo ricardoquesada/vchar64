@@ -34,7 +34,9 @@ const int State::CHAR_BUFFER_SIZE;
 
 State::State()
     : _totalChars(0)
+    , _mapSize({40,25})
     , _multicolorMode(false)
+    , _charColorMode(CHAR_COLOR_GLOBAL)
     , _selectedPen(PEN_FOREGROUND)
     , _penColors{1,5,7,11}
     , _tileProperties{{1,1},1}
@@ -51,7 +53,8 @@ State::State()
 
     memset(_charset, 0, sizeof(_charset));
     memset(_charAttribs, 0, sizeof(_charAttribs));
-    memset(_map, 0, sizeof(_map));
+    _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
+    memset(_map, 0, _mapSize.width() * _mapSize.height());
 }
 
 State::~State()
@@ -269,6 +272,14 @@ bool State::shouldBeDisplayedInMulticolor() const
     return (_multicolorMode && _penColors[State::PEN_FOREGROUND] >= 8);
 }
 
+bool State::shouldBeDisplayedInMulticolor2(quint8 charIdx) const
+{
+    return (_multicolorMode &&
+            ((_charColorMode == CHAR_COLOR_GLOBAL && _penColors[PEN_FOREGROUND] >= 8) ||
+            (_charColorMode == CHAR_COLOR_PER_CHAR && (_charAttribs[charIdx] & 0xf) >= 8))
+            );
+}
+
 bool State::isMulticolorMode() const
 {
     return _multicolorMode;
@@ -288,6 +299,27 @@ void State::_setMulticolorMode(bool enabled)
         emit multicolorModeToggled(enabled);
         emit contentsChanged();
     }
+}
+
+void State::setCharColorMode(int mode)
+{
+    if (_charColorMode != mode)
+    {
+        _charColorMode = mode;
+    }
+}
+
+void State::_setCharColorMode(int mode)
+{
+    if (_charColorMode != mode)
+    {
+        _charColorMode = mode;
+    }
+}
+
+int State::getCharColorMode() const
+{
+    return _charColorMode;
 }
 
 void State::setColorForPen(int pen, int color)
@@ -443,6 +475,22 @@ const quint8* State::getCharsetBuffer() const
 {
     return _charset;
 }
+
+const quint8* State::getMapBuffer() const
+{
+    return _map;
+}
+
+const QSize& State::getMapSize() const
+{
+    return _mapSize;
+}
+
+const quint8* State::getCharAttribs() const
+{
+    return _charAttribs;
+}
+
 
 void State::resetCharsetBuffer()
 {
