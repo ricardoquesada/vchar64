@@ -401,6 +401,21 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="dockWidget_map">
+   <property name="windowTitle">
+    <string>Map</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_4">
+    <layout class="QVBoxLayout" name="verticalLayout_5">
+     <item>
+      <widget class="MapWidget" name="mapWidget" native="true"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionOpen">
    <property name="icon">
     <iconset theme="document-open" resource="resources.qrc">
@@ -915,6 +930,12 @@
    <class>CharsetWidget</class>
    <extends>QWidget</extends>
    <header>charsetwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MapWidget</class>
+   <extends>QWidget</extends>
+   <header>mapwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

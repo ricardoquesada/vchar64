@@ -32,6 +32,7 @@ public:
 signals:
 
 public slots:
+    void updateColor();
 
 private:
     bool _displayGrid;

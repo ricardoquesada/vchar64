@@ -79,7 +79,6 @@ MainWindow::MainWindow(QWidget *parent)
     createActions();
     createDefaults();
     createUndoView();
-    createMapView();
     setupStatusBar();
 
     readSettings();
@@ -142,6 +141,8 @@ void MainWindow::updateWindow()
         _ui->dockWidget_tileIndex->update();
     if (_ui->dockWidget_tileset->isFloating())
         _ui->dockWidget_tileset->update();
+    if (_ui->dockWidget_map->isFloating())
+        _ui->dockWidget_map->update();
 
     if (_ui->mdiArea->currentSubWindow())
         _ui->mdiArea->currentSubWindow()->update();
@@ -247,20 +248,6 @@ void MainWindow::createUndoView()
 
     _ui->menuViews->addAction(undoDock->toggleViewAction());
 }
-
-void MainWindow::createMapView()
-{
-    auto undoDock = new QDockWidget(tr("Map"), this);
-    auto mapWidget = new MapWidget(undoDock);
-
-    undoDock->setWidget(mapWidget);
-//    undoDock->setFloating(true);
-//    undoDock->hide();
-
-    _ui->menuViews->addAction(undoDock->toggleViewAction());
-
-}
-
 
 void MainWindow::readSettings()
 {
@@ -397,6 +384,7 @@ void MainWindow::createActions()
 
     connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->charsetWidget, &CharsetWidget::updateColor);
     connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->tilesetWidget, &TilesetWidget::updateColor);
+    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->mapWidget, &MapWidget::updateColor);
 
     connect(_ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::onSubWindowActivated);
 
@@ -406,6 +394,7 @@ void MainWindow::createActions()
 //
     _ui->menuViews->addAction(_ui->dockWidget_charset->toggleViewAction());
     _ui->menuViews->addAction(_ui->dockWidget_tileset->toggleViewAction());
+    _ui->menuViews->addAction(_ui->dockWidget_map->toggleViewAction());
     _ui->menuViews->addAction(_ui->dockWidget_colors->toggleViewAction());
     _ui->menuViews->addAction(_ui->dockWidget_tileIndex->toggleViewAction());
 
@@ -419,8 +408,9 @@ void MainWindow::createActions()
 
 void MainWindow::createDefaults()
 {
-    // tabify charsetWidget and tilesetWidget
+    // tabify charsetWidget, tilesetWidget and mapWidget
     tabifyDockWidget(_ui->dockWidget_charset, _ui->dockWidget_tileset);
+    tabifyDockWidget(_ui->dockWidget_charset, _ui->dockWidget_map);
 
     // select charsetWidget as the default one
     _ui->dockWidget_charset->raise();

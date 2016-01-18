@@ -95,7 +95,6 @@ protected:
     void closeState(State* state);
     void createDefaults();
     void createUndoView();
-    void createMapView();
     void setupStatusBar();
 
     void updateRecentFiles();

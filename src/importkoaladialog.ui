@@ -346,7 +346,6 @@
   </layout>
   <zorder>frame</zorder>
   <zorder>checkBoxGrid</zorder>
-  <zorder></zorder>
  </widget>
  <customwidgets>
   <customwidget>

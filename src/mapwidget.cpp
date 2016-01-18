@@ -61,7 +61,7 @@ void MapWidget::paintEvent(QPaintEvent *event)
 
     for (int y=0; y<mapSize.height(); y++)
     {
-        for (int x=0; x<mapSize.height(); ++x)
+        for (int x=0; x<mapSize.width(); ++x)
         {
             auto c = screenRAM[y * mapSize.width() + x];
 
@@ -93,4 +93,9 @@ void MapWidget::enableGrid(bool enabled)
         _displayGrid = enabled;
         repaint();
     }
+}
+
+void MapWidget::updateColor()
+{
+    repaint();
 }
