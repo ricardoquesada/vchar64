@@ -62,11 +62,12 @@ State::State(quint8 *charset, quint8 *charAttribs, quint8 *map, const QSize& map
     else
         memset(_charAttribs, 0, sizeof(_charAttribs));
 
+    Q_ASSERT(_mapSize.width() * _mapSize.height() > 0 && "Invalid size");
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
     if (map)
         memcpy(_map, map, _mapSize.width() * _mapSize.height());
     else
-        memset(_charAttribs, 0, sizeof(_charAttribs));
+        memset(_map, 0, _mapSize.width() * _mapSize.height());
 }
 
 // Delegating constructor
@@ -97,11 +98,6 @@ void State::reset()
     _exportedAddress = -1;
 
     memset(_charset, 0, sizeof(_charset));
-
-    _undoStack->clear();
-
-    emit fileLoaded();
-    emit contentsChanged();
 }
 
 void State::refresh()
@@ -112,6 +108,12 @@ void State::refresh()
     emit tilePropertiesUpdated();
     emit multicolorModeToggled(shouldBeDisplayedInMulticolor());
     emit colorPropertiesUpdated(_selectedPen);
+}
+
+void State::emitNewState()
+{
+    emit fileLoaded();
+    emit contentsChanged();
 }
 
 bool State::isModified() const
@@ -188,11 +190,6 @@ bool State::openFile(const QString& filename)
         }
     }
 
-    _undoStack->clear();
-
-    emit fileLoaded();
-    emit contentsChanged();
-
     return true;
 }
 void State::importCharset(const QString& filename, const quint8 *charset, int charsetSize)
@@ -203,16 +200,11 @@ void State::importCharset(const QString& filename, const quint8 *charset, int ch
     resetCharsetBuffer();
     memcpy(_charset, charset, qMin(CHAR_BUFFER_SIZE, charsetSize));
 
-    _undoStack->clear();
-
     // if a new file is loaded, then reset the exported and saved values
     _savedFilename = "";
     _exportedFilename = "";
     _exportedAddress = -1;
     _loadedFilename = filename;
-
-    emit fileLoaded();
-    emit contentsChanged();
 }
 
 bool State::export_()

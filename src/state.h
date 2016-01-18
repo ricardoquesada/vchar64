@@ -156,6 +156,12 @@ public:
     void importCharset(const QString &filename, const quint8* charset, int charsetSize);
 
     /**
+     * @brief emitNewState hackish way to notify that a new state has been created
+     * FIXME: This is a refactoring. BigCharWidget should emit this.
+     */
+    void emitNewState();
+
+    /**
      * @brief getColorForPen
      * @param pen PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1 or PEN_MULTICOLOR2
      * @return the color being used by the pen

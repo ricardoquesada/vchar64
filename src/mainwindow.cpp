@@ -83,6 +83,9 @@ MainWindow::MainWindow(QWidget *parent)
     setupStatusBar();
 
     readSettings();
+
+    // and after everything was created, open a document
+//    on_actionC64DefaultUppercase_triggered();
 }
 
 MainWindow::~MainWindow()
@@ -232,7 +235,11 @@ void MainWindow::createUndoView()
     auto undoDock = new QDockWidget(tr("Undo List"), this);
 
     auto state = getState();
-    _undoView = new QUndoView(state->getUndoStack(), undoDock);
+
+    if (state)
+        _undoView = new QUndoView(state->getUndoStack(), undoDock);
+    else
+        _undoView = new QUndoView(undoDock);
 
     undoDock->setWidget(_undoView);
     undoDock->setFloating(true);
@@ -339,6 +346,12 @@ BigCharWidget* MainWindow::createDocument(State* state)
 
     connect(_ui->paletteWidget, &PaletteWidget::colorSelected, bigcharWidget, &BigCharWidget::updateColor);
 
+    // HACK:
+    state->emitNewState();
+    state->refresh();
+
+    state->clearUndoStack();
+
     return bigcharWidget;
 }
 
@@ -411,8 +424,6 @@ void MainWindow::createDefaults()
 
     // select charsetWidget as the default one
     _ui->dockWidget_charset->raise();
-
-    on_actionC64DefaultUppercase_triggered();
 }
 
 void MainWindow::setupStatusBar()
@@ -430,7 +441,8 @@ void MainWindow::setupStatusBar()
 
     // display correct selected color
     auto state = getState();
-    onColorPropertiesUpdated(state->getSelectedPen());
+    if (state)
+        onColorPropertiesUpdated(state->getSelectedPen());
 }
 
 void MainWindow::updateMenus()
@@ -540,9 +552,6 @@ void MainWindow::on_actionExit_triggered()
 void MainWindow::on_actionEmptyProject_triggered()
 {
     auto state = new State;
-
-    // FIXME: needed to to emit a callback
-    state->reset();
 
     createDocument(state);
     updateWindow();

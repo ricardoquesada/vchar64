@@ -581,8 +581,6 @@ void ImportKoalaDialog::on_pushButtonImport_clicked()
     state->setMulticolorMode(true);
     state->setCharColorMode(State::CHAR_COLOR_PER_CHAR);
 
-    // since the setters populates the undo stack
-    state->clearUndoStack();
 
     MainWindow::getInstance()->createDocument(state);
 

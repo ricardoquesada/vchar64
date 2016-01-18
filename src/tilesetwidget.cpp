@@ -24,6 +24,7 @@ limitations under the License.
 #include "palette.h"
 #include "state.h"
 #include "mainwindow.h"
+#include "utils.h"
 #include "ui_mainwindow.h"
 
 static const int COLUMNS = 32;
@@ -251,9 +252,9 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
 
     for (int i=0; i<max_tiles;i++)
     {
-        quint8* charPtr = state->getCharAtIndex(tileProperties.interleaved == 1 ?
+        quint8 charIdx = tileProperties.interleaved == 1 ?
                                                     i * tw * th :
-                                                    i);
+                                                    i;
 
         int w = (i * tw) % _columns;
         int h = th * ((i * tw) / _columns);
@@ -263,9 +264,9 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
             int local_w = w + char_idx % tw;
             int local_h = h + char_idx / tw;
 
-            paintPixel(painter, local_w, local_h, charPtr);
+            utilsDrawChar(state, &painter, _pixelSize, QPoint(OFFSET, OFFSET), local_w, local_h, charIdx);
 
-            charPtr += (tileProperties.interleaved * 8);
+            charIdx += tileProperties.interleaved;
         }
     }
 
@@ -326,52 +327,6 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
                          _cursorPos.y() * 8 * _pixelSize.height() * th + OFFSET,
                          8 * _pixelSize.width() * tw,
                          8 * _pixelSize.height() * th);
-    }
-}
-
-void TilesetWidget::paintPixel(QPainter &painter, int w, int h, quint8* charPtr)
-{
-    auto state = MainWindow::getCurrentState();
-
-    int end_x = 8;
-    int pixel_size_x = _pixelSize.width();
-    int increment_x = 1;
-    int bits_to_mask = 1;
-
-    if (state->shouldBeDisplayedInMulticolor())
-    {
-        end_x = 4;
-        pixel_size_x = _pixelSize.width() * 2;
-        increment_x = 2;
-        bits_to_mask = 3;
-    }
-
-    for (int y=0; y<8; y++)
-    {
-        char letter = charPtr[y];
-
-        for (int x=0; x<end_x; x++)
-        {
-            // Warning: Don't use 'char'. Instead use 'unsigned char'.
-            // 'char' doesn't work Ok with << and >>
-            // only mask the needed bits
-            unsigned char mask = bits_to_mask << (((end_x-1)-x) * increment_x);
-
-            unsigned char color = letter & mask;
-            // now transform those bits into values from 0-3 since those are the
-            // possible colors
-
-            int bits_to_shift = (((end_x-1)-x) * increment_x);
-            int color_pen = color >> bits_to_shift;
-
-            if (!state->shouldBeDisplayedInMulticolor() && color_pen )
-                color_pen = State::PEN_FOREGROUND;
-            painter.setBrush(Palette::getColorForPen(state, color_pen));
-            painter.drawRect((w * end_x + x) * pixel_size_x + OFFSET,
-                             (h * 8 + y) * _pixelSize.height() + OFFSET,
-                             pixel_size_x,
-                             _pixelSize.height());
-        }
     }
 }
 
