@@ -45,7 +45,7 @@ void ColorRectWidget::setPen(int pen)
     if (_pen != pen) {
         _pen = pen;
         _mode = SHOW_PEN_MODE;
-        repaint();
+        update();
     }
 }
 
@@ -60,7 +60,7 @@ void ColorRectWidget::setColorIndex(int colorIndex)
     {
         _colorIndex = colorIndex;
         _mode = SHOW_COLOR_MODE;
-        repaint();
+        update();
     }
 }
 
@@ -74,7 +74,7 @@ void ColorRectWidget::setSelected(bool selected)
     if (_selected != selected)
     {
         _selected = selected;
-        repaint();
+        update();
     }
 }
 

@@ -91,11 +91,11 @@ void MapWidget::enableGrid(bool enabled)
     if (_displayGrid != enabled)
     {
         _displayGrid = enabled;
-        repaint();
+        update();
     }
 }
 
 void MapWidget::updateColor()
 {
-    repaint();
+    update();
 }
