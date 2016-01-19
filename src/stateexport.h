@@ -24,6 +24,8 @@ class StateExport
 {
 public:
     static qint64 saveVChar64(State* state, QFile& file);
-    static qint64 saveRaw(State* state, QFile &file);
-    static qint64 savePRG(State* state, QFile &file, quint16 address);
+
+    static qint64 saveRaw(QFile &file, const void* buffer, int bufferSize);
+    static qint64 savePRG(QFile &file, const void *buffer, int bufferSize, quint16 address);
+    static qint64 saveAsm(QFile &file, const void *buffer, int bufferSize);
 };

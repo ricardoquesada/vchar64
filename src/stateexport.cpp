@@ -59,21 +59,20 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     return total;
 }
 
-qint64 StateExport::saveRaw(State* state, QFile& file)
+qint64 StateExport::saveRaw(QFile& file, const void *buffer, int bufferSize)
 {
     int total = 0;
-    auto buffer = state->getCharsetBuffer();
-    QByteArray arrayData((char*)buffer, state->CHAR_BUFFER_SIZE);
+
+    QByteArray arrayData((char*)buffer, bufferSize);
     total += file.write(arrayData);
     file.flush();
 
     qDebug() << "File exported as RAW successfully:" << file.fileName();
 
-
     return total;
 }
 
-qint64 StateExport::savePRG(State* state, QFile& file, quint16 address)
+qint64 StateExport::savePRG(QFile& file, const void* buffer, int bufferSize, quint16 address)
 {
     int total = 0;
 
@@ -84,12 +83,19 @@ qint64 StateExport::savePRG(State* state, QFile& file, quint16 address)
     total += file.write(arrayAddress);
 
     // data
-    auto buffer = state->getCharsetBuffer();
-    QByteArray arrayData((char*)buffer, state->CHAR_BUFFER_SIZE);
+    QByteArray arrayData((char*)buffer, bufferSize);
     total += file.write(arrayData);
     file.flush();
 
     qDebug() << "File exported as PRG successfully: " << file.fileName();
 
     return total;
+}
+
+qint64 StateExport::saveAsm(QFile& file, const void* buffer, int bufferSize)
+{
+    Q_UNUSED(buffer);
+    Q_UNUSED(file);
+
+    return bufferSize;
 }

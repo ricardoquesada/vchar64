@@ -33,6 +33,7 @@ class State : public QObject
 
     friend class StateImport;
     friend class BigCharWidget;
+
     friend class PaintTileCommand;
     friend class PasteCommand;
     friend class CutCommand;
@@ -54,7 +55,7 @@ public:
     const static int CHAR_BUFFER_SIZE = 8 * 256;
 
     // char attributes: color (4-bit LSB)
-    const static int CHAR_ATTRIBS = 256;
+    const static int CHAR_ATTRIBS_BUFFER_SIZE = 256;
 
     // Max Tile size: 8x8
     const static int MAX_TILE_WIDTH = 8;
@@ -72,6 +73,22 @@ public:
     enum {
         CHAR_COLOR_GLOBAL,
         CHAR_COLOR_PER_CHAR
+    };
+
+    // what to export
+    enum {
+        EXPORT_CHARSET = 1 << 0,
+        EXPORT_MAP = 1 << 1,
+        EXPORT_ATTRIBS = 1 << 2,
+
+        EXPORT_ALL = (EXPORT_CHARSET | EXPORT_MAP | EXPORT_ATTRIBS)
+    };
+
+    // format to export
+    enum {
+        EXPORT_FORMAT_RAW,
+        EXPORT_FORMAT_PRG,
+        EXPORT_FORMAT_ASM
     };
 
     union Char {
@@ -142,8 +159,9 @@ public:
      */
     bool openFile(const QString& filename);
     bool saveProject(const QString& filename);
-    bool exportRaw(const QString& filename);
-    bool exportPRG(const QString& filename, quint16 address);
+    bool exportRaw(const QString& filename, int whatToExport);
+    bool exportPRG(const QString& filename, quint16 addresses[3], int whatToExport);
+    bool exportAsm(const QString& filename, int whatToExport);
     // export is a defined keyword, so we use export_ instead
     bool export_();
 
@@ -428,7 +446,7 @@ protected:
     int _totalChars;
 
     quint8 _charset[State::CHAR_BUFFER_SIZE];
-    quint8 _charAttribs[State::CHAR_ATTRIBS];
+    quint8 _charAttribs[State::CHAR_ATTRIBS_BUFFER_SIZE];
     quint8 *_map;
     QSize _mapSize;
 
@@ -457,12 +475,17 @@ protected:
     // filename of the saved file (.vcharproj)
     QString _savedFilename;
 
-    // filename of the exported file (.raw, .prg)
+    // filename of the exported file (.raw, .prg, .s)
     QString _exportedFilename;
 
-    // -1 for "raw", otherwise it will be a "prg" and the value will have the address
-    int _exportedAddress;
+    // When "prg" the value contains of the addresses for: charset, map and char attribs
+    quint16 _exportedAddresses[3];
 
+    // RAW, PRG, or ASM
+    int _exportFormat;
+
+    // Charset? Map? Attribs?
+    int _exportWhat;
 
     QUndoStack* _undoStack;
 

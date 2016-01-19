@@ -55,7 +55,9 @@ ExportDialog::ExportDialog(State* state, QWidget *parent) :
 
     //
     connect(ui->radioPRG, &QRadioButton::toggled, [&](bool toogled){
-        ui->spinPRGAddress->setEnabled(toogled);
+        ui->spinBox_attribAddress->setEnabled(toogled);
+        ui->spinBox_charsetAddress->setEnabled(toogled);
+        ui->spinBox_mapAddress->setEnabled(toogled);
     });
 }
 
@@ -81,14 +83,31 @@ void ExportDialog::accept()
 {
     bool ok = false;
     auto filename = ui->editFilename->text();
+    int whatToExport = 0;
+
+    if (ui->checkBox_map->isChecked())
+        whatToExport |= State::EXPORT_MAP;
+    if (ui->checkBox_attribs->isChecked())
+        whatToExport |= State::EXPORT_ATTRIBS;
+    if (ui->checkBox_charset->isChecked())
+        whatToExport |= State::EXPORT_CHARSET;
 
     if (ui->radioRaw->isChecked())
     {
-        ok = _state->exportRaw(filename);
+        ok = _state->exportRaw(filename, whatToExport);
     }
-    else
+    else if (ui->radioPRG->isChecked())
     {
-        ok = _state->exportPRG(filename, ui->spinPRGAddress->value());
+        quint16 addresses[3];
+        addresses[0] = ui->spinBox_charsetAddress->value();
+        addresses[1] = ui->spinBox_mapAddress->value();
+        addresses[2] = ui->spinBox_attribAddress->value();
+
+        ok = _state->exportPRG(filename, addresses, whatToExport);
+    }
+    else if (ui->radioButton_asm->isChecked())
+    {
+        ok = _state->exportAsm(filename, whatToExport);
     }
 
     MainWindow *mainWindow = static_cast<MainWindow*>(parent());

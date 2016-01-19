@@ -46,7 +46,9 @@ State::State(quint8 *charset, quint8 *charAttribs, quint8 *map, const QSize& map
     , _loadedFilename("")
     , _savedFilename("")
     , _exportedFilename("")
-    , _exportedAddress(-1)
+    , _exportedAddresses{0,0,0}
+    , _exportFormat(EXPORT_FORMAT_RAW)
+    , _exportWhat(EXPORT_ALL)
     , _undoStack(nullptr)
     , _bigCharWidget(nullptr)
 {
@@ -85,6 +87,7 @@ void State::reset()
 {
     _totalChars = 0;
     _multicolorMode = false;
+    _charColorMode = CHAR_COLOR_GLOBAL;
     _selectedPen = PEN_FOREGROUND;
     _penColors[PEN_BACKGROUND] = 1;
     _penColors[PEN_MULTICOLOR1] = 5;
@@ -95,9 +98,15 @@ void State::reset()
     _loadedFilename = "";
     _savedFilename = "";
     _exportedFilename = "";
-    _exportedAddress = -1;
+    _exportedAddresses[0] = 0;
+    _exportedAddresses[1] = 0;
+    _exportedAddresses[2] = 0;
+    _exportFormat = EXPORT_FORMAT_RAW;
+    _exportWhat = EXPORT_ALL;
 
     memset(_charset, 0, sizeof(_charset));
+    memset(_charAttribs, 0, sizeof(_charAttribs));
+    memset(_map, 0, _mapSize.width() * _mapSize.height());
 }
 
 void State::refresh()
@@ -167,11 +176,6 @@ bool State::openFile(const QString& filename)
     if(length<=0)
         return false;
 
-    // if a new file is loaded, then reset the exported and saved values
-    _savedFilename = "";
-    _exportedFilename = "";
-    _exportedAddress = -1;
-
     // built-in resources are not saved
     if (filename[0] != ':')
     {
@@ -184,9 +188,12 @@ bool State::openFile(const QString& filename)
         else if (filetype == FILETYPE_RAW || filetype == FILETYPE_PRG)
         {
             _exportedFilename = filename;
+            _exportWhat = EXPORT_CHARSET;
             if (filetype == FILETYPE_PRG) {
-                _exportedAddress = loadedAddress;
+                _exportedAddresses[0] = loadedAddress;
+                _exportFormat = EXPORT_FORMAT_PRG;
             }
+            else _exportFormat = EXPORT_FORMAT_RAW;
         }
     }
 
@@ -199,54 +206,103 @@ void State::importCharset(const QString& filename, const quint8 *charset, int ch
 
     resetCharsetBuffer();
     memcpy(_charset, charset, qMin(CHAR_BUFFER_SIZE, charsetSize));
-
-    // if a new file is loaded, then reset the exported and saved values
-    _savedFilename = "";
-    _exportedFilename = "";
-    _exportedAddress = -1;
     _loadedFilename = filename;
 }
 
 bool State::export_()
 {
-    Q_ASSERT(_exportedFilename.length()>0 && "Invalid filename");
+    Q_ASSERT(_exportedFilename.length() > 0 && "Invalid filename");
 
-    if (_exportedAddress == -1)
-        return exportRaw(_exportedFilename);
-    else
-        return exportPRG(_exportedFilename, (quint16)_exportedAddress);
+    if (_exportFormat == EXPORT_FORMAT_RAW)
+        return exportRaw(_exportedFilename, _exportWhat);
+    else if(_exportFormat == EXPORT_FORMAT_PRG)
+        return exportPRG(_exportedFilename, _exportedAddresses, _exportWhat);
+
+    /* else ASM */
+    return exportAsm(_exportedFilename, _exportWhat);
 }
 
-bool State::exportRaw(const QString& filename)
+bool State::exportRaw(const QString& filename, int whatToExport)
 {
+    bool ret = true;
     QFile file(filename);
 
     if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
         return false;
 
-    if (StateExport::saveRaw(this, file) > 0)
+    if (ret && (whatToExport & EXPORT_CHARSET))
+        ret &= (StateExport::saveRaw(file, _charset, sizeof(_charset)) > 0);
+
+    if (ret && (whatToExport & EXPORT_MAP))
+        ret &= (StateExport::saveRaw(file, _map, _mapSize.width() * _mapSize.height()) > 0);
+
+    if (ret && (whatToExport & EXPORT_ATTRIBS))
+        ret &= (StateExport::saveRaw(file, _charAttribs, sizeof(_charAttribs)) > 0);
+
+    if (ret)
     {
-        _exportedAddress = -1;
+        _exportFormat = EXPORT_FORMAT_RAW;
+        _exportWhat = whatToExport;
         _exportedFilename = filename;
-        return true;
     }
-    return false;
+    return ret;
 }
 
-bool State::exportPRG(const QString& filename, quint16 address)
+bool State::exportPRG(const QString& filename, quint16 addresses[3], int whatToExport)
 {
+    bool ret = true;
     QFile file(filename);
 
     if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
         return false;
 
-    if (StateExport::savePRG(this, file, address) > 0)
+    if (ret && (whatToExport & EXPORT_CHARSET))
+        ret &= (StateExport::savePRG(file, _charset, sizeof(_charset), addresses[0]) > 0);
+
+    if (ret && (whatToExport & EXPORT_MAP))
+        ret &= (StateExport::savePRG(file, _map, _mapSize.width() * _mapSize.height(), addresses[1]) > 0);
+
+    if (ret && (whatToExport & EXPORT_ATTRIBS))
+        ret &= (StateExport::savePRG(file, _charAttribs, sizeof(_charAttribs), addresses[2]) > 0);
+
+    if (ret)
     {
-        _exportedAddress = address;
+        _exportFormat = EXPORT_FORMAT_PRG;
+        _exportedAddresses[0] = addresses[0];
+        _exportedAddresses[1] = addresses[1];
+        _exportedAddresses[2] = addresses[2];
+
         _exportedFilename = filename;
+        _exportWhat = whatToExport;
         return true;
     }
-    return false;
+    return ret;
+}
+
+bool State::exportAsm(const QString& filename, int whatToExport)
+{
+    bool ret = true;
+    QFile file(filename);
+
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+        return false;
+
+    if (ret && (whatToExport & EXPORT_CHARSET))
+        ret &= (StateExport::saveAsm(file, _charset, sizeof(_charset)) > 0);
+
+    if (ret && (whatToExport & EXPORT_MAP))
+        ret &= (StateExport::saveAsm(file, _map, _mapSize.width() * _mapSize.height()) > 0);
+
+    if (ret && (whatToExport & EXPORT_ATTRIBS))
+        ret &= (StateExport::saveAsm(file, _charAttribs, sizeof(_charAttribs)) > 0);
+
+    if (ret)
+    {
+        _exportFormat = EXPORT_FORMAT_ASM;
+        _exportWhat = whatToExport;
+        _exportedFilename = filename;
+    }
+    return ret;
 }
 
 bool State::saveProject(const QString& filename)
