@@ -39,6 +39,8 @@ BigCharWidget::BigCharWidget(State* state, QWidget *parent)
     Q_ASSERT(state && "Invalid State");
     _state->_bigCharWidget = this;
 
+    setFocusPolicy(Qt::StrongFocus);
+
     setAttribute(Qt::WA_DeleteOnClose);
 }
 
@@ -211,14 +213,14 @@ void BigCharWidget::paintEvent(QPaintEvent *event)
     pen.setWidth(3);
     pen.setStyle(Qt::PenStyle::SolidLine);
 
-    quint8* charPtr = _state->getCharAtIndex(_charIndex);
+    quint8 charIndex = _charIndex;
 
     for (int y=0; y<_tileProperties.size.height(); y++) {
         for (int x=0; x<_tileProperties.size.width(); x++) {
 
-            paintChar(painter, pen, charPtr, QPoint{x,y});
+            paintChar(painter, pen, charIndex, QPoint{x,y});
             // chars could be 64 chars away from each other
-            charPtr +=  _tileProperties.interleaved * 8;
+            charIndex +=  _tileProperties.interleaved;
         }
     }
 
@@ -276,20 +278,23 @@ void BigCharWidget::paintFocus(QPainter &painter)
 }
 
 
-void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8* charPtr, const QPoint& tileToDraw)
+void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8 charIndex, const QPoint& tileToDraw)
 {
     int end_x = 8;
     int pixel_size_x = _pixelSize.width();
     int increment_x = 1;
     int bits_to_mask = 1;
 
-    if (_state->shouldBeDisplayedInMulticolor())
+    bool ismc = _state->shouldBeDisplayedInMulticolor2(charIndex);
+    if (ismc)
     {
         end_x = 4;
         pixel_size_x = _pixelSize.width() * 2;
         increment_x = 2;
         bits_to_mask = 3;
     }
+
+    quint8* charPtr = _state->getCharAtIndex(charIndex);
 
     for (int y=0; y<8; y++) {
 
@@ -310,7 +315,7 @@ void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8* charPt
             int bits_to_shift = (((end_x-1)-x) * increment_x);
             int color_pen = color >> bits_to_shift;
 
-            if (!_state->shouldBeDisplayedInMulticolor() && color_pen )
+            if (!ismc && color_pen )
                 color_pen = State::PEN_FOREGROUND;
             painter.setBrush(Palette::getColorForPen(_state, color_pen));
 

@@ -57,7 +57,7 @@ protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
 
-    void paintChar(QPainter& painter, const QPen& pen, quint8* charPtr, const QPoint& tileToDraw);
+    void paintChar(QPainter& painter, const QPen& pen, quint8 charIndex, const QPoint& tileToDraw);
     void paintSeparators(QPainter &painter);
     void paintFocus(QPainter &painter);
 
