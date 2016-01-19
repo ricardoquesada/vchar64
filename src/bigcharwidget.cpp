@@ -20,6 +20,7 @@ limitations under the License.
 #include <QPainter>
 #include <QPaintEvent>
 #include <QMessageBox>
+#include <QDebug>
 
 #include "state.h"
 #include "mainwindow.h"
@@ -280,56 +281,89 @@ void BigCharWidget::paintFocus(QPainter &painter)
 
 void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8 charIndex, const QPoint& tileToDraw)
 {
-    int end_x = 8;
-    int pixel_size_x = _pixelSize.width();
-    int increment_x = 1;
-    int bits_to_mask = 1;
+    static const quint8 mc_masks[] = {192, 48, 12, 3};
+    static const quint8 hr_masks[] = {128, 64, 32, 16, 8, 4, 2, 1};
 
-    bool ismc = _state->shouldBeDisplayedInMulticolor2(charIndex);
-    if (ismc)
+    auto charset = _state->getCharsetBuffer();
+    auto charsetAttribs = _state->getCharAttribs();
+    auto ismc = _state->shouldBeDisplayedInMulticolor2(charIndex);
+
+    auto chardef = &charset[charIndex * 8];
+
+
+    for (int y=0; y<8; ++y)
     {
-        end_x = 4;
-        pixel_size_x = _pixelSize.width() * 2;
-        increment_x = 2;
-        bits_to_mask = 3;
-    }
+        auto byte = chardef[y];
 
-    quint8* charPtr = _state->getCharAtIndex(charIndex);
+        int char_width = 8;
+        int bit_width = 1;      /* 8 = 8 * 1 */
+        const quint8* masks = &hr_masks[0];
 
-    for (int y=0; y<8; y++) {
+        if (ismc)
+        {
+            char_width = 4;
+            bit_width = 2;      /* 8 = 4 * 2 */
+            masks = mc_masks;
+        }
 
-        char letter = charPtr[y];
+        for (int x=0; x<char_width; ++x)
+        {
+            quint8 colorIndex = 0;
+            // get the two bits that reprent the color
+            quint8 color = byte & masks[x];
+            color >>= (8 - bit_width) - x * bit_width;
 
-        for (int x=0; x<end_x; x++) {
+            switch (color)
+            {
+            // bitmask 00: background ($d021)
+            case 0x0:
+                colorIndex = _state->getColorForPen(State::PEN_BACKGROUND);
+                break;
 
-            // Warning: Don't use 'char'. Instead use 'unsigned char'
-            // 'char' doesn't work Ok with << and >>
+            // bitmask 01: multicolor #1 ($d022)
+            case 0x1:
+                if (ismc)
+                    colorIndex = _state->getColorForPen(State::PEN_MULTICOLOR1);
+                else
+                {
+                    if (_state->getCharColorMode() == State::CHAR_COLOR_GLOBAL)
+                        colorIndex = _state->getColorForPen(State::PEN_FOREGROUND);
+                    else
+                        colorIndex = charsetAttribs[charIndex];
+                }
+                break;
 
-            // only mask the bits are needed
-            unsigned char mask = bits_to_mask << (((end_x-1)-x) * increment_x);
+            // bitmask 10: multicolor #2 ($d023)
+            case 0x2:
+                Q_ASSERT(ismc && "error in logic");
+                colorIndex = _state->getColorForPen(State::PEN_MULTICOLOR2);
+                break;
 
-            unsigned char color = letter & mask;
-            // now transform those bits into values from 0-3 since those are the
-            // possible colors
-
-            int bits_to_shift = (((end_x-1)-x) * increment_x);
-            int color_pen = color >> bits_to_shift;
-
-            if (!ismc && color_pen )
-                color_pen = State::PEN_FOREGROUND;
-            painter.setBrush(Palette::getColorForPen(_state, color_pen));
+            // bitmask 11: color RAM
+            case 0x3:
+                Q_ASSERT(ismc && "error in logic");
+                if (_state->getCharColorMode() == State::CHAR_COLOR_GLOBAL)
+                    colorIndex = _state->getColorForPen(State::PEN_FOREGROUND);
+                else
+                    colorIndex = charsetAttribs[charIndex] - 8;
+                break;
+            default:
+                qDebug() << "MapWidget::paintEvent Invalid color: " << color << " at x,y=" << x << y;
+                break;
+            }
 
             if (hasFocus()
-                    && (x + tileToDraw.x() * 8 / increment_x) == _cursorPos.x() / increment_x
+                    && (x + tileToDraw.x() * 8 / bit_width) == _cursorPos.x() / bit_width
                     && (y + tileToDraw.y( ) * 8) == _cursorPos.y()
                     )
                 painter.setPen(pen);
             else
                 painter.setPen(Qt::PenStyle::NoPen);
 
-            painter.drawRect(x * pixel_size_x + _pixelSize.width() * 8 * tileToDraw.x(),
+            painter.setBrush(Palette::getColor(colorIndex));
+            painter.drawRect(x * _pixelSize.width() * bit_width + _pixelSize.width() * 8 * tileToDraw.x(),
                              y * _pixelSize.height() + _pixelSize.height() * 8 * tileToDraw.y(),
-                             pixel_size_x-1,
+                             _pixelSize.width() * bit_width - 1,
                              _pixelSize.height()-1);
         }
     }

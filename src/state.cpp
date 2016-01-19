@@ -332,6 +332,12 @@ int State::getCharColorMode() const
     return _charColorMode;
 }
 
+int State::getColorForPen(int pen) const
+{
+    Q_ASSERT(pen >=0 && pen < PEN_MAX);
+    return _penColors[pen];
+}
+
 void State::setColorForPen(int pen, int color)
 {
     getUndoStack()->push(new SetColorCommand(this, color, pen));

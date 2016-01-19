@@ -137,7 +137,7 @@ const QColor& Palette::getColorForPen(State* state, int pen)
         colorIndex = state->getColorForPen(pen);
 
         // upper colors should be the same a lower colors on multicolor mode in foreground pen
-        if (pen == State::PEN_FOREGROUND && state->isMulticolorMode() && colorIndex >= 8)
+        if (pen == State::PEN_FOREGROUND && state->shouldBeDisplayedInMulticolor())
             colorIndex -= 8;
     }
 

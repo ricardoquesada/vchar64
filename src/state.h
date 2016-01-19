@@ -166,10 +166,7 @@ public:
      * @param pen PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1 or PEN_MULTICOLOR2
      * @return the color being used by the pen
      */
-    int getColorForPen(int pen) const {
-        Q_ASSERT(pen >=0 && pen < PEN_MAX);
-        return _penColors[pen];
-    }
+    int getColorForPen(int pen) const;
 
     /**
      * @brief setColorForPen set a color for a pen

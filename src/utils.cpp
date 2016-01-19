@@ -26,14 +26,15 @@ limitations under the License.
 
 void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, const QPoint& offset, int x, int y, quint8 c)
 {
+    static const quint8 mc_masks[] = {192, 48, 12, 3};
+    static const quint8 hr_masks[] = {128, 64, 32, 16, 8, 4, 2, 1};
+
     auto charset = state->getCharsetBuffer();
     auto charsetAttribs = state->getCharAttribs();
     auto ismc = state->shouldBeDisplayedInMulticolor2(c);
 
     auto chardef = &charset[c * 8];
 
-    static const quint8 mc_masks[] = {192, 48, 12, 3};
-    static const quint8 hr_masks[] = {128, 64, 32, 16, 8, 4, 2, 1};
 
     for (int i=0; i<8; ++i)
     {
