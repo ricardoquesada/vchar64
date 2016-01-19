@@ -34,16 +34,24 @@ public:
     ~ExportDialog();
 
 private slots:
-    void on_radioRaw_clicked();
-
-    void on_radioPRG_clicked();
-
     void on_pushBrowse_clicked();
+
+    void on_radioButton_raw_clicked();
+
+    void on_radioButton_asm_clicked();
+
+    void on_radioButton_prg_clicked();
+
+    void on_checkBox_charset_clicked(bool checked);
+    void on_checkBox_map_clicked(bool checked);
+    void on_checkBox_attribs_clicked(bool checked);
 
 private:
     void accept();
+    void updateButtons();
 
     Ui::ExportDialog *ui;
     QSettings _settings;
     State* _state;      // weak ref
+    int _checkBox_clicked;
 };

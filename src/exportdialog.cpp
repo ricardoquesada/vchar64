@@ -27,11 +27,12 @@ limitations under the License.
 #include "mainwindow.h"
 #include "state.h"
 
-ExportDialog::ExportDialog(State* state, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ExportDialog),
-    _settings(),
-    _state(state)
+ExportDialog::ExportDialog(State* state, QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::ExportDialog)
+    , _settings()
+    , _state(state)
+    , _checkBox_clicked(State::EXPORT_CHARSET)
 {
     ui->setupUi(this);
 
@@ -54,7 +55,7 @@ ExportDialog::ExportDialog(State* state, QWidget *parent) :
     ui->editFilename->setText(fn);
 
     //
-    connect(ui->radioPRG, &QRadioButton::toggled, [&](bool toogled){
+    connect(ui->radioButton_prg, &QRadioButton::toggled, [&](bool toogled){
         ui->spinBox_attribAddress->setEnabled(toogled);
         ui->spinBox_charsetAddress->setEnabled(toogled);
         ui->spinBox_mapAddress->setEnabled(toogled);
@@ -92,11 +93,11 @@ void ExportDialog::accept()
     if (ui->checkBox_charset->isChecked())
         whatToExport |= State::EXPORT_CHARSET;
 
-    if (ui->radioRaw->isChecked())
+    if (ui->radioButton_raw->isChecked())
     {
         ok = _state->exportRaw(filename, whatToExport);
     }
-    else if (ui->radioPRG->isChecked())
+    else if (ui->radioButton_prg->isChecked())
     {
         quint16 addresses[3];
         addresses[0] = ui->spinBox_charsetAddress->value();
@@ -128,7 +129,7 @@ void ExportDialog::accept()
     QDialog::accept();
 }
 
-void ExportDialog::on_radioRaw_clicked()
+void ExportDialog::on_radioButton_raw_clicked()
 {
     auto filename = ui->editFilename->text();
 
@@ -140,7 +141,19 @@ void ExportDialog::on_radioRaw_clicked()
     ui->editFilename->setText(filename);
 }
 
-void ExportDialog::on_radioPRG_clicked()
+void ExportDialog::on_radioButton_asm_clicked()
+{
+    auto filename = ui->editFilename->text();
+
+    QFileInfo finfo(filename);
+    auto extension = finfo.suffix();
+
+    filename.chop(extension.length()+1);
+    filename += ".s";
+    ui->editFilename->setText(filename);
+}
+
+void ExportDialog::on_radioButton_prg_clicked()
 {
     auto filename = ui->editFilename->text();
 
@@ -150,4 +163,36 @@ void ExportDialog::on_radioPRG_clicked()
     filename.chop(extension.length()+1);
     filename += ".prg";
     ui->editFilename->setText(filename);
+}
+
+void ExportDialog::on_checkBox_charset_clicked(bool checked)
+{
+    if (checked)
+        _checkBox_clicked |= State::EXPORT_CHARSET;
+    else
+        _checkBox_clicked &= ~State::EXPORT_CHARSET;
+    updateButtons();
+}
+
+void ExportDialog::on_checkBox_map_clicked(bool checked)
+{
+    if (checked)
+        _checkBox_clicked |= State::EXPORT_MAP;
+    else
+        _checkBox_clicked &= ~State::EXPORT_MAP;
+    updateButtons();
+}
+
+void ExportDialog::on_checkBox_attribs_clicked(bool checked)
+{
+    if (checked)
+        _checkBox_clicked |= State::EXPORT_ATTRIBS;
+    else
+        _checkBox_clicked &= ~State::EXPORT_ATTRIBS;
+    updateButtons();
+}
+
+void ExportDialog::updateButtons()
+{
+    ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(_checkBox_clicked != 0);
 }
