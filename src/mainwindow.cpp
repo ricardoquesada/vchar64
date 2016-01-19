@@ -333,8 +333,6 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state->getUndoStack(), &QUndoStack::indexChanged, this, &MainWindow::documentWasModified);
     connect(state->getUndoStack(), &QUndoStack::cleanChanged, this, &MainWindow::documentWasModified);
 
-    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, bigcharWidget, &BigCharWidget::updateColor);
-
     // HACK:
     state->emitNewState();
     state->refresh();
@@ -374,19 +372,15 @@ void MainWindow::createActions()
     _ui->colorRectWidget_3->setPen(State::PEN_MULTICOLOR2);
 
     auto xlinkPreview = XlinkPreview::getInstance();
-    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, xlinkPreview, &XlinkPreview::colorSelected);
+//    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, xlinkPreview, &XlinkPreview::colorSelected);
     connect(xlinkPreview, &XlinkPreview::previewConnected, this, &MainWindow::xlinkConnected);
     connect(xlinkPreview, &XlinkPreview::previewDisconnected, this, &MainWindow::xlinkDisconnected);
     _ui->menuXlink->setEnabled(xlinkPreview->isAvailable());
 
     auto serverPreview = ServerPreview::getInstance();
-    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, serverPreview, &ServerPreview::colorSelected);
+//    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, serverPreview, &ServerPreview::colorSelected);
     connect(serverPreview, &ServerPreview::previewConnected, this, &MainWindow::serverConnected);
     connect(serverPreview, &ServerPreview::previewDisconnected, this, &MainWindow::serverDisconnected);
-
-    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->charsetWidget, &CharsetWidget::updateColor);
-    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->tilesetWidget, &TilesetWidget::updateColor);
-    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, _ui->mapWidget, &MapWidget::updateColor);
 
     connect(_ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::onSubWindowActivated);
 

@@ -55,7 +55,6 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
 
         if (oldColor != color) {
             state->setColorForPen(pen, color);
-            emit colorSelected();
             update();
         }
     }

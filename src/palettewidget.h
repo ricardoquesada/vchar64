@@ -26,9 +26,6 @@ class PaletteWidget : public QWidget
 public:
     PaletteWidget(QWidget *parent);
 
-signals:
-    void colorSelected();
-
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;

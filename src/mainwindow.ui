@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>775</width>
-    <height>652</height>
+    <width>777</width>
+    <height>845</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -62,7 +62,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>775</width>
+     <width>777</width>
      <height>22</height>
     </rect>
    </property>
@@ -245,64 +245,71 @@
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
-    <layout class="QVBoxLayout" name="verticalLayout_4">
+    <layout class="QVBoxLayout" name="verticalLayout_4" stretch="2,1,1,1">
      <item>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="3" column="1">
-        <widget class="ColorRectWidget" name="colorRectWidget_3" native="true"/>
-       </item>
-       <item row="2" column="1">
-        <widget class="ColorRectWidget" name="colorRectWidget_2" native="true"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="ColorRectWidget" name="colorRectWidget_0" native="true"/>
-       </item>
-       <item row="1" column="1">
-        <widget class="ColorRectWidget" name="colorRectWidget_1" native="true"/>
-       </item>
-       <item row="1" column="0">
-        <widget class="QRadioButton" name="radioButton_foreground">
-         <property name="text">
-          <string>Foreground</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QRadioButton" name="radioButton_multicolor1">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Multi Color #1</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QRadioButton" name="radioButton_multicolor2">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Multi Color #2</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QRadioButton" name="radioButton_background">
-         <property name="text">
-          <string>Background</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QGroupBox" name="gridGroupBox">
+       <property name="title">
+        <string>Pen</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="2" column="1">
+         <widget class="ColorRectWidget" name="colorRectWidget_1" native="true">
+          <zorder>colorRectWidget_3</zorder>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="ColorRectWidget" name="colorRectWidget_0" native="true"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QRadioButton" name="radioButton_multicolor2">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Multicolor #2</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QRadioButton" name="radioButton_background">
+          <property name="text">
+           <string>Background</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QRadioButton" name="radioButton_foreground">
+          <property name="text">
+           <string>Foreground </string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QRadioButton" name="radioButton_multicolor1">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Multicolor #1</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="ColorRectWidget" name="colorRectWidget_3" native="true"/>
+        </item>
+        <item row="3" column="1">
+         <widget class="ColorRectWidget" name="colorRectWidget_2" native="true"/>
+        </item>
+       </layout>
+      </widget>
      </item>
      <item>
       <widget class="QCheckBox" name="checkBox_multicolor">
        <property name="text">
-        <string>MultiColor Mode</string>
+        <string>Multicolor Mode</string>
        </property>
       </widget>
      </item>
@@ -325,7 +332,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
-        <string>Foreground Color</string>
+        <string>Foreground Color Mode</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
@@ -977,209 +984,12 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>radioButton_background</tabstop>
-  <tabstop>radioButton_foreground</tabstop>
-  <tabstop>radioButton_multicolor1</tabstop>
-  <tabstop>radioButton_multicolor2</tabstop>
-  <tabstop>checkBox_multicolor</tabstop>
   <tabstop>charsetWidget</tabstop>
  </tabstops>
  <resources>
   <include location="resources.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>paletteWidget</sender>
-   <signal>colorSelected()</signal>
-   <receiver>colorRectWidget_0</receiver>
-   <slot>update()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>535</x>
-     <y>256</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>534</x>
-     <y>115</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>paletteWidget</sender>
-   <signal>colorSelected()</signal>
-   <receiver>colorRectWidget_1</receiver>
-   <slot>update()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>535</x>
-     <y>256</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>534</x>
-     <y>139</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>paletteWidget</sender>
-   <signal>colorSelected()</signal>
-   <receiver>colorRectWidget_2</receiver>
-   <slot>update()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>535</x>
-     <y>256</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>534</x>
-     <y>163</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>paletteWidget</sender>
-   <signal>colorSelected()</signal>
-   <receiver>colorRectWidget_3</receiver>
-   <slot>update()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>535</x>
-     <y>256</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>534</x>
-     <y>187</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButton_background</sender>
-   <signal>clicked()</signal>
-   <receiver>paletteWidget</receiver>
-   <slot>update()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>455</x>
-     <y>119</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>535</x>
-     <y>256</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButton_foreground</sender>
-   <signal>clicked()</signal>
-   <receiver>paletteWidget</receiver>
-   <slot>update()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>455</x>
-     <y>143</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>535</x>
-     <y>256</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButton_multicolor1</sender>
-   <signal>clicked()</signal>
-   <receiver>paletteWidget</receiver>
-   <slot>update()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>455</x>
-     <y>167</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>535</x>
-     <y>256</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>radioButton_multicolor2</sender>
-   <signal>clicked()</signal>
-   <receiver>paletteWidget</receiver>
-   <slot>update()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>455</x>
-     <y>191</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>535</x>
-     <y>256</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionBackground</sender>
-   <signal>triggered()</signal>
-   <receiver>radioButton_background</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>404</x>
-     <y>116</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionForeground</sender>
-   <signal>triggered()</signal>
-   <receiver>radioButton_foreground</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>455</x>
-     <y>143</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionMulti_Color_1</sender>
-   <signal>triggered()</signal>
-   <receiver>radioButton_multicolor1</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>455</x>
-     <y>167</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionMulti_Color_2</sender>
-   <signal>triggered()</signal>
-   <receiver>radioButton_multicolor2</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>455</x>
-     <y>191</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>actionEnable_Multicolor</sender>
    <signal>triggered()</signal>
