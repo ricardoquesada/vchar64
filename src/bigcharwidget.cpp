@@ -26,6 +26,7 @@ limitations under the License.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "palette.h"
+#include "utils.h"
 
 BigCharWidget::BigCharWidget(State* state, QWidget *parent)
     : QWidget(parent)
@@ -210,25 +211,49 @@ void BigCharWidget::paintEvent(QPaintEvent *event)
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
     QPen pen;
-    pen.setColor({149,195,244,255});
-    pen.setWidth(3);
+    pen.setColor(QWidget::palette().color(QWidget::backgroundRole()));
+    pen.setWidth(1);
     pen.setStyle(Qt::PenStyle::SolidLine);
+    painter.setPen(pen);
 
     quint8 charIndex = _charIndex;
 
     for (int y=0; y<_tileProperties.size.height(); y++) {
         for (int x=0; x<_tileProperties.size.width(); x++) {
 
-            paintChar(painter, pen, charIndex, QPoint{x,y});
-            // chars could be 64 chars away from each other
-            charIndex +=  _tileProperties.interleaved;
+            utilsDrawChar(_state, &painter, _pixelSize, QPoint(0,0), QPoint(x,y), charIndex);
+            charIndex += _tileProperties.interleaved;
         }
     }
 
+    paintCursor(painter);
     paintSeparators(painter);
     paintFocus(painter);
 
     painter.end();
+}
+
+void BigCharWidget::paintCursor(QPainter& painter)
+{
+    painter.setBrush(QColor(0,0,255,16));
+    QPen pen;
+    pen.setColor({149,195,244,255});
+    pen.setStyle(Qt::PenStyle::SolidLine);
+
+    if (hasFocus())
+        pen.setWidth(3);
+    else pen.setWidth(1);
+    painter.setPen(pen);
+
+    int bit_width = 1;
+    if (_state->shouldBeDisplayedInMulticolor())
+        bit_width = 2;
+
+    painter.drawRect(_cursorPos.x() * _pixelSize.width(),
+                     _cursorPos.y() * _pixelSize.height(),
+                     _pixelSize.width() * bit_width,
+                     _pixelSize.height()
+                );
 }
 
 void BigCharWidget::paintSeparators(QPainter &painter)
@@ -275,97 +300,6 @@ void BigCharWidget::paintFocus(QPainter &painter)
                          _tileProperties.size.width() * _pixelSize.width() * 8, 0);
         painter.drawLine(0, _tileProperties.size.height() * _pixelSize.height() * 8,
                          _tileProperties.size.width() * _pixelSize.width() * 8, _tileProperties.size.height() * _pixelSize.height() * 8);
-    }
-}
-
-
-void BigCharWidget::paintChar(QPainter& painter, const QPen& pen, quint8 charIndex, const QPoint& tileToDraw)
-{
-    static const quint8 mc_masks[] = {192, 48, 12, 3};
-    static const quint8 hr_masks[] = {128, 64, 32, 16, 8, 4, 2, 1};
-
-    auto charset = _state->getCharsetBuffer();
-    auto charsetAttribs = _state->getCharAttribs();
-    auto ismc = _state->shouldBeDisplayedInMulticolor2(charIndex);
-
-    auto chardef = &charset[charIndex * 8];
-
-
-    for (int y=0; y<8; ++y)
-    {
-        auto byte = chardef[y];
-
-        int char_width = 8;
-        int bit_width = 1;      /* 8 = 8 * 1 */
-        const quint8* masks = &hr_masks[0];
-
-        if (ismc)
-        {
-            char_width = 4;
-            bit_width = 2;      /* 8 = 4 * 2 */
-            masks = mc_masks;
-        }
-
-        for (int x=0; x<char_width; ++x)
-        {
-            quint8 colorIndex = 0;
-            // get the two bits that reprent the color
-            quint8 color = byte & masks[x];
-            color >>= (8 - bit_width) - x * bit_width;
-
-            switch (color)
-            {
-            // bitmask 00: background ($d021)
-            case 0x0:
-                colorIndex = _state->getColorForPen(State::PEN_BACKGROUND);
-                break;
-
-            // bitmask 01: multicolor #1 ($d022)
-            case 0x1:
-                if (ismc)
-                    colorIndex = _state->getColorForPen(State::PEN_MULTICOLOR1);
-                else
-                {
-                    if (_state->getCharColorMode() == State::CHAR_COLOR_GLOBAL)
-                        colorIndex = _state->getColorForPen(State::PEN_FOREGROUND);
-                    else
-                        colorIndex = charsetAttribs[charIndex];
-                }
-                break;
-
-            // bitmask 10: multicolor #2 ($d023)
-            case 0x2:
-                Q_ASSERT(ismc && "error in logic");
-                colorIndex = _state->getColorForPen(State::PEN_MULTICOLOR2);
-                break;
-
-            // bitmask 11: color RAM
-            case 0x3:
-                Q_ASSERT(ismc && "error in logic");
-                if (_state->getCharColorMode() == State::CHAR_COLOR_GLOBAL)
-                    colorIndex = _state->getColorForPen(State::PEN_FOREGROUND);
-                else
-                    colorIndex = charsetAttribs[charIndex] - 8;
-                break;
-            default:
-                qDebug() << "MapWidget::paintEvent Invalid color: " << color << " at x,y=" << x << y;
-                break;
-            }
-
-            if (hasFocus()
-                    && (x + tileToDraw.x() * 8 / bit_width) == _cursorPos.x() / bit_width
-                    && (y + tileToDraw.y( ) * 8) == _cursorPos.y()
-                    )
-                painter.setPen(pen);
-            else
-                painter.setPen(Qt::PenStyle::NoPen);
-
-            painter.setBrush(Palette::getColor(colorIndex));
-            painter.drawRect(x * _pixelSize.width() * bit_width + _pixelSize.width() * 8 * tileToDraw.x(),
-                             y * _pixelSize.height() + _pixelSize.height() * 8 * tileToDraw.y(),
-                             _pixelSize.width() * bit_width - 1,
-                             _pixelSize.height()-1);
-        }
     }
 }
 

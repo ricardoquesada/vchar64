@@ -24,7 +24,7 @@ limitations under the License.
 #include "state.h"
 #include "palette.h"
 
-void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, const QPoint& offset, int x, int y, quint8 c)
+void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, const QPoint& offset, const QPoint& orig, quint8 c)
 {
     static const quint8 mc_masks[] = {192, 48, 12, 3};
     static const quint8 hr_masks[] = {128, 64, 32, 16, 8, 4, 2, 1};
@@ -34,7 +34,6 @@ void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, cons
     auto ismc = state->shouldBeDisplayedInMulticolor2(c);
 
     auto chardef = &charset[c * 8];
-
 
     for (int i=0; i<8; ++i)
     {
@@ -93,12 +92,12 @@ void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, cons
                     colorIndex = charsetAttribs[c] - 8;
                 break;
             default:
-                qDebug() << "MapWidget::paintEvent Invalid color: " << color << " at x,y=" << x << y;
+                qDebug() << "MapWidget::paintEvent Invalid color: " << color << " at x,y=" << orig;
                 break;
             }
             painter->setBrush(Palette::getColor(colorIndex));
-            painter->drawRect( (x*8 + j*bit_width) * pixelSize.width() + offset.x(),
-                             (y*8 + i) * pixelSize.height() + offset.y(),
+            painter->drawRect( (orig.x() * 8 + j * bit_width) * pixelSize.width() + offset.x(),
+                             (orig.y() * 8 + i) * pixelSize.height() + offset.y(),
                              pixelSize.width() * bit_width,
                              pixelSize.height());
         }

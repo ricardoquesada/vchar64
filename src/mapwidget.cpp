@@ -69,7 +69,7 @@ void MapWidget::paintEvent(QPaintEvent *event)
         {
             auto c = screenRAM[y * _mapSize.width() + x];
 
-            utilsDrawChar(state, &painter, QSize(PIXEL_SIZE, PIXEL_SIZE), QPoint(OFFSET, OFFSET), x, y, c);
+            utilsDrawChar(state, &painter, QSize(PIXEL_SIZE, PIXEL_SIZE), QPoint(OFFSET, OFFSET), QPoint(x, y), c);
         }
     }
 

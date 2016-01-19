@@ -264,7 +264,7 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
             int local_w = w + char_idx % tw;
             int local_h = h + char_idx / tw;
 
-            utilsDrawChar(state, &painter, _pixelSize, QPoint(OFFSET, OFFSET), local_w, local_h, charIdx);
+            utilsDrawChar(state, &painter, _pixelSize, QPoint(OFFSET, OFFSET), QPoint(local_w, local_h), charIdx);
 
             charIdx += tileProperties.interleaved;
         }
