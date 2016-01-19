@@ -194,8 +194,8 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
     default:
         QWidget::keyPressEvent(event);
     }
-    _cursorPos = {qBound(0, _cursorPos.x(), 8*_tileProperties.size.width()-1),
-                  qBound(0, _cursorPos.y(), 8*_tileProperties.size.height()-1)};
+    _cursorPos = {qBound(0, _cursorPos.x(), 8 * _tileProperties.size.width() - increment_x),
+                  qBound(0, _cursorPos.y(), 8 * _tileProperties.size.height() - 1)};
 
     // redraw cursor
     update();
@@ -235,7 +235,7 @@ void BigCharWidget::paintEvent(QPaintEvent *event)
 
 void BigCharWidget::paintCursor(QPainter& painter)
 {
-    painter.setBrush(QColor(0,0,255,16));
+    painter.setBrush(QColor(0,0,255,24));
     QPen pen;
     pen.setColor({149,195,244,255});
     pen.setStyle(Qt::PenStyle::SolidLine);
@@ -246,10 +246,17 @@ void BigCharWidget::paintCursor(QPainter& painter)
     painter.setPen(pen);
 
     int bit_width = 1;
+    int x = _cursorPos.x();
     if (_state->shouldBeDisplayedInMulticolor())
+    {
         bit_width = 2;
 
-    painter.drawRect(_cursorPos.x() * _pixelSize.width(),
+        // this is needed because cursorPos.x might be pointing
+        // to the "half" bit when swtiching from HR to MC.
+        x = (x / 2) * 2;
+    }
+
+    painter.drawRect(x * _pixelSize.width(),
                      _cursorPos.y() * _pixelSize.height(),
                      _pixelSize.width() * bit_width,
                      _pixelSize.height()
