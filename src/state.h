@@ -61,7 +61,7 @@ public:
     const static int MAX_TILE_WIDTH = 8;
     const static int MAX_TILE_HEIGHT = 8;
 
-    enum {
+    enum Pen {
         PEN_BACKGROUND,     /* $d021 */
         PEN_MULTICOLOR1,    /* $d022 */
         PEN_MULTICOLOR2,    /* $d023 */
@@ -70,22 +70,23 @@ public:
         PEN_MAX
     };
 
-    enum {
+    enum ForegroundColorMode {
         FOREGROUND_COLOR_GLOBAL,
         FOREGROUND_COLOR_PER_TILE
     };
 
     // what to export
-    enum {
-        EXPORT_CHARSET = 1 << 0,
-        EXPORT_MAP = 1 << 1,
-        EXPORT_ATTRIBS = 1 << 2,
+    enum ExportFeature {
+        EXPORT_FEATURE_NONE = 0,
+        EXPORT_FEATURE_CHARSET = 1 << 0,
+        EXPORT_FEATURE_MAP = 1 << 1,
+        EXPORT_FEATURE_ATTRIBS = 1 << 2,
 
-        EXPORT_ALL = (EXPORT_CHARSET | EXPORT_MAP | EXPORT_ATTRIBS)
+        EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_ATTRIBS)
     };
 
     // format to export
-    enum {
+    enum ExportFormat {
         EXPORT_FORMAT_RAW,
         EXPORT_FORMAT_PRG,
         EXPORT_FORMAT_ASM
@@ -263,6 +264,14 @@ public:
 
     QString getExportedFilename() const {
         return _exportedFilename;
+    }
+
+    int getExportedFeatures() const {
+        return _exportedFeatures;
+    }
+
+    int getExportedFormat() const {
+        return _exportedFormat;
     }
 
     // tile properties
@@ -482,10 +491,10 @@ protected:
     quint16 _exportedAddresses[3];
 
     // RAW, PRG, or ASM
-    int _exportFormat;
+    int _exportedFormat;
 
     // Charset? Map? Attribs?
-    int _exportWhat;
+    int _exportedFeatures;
 
     QUndoStack* _undoStack;
 

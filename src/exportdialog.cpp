@@ -32,7 +32,7 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
     , ui(new Ui::ExportDialog)
     , _settings()
     , _state(state)
-    , _checkBox_clicked(State::EXPORT_CHARSET)
+    , _checkBox_clicked(State::EXPORT_FEATURE_CHARSET)
 {
     ui->setupUi(this);
 
@@ -60,6 +60,21 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
         ui->spinBox_charsetAddress->setEnabled(toogled);
         ui->spinBox_mapAddress->setEnabled(toogled);
     });
+
+    int featuresToExport = _state->getExportedFeatures();
+    ui->checkBox_charset->setChecked(featuresToExport & State::EXPORT_FEATURE_CHARSET);
+    ui->checkBox_map->setChecked(featuresToExport & State::EXPORT_FEATURE_MAP);
+    ui->checkBox_attribs->setChecked(featuresToExport & State::EXPORT_FEATURE_ATTRIBS);
+
+    int format = _state->getExportedFormat();
+
+    /* don't change the order */
+    QRadioButton* radios[] = {
+        ui->radioButton_raw,
+        ui->radioButton_prg,
+        ui->radioButton_asm
+    };
+    radios[format]->setChecked(true);
 }
 
 ExportDialog::~ExportDialog()
@@ -84,14 +99,14 @@ void ExportDialog::accept()
 {
     bool ok = false;
     auto filename = ui->editFilename->text();
-    int whatToExport = 0;
+    int whatToExport = State::EXPORT_FEATURE_NONE;
 
     if (ui->checkBox_map->isChecked())
-        whatToExport |= State::EXPORT_MAP;
+        whatToExport |= State::EXPORT_FEATURE_MAP;
     if (ui->checkBox_attribs->isChecked())
-        whatToExport |= State::EXPORT_ATTRIBS;
+        whatToExport |= State::EXPORT_FEATURE_ATTRIBS;
     if (ui->checkBox_charset->isChecked())
-        whatToExport |= State::EXPORT_CHARSET;
+        whatToExport |= State::EXPORT_FEATURE_CHARSET;
 
     if (ui->radioButton_raw->isChecked())
     {
@@ -168,27 +183,27 @@ void ExportDialog::on_radioButton_prg_clicked()
 void ExportDialog::on_checkBox_charset_clicked(bool checked)
 {
     if (checked)
-        _checkBox_clicked |= State::EXPORT_CHARSET;
+        _checkBox_clicked |= State::EXPORT_FEATURE_CHARSET;
     else
-        _checkBox_clicked &= ~State::EXPORT_CHARSET;
+        _checkBox_clicked &= ~State::EXPORT_FEATURE_CHARSET;
     updateButtons();
 }
 
 void ExportDialog::on_checkBox_map_clicked(bool checked)
 {
     if (checked)
-        _checkBox_clicked |= State::EXPORT_MAP;
+        _checkBox_clicked |= State::EXPORT_FEATURE_MAP;
     else
-        _checkBox_clicked &= ~State::EXPORT_MAP;
+        _checkBox_clicked &= ~State::EXPORT_FEATURE_MAP;
     updateButtons();
 }
 
 void ExportDialog::on_checkBox_attribs_clicked(bool checked)
 {
     if (checked)
-        _checkBox_clicked |= State::EXPORT_ATTRIBS;
+        _checkBox_clicked |= State::EXPORT_FEATURE_ATTRIBS;
     else
-        _checkBox_clicked &= ~State::EXPORT_ATTRIBS;
+        _checkBox_clicked &= ~State::EXPORT_FEATURE_ATTRIBS;
     updateButtons();
 }
 

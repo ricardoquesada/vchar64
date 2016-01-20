@@ -47,8 +47,8 @@ State::State(quint8 *charset, quint8 *tileAttribs, quint8 *map, const QSize& map
     , _savedFilename("")
     , _exportedFilename("")
     , _exportedAddresses{0,0,0}
-    , _exportFormat(EXPORT_FORMAT_RAW)
-    , _exportWhat(EXPORT_ALL)
+    , _exportedFormat(EXPORT_FORMAT_RAW)
+    , _exportedFeatures(EXPORT_FEATURE_CHARSET)
     , _undoStack(nullptr)
     , _bigCharWidget(nullptr)
 {
@@ -98,8 +98,8 @@ void State::reset()
     _exportedAddresses[0] = 0;
     _exportedAddresses[1] = 0;
     _exportedAddresses[2] = 0;
-    _exportFormat = EXPORT_FORMAT_RAW;
-    _exportWhat = EXPORT_ALL;
+    _exportedFormat = EXPORT_FORMAT_RAW;
+    _exportedFeatures = EXPORT_FEATURE_CHARSET;
 
     memset(_charset, 0, sizeof(_charset));
     memset(_tileAttribs, 11, sizeof(_tileAttribs));
@@ -185,12 +185,12 @@ bool State::openFile(const QString& filename)
         else if (filetype == FILETYPE_RAW || filetype == FILETYPE_PRG)
         {
             _exportedFilename = filename;
-            _exportWhat = EXPORT_CHARSET;
+            _exportedFeatures = EXPORT_FEATURE_CHARSET;
             if (filetype == FILETYPE_PRG) {
                 _exportedAddresses[0] = loadedAddress;
-                _exportFormat = EXPORT_FORMAT_PRG;
+                _exportedFormat = EXPORT_FORMAT_PRG;
             }
-            else _exportFormat = EXPORT_FORMAT_RAW;
+            else _exportedFormat = EXPORT_FORMAT_RAW;
         }
     }
 
@@ -210,34 +210,34 @@ bool State::export_()
 {
     Q_ASSERT(_exportedFilename.length() > 0 && "Invalid filename");
 
-    if (_exportFormat == EXPORT_FORMAT_RAW)
-        return exportRaw(_exportedFilename, _exportWhat);
+    if (_exportedFormat == EXPORT_FORMAT_RAW)
+        return exportRaw(_exportedFilename, _exportedFeatures);
 
     /* else */
-    if(_exportFormat == EXPORT_FORMAT_PRG)
-        return exportPRG(_exportedFilename, _exportedAddresses, _exportWhat);
+    if(_exportedFormat == EXPORT_FORMAT_PRG)
+        return exportPRG(_exportedFilename, _exportedAddresses, _exportedFeatures);
 
     /* else ASM */
-    return exportAsm(_exportedFilename, _exportWhat);
+    return exportAsm(_exportedFilename, _exportedFeatures);
 }
 
 bool State::exportRaw(const QString& filename, int whatToExport)
 {
     bool ret = true;
 
-    if (ret && (whatToExport & EXPORT_CHARSET))
+    if (ret && (whatToExport & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::saveRaw(filename, _charset, sizeof(_charset)) > 0);
 
-    if (ret && (whatToExport & EXPORT_MAP))
+    if (ret && (whatToExport & EXPORT_FEATURE_MAP))
         ret &= (StateExport::saveRaw(filename, _map, _mapSize.width() * _mapSize.height()) > 0);
 
-    if (ret && (whatToExport & EXPORT_ATTRIBS))
+    if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
         ret &= (StateExport::saveRaw(filename, _tileAttribs, sizeof(_tileAttribs)) > 0);
 
     if (ret)
     {
-        _exportFormat = EXPORT_FORMAT_RAW;
-        _exportWhat = whatToExport;
+        _exportedFormat = EXPORT_FORMAT_RAW;
+        _exportedFeatures = whatToExport;
         _exportedFilename = filename;
     }
     return ret;
@@ -247,24 +247,24 @@ bool State::exportPRG(const QString& filename, quint16 addresses[3], int whatToE
 {
     bool ret = true;
 
-    if (ret && (whatToExport & EXPORT_CHARSET))
+    if (ret && (whatToExport & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::savePRG(filename, _charset, sizeof(_charset), addresses[0]) > 0);
 
-    if (ret && (whatToExport & EXPORT_MAP))
+    if (ret && (whatToExport & EXPORT_FEATURE_MAP))
         ret &= (StateExport::savePRG(filename, _map, _mapSize.width() * _mapSize.height(), addresses[1]) > 0);
 
-    if (ret && (whatToExport & EXPORT_ATTRIBS))
+    if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
         ret &= (StateExport::savePRG(filename, _tileAttribs, sizeof(_tileAttribs), addresses[2]) > 0);
 
     if (ret)
     {
-        _exportFormat = EXPORT_FORMAT_PRG;
+        _exportedFormat = EXPORT_FORMAT_PRG;
         _exportedAddresses[0] = addresses[0];
         _exportedAddresses[1] = addresses[1];
         _exportedAddresses[2] = addresses[2];
 
         _exportedFilename = filename;
-        _exportWhat = whatToExport;
+        _exportedFeatures = whatToExport;
         return true;
     }
     return ret;
@@ -274,19 +274,19 @@ bool State::exportAsm(const QString& filename, int whatToExport)
 {
     bool ret = true;
 
-    if (ret && (whatToExport & EXPORT_CHARSET))
+    if (ret && (whatToExport & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::saveAsm(filename, _charset, sizeof(_charset)) > 0);
 
-    if (ret && (whatToExport & EXPORT_MAP))
+    if (ret && (whatToExport & EXPORT_FEATURE_MAP))
         ret &= (StateExport::saveAsm(filename, _map, _mapSize.width() * _mapSize.height()) > 0);
 
-    if (ret && (whatToExport & EXPORT_ATTRIBS))
+    if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
         ret &= (StateExport::saveAsm(filename, _tileAttribs, sizeof(_tileAttribs)) > 0);
 
     if (ret)
     {
-        _exportFormat = EXPORT_FORMAT_ASM;
-        _exportWhat = whatToExport;
+        _exportedFormat = EXPORT_FORMAT_ASM;
+        _exportedFeatures = whatToExport;
         _exportedFilename = filename;
     }
     return ret;
