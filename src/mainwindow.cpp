@@ -182,33 +182,37 @@ void MainWindow::onMulticolorModeToggled(bool newvalue)
 void MainWindow::onColorPropertiesUpdated(int pen)
 {
     auto state = getState();
-    int color = state->getColorForPen(pen);
-    updateWindow();
 
-    QString colors[] = {
-        tr("Black"),
-        tr("White"),
-        tr("Red"),
-        tr("Cyan"),
-        tr("Violet"),
-        tr("Green"),
-        tr("Blue"),
-        tr("Yellow"),
+    if (state)
+    {
+        int color = state->getColorForPen(pen, state->getTileIndex());
+        updateWindow();
 
-        tr("Orange"),
-        tr("Brown"),
-        tr("Light red"),
-        tr("Dark grey"),
-        tr("Grey"),
-        tr("Light green"),
-        tr("Light blue"),
-        tr("Light grey")
-    };
+        QString colors[] = {
+            tr("Black"),
+            tr("White"),
+            tr("Red"),
+            tr("Cyan"),
+            tr("Violet"),
+            tr("Green"),
+            tr("Blue"),
+            tr("Yellow"),
 
-    int number = color;
-    if (state->shouldBeDisplayedInMulticolor() && pen == State::PEN_FOREGROUND)
-        color = color % 8;
-    _labelSelectedColor->setText(QString("%1: %3 (%2)").arg(tr("Color")).arg(number).arg(colors[color]));
+            tr("Orange"),
+            tr("Brown"),
+            tr("Light red"),
+            tr("Dark grey"),
+            tr("Grey"),
+            tr("Light green"),
+            tr("Light blue"),
+            tr("Light grey")
+        };
+
+        int number = color;
+        if (state->shouldBeDisplayedInMulticolor() && pen == State::PEN_FOREGROUND)
+            color = color % 8;
+        _labelSelectedColor->setText(QString("%1: %3 (%2)").arg(tr("Color")).arg(number).arg(colors[color]));
+    }
 }
 
 //

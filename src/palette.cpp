@@ -135,7 +135,7 @@ const QColor& Palette::getColorForPen(State* state, int pen)
     // state could be nill if no States (documents) are open
     if (state)
     {
-        colorIndex = state->getColorForPen(pen);
+        colorIndex = state->getColorForPen(pen, state->getTileIndex());
 
         // upper colors should be the same a lower colors on multicolor mode in foreground pen
         if (pen == State::PEN_FOREGROUND && state->shouldBeDisplayedInMulticolor())

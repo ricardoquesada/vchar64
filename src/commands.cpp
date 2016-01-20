@@ -368,26 +368,27 @@ void SetMulticolorModeCommand::redo()
 
 // SetColorCommand
 
-SetColorCommand::SetColorCommand(State *state, int color, int pen, QUndoCommand *parent)
+SetColorCommand::SetColorCommand(State *state, int color, int pen, int tileIdx, QUndoCommand *parent)
     : QUndoCommand(parent)
+    , _state(state)
+    , _pen(pen)
+    , _new(color)
+    , _tileIdx(tileIdx)
 {
     setText(QObject::tr("Color[%1] = %2")
             .arg(pen)
             .arg(color)
             );
 
-    _state = state;
-    _pen = pen;
-    _new = color;
 }
 
 void SetColorCommand::undo()
 {
-    _state->_setColorForPen(_pen, _old);
+    _state->_setColorForPen(_pen, _old, _tileIdx);
 }
 
 void SetColorCommand::redo()
 {
-    _old = _state->getColorForPen(_pen);
-    _state->_setColorForPen(_pen, _new);
+    _old = _state->getColorForPen(_pen, _tileIdx);
+    _state->_setColorForPen(_pen, _new, _tileIdx);
 }

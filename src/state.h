@@ -183,15 +183,19 @@ public:
     /**
      * @brief getColorForPen
      * @param pen PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1 or PEN_MULTICOLOR2
+     * @param tileIdx the tile to obtaion the color from, in case the color is associated to the tile
      * @return the color being used by the pen
      */
+    int getColorForPen(int pen, int tileIdx) const;
     int getColorForPen(int pen) const;
 
     /**
      * @brief setColorForPen set a color for a pen
      * @param pen PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1, PEN_MULTICOLOR2
      * @param color a color between 0 and 15
+     * @param tileIdx the tile to be modified in case the color is associated to the tile
      */
+    void setColorForPen(int pen, int color, int tileIdx);
     void setColorForPen(int pen, int color);
 
     /**
@@ -370,6 +374,18 @@ public:
      */
     BigCharWidget* getBigCharWidget() const;
 
+    /**
+     * @brief getTileIndex returns the current tile index
+     * @return the current Tile Index
+     */
+    int getTileIndex() const;
+
+    /**
+     * @brief getCharIndex returns the current char index
+     * @return the current char Index
+     */
+    int getCharIndex() const;
+
 signals:
     // file loaded, or new project
     void fileLoaded();
@@ -450,7 +466,7 @@ protected:
     void _setMulticolorMode(bool enabled);
     void _setForegroundColorMode(int mode);
     void _setTileProperties(const TileProperties& properties);
-    void _setColorForPen(int pen, int color);
+    void _setColorForPen(int pen, int color, int tileIdx);
 
     int _totalChars;
 

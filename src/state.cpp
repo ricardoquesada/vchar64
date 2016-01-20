@@ -380,37 +380,52 @@ int State::getForegroundColorMode() const
 
 int State::getColorForPen(int pen) const
 {
+    return getColorForPen(pen, -1);
+}
+
+int State::getColorForPen(int pen, int tileIdx) const
+{
     Q_ASSERT(pen >=0 && pen < PEN_MAX);
 
     bool foregroundAndPerTile = (pen == PEN_FOREGROUND && _foregroundColorMode == FOREGROUND_COLOR_PER_TILE);
 
+    Q_ASSERT((tileIdx != -1 || !foregroundAndPerTile) && "Provide a valid tileIdx");
+
     if (foregroundAndPerTile)
-        return _tileAttribs[_tileIndex];
+        return _tileAttribs[tileIdx];
     return _penColors[pen];
 }
 
 void State::setColorForPen(int pen, int color)
 {
-    getUndoStack()->push(new SetColorCommand(this, color, pen));
+    setColorForPen(pen, color, -1);
 }
 
-void State::_setColorForPen(int pen, int color)
+void State::setColorForPen(int pen, int color, int tileIdx)
+{
+    getUndoStack()->push(new SetColorCommand(this, color, pen, tileIdx));
+}
+
+void State::_setColorForPen(int pen, int color, int tileIdx)
 {
     Q_ASSERT(pen >=0 && pen < PEN_MAX);
     Q_ASSERT(color >=0 && color < 16);
 
     bool foregroundAndPerTile = (pen == PEN_FOREGROUND && _foregroundColorMode == FOREGROUND_COLOR_PER_TILE);
-    int currentColor = foregroundAndPerTile ? _tileAttribs[_tileIndex] : _penColors[pen];
+
+    Q_ASSERT((tileIdx != -1 || !foregroundAndPerTile) && "Invalid Tile index");
+
+    int currentColor = foregroundAndPerTile ? _tileAttribs[tileIdx] : _penColors[pen];
 
     if (currentColor != color)
     {
-        bool oldvalue = shouldBeDisplayedInMulticolor2(_tileIndex);
+        bool oldvalue = shouldBeDisplayedInMulticolor2(tileIdx);
 
         if (foregroundAndPerTile)
-            _tileAttribs[_tileIndex] = color;
+            _tileAttribs[tileIdx] = color;
         else _penColors[pen] = color;
 
-        bool newvalue = shouldBeDisplayedInMulticolor2(_tileIndex);
+        bool newvalue = shouldBeDisplayedInMulticolor2(tileIdx);
 
         emit colorPropertiesUpdated(pen);
 
@@ -423,7 +438,7 @@ void State::_setColorForPen(int pen, int color)
 
 int State::getCurrentColor() const
 {
-    return getColorForPen(_selectedPen);
+    return getColorForPen(_selectedPen, -1);
 }
 
 int State::getSelectedPen() const
@@ -1078,8 +1093,12 @@ void State::_tileShiftDown(int tileIndex)
 }
 
 //
-// Slots
 //
+int State::getCharIndex() const
+{
+    return _charIndex;
+}
+
 void State::setCharIndex(int charIndex)
 {
     Q_ASSERT(charIndex >= 0 && charIndex < 256);
@@ -1102,6 +1121,11 @@ void State::_setCharIndex(int charIndex)
     }
 }
 
+
+int State::getTileIndex() const
+{
+    return _tileIndex;
+}
 
 void State::setTileIndex(int tileIndex)
 {

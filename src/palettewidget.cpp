@@ -54,11 +54,12 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
     auto state = MainWindow::getCurrentState();
     if (state)
     {
+        int tileIndex = state->getTileIndex();
         int pen = state->getSelectedPen();
-        int oldColor = state->getColorForPen(pen);
+        int oldColor = state->getColorForPen(pen, tileIndex);
 
         if (oldColor != color) {
-            state->setColorForPen(pen, color);
+            state->setColorForPen(pen, color, tileIndex);
             update();
         }
     }
@@ -72,10 +73,14 @@ void PaletteWidget::paintEvent(QPaintEvent *event)
     // paint with default background color
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
+    int currentColor = 0;
+    int selectedPen = State::PEN_BACKGROUND;
     auto state = MainWindow::getCurrentState();
-    int currentColor = state ? state->getCurrentColor() : 0;
-    int selectedPen = state ? state->getSelectedPen() : State::PEN_BACKGROUND;
-
+    if (state)
+    {
+        selectedPen = state->getSelectedPen();
+        currentColor = state->getColorForPen(selectedPen, state->getTileIndex());
+    }
 
     QPen pen;
     pen.setColor(Qt::red);

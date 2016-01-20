@@ -233,7 +233,7 @@ private:
 class SetColorCommand : public QUndoCommand
 {
 public:
-    SetColorCommand(State *state, int color, int pen, QUndoCommand *parent = nullptr);
+    SetColorCommand(State *state, int color, int pen, int tileIdx, QUndoCommand *parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -242,4 +242,5 @@ private:
     int _pen;
     int _old;
     int _new;
+    int _tileIdx;
 };
