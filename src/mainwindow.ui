@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>777</width>
-    <height>845</height>
+    <width>525</width>
+    <height>634</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -62,7 +62,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>777</width>
+     <width>525</width>
      <height>22</height>
     </rect>
    </property>
@@ -245,7 +245,7 @@
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
-    <layout class="QVBoxLayout" name="verticalLayout_4" stretch="2,1,1,1">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
       <widget class="QGroupBox" name="gridGroupBox">
        <property name="title">
@@ -253,9 +253,7 @@
        </property>
        <layout class="QGridLayout" name="gridLayout">
         <item row="2" column="1">
-         <widget class="ColorRectWidget" name="colorRectWidget_1" native="true">
-          <zorder>colorRectWidget_3</zorder>
-         </widget>
+         <widget class="ColorRectWidget" name="colorRectWidget_1" native="true"/>
         </item>
         <item row="0" column="1">
          <widget class="ColorRectWidget" name="colorRectWidget_0" native="true"/>
@@ -307,25 +305,12 @@
       </widget>
      </item>
      <item>
+      <widget class="PaletteWidget" name="paletteWidget" native="true"/>
+     </item>
+     <item>
       <widget class="QCheckBox" name="checkBox_multicolor">
        <property name="text">
         <string>Multicolor Mode</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="PaletteWidget" name="paletteWidget" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>192</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>192</width>
-         <height>32</height>
-        </size>
        </property>
       </widget>
      </item>
@@ -348,7 +333,7 @@
         <item>
          <widget class="QRadioButton" name="radioButton_charColorPerChar">
           <property name="text">
-           <string>One Per Char</string>
+           <string>One Per Tile</string>
           </property>
          </widget>
         </item>

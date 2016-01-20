@@ -29,11 +29,15 @@ limitations under the License.
 
 static const int PIXEL_SIZE_X = 24;
 static const int PIXEL_SIZE_Y = 16;
+static const int COLUMNS = 8;
+static const int ROWS = 2;
 
 PaletteWidget::PaletteWidget(QWidget *parent)
     : QWidget(parent)
+    , _pixelSize(PIXEL_SIZE_X, PIXEL_SIZE_Y)
+    , _sizeHint(_pixelSize.width() * COLUMNS, _pixelSize.height() * ROWS)
 {
-    setFixedSize(PIXEL_SIZE_X * 8, PIXEL_SIZE_Y * 2);
+    setMinimumSize(_sizeHint);
 }
 
 void PaletteWidget::mousePressEvent(QMouseEvent * event)
@@ -42,8 +46,8 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
 
     auto pos = event->localPos();
 
-    int x = pos.x() / PIXEL_SIZE_X;
-    int y = pos.y() / PIXEL_SIZE_Y;
+    int x = pos.x() / _pixelSize.width();
+    int y = pos.y() / _pixelSize.height();
 
     int color = 8 * y + x;
 
@@ -92,11 +96,26 @@ void PaletteWidget::paintEvent(QPaintEvent *event)
                 c %= 8;
             painter.setBrush(Palette::getColor(c));
 
-            painter.drawRect(x * PIXEL_SIZE_X, y * PIXEL_SIZE_Y,
-                             PIXEL_SIZE_X-1, PIXEL_SIZE_Y-1);
+            painter.drawRect(x * _pixelSize.width(),
+                             y * _pixelSize.height(),
+                             _pixelSize.width() - 1,
+                             _pixelSize.height() - 1);
         }
     }
 
     painter.end();
 }
 
+QSize PaletteWidget::sizeHint() const
+{
+    return _sizeHint;
+}
+
+void PaletteWidget::resizeEvent(QResizeEvent* event)
+{
+    Q_UNUSED(event);
+
+    auto pixel_size_x = size().width() / COLUMNS;
+    auto pixel_size_y = size().height() / ROWS;
+    _pixelSize = {pixel_size_x, pixel_size_y};
+}

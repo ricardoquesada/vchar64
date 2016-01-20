@@ -26,4 +26,4 @@ QT_END_NAMESPACE
 
 class State;
 
-void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, const QPoint& offset, const QPoint &orig, quint8 c);
+void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, const QPoint& offset, const QPoint &orig, int charIdx);

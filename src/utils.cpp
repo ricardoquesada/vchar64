@@ -24,16 +24,19 @@ limitations under the License.
 #include "state.h"
 #include "palette.h"
 
-void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, const QPoint& offset, const QPoint& orig, quint8 c)
+void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, const QPoint& offset, const QPoint& orig, int charIdx)
 {
+    Q_ASSERT(charIdx >=0 && charIdx < 256 && "Invalid charIdx");
+
     static const quint8 mc_masks[] = {192, 48, 12, 3};
     static const quint8 hr_masks[] = {128, 64, 32, 16, 8, 4, 2, 1};
 
     auto charset = state->getCharsetBuffer();
-    auto charsetAttribs = state->getCharAttribs();
-    auto ismc = state->shouldBeDisplayedInMulticolor2(c);
+    auto attribs = state->getTileAttribs();
+    int tileIdx = state->getTileIndexFromCharIndex(charIdx);
+    auto ismc = state->shouldBeDisplayedInMulticolor2(tileIdx);
 
-    auto chardef = &charset[c * 8];
+    auto chardef = &charset[charIdx * 8];
 
     for (int i=0; i<8; ++i)
     {
@@ -70,10 +73,10 @@ void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, cons
                     colorIndex = state->getColorForPen(State::PEN_MULTICOLOR1);
                 else
                 {
-                    if (state->getCharColorMode() == State::CHAR_COLOR_GLOBAL)
+                    if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
                         colorIndex = state->getColorForPen(State::PEN_FOREGROUND);
                     else
-                        colorIndex = charsetAttribs[c];
+                        colorIndex = attribs[tileIdx];
                 }
                 break;
 
@@ -86,10 +89,10 @@ void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, cons
             // bitmask 11: color RAM
             case 0x3:
                 Q_ASSERT(ismc && "error in logic");
-                if (state->getCharColorMode() == State::CHAR_COLOR_GLOBAL)
+                if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
                     colorIndex = state->getColorForPen(State::PEN_FOREGROUND) - 8;
                 else
-                    colorIndex = charsetAttribs[c] - 8;
+                    colorIndex = attribs[tileIdx] - 8;
                 break;
             default:
                 qDebug() << "MapWidget::paintEvent Invalid color: " << color << " at x,y=" << orig;

@@ -579,7 +579,7 @@ void ImportKoalaDialog::on_pushButtonImport_clicked()
     // FIXME
     state->setColorForPen(State::PEN_FOREGROUND, ui->widgetCharset->_colorRAMForChars[0]);
     state->setMulticolorMode(true);
-    state->setCharColorMode(State::CHAR_COLOR_PER_CHAR);
+    state->setForegroundColorMode(State::FOREGROUND_COLOR_PER_TILE);
 
 
     MainWindow::getInstance()->createDocument(state);

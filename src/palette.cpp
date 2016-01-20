@@ -120,7 +120,8 @@ static const QColor Palettes[][16] = {
 };
 static const int MAX_PALETTES = sizeof(Palettes) / sizeof(Palettes[0]);
 
-int Palette::_paletteIndex = 1;
+// Default is Pepto
+int Palette::_paletteIndex = 0;
 
 const QColor& Palette::getColorForPen(State* state, int pen)
 {

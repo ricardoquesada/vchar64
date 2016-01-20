@@ -55,7 +55,7 @@ public:
     const static int CHAR_BUFFER_SIZE = 8 * 256;
 
     // char attributes: color (4-bit LSB)
-    const static int CHAR_ATTRIBS_BUFFER_SIZE = 256;
+    const static int TILE_ATTRIBS_BUFFER_SIZE = 256;
 
     // Max Tile size: 8x8
     const static int MAX_TILE_WIDTH = 8;
@@ -71,8 +71,8 @@ public:
     };
 
     enum {
-        CHAR_COLOR_GLOBAL,
-        CHAR_COLOR_PER_CHAR
+        FOREGROUND_COLOR_GLOBAL,
+        FOREGROUND_COLOR_PER_TILE
     };
 
     // what to export
@@ -127,11 +127,11 @@ public:
     /**
      * @brief State the Target constructor
      * @param charset charset to use or nullptr
-     * @param charAttribs charAttribs to use or nullptr
+     * @param tileAttribs tileAttribs to use or nullptr
      * @param map map to use or nullPtr
      * @param mapSize map size
      */
-    State(quint8* charset, quint8* charAttribs, quint8* map, const QSize &mapSize);
+    State(quint8* charset, quint8* tileAttribs, quint8* map, const QSize &mapSize);
     /**
      * @brief State constructor (a delegating constructor)
      */
@@ -224,18 +224,18 @@ public:
     bool isMulticolorMode() const;
 
     /**
-     * @brief setCharColorMode sets CHAR_COLOR_GLOBAL or CHAR_COLOR_PER_CHAR.
+     * @brief setForegroundColorMode sets FOREGROUND_COLOR_GLOBAL or FOREGROUND_COLOR_PER_TILE.
      * In GLOBAL mode, all chars share the same "foreground" color.
-     * In PER_CHAR, each char has its own color.
+     * In PER_TILE, each tile has its own color.
      * @param mode
      */
-    void setCharColorMode(int mode);
+    void setForegroundColorMode(int mode);
 
     /**
-     * @brief getCharColorMode
+     * @brief getForegroundColorMode
      * @return
      */
-    int getCharColorMode() const;
+    int getForegroundColorMode() const;
 
     /**
      * @brief shouldBeDisplayedInMulticolor whether or not the char should be displayed as multicolor.
@@ -247,11 +247,11 @@ public:
 
     /**
      * @brief shouldBeDisplayedInMulticolor whether or not the char should be displayed as multicolor.
-     * Even if multicolor mode is enabled, if Foreground color is <= 7, then char should not be
+     * Even if multicolor mode is enabled, if Foreground color is <= 7, then tile should not be
      * displayed in multicolor mode
-     * @return whether or not the char/tile should be displayed in multicolor mode
+     * @return whether or not the tile should be displayed in multicolor mode
      */
-    bool shouldBeDisplayedInMulticolor2(quint8 charidx) const;
+    bool shouldBeDisplayedInMulticolor2(int tileIdx) const;
 
     QString getLoadedFilename() const {
         return _loadedFilename;
@@ -321,7 +321,7 @@ public:
     const quint8* getCharsetBuffer() const;
     const quint8* getMapBuffer() const;
     const QSize& getMapSize() const;
-    const quint8* getCharAttribs() const;
+    const quint8* getTileAttribs() const;
 
     void resetCharsetBuffer();
 
@@ -439,19 +439,19 @@ protected:
 
     void _tileSetPen(int tileIndex, const QPoint& position, int pen);
     void _setMulticolorMode(bool enabled);
-    void _setCharColorMode(int mode);
+    void _setForegroundColorMode(int mode);
     void _setTileProperties(const TileProperties& properties);
     void _setColorForPen(int pen, int color);
 
     int _totalChars;
 
     quint8 _charset[State::CHAR_BUFFER_SIZE];
-    quint8 _charAttribs[State::CHAR_ATTRIBS_BUFFER_SIZE];
+    quint8 _tileAttribs[State::TILE_ATTRIBS_BUFFER_SIZE];
     quint8 *_map;
     QSize _mapSize;
 
     bool _multicolorMode;
-    int _charColorMode;
+    int _foregroundColorMode;
 
     int _selectedPen;
     int _penColors[PEN_MAX];

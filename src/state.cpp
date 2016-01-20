@@ -33,11 +33,11 @@ limitations under the License.
 const int State::CHAR_BUFFER_SIZE;
 
 // target constructor
-State::State(quint8 *charset, quint8 *charAttribs, quint8 *map, const QSize& mapSize)
+State::State(quint8 *charset, quint8 *tileAttribs, quint8 *map, const QSize& mapSize)
     : _totalChars(0)
     , _mapSize(mapSize)
     , _multicolorMode(false)
-    , _charColorMode(CHAR_COLOR_GLOBAL)
+    , _foregroundColorMode(FOREGROUND_COLOR_GLOBAL)
     , _selectedPen(PEN_FOREGROUND)
     , _penColors{1,5,7,11}
     , _tileProperties{{1,1},1}
@@ -59,10 +59,10 @@ State::State(quint8 *charset, quint8 *charAttribs, quint8 *map, const QSize& map
     else
         memset(_charset, 0, sizeof(_charset));
 
-    if (charAttribs)
-        memcpy(_charAttribs, charAttribs, sizeof(_charAttribs));
+    if (tileAttribs)
+        memcpy(_tileAttribs, tileAttribs, sizeof(_tileAttribs));
     else
-        memset(_charAttribs, 0, sizeof(_charAttribs));
+        memset(_tileAttribs, 0, sizeof(_tileAttribs));
 
     Q_ASSERT(_mapSize.width() * _mapSize.height() > 0 && "Invalid size");
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
@@ -87,7 +87,7 @@ void State::reset()
 {
     _totalChars = 0;
     _multicolorMode = false;
-    _charColorMode = CHAR_COLOR_GLOBAL;
+    _foregroundColorMode = FOREGROUND_COLOR_GLOBAL;
     _selectedPen = PEN_FOREGROUND;
     _penColors[PEN_BACKGROUND] = 1;
     _penColors[PEN_MULTICOLOR1] = 5;
@@ -105,7 +105,7 @@ void State::reset()
     _exportWhat = EXPORT_ALL;
 
     memset(_charset, 0, sizeof(_charset));
-    memset(_charAttribs, 0, sizeof(_charAttribs));
+    memset(_tileAttribs, 0, sizeof(_tileAttribs));
     memset(_map, 0, _mapSize.width() * _mapSize.height());
 }
 
@@ -237,7 +237,7 @@ bool State::exportRaw(const QString& filename, int whatToExport)
         ret &= (StateExport::saveRaw(file, _map, _mapSize.width() * _mapSize.height()) > 0);
 
     if (ret && (whatToExport & EXPORT_ATTRIBS))
-        ret &= (StateExport::saveRaw(file, _charAttribs, sizeof(_charAttribs)) > 0);
+        ret &= (StateExport::saveRaw(file, _tileAttribs, sizeof(_tileAttribs)) > 0);
 
     if (ret)
     {
@@ -263,7 +263,7 @@ bool State::exportPRG(const QString& filename, quint16 addresses[3], int whatToE
         ret &= (StateExport::savePRG(file, _map, _mapSize.width() * _mapSize.height(), addresses[1]) > 0);
 
     if (ret && (whatToExport & EXPORT_ATTRIBS))
-        ret &= (StateExport::savePRG(file, _charAttribs, sizeof(_charAttribs), addresses[2]) > 0);
+        ret &= (StateExport::savePRG(file, _tileAttribs, sizeof(_tileAttribs), addresses[2]) > 0);
 
     if (ret)
     {
@@ -294,7 +294,7 @@ bool State::exportAsm(const QString& filename, int whatToExport)
         ret &= (StateExport::saveAsm(file, _map, _mapSize.width() * _mapSize.height()) > 0);
 
     if (ret && (whatToExport & EXPORT_ATTRIBS))
-        ret &= (StateExport::saveAsm(file, _charAttribs, sizeof(_charAttribs)) > 0);
+        ret &= (StateExport::saveAsm(file, _tileAttribs, sizeof(_tileAttribs)) > 0);
 
     if (ret)
     {
@@ -338,11 +338,13 @@ bool State::shouldBeDisplayedInMulticolor() const
     return (_multicolorMode && _penColors[State::PEN_FOREGROUND] >= 8);
 }
 
-bool State::shouldBeDisplayedInMulticolor2(quint8 charIdx) const
+bool State::shouldBeDisplayedInMulticolor2(int tileIdx) const
 {
+    Q_ASSERT(tileIdx >=0 && tileIdx < 256 && "Invalid tileIdx");
+
     return (_multicolorMode &&
-            ((_charColorMode == CHAR_COLOR_GLOBAL && _penColors[PEN_FOREGROUND] >= 8) ||
-            (_charColorMode == CHAR_COLOR_PER_CHAR && (_charAttribs[charIdx] & 0xf) >= 8))
+            ((_foregroundColorMode == FOREGROUND_COLOR_GLOBAL && _penColors[PEN_FOREGROUND] >= 8) ||
+            (_foregroundColorMode == FOREGROUND_COLOR_PER_TILE && (_tileAttribs[tileIdx] & 0xf) >= 8))
             );
 }
 
@@ -367,25 +369,25 @@ void State::_setMulticolorMode(bool enabled)
     }
 }
 
-void State::setCharColorMode(int mode)
+void State::setForegroundColorMode(int mode)
 {
-    if (_charColorMode != mode)
+    if (_foregroundColorMode != mode)
     {
-        _charColorMode = mode;
+        _foregroundColorMode = mode;
     }
 }
 
-void State::_setCharColorMode(int mode)
+void State::_setForegroundColorMode(int mode)
 {
-    if (_charColorMode != mode)
+    if (_foregroundColorMode != mode)
     {
-        _charColorMode = mode;
+        _foregroundColorMode = mode;
     }
 }
 
-int State::getCharColorMode() const
+int State::getForegroundColorMode() const
 {
-    return _charColorMode;
+    return _foregroundColorMode;
 }
 
 int State::getColorForPen(int pen) const
@@ -558,9 +560,9 @@ const QSize& State::getMapSize() const
     return _mapSize;
 }
 
-const quint8* State::getCharAttribs() const
+const quint8* State::getTileAttribs() const
 {
-    return _charAttribs;
+    return _tileAttribs;
 }
 
 

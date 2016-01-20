@@ -253,7 +253,6 @@ void MainWindow::readSettings()
     _settings.setValue(QLatin1String("MainWindow/0.11/defaultGeometry"), saveGeometry());
     _settings.setValue(QLatin1String("MainWindow/0.11/defaultWindowState"), saveState());
 
-
     auto geom = _settings.value(QLatin1String("MainWindow/0.11/geometry")).toByteArray();
     auto state = _settings.value(QLatin1String("MainWindow/0.11/windowState")).toByteArray();
 
@@ -648,14 +647,14 @@ void MainWindow::on_radioButton_charColorGlobal_clicked()
 {
     auto state = getState();
     if (state)
-        state->setCharColorMode(State::CHAR_COLOR_GLOBAL);
+        state->setForegroundColorMode(State::FOREGROUND_COLOR_GLOBAL);
 }
 
 void MainWindow::on_radioButton_charColorPerChar_clicked()
 {
     auto state = getState();
     if (state)
-        state->setCharColorMode(State::CHAR_COLOR_PER_CHAR);
+        state->setForegroundColorMode(State::FOREGROUND_COLOR_PER_TILE);
 }
 
 void MainWindow::on_checkBox_map_clicked(bool checked)
