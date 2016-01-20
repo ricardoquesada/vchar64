@@ -56,20 +56,17 @@ State::State(quint8 *charset, quint8 *tileAttribs, quint8 *map, const QSize& map
 
     if (charset)
         memcpy(_charset, charset, sizeof(_charset));
-    else
-        memset(_charset, 0, sizeof(_charset));
+    else memset(_charset, 0, sizeof(_charset));
 
     if (tileAttribs)
         memcpy(_tileAttribs, tileAttribs, sizeof(_tileAttribs));
-    else
-        memset(_tileAttribs, 0, sizeof(_tileAttribs));
+    else memset(_tileAttribs, 11, sizeof(_tileAttribs));
 
     Q_ASSERT(_mapSize.width() * _mapSize.height() > 0 && "Invalid size");
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
     if (map)
         memcpy(_map, map, _mapSize.width() * _mapSize.height());
-    else
-        memset(_map, 0, _mapSize.width() * _mapSize.height());
+    else memset(_map, 0, _mapSize.width() * _mapSize.height());
 }
 
 // Delegating constructor
@@ -105,7 +102,7 @@ void State::reset()
     _exportWhat = EXPORT_ALL;
 
     memset(_charset, 0, sizeof(_charset));
-    memset(_tileAttribs, 0, sizeof(_tileAttribs));
+    memset(_tileAttribs, 11, sizeof(_tileAttribs));
     memset(_map, 0, _mapSize.width() * _mapSize.height());
 }
 
@@ -374,6 +371,7 @@ void State::setForegroundColorMode(int mode)
     if (_foregroundColorMode != mode)
     {
         _foregroundColorMode = mode;
+        emit colorPropertiesUpdated(PEN_FOREGROUND);
     }
 }
 
