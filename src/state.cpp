@@ -327,7 +327,9 @@ bool State::shouldBeDisplayedInMulticolor() const
 
 bool State::shouldBeDisplayedInMulticolor2(int tileIdx) const
 {
-    Q_ASSERT(tileIdx >=0 && tileIdx < 256 && "Invalid tileIdx");
+    Q_ASSERT(((tileIdx == -1 && _foregroundColorMode == FOREGROUND_COLOR_GLOBAL)
+             || (tileIdx >=0 && tileIdx < 256))
+              && "Invalid tileIdx");
 
     return (_multicolorMode &&
             ((_foregroundColorMode == FOREGROUND_COLOR_GLOBAL && _penColors[PEN_FOREGROUND] >= 8) ||
@@ -358,11 +360,7 @@ void State::_setMulticolorMode(bool enabled)
 
 void State::setForegroundColorMode(int mode)
 {
-    if (_foregroundColorMode != mode)
-    {
-        _foregroundColorMode = mode;
-        emit colorPropertiesUpdated(PEN_FOREGROUND);
-    }
+    getUndoStack()->push(new SetForegroundColorMode(this, mode));
 }
 
 void State::_setForegroundColorMode(int mode)
@@ -370,6 +368,8 @@ void State::_setForegroundColorMode(int mode)
     if (_foregroundColorMode != mode)
     {
         _foregroundColorMode = mode;
+        emit colorPropertiesUpdated(PEN_FOREGROUND);
+        emit contentsChanged();
     }
 }
 
@@ -392,7 +392,7 @@ int State::getColorForPen(int pen, int tileIdx) const
     Q_ASSERT((tileIdx != -1 || !foregroundAndPerTile) && "Provide a valid tileIdx");
 
     if (foregroundAndPerTile)
-        return _tileAttribs[tileIdx];
+        return (int)_tileAttribs[tileIdx];
     return _penColors[pen];
 }
 

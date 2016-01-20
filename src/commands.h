@@ -244,3 +244,17 @@ private:
     int _new;
     int _tileIdx;
 };
+
+// SetForegroundColorMode
+class SetForegroundColorMode : public QUndoCommand
+{
+public:
+    SetForegroundColorMode(State *state, int mode, QUndoCommand *parent = nullptr);
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+
+private:
+    State* _state;
+    int _mode;
+    int _oldMode;
+};

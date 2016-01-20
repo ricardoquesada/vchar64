@@ -392,3 +392,26 @@ void SetColorCommand::redo()
     _old = _state->getColorForPen(_pen, _tileIdx);
     _state->_setColorForPen(_pen, _new, _tileIdx);
 }
+
+// SetForegroundColorMode
+
+SetForegroundColorMode::SetForegroundColorMode(State *state, int mode, QUndoCommand *parent)
+    : QUndoCommand(parent)
+    , _state(state)
+    , _mode(mode)
+{
+    setText(QObject::tr("Foreground Mode = %1")
+            .arg(mode)
+            );
+}
+
+void SetForegroundColorMode::undo()
+{
+    _state->_setForegroundColorMode(_oldMode);
+}
+
+void SetForegroundColorMode::redo()
+{
+    _oldMode = _state->getForegroundColorMode();
+    _state->_setForegroundColorMode(_mode);
+}

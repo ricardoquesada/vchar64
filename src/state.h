@@ -49,6 +49,7 @@ class State : public QObject
     friend class SetMulticolorModeCommand;
     friend class SetTilePropertiesCommand;
     friend class SetColorCommand;
+    friend class SetForegroundColorMode;
 
 public:
     // only 256 chars at the time
@@ -429,7 +430,6 @@ signals:
      * @brief tileIndexUpdated emitted when the tileIndex is updated. Emits charIndexUpdated(); as well
      */
     void tileIndexUpdated(int);
-
 
 public slots:
     /**

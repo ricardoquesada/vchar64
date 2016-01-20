@@ -212,6 +212,12 @@ void MainWindow::onColorPropertiesUpdated(int pen)
         if (state->shouldBeDisplayedInMulticolor() && pen == State::PEN_FOREGROUND)
             color = color % 8;
         _labelSelectedColor->setText(QString("%1: %3 (%2)").arg(tr("Color")).arg(number).arg(colors[color]));
+
+        // update radio foreground mode
+        auto foregroundColorMode = state->getForegroundColorMode();
+        if (foregroundColorMode == State::FOREGROUND_COLOR_PER_TILE)
+            _ui->radioButton_charColorPerChar->setChecked(true);
+        else _ui->radioButton_charColorGlobal->setChecked(true);
     }
 }
 
@@ -332,6 +338,7 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::tileIndexUpdated, bigcharWidget, &BigCharWidget::onTileIndexUpdated);
     connect(state, &State::charIndexUpdated, _ui->charsetWidget, &CharsetWidget::onCharIndexUpdated);
     connect(state, &State::tileIndexUpdated, _ui->spinBox_tileIndex, &QSpinBox::setValue);
+
 
     connect(state->getUndoStack(), &QUndoStack::indexChanged, this, &MainWindow::documentWasModified);
     connect(state->getUndoStack(), &QUndoStack::cleanChanged, this, &MainWindow::documentWasModified);
