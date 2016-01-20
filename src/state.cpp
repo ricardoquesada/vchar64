@@ -212,7 +212,9 @@ bool State::export_()
 
     if (_exportFormat == EXPORT_FORMAT_RAW)
         return exportRaw(_exportedFilename, _exportWhat);
-    else if(_exportFormat == EXPORT_FORMAT_PRG)
+
+    /* else */
+    if(_exportFormat == EXPORT_FORMAT_PRG)
         return exportPRG(_exportedFilename, _exportedAddresses, _exportWhat);
 
     /* else ASM */
@@ -222,19 +224,15 @@ bool State::export_()
 bool State::exportRaw(const QString& filename, int whatToExport)
 {
     bool ret = true;
-    QFile file(filename);
-
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
-        return false;
 
     if (ret && (whatToExport & EXPORT_CHARSET))
-        ret &= (StateExport::saveRaw(file, _charset, sizeof(_charset)) > 0);
+        ret &= (StateExport::saveRaw(filename, _charset, sizeof(_charset)) > 0);
 
     if (ret && (whatToExport & EXPORT_MAP))
-        ret &= (StateExport::saveRaw(file, _map, _mapSize.width() * _mapSize.height()) > 0);
+        ret &= (StateExport::saveRaw(filename, _map, _mapSize.width() * _mapSize.height()) > 0);
 
     if (ret && (whatToExport & EXPORT_ATTRIBS))
-        ret &= (StateExport::saveRaw(file, _tileAttribs, sizeof(_tileAttribs)) > 0);
+        ret &= (StateExport::saveRaw(filename, _tileAttribs, sizeof(_tileAttribs)) > 0);
 
     if (ret)
     {
@@ -248,19 +246,15 @@ bool State::exportRaw(const QString& filename, int whatToExport)
 bool State::exportPRG(const QString& filename, quint16 addresses[3], int whatToExport)
 {
     bool ret = true;
-    QFile file(filename);
-
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
-        return false;
 
     if (ret && (whatToExport & EXPORT_CHARSET))
-        ret &= (StateExport::savePRG(file, _charset, sizeof(_charset), addresses[0]) > 0);
+        ret &= (StateExport::savePRG(filename, _charset, sizeof(_charset), addresses[0]) > 0);
 
     if (ret && (whatToExport & EXPORT_MAP))
-        ret &= (StateExport::savePRG(file, _map, _mapSize.width() * _mapSize.height(), addresses[1]) > 0);
+        ret &= (StateExport::savePRG(filename, _map, _mapSize.width() * _mapSize.height(), addresses[1]) > 0);
 
     if (ret && (whatToExport & EXPORT_ATTRIBS))
-        ret &= (StateExport::savePRG(file, _tileAttribs, sizeof(_tileAttribs), addresses[2]) > 0);
+        ret &= (StateExport::savePRG(filename, _tileAttribs, sizeof(_tileAttribs), addresses[2]) > 0);
 
     if (ret)
     {
@@ -279,19 +273,15 @@ bool State::exportPRG(const QString& filename, quint16 addresses[3], int whatToE
 bool State::exportAsm(const QString& filename, int whatToExport)
 {
     bool ret = true;
-    QFile file(filename);
-
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
-        return false;
 
     if (ret && (whatToExport & EXPORT_CHARSET))
-        ret &= (StateExport::saveAsm(file, _charset, sizeof(_charset)) > 0);
+        ret &= (StateExport::saveAsm(filename, _charset, sizeof(_charset)) > 0);
 
     if (ret && (whatToExport & EXPORT_MAP))
-        ret &= (StateExport::saveAsm(file, _map, _mapSize.width() * _mapSize.height()) > 0);
+        ret &= (StateExport::saveAsm(filename, _map, _mapSize.width() * _mapSize.height()) > 0);
 
     if (ret && (whatToExport & EXPORT_ATTRIBS))
-        ret &= (StateExport::saveAsm(file, _tileAttribs, sizeof(_tileAttribs)) > 0);
+        ret &= (StateExport::saveAsm(filename, _tileAttribs, sizeof(_tileAttribs)) > 0);
 
     if (ret)
     {

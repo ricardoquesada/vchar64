@@ -599,7 +599,7 @@ void MainWindow::on_checkBox_multicolor_toggled(bool checked)
 
         _ui->actionEnable_Multicolor->setChecked(checked);
 
-        state ->setMulticolorMode(checked);
+        state->setMulticolorMode(checked);
     }
 }
 
@@ -618,8 +618,17 @@ void MainWindow::activateRadioButtonIndex(int pen)
             _ui->actionForeground
         };
 
+        QRadioButton* radios[] = {
+            _ui->radioButton_background,
+            _ui->radioButton_multicolor1,
+            _ui->radioButton_multicolor2,
+            _ui->radioButton_foreground
+        };
+
         for (int i=0; i<4; i++)
             actions[i]->setChecked(i==pen);
+
+        radios[pen]->setChecked(true);
     }
 }
 
@@ -639,6 +648,26 @@ void MainWindow::on_radioButton_multicolor1_clicked()
 }
 
 void MainWindow::on_radioButton_multicolor2_clicked()
+{
+    activateRadioButtonIndex(State::PEN_MULTICOLOR2);
+}
+
+void MainWindow::on_actionBackground_triggered()
+{
+    activateRadioButtonIndex(State::PEN_BACKGROUND);
+}
+
+void MainWindow::on_actionForeground_triggered()
+{
+    activateRadioButtonIndex(State::PEN_FOREGROUND);
+}
+
+void MainWindow::on_actionMulti_Color_1_triggered()
+{
+    activateRadioButtonIndex(State::PEN_MULTICOLOR1);
+}
+
+void MainWindow::on_actionMulti_Color_2_triggered()
 {
     activateRadioButtonIndex(State::PEN_MULTICOLOR2);
 }

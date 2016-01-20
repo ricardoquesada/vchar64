@@ -59,8 +59,12 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     return total;
 }
 
-qint64 StateExport::saveRaw(QFile& file, const void *buffer, int bufferSize)
+qint64 StateExport::saveRaw(const QString& filename, const void *buffer, int bufferSize)
 {
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+        return -1;
+
     int total = 0;
 
     QByteArray arrayData((char*)buffer, bufferSize);
@@ -72,8 +76,12 @@ qint64 StateExport::saveRaw(QFile& file, const void *buffer, int bufferSize)
     return total;
 }
 
-qint64 StateExport::savePRG(QFile& file, const void* buffer, int bufferSize, quint16 address)
+qint64 StateExport::savePRG(const QString& filename, const void* buffer, int bufferSize, quint16 address)
 {
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+        return -1;
+
     int total = 0;
 
     address = qToLittleEndian(address);
@@ -92,10 +100,10 @@ qint64 StateExport::savePRG(QFile& file, const void* buffer, int bufferSize, qui
     return total;
 }
 
-qint64 StateExport::saveAsm(QFile& file, const void* buffer, int bufferSize)
+qint64 StateExport::saveAsm(const QString& filename, const void* buffer, int bufferSize)
 {
     Q_UNUSED(buffer);
-    Q_UNUSED(file);
+    Q_UNUSED(filename);
 
     return bufferSize;
 }
