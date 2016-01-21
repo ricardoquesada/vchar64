@@ -88,12 +88,12 @@ void ClearTileCommand::redo()
 
 // PasteCommand
 
-PasteCommand::PasteCommand(State *state, int charIndex, const State::CopyRange& copyRange, const quint8* charsetBuffer, QUndoCommand *parent)
+PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange* copyRange, const quint8* charsetBuffer, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
     _charIndex = charIndex;
     _state = state;
-    _copyRange = copyRange;
+    _copyRange = *copyRange;
     memcpy(_copyBuffer, charsetBuffer, sizeof(_copyBuffer));
 
     setText(QObject::tr("Paste #%1").arg(_charIndex));
@@ -108,12 +108,13 @@ void PasteCommand::undo()
     else
         reversedCopyRange.offset = _charIndex;
 
-    _state->paste(_charIndex, reversedCopyRange, _origBuffer);
+    _state->_paste(_charIndex, reversedCopyRange, _origBuffer);
 }
 
 void PasteCommand::redo()
 {
-    memcpy(_origBuffer, _state->getCharsetBuffer(), sizeof(_origBuffer));
+    memcpy(_origBuffer, _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
+    memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileAttribs(), State::TILE_ATTRIBS_BUFFER_SIZE);
     _state->_paste(_charIndex, _copyRange, _copyBuffer);
 }
 

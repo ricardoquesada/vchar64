@@ -119,7 +119,7 @@ protected:
     State* getState() const;
 
     State::CopyRange bufferToClipboard(State* state) const;
-    bool bufferFromClipboard(State::CopyRange *out_range, quint8 *out_buffer) const;
+    bool bufferFromClipboard(State::CopyRange **out_range, quint8 **out_buffer) const;
 
 private slots:
 

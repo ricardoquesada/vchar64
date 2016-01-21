@@ -669,7 +669,7 @@ void State::cut(int offset, const CopyRange &copyRange)
     getUndoStack()->push(new CutCommand(this, offset, copyRange));
 }
 
-void State::paste(int offset, const CopyRange& copyRange, const quint8* charsetBuffer)
+void State::paste(int offset, const CopyRange* copyRange, const quint8* charsetBuffer)
 {
     getUndoStack()->push(new PasteCommand(this, offset, copyRange, charsetBuffer));
 }
@@ -678,6 +678,7 @@ void State::_paste(int charIndex, const CopyRange& copyRange, const quint8* char
 {
     Q_ASSERT(charIndex >=0 && charIndex< CHAR_BUFFER_SIZE && "Invalid charIndex size");
 
+    const quint8* attribsBuffer = charsetBuffer + CHAR_BUFFER_SIZE;
     if (!copyRange.count)
         return;
 
@@ -685,24 +686,30 @@ void State::_paste(int charIndex, const CopyRange& copyRange, const quint8* char
 
     if (copyRange.type == CopyRange::CHARS)
     {
-        quint8* dst = _charset + (charIndex * 8);
-        const quint8* src = charsetBuffer + (copyRange.offset * 8);
+        quint8* chrdst = _charset + (charIndex * 8);
+        quint8* attrdst = _tileAttribs + charIndex;
+
+        const quint8* chrsrc = charsetBuffer + (copyRange.offset * 8);
+        const quint8* attrsrc = attribsBuffer + copyRange.offset;
 
         while (count>0)
         {
             const auto lastByte = &_charset[sizeof(_charset)];
-            int bytesToCopy = qMin((qint64)copyRange.blockSize * 8, (qint64)(lastByte - dst));
+            int bytesToCopy = qMin((qint64)copyRange.blockSize * 8, (qint64)(lastByte - chrdst));
             if (bytesToCopy <0)
                 break;
-            memcpy(dst, src, bytesToCopy);
-            emit bytesUpdated((dst - _charset), bytesToCopy);
+            memcpy(chrdst, chrsrc, bytesToCopy);
+            memcpy(attrdst, attrsrc, bytesToCopy/8);
+            emit bytesUpdated((chrdst - _charset), bytesToCopy);
 
-            dst += (copyRange.blockSize + copyRange.skip) * 8;
-            src += (copyRange.blockSize + copyRange.skip) * 8;
+            chrdst += (copyRange.blockSize + copyRange.skip) * 8;
+            chrsrc += (copyRange.blockSize + copyRange.skip) * 8;
+            attrdst += copyRange.blockSize + copyRange.skip;
+            attrsrc += copyRange.blockSize + copyRange.skip;
             count--;
         }
     }
-    else /* copyRnage.type == CopyRange::TILES */
+    else if (copyRange.type == CopyRange::TILES)
     {
         if (copyRange.tileProperties.size != _tileProperties.size)
         {
@@ -740,6 +747,7 @@ void State::_paste(int charIndex, const CopyRange& copyRange, const quint8* char
                     // don't overflow, don't copy crappy chars
                     if ((CHAR_BUFFER_SIZE - chardst) >= 8 && (CHAR_BUFFER_SIZE - charsrc) >= 8) {
                         memcpy(&_charset[chardst], &charsetBuffer[charsrc], 8);
+                        _tileAttribs[chardst/8] = attribsBuffer[charsrc/8];
                         emit bytesUpdated(chardst, 8);
                     }
                 }

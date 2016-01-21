@@ -109,7 +109,8 @@ public:
     struct CopyRange {
         enum {
             CHARS,
-            TILES
+            TILES,
+            MAP
         };
 
         /** @brief offset in bytes */
@@ -345,7 +346,7 @@ public:
      * @param copyRange range to paste
      * @param charsetBuffer buffer that has the 256 chars
      */
-    void paste(int offset, const CopyRange& copyRange, const quint8* charsetBuffer);
+    void paste(int offset, const CopyRange* copyRange, const quint8* charsetBuffer);
 
     void cut(int offset, const CopyRange& copyRange);
 

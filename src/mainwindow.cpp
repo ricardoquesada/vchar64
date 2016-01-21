@@ -1024,17 +1024,17 @@ void MainWindow::on_actionPaste_triggered()
     auto state = getState();
     int cursorPos = _ui->charsetWidget->getCursorPos();
 
-    quint8 buffer[State::CHAR_BUFFER_SIZE];
-    State::CopyRange range;
-    if (bufferFromClipboard(&range, buffer))
+    quint8* buffer;
+    State::CopyRange *range;
+    if (bufferFromClipboard(&range, &buffer))
     {
-        if (range.type == State::CopyRange::TILES && state->getTileProperties().size != range.tileProperties.size)
+        if (range->type == State::CopyRange::TILES && state->getTileProperties().size != range->tileProperties.size)
         {
             QMessageBox msgBox(QMessageBox::Warning,
                                tr("Application"),
                                tr("Could not paste tiles when their sizes are different. Change the tile properties to {%1, %2}")
-                                .arg(range.tileProperties.size.width())
-                                .arg(range.tileProperties.size.height()),
+                                .arg(range->tileProperties.size.width())
+                                .arg(range->tileProperties.size.height()),
                                QMessageBox::Ok,
                                this);
             msgBox.exec();
@@ -1248,13 +1248,15 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
     auto mimeData = new QMimeData;
     QByteArray array((char*)&copyRange, sizeof(copyRange));
     array.append((const char*)state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
+    array.append((const char*)state->getTileAttribs(), State::TILE_ATTRIBS_BUFFER_SIZE);
     mimeData->setData("vchar64/charsetrange", array);
+
     clipboard->setMimeData(mimeData);
 
     return copyRange;
 }
 
-bool MainWindow::bufferFromClipboard(State::CopyRange *out_range, quint8* out_buffer) const
+bool MainWindow::bufferFromClipboard(State::CopyRange **out_range, quint8** out_buffer) const
 {
     bool ret = false;
 
@@ -1262,12 +1264,12 @@ bool MainWindow::bufferFromClipboard(State::CopyRange *out_range, quint8* out_bu
     const QMimeData* mimeData = clipboard->mimeData();
     QByteArray bytearray = mimeData->data("vchar64/charsetrange");
 
-    if (bytearray.size() == sizeof(*out_range) + State::CHAR_BUFFER_SIZE)
+    if (bytearray.size() == sizeof(**out_range) + State::CHAR_BUFFER_SIZE + State::TILE_ATTRIBS_BUFFER_SIZE)
     {
         auto data = bytearray.data();
-        memcpy(out_range, data, sizeof(*out_range));
-        data += sizeof(*out_range);
-        memcpy(out_buffer, data, State::CHAR_BUFFER_SIZE);
+        *out_range = (State::CopyRange*) data;
+        data += sizeof(State::CopyRange);
+        *out_buffer = (quint8*) data;
         ret = true;
     }
     else
