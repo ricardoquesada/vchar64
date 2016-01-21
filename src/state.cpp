@@ -389,10 +389,11 @@ int State::getColorForPen(int pen, int tileIdx) const
 
     bool foregroundAndPerTile = (pen == PEN_FOREGROUND && _foregroundColorMode == FOREGROUND_COLOR_PER_TILE);
 
-    Q_ASSERT((tileIdx != -1 || !foregroundAndPerTile) && "Provide a valid tileIdx");
+    Q_ASSERT(!(tileIdx == -1 && foregroundAndPerTile) && "Provide a valid tileIdx");
 
     if (foregroundAndPerTile)
-        return (int)_tileAttribs[tileIdx];
+        // making travis happy: -Werror=array-bounds
+        return _tileAttribs[(quint8)tileIdx];
     return _penColors[pen];
 }
 
