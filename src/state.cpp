@@ -732,6 +732,9 @@ void State::_paste(int charIndex, const CopyRange& copyRange, const quint8* char
                 int srcidx = (tileSrcIdx + i + srcskip) * interleavedFactorSrc;
                 int dstidx = (tileDstIdx + i + dstskip) * interleavedFactorDst;
 
+                // copy colors
+                _tileAttribs[tileDstIdx + i + dstskip] = attribsBuffer[tileSrcIdx + i + srcskip];
+
                 // when interleaved, break the copy to prevent ugly artifacts
                 if (_tileProperties.interleaved != 1 && dstidx >= (256 / tileSize))
                 {
@@ -747,7 +750,6 @@ void State::_paste(int charIndex, const CopyRange& copyRange, const quint8* char
                     // don't overflow, don't copy crappy chars
                     if ((CHAR_BUFFER_SIZE - chardst) >= 8 && (CHAR_BUFFER_SIZE - charsrc) >= 8) {
                         memcpy(&_charset[chardst], &charsetBuffer[charsrc], 8);
-                        _tileAttribs[chardst/8] = attribsBuffer[charsrc/8];
                         emit bytesUpdated(chardst, 8);
                     }
                 }

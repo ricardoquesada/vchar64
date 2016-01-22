@@ -113,11 +113,11 @@ public:
             MAP
         };
 
-        /** @brief offset in bytes */
+        /** @brief offset in chars or tiles */
         int offset;
-        /** @brief blockSize in bytes */
+        /** @brief blockSize in chars or tiles */
         int blockSize;
-        /** @brief how many bytes to skip before reaching the next block */
+        /** @brief how many chars or tiles to skip before reaching the next block */
         int skip;
         /** how many blocks to copy */
         int count;
