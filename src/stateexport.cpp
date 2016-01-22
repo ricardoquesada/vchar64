@@ -18,7 +18,9 @@ limitations under the License.
 
 #include <QtEndian>
 #include <QByteArray>
+#include <QTextStream>
 #include <QDebug>
+
 
 #include "stateimport.h"
 #include "state.h"
@@ -100,10 +102,36 @@ qint64 StateExport::savePRG(const QString& filename, const void* buffer, int buf
     return total;
 }
 
-qint64 StateExport::saveAsm(const QString& filename, const void* buffer, int bufferSize)
+qint64 StateExport::saveAsm(const QString& filename, const void* buffer, int bufferSize, const QString& label)
 {
-    Q_UNUSED(buffer);
-    Q_UNUSED(filename);
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+        return -1;
 
-    return bufferSize;
+    const unsigned char* charBuffer = (const unsigned char*) buffer;
+
+    QTextStream out(&file);
+    out << "; Exported from VChar64\n";
+    out << label << ":\n";
+    for (int i=0; i<bufferSize;)
+    {
+        out << ".byte ";
+        int j=0;
+        for (j=0; j<16 && i<bufferSize ; ++j, ++i)
+        {
+            if (j != 0)
+                out << ",";
+            out << "$";
+            out.setFieldWidth(2);
+            out.setPadChar('0');
+            out.setFieldAlignment(QTextStream::AlignRight);
+            out << hex << (unsigned int)charBuffer[i];
+            out.setFieldWidth(0);
+        }
+        out << "\t; " << dec << i-j << "\n";
+    }
+
+    qDebug() << "File exported as ASM successfully: " << file.fileName();
+    out.flush();
+    return out.pos();
 }

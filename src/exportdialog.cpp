@@ -61,10 +61,10 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
         ui->spinBox_mapAddress->setEnabled(toogled);
     });
 
-    int featuresToExport = _state->getExportedFeatures();
-    ui->checkBox_charset->setChecked(featuresToExport & State::EXPORT_FEATURE_CHARSET);
-    ui->checkBox_map->setChecked(featuresToExport & State::EXPORT_FEATURE_MAP);
-    ui->checkBox_attribs->setChecked(featuresToExport & State::EXPORT_FEATURE_ATTRIBS);
+    _checkBox_clicked = _state->getExportedFeatures();
+    ui->checkBox_charset->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_CHARSET);
+    ui->checkBox_map->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_MAP);
+    ui->checkBox_attribs->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_ATTRIBS);
 
     int format = _state->getExportedFormat();
 
@@ -87,7 +87,7 @@ void ExportDialog::on_pushBrowse_clicked()
     auto filename = QFileDialog::getSaveFileName(this,
                                                  tr("Select filename"),
                                                  ui->editFilename->text(),
-                                                 tr("Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;Any file (*)"),
+                                                 tr("Asm files (*.s *.a *.asm);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;Any file (*)"),
                                                  nullptr,
                                                  QFileDialog::DontConfirmOverwrite);
 

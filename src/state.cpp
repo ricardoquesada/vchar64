@@ -275,13 +275,13 @@ bool State::exportAsm(const QString& filename, int whatToExport)
     bool ret = true;
 
     if (ret && (whatToExport & EXPORT_FEATURE_CHARSET))
-        ret &= (StateExport::saveAsm(filename, _charset, sizeof(_charset)) > 0);
+        ret &= (StateExport::saveAsm(filename, _charset, sizeof(_charset), "charset") > 0);
 
     if (ret && (whatToExport & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::saveAsm(filename, _map, _mapSize.width() * _mapSize.height()) > 0);
+        ret &= (StateExport::saveAsm(filename, _map, _mapSize.width() * _mapSize.height(), "map") > 0);
 
     if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
-        ret &= (StateExport::saveAsm(filename, _tileAttribs, sizeof(_tileAttribs)) > 0);
+        ret &= (StateExport::saveAsm(filename, _tileAttribs, sizeof(_tileAttribs), "tile_attribs") > 0);
 
     if (ret)
     {
