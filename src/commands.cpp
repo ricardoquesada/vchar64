@@ -342,6 +342,31 @@ void SetTilePropertiesCommand::redo()
 }
 
 
+// SetMapSizeCommand
+
+SetMapSizeCommand::SetMapSizeCommand(State *state, const QSize& mapSize, QUndoCommand *parent)
+    : QUndoCommand(parent)
+{
+    _state = state;
+    _new = mapSize;
+
+    setText(QObject::tr("Map Size %1x%2")
+            .arg(mapSize.width())
+            .arg(mapSize.height())
+            );
+}
+
+void SetMapSizeCommand::undo()
+{
+    _state->_setMapSize(_old);
+}
+
+void SetMapSizeCommand::redo()
+{
+    _old = _state->getMapSize();
+    _state->_setMapSize(_new);
+}
+
 // SetMulticolorModeCommand
 
 SetMulticolorModeCommand::SetMulticolorModeCommand(State *state, bool multicolorEnabled, QUndoCommand *parent)

@@ -33,6 +33,7 @@ signals:
 public slots:
     void updateColor();
     void onTilePropertiesUpdated();
+    void onMapSizeUpdated();
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

@@ -40,6 +40,7 @@ limitations under the License.
 #include "aboutdialog.h"
 #include "exportdialog.h"
 #include "tilepropertiesdialog.h"
+#include "mappropertiesdialog.h"
 #include "bigcharwidget.h"
 #include "palette.h"
 #include "importvicedialog.h"
@@ -253,7 +254,8 @@ void MainWindow::createUndoView()
     undoDock->setFloating(true);
     undoDock->hide();
 
-    _ui->menuViews->addAction(undoDock->toggleViewAction());
+    _ui->menuView->insertAction(_ui->actionReset_Layout, undoDock->toggleViewAction());
+    _ui->menuView->insertSeparator(_ui->actionReset_Layout);
 }
 
 void MainWindow::readSettings()
@@ -322,6 +324,8 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::tilePropertiesUpdated, bigcharWidget, &BigCharWidget::onTilePropertiesUpdated);
     connect(state, &State::tilePropertiesUpdated, _ui->tilesetWidget, &TilesetWidget::onTilePropertiesUpdated);
     connect(state, &State::tilePropertiesUpdated, _ui->mapWidget, &MapWidget::onTilePropertiesUpdated);
+
+    connect(state, &State::mapSizeUpdated, _ui->mapWidget, &MapWidget::onMapSizeUpdated);
 
     connect(state, &State::byteUpdated, this, &MainWindow::updateWindow);
     connect(state, &State::tileUpdated, this, &MainWindow::updateWindow);
@@ -399,11 +403,11 @@ void MainWindow::createActions()
 
 
 //
-    _ui->menuViews->addAction(_ui->dockWidget_charset->toggleViewAction());
-    _ui->menuViews->addAction(_ui->dockWidget_tileset->toggleViewAction());
-    _ui->menuViews->addAction(_ui->dockWidget_map->toggleViewAction());
-    _ui->menuViews->addAction(_ui->dockWidget_colors->toggleViewAction());
-    _ui->menuViews->addAction(_ui->dockWidget_tileIndex->toggleViewAction());
+    _ui->menuView->insertAction(_ui->actionReset_Layout, _ui->dockWidget_charset->toggleViewAction());
+    _ui->menuView->insertAction(_ui->actionReset_Layout, _ui->dockWidget_tileset->toggleViewAction());
+    _ui->menuView->insertAction(_ui->actionReset_Layout, _ui->dockWidget_map->toggleViewAction());
+    _ui->menuView->insertAction(_ui->actionReset_Layout, _ui->dockWidget_colors->toggleViewAction());
+    _ui->menuView->insertAction(_ui->actionReset_Layout, _ui->dockWidget_tileIndex->toggleViewAction());
 
     _ui->mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     _ui->mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -1110,9 +1114,15 @@ void MainWindow::onOpenRecentFileTriggered()
 void MainWindow::on_actionTilesProperties_triggered()
 {
     TilePropertiesDialog dialog(getState(), this);
-
     dialog.exec();
 }
+
+void MainWindow::on_actionMap_Properties_triggered()
+{
+    MapPropertiesDialog dialog(getState(), this);
+    dialog.exec();
+}
+
 
 void MainWindow::on_actionXlinkConnection_triggered()
 {

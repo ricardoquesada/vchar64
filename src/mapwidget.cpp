@@ -305,6 +305,15 @@ void MapWidget::onTilePropertiesUpdated()
     update();
 }
 
+void MapWidget::onMapSizeUpdated()
+{
+    _mapSize = MainWindow::getCurrentState()->getMapSize();
+
+    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * PIXEL_SIZE,
+                      _mapSize.height() * _tileSize.height() * PIXEL_SIZE);
+
+    update();
+}
 void MapWidget::updateSelectedChar()
 {
     auto state = MainWindow::getCurrentState();

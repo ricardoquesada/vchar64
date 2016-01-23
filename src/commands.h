@@ -215,6 +215,20 @@ private:
     State::TileProperties _old;
 };
 
+class SetMapSizeCommand : public QUndoCommand
+{
+public:
+    SetMapSizeCommand(State *state, const QSize& mapSize, QUndoCommand *parent = nullptr);
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+
+private:
+    State* _state;
+    QSize _new;
+    QSize _old;
+};
+
+
 //
 class SetMulticolorModeCommand : public QUndoCommand
 {

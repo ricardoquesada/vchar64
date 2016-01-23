@@ -52,7 +52,8 @@ SOURCES += main.cpp\
     importkoalaconvwidget.cpp \
     selectcolordialog.cpp \
     mapwidget.cpp \
-    utils.cpp
+    utils.cpp \
+    mappropertiesdialog.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -81,7 +82,8 @@ HEADERS  += mainwindow.h \
     importkoalaorigwidget.h \
     selectcolordialog.h \
     mapwidget.h \
-    utils.h
+    utils.h \
+    mappropertiesdialog.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \
@@ -90,7 +92,8 @@ FORMS    += mainwindow.ui \
     importvicedialog.ui \
     serverconnectdialog.ui \
     importkoaladialog.ui \
-    selectcolordialog.ui
+    selectcolordialog.ui \
+    mappropertiesdialog.ui
 
 INCLUDEPATH += src
 

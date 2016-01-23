@@ -48,6 +48,7 @@ class State : public QObject
     friend class ClearTileCommand;
     friend class SetMulticolorModeCommand;
     friend class SetTilePropertiesCommand;
+    friend class SetMapSizeCommand;
     friend class SetColorCommand;
     friend class SetForegroundColorMode;
 
@@ -293,6 +294,18 @@ public:
      */
     TileProperties getTileProperties() const;
 
+    /**
+     * @brief seMapSize changes the map size
+     * @param mapSize
+     */
+    void setMapSize(const QSize& mapSize);
+
+    /**
+     * @brief getMapSize returns the current map size
+     * @return
+     */
+    const QSize& getMapSize() const;
+
     // is the state "dirty" ?
     bool isModified() const;
 
@@ -335,7 +348,6 @@ public:
     //
     const quint8* getCharsetBuffer() const;
     const quint8* getMapBuffer() const;
-    const QSize& getMapSize() const;
     const quint8* getTileAttribs() const;
 
     void resetCharsetBuffer();
@@ -394,6 +406,9 @@ signals:
 
     // when tile size or interleaved changes
     void tilePropertiesUpdated();
+
+    // when the map sizes changes
+    void mapSizeUpdated();
 
     // when one byte in a part of the tile changes
     void byteUpdated(int);
@@ -467,6 +482,7 @@ protected:
     void _setMulticolorMode(bool enabled);
     void _setForegroundColorMode(int mode);
     void _setTileProperties(const TileProperties& properties);
+    void _setMapSize(const QSize& mapSize);
     void _setColorForPen(int pen, int color, int tileIdx);
 
     int _totalChars;
@@ -475,6 +491,7 @@ protected:
     quint8 _tileAttribs[State::TILE_ATTRIBS_BUFFER_SIZE];
     quint8 *_map;
     QSize _mapSize;
+    int _mapSizeAllocedBytes;
 
     bool _multicolorMode;
     int _foregroundColorMode;

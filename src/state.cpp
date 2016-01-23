@@ -67,6 +67,7 @@ State::State(quint8 *charset, quint8 *tileAttribs, quint8 *map, const QSize& map
     if (map)
         memcpy(_map, map, _mapSize.width() * _mapSize.height());
     else memset(_map, 0, _mapSize.width() * _mapSize.height());
+    _mapSizeAllocedBytes = mapSize.width() * mapSize.height();
 }
 
 // Delegating constructor
@@ -602,6 +603,35 @@ State::TileProperties State::getTileProperties() const
     return _tileProperties;
 }
 
+void State::setMapSize(const QSize& mapSize)
+{
+    getUndoStack()->push(new SetMapSizeCommand(this, mapSize));
+}
+
+void State::_setMapSize(const QSize& mapSize)
+{
+    if (_mapSize != mapSize)
+    {
+        // FIXME: never shrink, always grow... just to simplify the undo.
+        const int newSizeInBytes = mapSize.width() * mapSize.height();
+        if ( newSizeInBytes > _mapSizeAllocedBytes)
+        {
+            _map = (quint8*) realloc(_map, newSizeInBytes);
+            _mapSizeAllocedBytes = newSizeInBytes;
+            Q_ASSERT(_map && "No memory");
+        }
+        _mapSize = mapSize;
+
+        emit mapSizeUpdated();
+        emit contentsChanged();
+    }
+}
+
+const QSize& State::getMapSize() const
+{
+    return _mapSize;
+}
+
 // charset methods
 const quint8* State::getCharsetBuffer() const
 {
@@ -611,11 +641,6 @@ const quint8* State::getCharsetBuffer() const
 const quint8* State::getMapBuffer() const
 {
     return _map;
-}
-
-const QSize& State::getMapSize() const
-{
-    return _mapSize;
 }
 
 const quint8* State::getTileAttribs() const

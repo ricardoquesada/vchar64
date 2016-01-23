@@ -111,15 +111,6 @@
     <addaction name="actionCopy"/>
     <addaction name="actionPaste"/>
     <addaction name="separator"/>
-    <addaction name="actionClearCharacter"/>
-    <addaction name="actionInvert"/>
-    <addaction name="actionFlipHorizontally"/>
-    <addaction name="actionFlipVertically"/>
-    <addaction name="actionRotate"/>
-    <addaction name="actionShiftLeft"/>
-    <addaction name="actionShiftRight"/>
-    <addaction name="actionShiftUp"/>
-    <addaction name="actionShiftDown"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -135,8 +126,19 @@
      <string>Tile</string>
     </property>
     <addaction name="actionTilesProperties"/>
+    <addaction name="separator"/>
     <addaction name="actionNext_Tile"/>
     <addaction name="actionPrevious_Tile"/>
+    <addaction name="separator"/>
+    <addaction name="actionClearCharacter"/>
+    <addaction name="actionInvert"/>
+    <addaction name="actionRotate"/>
+    <addaction name="actionFlipHorizontally"/>
+    <addaction name="actionFlipVertically"/>
+    <addaction name="actionShiftLeft"/>
+    <addaction name="actionShiftRight"/>
+    <addaction name="actionShiftUp"/>
+    <addaction name="actionShiftDown"/>
    </widget>
    <widget class="QMenu" name="menuPreview">
     <property name="title">
@@ -161,12 +163,6 @@
     <property name="title">
      <string>View</string>
     </property>
-    <widget class="QMenu" name="menuViews">
-     <property name="title">
-      <string>Views</string>
-     </property>
-    </widget>
-    <addaction name="menuViews"/>
     <addaction name="actionReset_Layout"/>
    </widget>
    <widget class="QMenu" name="menuColors">
@@ -192,10 +188,17 @@
     <addaction name="separator"/>
     <addaction name="actionEnable_Multicolor"/>
    </widget>
+   <widget class="QMenu" name="menuMap">
+    <property name="title">
+     <string>Map</string>
+    </property>
+    <addaction name="actionMap_Properties"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menuEdit"/>
    <addaction name="menuView"/>
    <addaction name="menuTile"/>
+   <addaction name="menuMap"/>
    <addaction name="menuColors"/>
    <addaction name="menuPreview"/>
    <addaction name="menuHelp"/>
@@ -223,12 +226,6 @@
      </property>
      <item>
       <widget class="CharsetWidget" name="charsetWidget" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>512</width>
-         <height>128</height>
-        </size>
-       </property>
        <property name="focusPolicy">
         <enum>Qt::StrongFocus</enum>
        </property>
@@ -698,7 +695,7 @@
   </action>
   <action name="actionTilesProperties">
    <property name="text">
-    <string>Tiles Properties</string>
+    <string>Tile Properties</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+T</string>
@@ -928,6 +925,11 @@
   <action name="actionImport_Koala_image">
    <property name="text">
     <string>Import Koala image...</string>
+   </property>
+  </action>
+  <action name="actionMap_Properties">
+   <property name="text">
+    <string>Map Properties</string>
    </property>
   </action>
  </widget>
