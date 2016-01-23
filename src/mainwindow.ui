@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>525</width>
-    <height>634</height>
+    <width>584</width>
+    <height>596</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -51,7 +51,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>525</width>
+     <width>584</width>
      <height>22</height>
     </rect>
    </property>
@@ -396,10 +396,15 @@
       <number>2</number>
      </property>
      <item>
-      <widget class="TilesetWidget" name="tilesetWidget" native="true">
-       <property name="focusPolicy">
-        <enum>Qt::StrongFocus</enum>
+      <widget class="QScrollArea" name="scrollArea_2">
+       <property name="widgetResizable">
+        <bool>true</bool>
        </property>
+       <widget class="TilesetWidget" name="tilesetWidget">
+        <property name="focusPolicy">
+         <enum>Qt::StrongFocus</enum>
+        </property>
+       </widget>
       </widget>
      </item>
     </layout>

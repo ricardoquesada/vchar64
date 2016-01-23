@@ -44,8 +44,8 @@ TilesetWidget::TilesetWidget(QWidget *parent)
     , _sizeHint({0,0})
     , _pixelSize({0,0})
 {
-    _sizeHint = {COLUMNS * 8 * 2,
-                 ROWS * 8 * 2};
+    _sizeHint = {_columns * 8 * 2,
+                 _rows * 8 * 2};
     setMinimumSize(_sizeHint);
 }
 
@@ -391,6 +391,8 @@ void TilesetWidget::onTilePropertiesUpdated()
 
     _sizeHint = QSize(_pixelSize.width() * _columns * 8 + OFFSET * 2,
                  _pixelSize.height() * _rows * 8 + OFFSET * 2);
+
+    setMinimumSize(_sizeHint);
     update();
 }
 
