@@ -206,6 +206,42 @@ void State::importCharset(const QString& filename, const quint8 *charset, int ch
     _loadedFilename = filename;
 }
 
+static QString filenameFixSuffix(const QString& filename, State::ExportFeature suffix)
+{
+    QString validDescriptions[] = {
+        "-charset",
+        "-map",
+        "-attribs"
+    };
+    const int MAX_DESC = sizeof(validDescriptions) / sizeof(validDescriptions[0]);
+
+    QFileInfo info(filename);
+
+    auto extension = info.suffix();
+    auto filepath = info.path();
+    auto name = info.baseName();
+
+    // remove possible suffix
+    for (int i=0; i<MAX_DESC; i++)
+    {
+        if (name.endsWith(validDescriptions[i]))
+        {
+            name = name.left(name.length() - validDescriptions[i].length());
+            break;
+        }
+    }
+
+    // add suffix
+    if (suffix == State::EXPORT_FEATURE_CHARSET)
+        name.append(validDescriptions[0]);
+    else if (suffix == State::EXPORT_FEATURE_MAP)
+        name.append(validDescriptions[1]);
+    else /* map */
+        name.append(validDescriptions[2]);
+
+    return filepath + "/" + name + "." + extension;
+}
+
 bool State::export_()
 {
     Q_ASSERT(_exportedFilename.length() > 0 && "Invalid filename");
@@ -226,13 +262,16 @@ bool State::exportRaw(const QString& filename, int whatToExport)
     bool ret = true;
 
     if (ret && (whatToExport & EXPORT_FEATURE_CHARSET))
-        ret &= (StateExport::saveRaw(filename, _charset, sizeof(_charset)) > 0);
+        ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
+                                     _charset, sizeof(_charset)) > 0);
 
     if (ret && (whatToExport & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::saveRaw(filename, _map, _mapSize.width() * _mapSize.height()) > 0);
+        ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
+                                     _map, _mapSize.width() * _mapSize.height()) > 0);
 
     if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
-        ret &= (StateExport::saveRaw(filename, _tileAttribs, sizeof(_tileAttribs)) > 0);
+        ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_ATTRIBS),
+                                     _tileAttribs, sizeof(_tileAttribs)) > 0);
 
     if (ret)
     {
@@ -248,13 +287,16 @@ bool State::exportPRG(const QString& filename, quint16 addresses[3], int whatToE
     bool ret = true;
 
     if (ret && (whatToExport & EXPORT_FEATURE_CHARSET))
-        ret &= (StateExport::savePRG(filename, _charset, sizeof(_charset), addresses[0]) > 0);
+        ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
+                                     _charset, sizeof(_charset), addresses[0]) > 0);
 
     if (ret && (whatToExport & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::savePRG(filename, _map, _mapSize.width() * _mapSize.height(), addresses[1]) > 0);
+        ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
+                                     _map, _mapSize.width() * _mapSize.height(), addresses[1]) > 0);
 
     if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
-        ret &= (StateExport::savePRG(filename, _tileAttribs, sizeof(_tileAttribs), addresses[2]) > 0);
+        ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_ATTRIBS),
+                                     _tileAttribs, sizeof(_tileAttribs), addresses[2]) > 0);
 
     if (ret)
     {
@@ -273,15 +315,17 @@ bool State::exportPRG(const QString& filename, quint16 addresses[3], int whatToE
 bool State::exportAsm(const QString& filename, int whatToExport)
 {
     bool ret = true;
-
     if (ret && (whatToExport & EXPORT_FEATURE_CHARSET))
-        ret &= (StateExport::saveAsm(filename, _charset, sizeof(_charset), "charset") > 0);
+        ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
+                                     _charset, sizeof(_charset), "charset") > 0);
 
     if (ret && (whatToExport & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::saveAsm(filename, _map, _mapSize.width() * _mapSize.height(), "map") > 0);
+        ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_MAP ),
+                                     _map, _mapSize.width() * _mapSize.height(), "map") > 0);
 
     if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
-        ret &= (StateExport::saveAsm(filename, _tileAttribs, sizeof(_tileAttribs), "tile_attribs") > 0);
+        ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_ATTRIBS),
+                                     _tileAttribs, sizeof(_tileAttribs), "attribs") > 0);
 
     if (ret)
     {
