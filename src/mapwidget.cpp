@@ -40,7 +40,8 @@ MapWidget::MapWidget(QWidget *parent)
 {
     // FIXME: should be updated when the map size changes
     _sizeHint = {_mapSize.width() * _tileSize.width() * PIXEL_SIZE * 8,
-                 _mapSize.height() * _tileSize.height() * PIXEL_SIZE * 2};
+                 _mapSize.height() * _tileSize.height() * PIXEL_SIZE * 8};
+    setMinimumSize(_sizeHint);
 }
 
 //
@@ -298,9 +299,10 @@ void MapWidget::onTilePropertiesUpdated()
 {
     _tileSize = MainWindow::getCurrentState()->getTileProperties().size;
 
-    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * PIXEL_SIZE,
-                      _mapSize.height() * _tileSize.height() * PIXEL_SIZE);
+    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * PIXEL_SIZE * 8,
+                      _mapSize.height() * _tileSize.height() * PIXEL_SIZE * 8);
 
+    setMinimumSize(_sizeHint);
     update();
 }
 
@@ -308,9 +310,10 @@ void MapWidget::onMapSizeUpdated()
 {
     _mapSize = MainWindow::getCurrentState()->getMapSize();
 
-    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * PIXEL_SIZE,
-                      _mapSize.height() * _tileSize.height() * PIXEL_SIZE);
+    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * PIXEL_SIZE * 8,
+                      _mapSize.height() * _tileSize.height() * PIXEL_SIZE * 8);
 
+    setMinimumSize(_sizeHint);
     update();
 }
 void MapWidget::updateSelectedChar()

@@ -415,10 +415,15 @@
    <widget class="QWidget" name="dockWidgetContents_4">
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <item>
-      <widget class="MapWidget" name="mapWidget" native="true">
-       <property name="focusPolicy">
-        <enum>Qt::StrongFocus</enum>
+      <widget class="QScrollArea" name="scrollArea">
+       <property name="widgetResizable">
+        <bool>true</bool>
        </property>
+       <widget class="MapWidget" name="mapWidget">
+        <property name="focusPolicy">
+         <enum>Qt::StrongFocus</enum>
+        </property>
+       </widget>
       </widget>
      </item>
      <item>
