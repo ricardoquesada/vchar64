@@ -36,10 +36,11 @@ MapWidget::MapWidget(QWidget *parent)
     : QWidget(parent)
     , _displayGrid(false)
     , _mapSize({40,25})
+    , _tileSize({1,1})
 {
     // FIXME: should be updated when the map size changes
-    _sizeHint = {_mapSize.width() * PIXEL_SIZE * 8,
-                 _mapSize.height() * PIXEL_SIZE * 2};
+    _sizeHint = {_mapSize.width() * _tileSize.width() * PIXEL_SIZE * 8,
+                 _mapSize.height() * _tileSize.height() * PIXEL_SIZE * 2};
     setMinimumSize(_sizeHint);
 }
 
@@ -63,15 +64,32 @@ void MapWidget::paintEvent(QPaintEvent *event)
     painter.setBrush(QColor(0,0,0));
     painter.setPen(Qt::NoPen);
 
+    auto tileProperties = state->getTileProperties();
+    _tileSize = tileProperties.size;
+    const int tw = _tileSize.width();
+    const int th = _tileSize.height();
+
     for (int y=0; y<_mapSize.height(); y++)
     {
         for (int x=0; x<_mapSize.width(); ++x)
         {
-            auto c = screenRAM[y * _mapSize.width() + x];
+            auto tileIdx = screenRAM[y * _mapSize.width() + x];
+            quint8 charIdx = tileProperties.interleaved == 1 ?
+                                                        tileIdx * tw * th :
+                                                        tileIdx;
 
-            utilsDrawChar(state, &painter, QSize(PIXEL_SIZE, PIXEL_SIZE), QPoint(OFFSET, OFFSET), QPoint(x, y), c);
+            for (int char_idx=0; char_idx < (tw * th); char_idx++)
+            {
+                int xx = x * tw + char_idx % tw;
+                int yy = y * th + char_idx / tw;
+
+                utilsDrawChar(state, &painter, QSize(PIXEL_SIZE, PIXEL_SIZE), QPoint(OFFSET, OFFSET), QPoint(xx, yy), charIdx);
+
+                charIdx += tileProperties.interleaved;
+            }
         }
     }
+
 
     if (_displayGrid)
     {
@@ -81,11 +99,12 @@ void MapWidget::paintEvent(QPaintEvent *event)
         painter.setPen(pen);
 
         for (int y=0; y<=_mapSize.height(); ++y)
-            painter.drawLine(QPointF(0,y*PIXEL_SIZE*8), QPointF(_mapSize.width()*PIXEL_SIZE*8,y*PIXEL_SIZE*8));
+            painter.drawLine(QPointF(0, y * PIXEL_SIZE * th * 8),
+                             QPointF(_mapSize.width() * PIXEL_SIZE * tw * 8, y * PIXEL_SIZE * th * 8));
 
         for (int x=0; x<=_mapSize.width(); ++x)
-            painter.drawLine(QPointF(x*PIXEL_SIZE*8,0), QPointF(x*PIXEL_SIZE*8,_mapSize.height()*PIXEL_SIZE*8));
-
+            painter.drawLine(QPointF(x * PIXEL_SIZE * tw * 8, 0),
+                             QPointF(x * PIXEL_SIZE * tw * 8, _mapSize.height() * PIXEL_SIZE * th *8));
     }
 
     QPen pen;
@@ -100,20 +119,19 @@ void MapWidget::paintEvent(QPaintEvent *event)
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(149,195,244,64));
-        painter.drawRect(_cursorPos.x() * 8 * PIXEL_SIZE + OFFSET,
-                         _cursorPos.y() * 8 * PIXEL_SIZE + OFFSET,
-                         _selectingSize.width() * 8 * PIXEL_SIZE,
-                         _selectingSize.height() * 8 * PIXEL_SIZE);
+        painter.drawRect(_cursorPos.x() * 8 * tw * PIXEL_SIZE + OFFSET,
+                         _cursorPos.y() * 8 * th * PIXEL_SIZE + OFFSET,
+                         _selectingSize.width() * tw * 8 * PIXEL_SIZE,
+                         _selectingSize.height() * th * 8 * PIXEL_SIZE);
     }
     else
     {
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(128,0,0,0));
-        painter.drawRect(_cursorPos.x() * 8 * PIXEL_SIZE + OFFSET,
-                         _cursorPos.y() * 8 * PIXEL_SIZE + OFFSET,
-                         8 * PIXEL_SIZE,
-                         8 * PIXEL_SIZE);
+        painter.drawRect(_cursorPos.x() * 8 * tw * PIXEL_SIZE + OFFSET,
+                         _cursorPos.y() * 8 * th * PIXEL_SIZE + OFFSET,
+                         8 * tw * PIXEL_SIZE, 8 * th * PIXEL_SIZE);
     }
 
     painter.end();
@@ -125,8 +143,8 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
 
     auto pos = event->localPos();
 
-    int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
-    int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
+    int x = (pos.x() - OFFSET) / PIXEL_SIZE / _tileSize.width() / 8;
+    int y = (pos.y() - OFFSET) / PIXEL_SIZE / _tileSize.height() / 8;
 
     if (event->button() == Qt::LeftButton)
     {
@@ -172,8 +190,8 @@ void MapWidget::mouseMoveEvent(QMouseEvent * event)
     if (event->buttons() == Qt::LeftButton)
     {
         auto pos = event->localPos();
-        int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
-        int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
+        int x = (pos.x() - OFFSET) / PIXEL_SIZE / _tileSize.width() / 8;
+        int y = (pos.y() - OFFSET) / PIXEL_SIZE / _tileSize.height() / 8;
 
         if (x >= _cursorPos.x())
             x++;
@@ -273,6 +291,17 @@ void MapWidget::enableGrid(bool enabled)
 
 void MapWidget::updateColor()
 {
+    update();
+}
+
+
+void MapWidget::onTilePropertiesUpdated()
+{
+    auto tilesProperties = MainWindow::getCurrentState()->getTileProperties();
+
+    _sizeHint = QSize(_mapSize.width() * tilesProperties.size.width() * PIXEL_SIZE,
+                      _mapSize.height() * tilesProperties.size.height() * PIXEL_SIZE);
+
     update();
 }
 

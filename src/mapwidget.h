@@ -32,6 +32,7 @@ signals:
 
 public slots:
     void updateColor();
+    void onTilePropertiesUpdated();
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
@@ -49,4 +50,5 @@ private:
     QSize _selectingSize;
     QPoint _cursorPos;
     QSize _mapSize;
+    QSize _tileSize;
 };

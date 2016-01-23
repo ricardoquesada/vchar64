@@ -321,6 +321,7 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::tilePropertiesUpdated, this, &MainWindow::onTilePropertiesUpdated);
     connect(state, &State::tilePropertiesUpdated, bigcharWidget, &BigCharWidget::onTilePropertiesUpdated);
     connect(state, &State::tilePropertiesUpdated, _ui->tilesetWidget, &TilesetWidget::onTilePropertiesUpdated);
+    connect(state, &State::tilePropertiesUpdated, _ui->mapWidget, &MapWidget::onTilePropertiesUpdated);
 
     connect(state, &State::byteUpdated, this, &MainWindow::updateWindow);
     connect(state, &State::tileUpdated, this, &MainWindow::updateWindow);
