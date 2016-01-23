@@ -422,11 +422,22 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="checkBox_map">
-       <property name="text">
-        <string>Enable Grid</string>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QCheckBox" name="checkBox_map">
+         <property name="text">
+          <string>Enable Grid</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButton_mapSize">
+         <property name="text">
+          <string>Map Size...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>

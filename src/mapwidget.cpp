@@ -41,7 +41,6 @@ MapWidget::MapWidget(QWidget *parent)
     // FIXME: should be updated when the map size changes
     _sizeHint = {_mapSize.width() * _tileSize.width() * PIXEL_SIZE * 8,
                  _mapSize.height() * _tileSize.height() * PIXEL_SIZE * 2};
-    setMinimumSize(_sizeHint);
 }
 
 //
@@ -297,10 +296,10 @@ void MapWidget::updateColor()
 
 void MapWidget::onTilePropertiesUpdated()
 {
-    auto tilesProperties = MainWindow::getCurrentState()->getTileProperties();
+    _tileSize = MainWindow::getCurrentState()->getTileProperties().size;
 
-    _sizeHint = QSize(_mapSize.width() * tilesProperties.size.width() * PIXEL_SIZE,
-                      _mapSize.height() * tilesProperties.size.height() * PIXEL_SIZE);
+    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * PIXEL_SIZE,
+                      _mapSize.height() * _tileSize.height() * PIXEL_SIZE);
 
     update();
 }

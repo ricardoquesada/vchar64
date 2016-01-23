@@ -183,6 +183,7 @@ private slots:
     void on_checkBox_map_clicked(bool checked);
 
     void on_actionMap_Properties_triggered();
+    void on_toolButton_mapSize_clicked();
 
 private:
     QVector<QAction*> _recentFiles;

@@ -1123,6 +1123,10 @@ void MainWindow::on_actionMap_Properties_triggered()
     dialog.exec();
 }
 
+void MainWindow::on_toolButton_mapSize_clicked()
+{
+    on_actionMap_Properties_triggered();
+}
 
 void MainWindow::on_actionXlinkConnection_triggered()
 {
