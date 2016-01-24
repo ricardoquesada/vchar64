@@ -381,19 +381,19 @@
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents_5">
-    <layout class="QVBoxLayout" name="verticalLayout_3">
+   <widget class="QWidget" name="dockWidgetContents_tileset">
+    <layout class="QVBoxLayout" name="verticalLayout_tileset">
      <property name="leftMargin">
-      <number>2</number>
+      <number>1</number>
      </property>
      <property name="topMargin">
-      <number>2</number>
+      <number>1</number>
      </property>
      <property name="rightMargin">
-      <number>2</number>
+      <number>0</number>
      </property>
      <property name="bottomMargin">
-      <number>2</number>
+      <number>0</number>
      </property>
      <item>
       <widget class="QScrollArea" name="scrollArea_2">
@@ -401,6 +401,14 @@
         <bool>true</bool>
        </property>
        <widget class="TilesetWidget" name="tilesetWidget">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>77</width>
+          <height>164</height>
+         </rect>
+        </property>
         <property name="focusPolicy">
          <enum>Qt::StrongFocus</enum>
         </property>
@@ -417,37 +425,39 @@
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents_4">
-    <layout class="QVBoxLayout" name="verticalLayout_5">
+   <widget class="QWidget" name="dockWidgetContents_map">
+    <layout class="QVBoxLayout" name="verticalLayout_map">
+     <property name="leftMargin">
+      <number>1</number>
+     </property>
+     <property name="topMargin">
+      <number>1</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QScrollArea" name="scrollArea">
        <property name="widgetResizable">
         <bool>true</bool>
        </property>
        <widget class="MapWidget" name="mapWidget">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>77</width>
+          <height>271</height>
+         </rect>
+        </property>
         <property name="focusPolicy">
          <enum>Qt::StrongFocus</enum>
         </property>
        </widget>
       </widget>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QCheckBox" name="checkBox_map">
-         <property name="text">
-          <string>Enable Grid</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="toolButton_mapSize">
-         <property name="text">
-          <string>Map Size...</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </item>
     </layout>
    </widget>
@@ -959,6 +969,57 @@
     <string>Map Properties</string>
    </property>
   </action>
+  <action name="actionClear_Map">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/res/icons/16x16/actions/edit-clear.png</normaloff>:/res/icons/16x16/actions/edit-clear.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear Map</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear map with selected tile</string>
+   </property>
+  </action>
+  <action name="actionFill_Map">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/res/icons/22x22/actions/stock-tool-bucket-fill.png</normaloff>:/res/icons/22x22/actions/stock-tool-bucket-fill.png</iconset>
+   </property>
+   <property name="text">
+    <string>Fill Map</string>
+   </property>
+   <property name="toolTip">
+    <string>Fill Map with the selected tile</string>
+   </property>
+  </action>
+  <action name="actionPaint_Mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/res/icons/16x16/categories/applications-graphics.png</normaloff>:/res/icons/16x16/categories/applications-graphics.png</iconset>
+   </property>
+   <property name="text">
+    <string>Paint Mode</string>
+   </property>
+  </action>
+  <action name="actionSelect_Mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/res/icons/22x22/actions/stock-tool-rect-select.png</normaloff>:/res/icons/22x22/actions/stock-tool-rect-select.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select Mode</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -1015,8 +1076,8 @@
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>544</x>
-     <y>218</y>
+     <x>580</x>
+     <y>333</y>
     </hint>
    </hints>
   </connection>

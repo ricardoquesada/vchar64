@@ -34,6 +34,8 @@ limitations under the License.
 #include <QClipboard>
 #include <QMimeData>
 #include <QApplication>
+#include <QToolBar>
+#include <QToolButton>
 
 #include "state.h"
 #include "xlinkpreview.h"
@@ -80,6 +82,7 @@ MainWindow::MainWindow(QWidget *parent)
     createActions();
     createDefaults();
     createUndoView();
+    setupMapDock();
     setupStatusBar();
 
 //    readSettings();
@@ -425,6 +428,30 @@ void MainWindow::createDefaults()
 
     // select charsetWidget as the default one
     _ui->dockWidget_charset->raise();
+}
+
+void MainWindow::setupMapDock()
+{
+    auto toolbar = new QToolBar(this);
+    toolbar->setIconSize(QSize(16,16));
+    _ui->verticalLayout_map->addWidget(toolbar);
+
+    auto button = new QToolButton(this);
+    button->setText(tr("Map Size..."));
+    toolbar->addWidget(button);
+
+    auto checkBox = new QCheckBox(this);
+    checkBox->setText(tr("Grid"));
+    toolbar->addWidget(checkBox);
+
+    toolbar->addSeparator();
+
+    toolbar->addAction(_ui->actionFill_Map);
+    toolbar->addAction(_ui->actionSelect_Mode);
+    toolbar->addAction(_ui->actionPaint_Mode);
+
+    connect(button, &QToolButton::clicked, this, &MainWindow::on_toolButton_mapSize_clicked);
+    connect(checkBox, &QCheckBox::clicked, this, &MainWindow::on_checkBox_map_clicked);
 }
 
 void MainWindow::setupStatusBar()
@@ -1224,6 +1251,25 @@ void MainWindow::onSpinBoxValueChanged(int tileIndex)
     }
 }
 
+// Map callbacks: should be in its own class
+void MainWindow::on_actionFill_Map_triggered()
+{
+    _ui->actionSelect_Mode->setChecked(false);
+    _ui->actionPaint_Mode->setChecked(false);
+}
+
+void MainWindow::on_actionPaint_Mode_triggered()
+{
+    _ui->actionSelect_Mode->setChecked(false);
+    _ui->actionFill_Map->setChecked(false);
+}
+
+void MainWindow::on_actionSelect_Mode_triggered()
+{
+    _ui->actionPaint_Mode->setChecked(false);
+    _ui->actionFill_Map->setChecked(false);
+}
+
 //
 //
 BigCharWidget* MainWindow::getBigcharWidget() const
@@ -1294,3 +1340,4 @@ bool MainWindow::bufferFromClipboard(State::CopyRange **out_range, quint8** out_
 
     return ret;
 }
+

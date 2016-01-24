@@ -648,5 +648,10 @@
         <file>res/logo512.png</file>
         <file>res/c64-chargen-lowercase.bin</file>
         <file>res/c64-chargen-uppercase.bin</file>
+        <file>res/icons/16x16/actions/zoom-in.png</file>
+        <file>res/icons/16x16/actions/zoom-original.png</file>
+        <file>res/icons/16x16/actions/zoom-out.png</file>
+        <file>res/icons/22x22/actions/stock-tool-bucket-fill.png</file>
+        <file>res/icons/22x22/actions/stock-tool-rect-select.png</file>
     </qresource>
 </RCC>

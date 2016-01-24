@@ -99,10 +99,11 @@ protected:
     void readSettings();
     void saveSettings();
     void createActions();
-    void closeState(State* state);
     void createDefaults();
     void createUndoView();
     void setupStatusBar();
+    void setupMapDock();
+    void closeState(State* state);
 
     void updateRecentFiles();
     void setRecentFile(const QString& fileName);
@@ -184,6 +185,12 @@ private slots:
 
     void on_actionMap_Properties_triggered();
     void on_toolButton_mapSize_clicked();
+
+    void on_actionFill_Map_triggered();
+
+    void on_actionPaint_Mode_triggered();
+
+    void on_actionSelect_Mode_triggered();
 
 private:
     QVector<QAction*> _recentFiles;
