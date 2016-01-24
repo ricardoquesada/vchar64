@@ -20,6 +20,7 @@ limitations under the License.
 
 #include <vector>
 #include <algorithm>
+#include <cstdio>
 
 #include <QFile>
 #include <QFileInfo>
@@ -65,8 +66,21 @@ State::State(quint8 *charset, quint8 *tileAttribs, quint8 *map, const QSize& map
     Q_ASSERT(_mapSize.width() * _mapSize.height() > 0 && "Invalid size");
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
     if (map)
+    {
         memcpy(_map, map, _mapSize.width() * _mapSize.height());
-    else memset(_map, 0, _mapSize.width() * _mapSize.height());
+    }
+    else
+    {
+        memset(_map, 0x20, _mapSize.width() * _mapSize.height());
+                            //1234567890123456789012345678901234567890
+        const char hello[] = "THIS IS YOUR MAP:                       " \
+                             "                                        " \
+                             "  * YOU CAN UNDOCK THIS WINDOW          " \
+                             "  * TOOLS USE SELECTED TILE             ";
+        // ASCII to PETSCII screen codes
+        for (int i=0; i<(int)sizeof(hello)-1; ++i)
+            _map[i] = hello[i] & ~0x40;
+    }
     _mapSizeAllocedBytes = mapSize.width() * mapSize.height();
 }
 
@@ -630,6 +644,57 @@ void State::_setMapSize(const QSize& mapSize)
 const QSize& State::getMapSize() const
 {
     return _mapSize;
+}
+
+void State::mapFloodFill(const QPoint& coord, int targetTile, int newTile)
+{
+    if (coord.x() < 0 || coord.x() >= _mapSize.width())
+        return;
+    if (coord.y() < 0 || coord.y() >= _mapSize.height())
+        return;
+    if (_map[coord.y() * _mapSize.width() + coord.x()] != targetTile)
+        return;
+
+    _map[coord.y() * _mapSize.width() + coord.x()] = newTile;
+
+    mapFloodFill(QPoint(coord.x()-1, coord.y()), targetTile, newTile);
+    mapFloodFill(QPoint(coord.x()+1, coord.y()), targetTile, newTile);
+    mapFloodFill(QPoint(coord.x(), coord.y()-1), targetTile, newTile);
+    mapFloodFill(QPoint(coord.x(), coord.y()+1), targetTile, newTile);
+}
+
+void State::mapFill(const QPoint &coord, int tileIdx)
+{
+    if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height())
+    {
+        int targetTile = _map[coord.y() * _mapSize.width() + coord.x()];
+
+        if (targetTile != tileIdx)
+        {
+            mapFloodFill(coord, targetTile, tileIdx);
+            emit mapContentUpdated();
+            emit contentsChanged();
+        }
+    }
+}
+
+void State::mapPaint(const QPoint& coord, int tileIdx)
+{
+    if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height())
+    {
+        _map[coord.y() * _mapSize.width() + coord.x()] = tileIdx;
+        emit mapContentUpdated();
+        emit contentsChanged();
+    }
+}
+
+void State::mapClear(int tileIdx)
+{
+    for (int i=0; i<_mapSize.width() * _mapSize.height(); ++i)
+        _map[i] = tileIdx;
+
+    emit mapContentUpdated();
+    emit contentsChanged();
 }
 
 // charset methods

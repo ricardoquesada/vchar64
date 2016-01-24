@@ -192,6 +192,8 @@ private slots:
 
     void on_actionSelect_Mode_triggered();
 
+    void on_actionClear_Map_triggered();
+
 private:
     QVector<QAction*> _recentFiles;
 

@@ -329,6 +329,7 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::tilePropertiesUpdated, _ui->mapWidget, &MapWidget::onTilePropertiesUpdated);
 
     connect(state, &State::mapSizeUpdated, _ui->mapWidget, &MapWidget::onMapSizeUpdated);
+    connect(state, &State::mapContentUpdated, _ui->mapWidget, &MapWidget::onMapContentUpdated);
 
     connect(state, &State::byteUpdated, this, &MainWindow::updateWindow);
     connect(state, &State::tileUpdated, this, &MainWindow::updateWindow);
@@ -446,9 +447,15 @@ void MainWindow::setupMapDock()
 
     toolbar->addSeparator();
 
+    toolbar->addAction(_ui->actionPaint_Mode);
     toolbar->addAction(_ui->actionFill_Map);
     toolbar->addAction(_ui->actionSelect_Mode);
-    toolbar->addAction(_ui->actionPaint_Mode);
+
+    toolbar->addSeparator();
+
+    toolbar->addAction(_ui->actionClear_Map);
+
+    _ui->actionPaint_Mode->setChecked(true);
 
     connect(button, &QToolButton::clicked, this, &MainWindow::on_toolButton_mapSize_clicked);
     connect(checkBox, &QCheckBox::clicked, this, &MainWindow::on_checkBox_map_clicked);
@@ -1252,22 +1259,39 @@ void MainWindow::onSpinBoxValueChanged(int tileIndex)
 }
 
 // Map callbacks: should be in its own class
+void MainWindow::on_actionClear_Map_triggered()
+{
+    auto state = getState();
+    if (state)
+    {
+        state->mapClear(state->getTileIndex());
+    }
+}
 void MainWindow::on_actionFill_Map_triggered()
 {
-    _ui->actionSelect_Mode->setChecked(false);
     _ui->actionPaint_Mode->setChecked(false);
+    _ui->actionFill_Map->setChecked(true);
+    _ui->actionSelect_Mode->setChecked(false);
+
+    _ui->mapWidget->setMode(MapWidget::FILL_MODE);
 }
 
 void MainWindow::on_actionPaint_Mode_triggered()
 {
-    _ui->actionSelect_Mode->setChecked(false);
+    _ui->actionPaint_Mode->setChecked(true);
     _ui->actionFill_Map->setChecked(false);
+    _ui->actionSelect_Mode->setChecked(false);
+
+    _ui->mapWidget->setMode(MapWidget::PAINT_MODE);
 }
 
 void MainWindow::on_actionSelect_Mode_triggered()
 {
     _ui->actionPaint_Mode->setChecked(false);
     _ui->actionFill_Map->setChecked(false);
+    _ui->actionSelect_Mode->setChecked(true);
+
+    _ui->mapWidget->setMode(MapWidget::SELECT_MODE);
 }
 
 //
@@ -1340,4 +1364,3 @@ bool MainWindow::bufferFromClipboard(State::CopyRange **out_range, quint8** out_
 
     return ret;
 }
-

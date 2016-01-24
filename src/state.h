@@ -306,6 +306,26 @@ public:
      */
     const QSize& getMapSize() const;
 
+    /**
+     * @brief mapFill fills a certain region of the map
+     * @param coord coordinates of the map
+     * @param tileIdx the tile to use as filler
+     */
+    void mapFill(const QPoint& coord, int tileIdx);
+
+    /**
+     * @brief mapPaint paints coord with a certain tile
+     * @param coords the position of the map to paint
+     * @param tileIdx the tile to use to paint
+     */
+    void mapPaint(const QPoint& coord, int tileIdx);
+
+    /**
+     * @brief mapPaint clears the map with a given tile
+     * @param tileIdx the tile that will be used to clear the map
+     */
+    void mapClear(int tileIdx);
+
     // is the state "dirty" ?
     bool isModified() const;
 
@@ -410,6 +430,9 @@ signals:
     // when the map sizes changes
     void mapSizeUpdated();
 
+    // when the map content is updated
+    void mapContentUpdated();
+
     // when one byte in a part of the tile changes
     void byteUpdated(int);
 
@@ -463,6 +486,8 @@ public slots:
 protected:    
     Char getCharFromTile(int tileIndex, int x, int y) const;
     void setCharForTile(int tileIndex, int x, int y, const Char& chr);
+
+    void mapFloodFill(const QPoint& coord, int targetTile, int newTile);
 
     void _setCharIndex(int charIndex);
     void _setTileIndex(int tileIndex);

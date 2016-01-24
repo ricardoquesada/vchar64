@@ -24,9 +24,19 @@ class MapWidget : public QWidget
     Q_OBJECT
 
 public:
+
+    enum MapMode
+    {
+        PAINT_MODE,
+        SELECT_MODE,
+        FILL_MODE
+    };
+
     explicit MapWidget(QWidget *parent = 0);
 
     void enableGrid(bool enabled);
+    void setMode(MapMode mode);
+
 
 signals:
 
@@ -34,6 +44,7 @@ public slots:
     void updateColor();
     void onTilePropertiesUpdated();
     void onMapSizeUpdated();
+    void onMapContentUpdated();
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
@@ -44,6 +55,10 @@ protected:
 
     void updateSelectedChar();
 
+    void fill(const QPoint& coord);
+    void paint(const QPoint& coord);
+    void select(int x, int y);
+
 private:
     bool _displayGrid;
     QSize _sizeHint;
@@ -52,4 +67,5 @@ private:
     QPoint _cursorPos;
     QSize _mapSize;
     QSize _tileSize;
+    MapMode _mode;
 };

@@ -37,6 +37,7 @@ MapWidget::MapWidget(QWidget *parent)
     , _displayGrid(false)
     , _mapSize({40,25})
     , _tileSize({1,1})
+    , _mode(PAINT_MODE)
 {
     // FIXME: should be updated when the map size changes
     _sizeHint = {_mapSize.width() * _tileSize.width() * PIXEL_SIZE * 8,
@@ -148,38 +149,55 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
 
     if (event->button() == Qt::LeftButton)
     {
-        if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier)
+        if (_mode == SELECT_MODE)
         {
-            // Click + Shift == select mode
-            _selecting = true;
-
-            if (x >= _cursorPos.x())
-                x++;
-            if (y >= _cursorPos.y())
-                y++;
-
-            _selectingSize = {x - _cursorPos.x(),
-                              y - _cursorPos.y()};
-
-            // sanity check
-            _selectingSize = {
-                qBound(-_cursorPos.x(), _selectingSize.width(), _mapSize.width() - _cursorPos.x()),
-                qBound(-_cursorPos.y(), _selectingSize.height(), _mapSize.height() - _cursorPos.y())
-            };
-        }
-        else
-        {
-            // click without shift == select single char and clear select mode
-            if (_selecting)
+            if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier)
             {
-                _selecting = false;
-                _selectingSize = {1,1};
-            }
-            _cursorPos = {x,y};
-            updateSelectedChar();
-        }
+                // Click + Shift == select mode
+                _selecting = true;
 
-        update();
+                if (x >= _cursorPos.x())
+                    x++;
+                if (y >= _cursorPos.y())
+                    y++;
+
+                _selectingSize = {x - _cursorPos.x(),
+                                  y - _cursorPos.y()};
+
+                // sanity check
+                _selectingSize = {
+                    qBound(-_cursorPos.x(), _selectingSize.width(), _mapSize.width() - _cursorPos.x()),
+                    qBound(-_cursorPos.y(), _selectingSize.height(), _mapSize.height() - _cursorPos.y())
+                };
+            }
+            else
+            {
+                // click without shift == select single char and clear select mode
+                if (_selecting)
+                {
+                    _selecting = false;
+                    _selectingSize = {1,1};
+                }
+                _cursorPos = {x,y};
+                updateSelectedChar();
+            }
+
+            update();
+        }
+        else if (_mode == PAINT_MODE)
+        {
+            _cursorPos = {x,y};
+            auto state = MainWindow::getCurrentState();
+            if (state)
+                state->mapPaint(QPoint(x,y), state->getTileIndex());
+        }
+        else if (_mode == FILL_MODE)
+        {
+            _cursorPos = {x,y};
+            auto state = MainWindow::getCurrentState();
+            if (state)
+                state->mapFill(QPoint(x,y), state->getTileIndex());
+        }
     }
 }
 
@@ -193,23 +211,32 @@ void MapWidget::mouseMoveEvent(QMouseEvent * event)
         int x = (pos.x() - OFFSET) / PIXEL_SIZE / _tileSize.width() / 8;
         int y = (pos.y() - OFFSET) / PIXEL_SIZE / _tileSize.height() / 8;
 
-        if (x >= _cursorPos.x())
-            x++;
-        if (y >= _cursorPos.y())
-            y++;
+        if (_mode == SELECT_MODE)
+        {
+            if (x >= _cursorPos.x())
+                x++;
+            if (y >= _cursorPos.y())
+                y++;
 
-        _selectingSize = {x - _cursorPos.x(),
-                          y - _cursorPos.y()};
+            _selectingSize = {x - _cursorPos.x(),
+                              y - _cursorPos.y()};
 
-        // sanity check
-        _selectingSize = {
-            qBound(-_cursorPos.x(), _selectingSize.width(), _mapSize.width()-_cursorPos.x()),
-            qBound(-_cursorPos.y(), _selectingSize.height(), _mapSize.height()-_cursorPos.y())
-        };
+            // sanity check
+            _selectingSize = {
+                qBound(-_cursorPos.x(), _selectingSize.width(), _mapSize.width()-_cursorPos.x()),
+                qBound(-_cursorPos.y(), _selectingSize.height(), _mapSize.height()-_cursorPos.y())
+            };
 
-        _selecting = true;
-
-        update();
+            _selecting = true;
+            update();
+        }
+        else if (_mode == PAINT_MODE)
+        {
+            _cursorPos = {x,y};
+            auto state = MainWindow::getCurrentState();
+            if (state)
+                state->mapPaint(QPoint(x,y), state->getTileIndex());
+        }
     }
 }
 
@@ -316,6 +343,12 @@ void MapWidget::onMapSizeUpdated()
     setMinimumSize(_sizeHint);
     update();
 }
+
+void MapWidget::onMapContentUpdated()
+{
+    update();
+}
+
 void MapWidget::updateSelectedChar()
 {
     auto state = MainWindow::getCurrentState();
@@ -327,4 +360,30 @@ void MapWidget::updateSelectedChar()
 
         state->setCharIndex(map[index]);
     }
+}
+
+void MapWidget::fill(const QPoint& coord)
+{
+    auto state = MainWindow::getCurrentState();
+    if (state)
+    {
+        int tileIdx = state->getTileIndex();
+        state->mapFill(coord, tileIdx);
+    }
+}
+
+void MapWidget::paint(const QPoint& coord)
+{
+    auto state = MainWindow::getCurrentState();
+    if (state)
+    {
+        int tileIdx = state->getTileIndex();
+        state->mapPaint(coord, tileIdx);
+    }
+}
+
+void MapWidget::setMode(MapMode mode)
+{
+    if (_mode != mode)
+        _mode = mode;
 }
