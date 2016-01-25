@@ -1065,6 +1065,16 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>radioButton_background</tabstop>
+  <tabstop>radioButton_foreground</tabstop>
+  <tabstop>radioButton_multicolor1</tabstop>
+  <tabstop>radioButton_multicolor2</tabstop>
+  <tabstop>checkBox_multicolor</tabstop>
+  <tabstop>radioButton_charColorGlobal</tabstop>
+  <tabstop>radioButton_charColorPerChar</tabstop>
+  <tabstop>spinBox_tileIndex</tabstop>
+  <tabstop>scrollArea_2</tabstop>
+  <tabstop>scrollArea</tabstop>
   <tabstop>charsetWidget</tabstop>
  </tabstops>
  <resources>
