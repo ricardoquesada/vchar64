@@ -993,7 +993,7 @@
     <string>Fill Map</string>
    </property>
    <property name="toolTip">
-    <string>Fill Map with the selected tile</string>
+    <string>Flood Fill Tool</string>
    </property>
   </action>
   <action name="actionPaint_Mode">
@@ -1007,6 +1007,9 @@
    <property name="text">
     <string>Paint Mode</string>
    </property>
+   <property name="toolTip">
+    <string>Paint Tool</string>
+   </property>
   </action>
   <action name="actionSelect_Mode">
    <property name="checkable">
@@ -1018,6 +1021,9 @@
    </property>
    <property name="text">
     <string>Select Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>Rectangular Select Tool</string>
    </property>
   </action>
  </widget>
