@@ -74,9 +74,8 @@ void BigCharWidget::paintPixel(int x, int y, int pen)
             pen = 1;
         _state->tilePaint(_tileIndex, QPoint(x,y), pen, _commandMergeable);
     }
-
     // redraw cursor
-    update();
+    else update();
 }
 
 void BigCharWidget::cyclePixel(int x, int y)
@@ -159,6 +158,7 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
 
+    auto oldCursorPos = _cursorPos;
     int increment_x = _state->shouldBeDisplayedInMulticolor() ? 2 : 1;
 
     switch (event->key()) {
@@ -194,11 +194,13 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
     default:
         QWidget::keyPressEvent(event);
     }
+
     _cursorPos = {qBound(0, _cursorPos.x(), 8 * _tileProperties.size.width() - increment_x),
                   qBound(0, _cursorPos.y(), 8 * _tileProperties.size.height() - 1)};
 
     // redraw cursor
-    update();
+    if (oldCursorPos != _cursorPos)
+        update();
 }
 
 
@@ -357,6 +359,12 @@ void BigCharWidget::onTilePropertiesUpdated()
 //    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
 //    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
 
+    update();
+}
+
+void BigCharWidget::onColorPropertiesUpdated(int pen)
+{
+    Q_UNUSED(pen);
     update();
 }
 

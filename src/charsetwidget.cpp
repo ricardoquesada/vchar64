@@ -321,6 +321,18 @@ void CharsetWidget::onMulticolorModeToggled(bool state)
     update();
 }
 
+void CharsetWidget::onColorPropertiesUpdated(int pen)
+{
+    Q_UNUSED(pen);
+    update();
+}
+
+void CharsetWidget::onTileUpdated(int tileIndex)
+{
+    Q_UNUSED(tileIndex);
+    update();
+}
+
 void CharsetWidget::updateColor()
 {
     update();

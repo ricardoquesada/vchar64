@@ -368,6 +368,17 @@ void MapWidget::onMulticolorModeToggled(bool state)
     update();
 }
 
+void MapWidget::onColorPropertiesUpdated(int pen)
+{
+    Q_UNUSED(pen);
+    update();
+}
+
+void MapWidget::onTileUpdated(int tileIndex)
+{
+    Q_UNUSED(tileIndex);
+    update();
+}
 
 void MapWidget::updateSelectedChar()
 {

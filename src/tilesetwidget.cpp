@@ -402,6 +402,18 @@ void TilesetWidget::onMulticolorModeToggled(bool state)
     update();
 }
 
+void TilesetWidget::onColorPropertiesUpdated(int pen)
+{
+    Q_UNUSED(pen);
+    update();
+}
+
+void TilesetWidget::onTileUpdated(int tileIndex)
+{
+    Q_UNUSED(tileIndex);
+    update();
+}
+
 void TilesetWidget::updateColor()
 {
     update();

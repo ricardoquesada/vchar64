@@ -188,7 +188,6 @@ void MainWindow::onColorPropertiesUpdated(int pen)
     if (state)
     {
         int color = state->getColorForPen(pen, state->getTileIndex());
-        updateWindow();
 
         QString colors[] = {
             tr("Black"),
@@ -329,13 +328,18 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::mapSizeUpdated, _ui->mapWidget, &MapWidget::onMapSizeUpdated);
     connect(state, &State::mapContentUpdated, _ui->mapWidget, &MapWidget::onMapContentUpdated);
 
-    connect(state, &State::byteUpdated, this, &MainWindow::updateWindow);
-    connect(state, &State::tileUpdated, this, &MainWindow::updateWindow);
     connect(state, &State::tileUpdated, bigcharWidget, &BigCharWidget::onTileUpdated);
+    connect(state, &State::tileUpdated, _ui->charsetWidget, &CharsetWidget::onTileUpdated);
+    connect(state, &State::tileUpdated, _ui->tilesetWidget, &TilesetWidget::onTileUpdated);
+    connect(state, &State::tileUpdated, _ui->mapWidget, &MapWidget::onTileUpdated);
     connect(state, &State::charIndexUpdated, this, &MainWindow::onCharIndexUpdated);
     connect(state, &State::charsetUpdated, this, &MainWindow::updateWindow);
     connect(state, &State::fileLoaded, this, &MainWindow::updateWindow);
     connect(state, &State::colorPropertiesUpdated, this, &MainWindow::onColorPropertiesUpdated);
+    connect(state, &State::colorPropertiesUpdated, bigcharWidget, &BigCharWidget::onColorPropertiesUpdated);
+    connect(state, &State::colorPropertiesUpdated, _ui->charsetWidget, &CharsetWidget::onColorPropertiesUpdated);
+    connect(state, &State::colorPropertiesUpdated, _ui->tilesetWidget, &TilesetWidget::onColorPropertiesUpdated);
+    connect(state, &State::colorPropertiesUpdated, _ui->mapWidget, &MapWidget::onColorPropertiesUpdated);
     connect(state, &State::selectedPenChaged, this, &MainWindow::onColorPropertiesUpdated);
     connect(state, &State::multicolorModeToggled, bigcharWidget, &BigCharWidget::onMulticolorModeToggled);
     connect(state, &State::multicolorModeToggled, _ui->charsetWidget, &CharsetWidget::onMulticolorModeToggled);
@@ -458,8 +462,8 @@ void MainWindow::setupMapDock()
 
     _ui->actionPaint_Mode->setChecked(true);
 
-    connect(button, &QToolButton::clicked, this, &MainWindow::on_toolButton_mapSize_clicked);
-    connect(checkBox, &QCheckBox::clicked, this, &MainWindow::on_checkBox_map_clicked);
+    connect(button, &QToolButton::clicked, this, &MainWindow::onToolButton_mapSize_clicked);
+    connect(checkBox, &QCheckBox::clicked, this, &MainWindow::onCheckBox_map_clicked);
 }
 
 void MainWindow::setupStatusBar()
@@ -735,11 +739,6 @@ void MainWindow::on_radioButton_charColorPerChar_clicked()
     auto state = getState();
     if (state)
         state->setForegroundColorMode(State::FOREGROUND_COLOR_PER_TILE);
-}
-
-void MainWindow::on_checkBox_map_clicked(bool checked)
-{
-    _ui->mapWidget->enableGrid(checked);
 }
 
 void MainWindow::activatePalette(int paletteIndex)
@@ -1158,9 +1157,14 @@ void MainWindow::on_actionMap_Properties_triggered()
     dialog.exec();
 }
 
-void MainWindow::on_toolButton_mapSize_clicked()
+void MainWindow::onToolButton_mapSize_clicked()
 {
     on_actionMap_Properties_triggered();
+}
+
+void MainWindow::onCheckBox_map_clicked(bool checked)
+{
+    _ui->mapWidget->enableGrid(checked);
 }
 
 void MainWindow::on_actionXlinkConnection_triggered()

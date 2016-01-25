@@ -46,6 +46,8 @@ public slots:
     void onMapSizeUpdated();
     void onMapContentUpdated();
     void onMulticolorModeToggled(bool state);
+    void onColorPropertiesUpdated(int pen);
+    void onTileUpdated(int tileIndex);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

@@ -35,6 +35,8 @@ public slots:
     void onTileIndexUpdated(int selectedTileIndex);
     void onTilePropertiesUpdated();
     void onMulticolorModeToggled(bool state);
+    void onColorPropertiesUpdated(int pen);
+    void onTileUpdated(int tileIndex);
 
     void updateColor();
     bool hasSelection() const;

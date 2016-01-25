@@ -38,6 +38,8 @@ public:
 public slots:
     void onCharIndexUpdated(int charIndex);
     void onMulticolorModeToggled(bool state);
+    void onColorPropertiesUpdated(int pen);
+    void onTileUpdated(int tileIndex);
     void updateColor();
 
 protected:
