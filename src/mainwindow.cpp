@@ -179,8 +179,6 @@ void MainWindow::onMulticolorModeToggled(bool newvalue)
 
     // Update statusBar
     onColorPropertiesUpdated(state->getSelectedPen());
-
-    updateWindow();
 }
 
 void MainWindow::onColorPropertiesUpdated(int pen)
@@ -340,6 +338,9 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::colorPropertiesUpdated, this, &MainWindow::onColorPropertiesUpdated);
     connect(state, &State::selectedPenChaged, this, &MainWindow::onColorPropertiesUpdated);
     connect(state, &State::multicolorModeToggled, bigcharWidget, &BigCharWidget::onMulticolorModeToggled);
+    connect(state, &State::multicolorModeToggled, _ui->charsetWidget, &CharsetWidget::onMulticolorModeToggled);
+    connect(state, &State::multicolorModeToggled, _ui->tilesetWidget, &TilesetWidget::onMulticolorModeToggled);
+    connect(state, &State::multicolorModeToggled, _ui->mapWidget, &MapWidget::onMulticolorModeToggled);
     connect(state, &State::multicolorModeToggled, this, &MainWindow::onMulticolorModeToggled);
     connect(state, &State::contentsChanged, this, &MainWindow::documentWasModified);
 

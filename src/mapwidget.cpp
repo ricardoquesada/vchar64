@@ -362,6 +362,13 @@ void MapWidget::onMapContentUpdated()
     update();
 }
 
+void MapWidget::onMulticolorModeToggled(bool state)
+{
+    Q_UNUSED(state);
+    update();
+}
+
+
 void MapWidget::updateSelectedChar()
 {
     auto state = MainWindow::getCurrentState();

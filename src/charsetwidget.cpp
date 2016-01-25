@@ -315,6 +315,12 @@ void CharsetWidget::onCharIndexUpdated(int charIndex)
     update();
 }
 
+void CharsetWidget::onMulticolorModeToggled(bool state)
+{
+    Q_UNUSED(state);
+    update();
+}
+
 void CharsetWidget::updateColor()
 {
     update();

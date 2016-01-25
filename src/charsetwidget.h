@@ -37,6 +37,7 @@ public:
 
 public slots:
     void onCharIndexUpdated(int charIndex);
+    void onMulticolorModeToggled(bool state);
     void updateColor();
 
 protected:

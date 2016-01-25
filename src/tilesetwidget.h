@@ -34,6 +34,8 @@ public:
 public slots:
     void onTileIndexUpdated(int selectedTileIndex);
     void onTilePropertiesUpdated();
+    void onMulticolorModeToggled(bool state);
+
     void updateColor();
     bool hasSelection() const;
     void getSelectionRange(State::CopyRange* copyRange) const;

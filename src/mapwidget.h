@@ -45,6 +45,7 @@ public slots:
     void onTilePropertiesUpdated();
     void onMapSizeUpdated();
     void onMapContentUpdated();
+    void onMulticolorModeToggled(bool state);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
