@@ -51,6 +51,9 @@ class State : public QObject
     friend class SetMapSizeCommand;
     friend class SetColorCommand;
     friend class SetForegroundColorMode;
+    friend class ClearMapCommand;
+    friend class PaintMapCommand;
+    friend class FillMapCommand;
 
 public:
     // only 256 chars at the time
@@ -317,8 +320,9 @@ public:
      * @brief mapPaint paints coord with a certain tile
      * @param coords the position of the map to paint
      * @param tileIdx the tile to use to paint
+     * @param mergeable whether or not this paint can be merged with other mapPaint calls
      */
-    void mapPaint(const QPoint& coord, int tileIdx);
+    void mapPaint(const QPoint& coord, int tileIdx, bool mergeable);
 
     /**
      * @brief mapPaint clears the map with a given tile
@@ -487,7 +491,7 @@ protected:
     Char getCharFromTile(int tileIndex, int x, int y) const;
     void setCharForTile(int tileIndex, int x, int y, const Char& chr);
 
-    void mapFloodFill(const QPoint& coord, int targetTile, int newTile);
+    void floodFillImpl(const QPoint& coord, int targetTile, int newTile);
 
     void _setCharIndex(int charIndex);
     void _setTileIndex(int tileIndex);
@@ -507,14 +511,19 @@ protected:
     void _setMulticolorMode(bool enabled);
     void _setForegroundColorMode(int mode);
     void _setTileProperties(const TileProperties& properties);
-    void _setMapSize(const QSize& mapSize);
     void _setColorForPen(int pen, int color, int tileIdx);
+
+    void _setMapSize(const QSize& mapSize);
+    void _setMap(const quint8* buffer, const QSize& mapSize);
+    void _mapClear(int tileIdx);
+    void _mapPaint(const QPoint& coord, int tileIdx);
+    void _mapFill(const QPoint& coord, int tileIdx);
 
     int _totalChars;
 
     quint8 _charset[State::CHAR_BUFFER_SIZE];
     quint8 _tileAttribs[State::TILE_ATTRIBS_BUFFER_SIZE];
-    quint8 *_map;
+    quint8* _map;
     QSize _mapSize;
     int _mapSizeAllocedBytes;
 

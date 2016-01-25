@@ -38,6 +38,7 @@ MapWidget::MapWidget(QWidget *parent)
     , _mapSize({40,25})
     , _tileSize({1,1})
     , _mode(PAINT_MODE)
+    , _commandMergeable(false)
 {
     // FIXME: should be updated when the map size changes
     _sizeHint = {_mapSize.width() * _tileSize.width() * PIXEL_SIZE * 8,
@@ -188,8 +189,10 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
         {
             _cursorPos = {x,y};
             auto state = MainWindow::getCurrentState();
-            if (state)
-                state->mapPaint(QPoint(x,y), state->getTileIndex());
+            if (state) {
+                state->mapPaint(QPoint(x,y), state->getTileIndex(), _commandMergeable);
+                _commandMergeable = true;
+            }
         }
         else if (_mode == FILL_MODE)
         {
@@ -234,10 +237,20 @@ void MapWidget::mouseMoveEvent(QMouseEvent * event)
         {
             _cursorPos = {x,y};
             auto state = MainWindow::getCurrentState();
-            if (state)
-                state->mapPaint(QPoint(x,y), state->getTileIndex());
+            if (state) {
+                state->mapPaint(QPoint(x,y), state->getTileIndex(), _commandMergeable);
+                _commandMergeable = true;
+            }
         }
     }
+}
+
+void MapWidget::mouseReleaseEvent(QMouseEvent * event)
+{
+    event->accept();
+
+    // don't merge "mapPaint" command if the mouse was released
+    _commandMergeable = false;
 }
 
 void MapWidget::keyPressEvent(QKeyEvent *event)
@@ -359,26 +372,6 @@ void MapWidget::updateSelectedChar()
         auto map = state->getMapBuffer();
 
         state->setCharIndex(map[index]);
-    }
-}
-
-void MapWidget::fill(const QPoint& coord)
-{
-    auto state = MainWindow::getCurrentState();
-    if (state)
-    {
-        int tileIdx = state->getTileIndex();
-        state->mapFill(coord, tileIdx);
-    }
-}
-
-void MapWidget::paint(const QPoint& coord)
-{
-    auto state = MainWindow::getCurrentState();
-    if (state)
-    {
-        int tileIdx = state->getTileIndex();
-        state->mapPaint(coord, tileIdx);
     }
 }
 

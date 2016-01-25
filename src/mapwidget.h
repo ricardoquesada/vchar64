@@ -50,14 +50,11 @@ protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent * event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
     void updateSelectedChar();
-
-    void fill(const QPoint& coord);
-    void paint(const QPoint& coord);
-    void select(int x, int y);
 
 private:
     bool _displayGrid;
@@ -68,4 +65,5 @@ private:
     QSize _mapSize;
     QSize _tileSize;
     MapMode _mode;
+    bool _commandMergeable;
 };

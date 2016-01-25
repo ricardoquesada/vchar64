@@ -646,7 +646,7 @@ const QSize& State::getMapSize() const
     return _mapSize;
 }
 
-void State::mapFloodFill(const QPoint& coord, int targetTile, int newTile)
+void State::floodFillImpl(const QPoint& coord, int targetTile, int newTile)
 {
     if (coord.x() < 0 || coord.x() >= _mapSize.width())
         return;
@@ -657,13 +657,18 @@ void State::mapFloodFill(const QPoint& coord, int targetTile, int newTile)
 
     _map[coord.y() * _mapSize.width() + coord.x()] = newTile;
 
-    mapFloodFill(QPoint(coord.x()-1, coord.y()), targetTile, newTile);
-    mapFloodFill(QPoint(coord.x()+1, coord.y()), targetTile, newTile);
-    mapFloodFill(QPoint(coord.x(), coord.y()-1), targetTile, newTile);
-    mapFloodFill(QPoint(coord.x(), coord.y()+1), targetTile, newTile);
+    floodFillImpl(QPoint(coord.x()-1, coord.y()), targetTile, newTile);
+    floodFillImpl(QPoint(coord.x()+1, coord.y()), targetTile, newTile);
+    floodFillImpl(QPoint(coord.x(), coord.y()-1), targetTile, newTile);
+    floodFillImpl(QPoint(coord.x(), coord.y()+1), targetTile, newTile);
 }
 
-void State::mapFill(const QPoint &coord, int tileIdx)
+void State::mapFill(const QPoint& coord, int tileIdx)
+{
+    getUndoStack()->push(new FillMapCommand(this, coord, tileIdx));
+}
+
+void State::_mapFill(const QPoint &coord, int tileIdx)
 {
     if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height())
     {
@@ -671,14 +676,19 @@ void State::mapFill(const QPoint &coord, int tileIdx)
 
         if (targetTile != tileIdx)
         {
-            mapFloodFill(coord, targetTile, tileIdx);
+            floodFillImpl(coord, targetTile, tileIdx);
             emit mapContentUpdated();
             emit contentsChanged();
         }
     }
 }
 
-void State::mapPaint(const QPoint& coord, int tileIdx)
+void State::mapPaint(const QPoint& coord, int tileIdx, bool mergeable)
+{
+    getUndoStack()->push(new PaintMapCommand(this, coord, tileIdx, mergeable));
+}
+
+void State::_mapPaint(const QPoint& coord, int tileIdx)
 {
     if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height())
     {
@@ -690,8 +700,22 @@ void State::mapPaint(const QPoint& coord, int tileIdx)
 
 void State::mapClear(int tileIdx)
 {
+    getUndoStack()->push(new ClearMapCommand(this, tileIdx));
+}
+
+void State::_mapClear(int tileIdx)
+{
     for (int i=0; i<_mapSize.width() * _mapSize.height(); ++i)
         _map[i] = tileIdx;
+
+    emit mapContentUpdated();
+    emit contentsChanged();
+}
+
+void State::_setMap(const quint8* buffer, const QSize& mapSize)
+{
+    Q_ASSERT(_mapSize == mapSize && "Invalid map size");
+    memcpy(_map, buffer, mapSize.width() * mapSize.height());
 
     emit mapContentUpdated();
     emit contentsChanged();

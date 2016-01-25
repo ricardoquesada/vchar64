@@ -31,7 +31,7 @@ PaintTileCommand::PaintTileCommand(State *state, int tileIndex, const QPoint& po
     _mergeable = mergeable;
     _points.append(position);
 
-    setText(QObject::tr("Paint #%1").arg(_tileIndex));
+    setText(QObject::tr("Paint Tile #%1").arg(_tileIndex));
 }
 
 void PaintTileCommand::undo()
@@ -72,7 +72,7 @@ ClearTileCommand::ClearTileCommand(State *state, int tileIndex, QUndoCommand *pa
     _tileIndex = tileIndex;
     _state = state;
 
-    setText(QObject::tr("Clear #%1").arg(_tileIndex));
+    setText(QObject::tr("Clear Tile #%1").arg(_tileIndex));
 }
 
 void ClearTileCommand::undo()
@@ -153,7 +153,7 @@ FlipTileHCommand::FlipTileHCommand(State *state, int tileIndex, QUndoCommand *pa
     _tileIndex = tileIndex;
     _state = state;
 
-    setText(QObject::tr("Flip Horizontally #%1").arg(_tileIndex));
+    setText(QObject::tr("Flip Tile Horizontally #%1").arg(_tileIndex));
 }
 
 void FlipTileHCommand::undo()
@@ -174,7 +174,7 @@ FlipTileVCommand::FlipTileVCommand(State *state, int tileIndex, QUndoCommand *pa
     _tileIndex = tileIndex;
     _state = state;
 
-    setText(QObject::tr("Flip Vertically #%1").arg(_tileIndex));
+    setText(QObject::tr("Flip Tile Vertically #%1").arg(_tileIndex));
 }
 
 void FlipTileVCommand::undo()
@@ -195,7 +195,7 @@ RotateTileCommand::RotateTileCommand(State *state, int tileIndex, QUndoCommand *
     _tileIndex = tileIndex;
     _state = state;
 
-    setText(QObject::tr("Rotate #%1").arg(_tileIndex));
+    setText(QObject::tr("Rotate Tile #%1").arg(_tileIndex));
 }
 
 void RotateTileCommand::undo()
@@ -218,7 +218,7 @@ InvertTileCommand::InvertTileCommand(State *state, int tileIndex, QUndoCommand *
     _tileIndex = tileIndex;
     _state = state;
 
-    setText(QObject::tr("Invert #%1").arg(_tileIndex));
+    setText(QObject::tr("Invert Tile #%1").arg(_tileIndex));
 }
 
 void InvertTileCommand::undo()
@@ -239,7 +239,7 @@ ShiftLeftTileCommand::ShiftLeftTileCommand(State *state, int tileIndex, QUndoCom
     _tileIndex = tileIndex;
     _state = state;
 
-    setText(QObject::tr("Shift Left #%1").arg(_tileIndex));
+    setText(QObject::tr("Shift Tile Left #%1").arg(_tileIndex));
 }
 
 void ShiftLeftTileCommand::undo()
@@ -260,7 +260,7 @@ ShiftRightTileCommand::ShiftRightTileCommand(State *state, int tileIndex, QUndoC
     _tileIndex = tileIndex;
     _state = state;
 
-    setText(QObject::tr("Shift Right #%1").arg(_tileIndex));
+    setText(QObject::tr("Shift Tile Right #%1").arg(_tileIndex));
 }
 
 void ShiftRightTileCommand::undo()
@@ -281,7 +281,7 @@ ShiftUpTileCommand::ShiftUpTileCommand(State *state, int tileIndex, QUndoCommand
     _tileIndex = tileIndex;
     _state = state;
 
-    setText(QObject::tr("Shift Up #%1").arg(_tileIndex));
+    setText(QObject::tr("Shift Tile Up #%1").arg(_tileIndex));
 }
 
 void ShiftUpTileCommand::undo()
@@ -302,7 +302,7 @@ ShiftDownTileCommand::ShiftDownTileCommand(State *state, int tileIndex, QUndoCom
     _tileIndex = tileIndex;
     _state = state;
 
-    setText(QObject::tr("Shift Down #%1").arg(_tileIndex));
+    setText(QObject::tr("Shift Tile Down #%1").arg(_tileIndex));
 }
 
 void ShiftDownTileCommand::undo()
@@ -339,32 +339,6 @@ void SetTilePropertiesCommand::redo()
 {
     _old = _state->getTileProperties();
     _state->_setTileProperties(_new);
-}
-
-
-// SetMapSizeCommand
-
-SetMapSizeCommand::SetMapSizeCommand(State *state, const QSize& mapSize, QUndoCommand *parent)
-    : QUndoCommand(parent)
-{
-    _state = state;
-    _new = mapSize;
-
-    setText(QObject::tr("Map Size %1x%2")
-            .arg(mapSize.width())
-            .arg(mapSize.height())
-            );
-}
-
-void SetMapSizeCommand::undo()
-{
-    _state->_setMapSize(_old);
-}
-
-void SetMapSizeCommand::redo()
-{
-    _old = _state->getMapSize();
-    _state->_setMapSize(_new);
 }
 
 // SetMulticolorModeCommand
@@ -440,4 +414,144 @@ void SetForegroundColorMode::redo()
 {
     _oldMode = _state->getForegroundColorMode();
     _state->_setForegroundColorMode(_mode);
+}
+
+// SetMapSizeCommand
+
+SetMapSizeCommand::SetMapSizeCommand(State *state, const QSize& mapSize, QUndoCommand *parent)
+    : QUndoCommand(parent)
+{
+    _state = state;
+    _new = mapSize;
+
+    setText(QObject::tr("Map Size %1x%2")
+            .arg(mapSize.width())
+            .arg(mapSize.height())
+            );
+}
+
+void SetMapSizeCommand::undo()
+{
+    _state->_setMapSize(_old);
+}
+
+void SetMapSizeCommand::redo()
+{
+    _old = _state->getMapSize();
+    _state->_setMapSize(_new);
+}
+
+// FillMapCommand
+FillMapCommand::FillMapCommand(State *state, const QPoint& coord, int tileIdx, QUndoCommand *parent)
+    : QUndoCommand(parent)
+    , _state(state)
+    , _coord(coord)
+    , _tileIdx(tileIdx)
+    , _oldMap(nullptr)
+{
+    setText(QObject::tr("Map Fill"));
+}
+
+FillMapCommand::~FillMapCommand()
+{
+    free(_oldMap);
+}
+
+void FillMapCommand::undo()
+{
+    _state->_setMap(_oldMap, _mapSize);
+}
+
+void FillMapCommand::redo()
+{
+    if (!_oldMap)
+    {
+        _mapSize = _state->getMapSize();
+        _oldMap = (quint8*)malloc(_mapSize.width() * _mapSize.height());
+        memcpy(_oldMap, _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
+    }
+    _state->_mapFill(_coord, _tileIdx);
+}
+
+// ClearMapCommand
+ClearMapCommand::ClearMapCommand(State *state, int tileIdx, QUndoCommand *parent)
+    : QUndoCommand(parent)
+    , _state(state)
+    , _tileIdx(tileIdx)
+    , _oldMap(nullptr)
+{
+    setText(QObject::tr("Map Clear"));
+}
+
+ClearMapCommand::~ClearMapCommand()
+{
+    free(_oldMap);
+}
+
+void ClearMapCommand::undo()
+{
+    _state->_setMap(_oldMap, _mapSize);
+}
+
+void ClearMapCommand::redo()
+{
+    if (!_oldMap)
+    {
+        _mapSize = _state->getMapSize();
+        _oldMap = (quint8*)malloc(_mapSize.width() * _mapSize.height());
+        memcpy(_oldMap, _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
+    }
+    _state->_mapClear(_tileIdx);
+}
+
+// PaintMapCommand
+PaintMapCommand::PaintMapCommand(State *state, const QPoint& position, int tileIdx, bool mergeable, QUndoCommand *parent)
+    : QUndoCommand(parent)
+    , _state(state)
+    , _tileIdx(tileIdx)
+    , _mergeable(mergeable)
+    , _oldMap(nullptr)
+{
+    _points.append(position);
+
+    setText(QObject::tr("Paint Map #%1").arg(_tileIdx));
+}
+
+PaintMapCommand::~PaintMapCommand()
+{
+    free(_oldMap);
+}
+
+void PaintMapCommand::undo()
+{
+    _state->_setMap(_oldMap, _mapSize);
+}
+
+void PaintMapCommand::redo()
+{
+    if (!_oldMap)
+    {
+        _mapSize = _state->getMapSize();
+        _oldMap = (quint8*)malloc(_mapSize.width() * _mapSize.height());
+    }
+    memcpy(_oldMap, _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
+
+    for (int i = 0; i < _points.size(); ++i) {
+        _state->_mapPaint(_points.at(i), _tileIdx);
+    }
+}
+
+bool PaintMapCommand::mergeWith(const QUndoCommand* other)
+{
+    if (other->id() != id())
+        return false;
+
+    auto p = static_cast<const PaintMapCommand*>(other);
+
+    if (_tileIdx != p->_tileIdx || !p->_mergeable)
+        return false;
+
+    _points.append(p->_points);
+
+    return true;
 }

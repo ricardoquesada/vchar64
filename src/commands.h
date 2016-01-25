@@ -25,6 +25,7 @@ limitations under the License.
 // id
 enum UndoCommands {
     Cmd_PaintTile,
+    Cmd_PaintMap,
 };
 
 //
@@ -215,20 +216,6 @@ private:
     State::TileProperties _old;
 };
 
-class SetMapSizeCommand : public QUndoCommand
-{
-public:
-    SetMapSizeCommand(State *state, const QSize& mapSize, QUndoCommand *parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
-
-private:
-    State* _state;
-    QSize _new;
-    QSize _old;
-};
-
-
 //
 class SetMulticolorModeCommand : public QUndoCommand
 {
@@ -271,4 +258,71 @@ private:
     State* _state;
     int _mode;
     int _oldMode;
+};
+
+class SetMapSizeCommand : public QUndoCommand
+{
+public:
+    SetMapSizeCommand(State *state, const QSize& mapSize, QUndoCommand *parent = nullptr);
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+
+private:
+    State* _state;
+    QSize _new;
+    QSize _old;
+};
+
+// FillMapCommand
+class FillMapCommand : public QUndoCommand
+{
+public:
+    FillMapCommand(State *state, const QPoint& coord, int tileIdx, QUndoCommand *parent = nullptr);
+    virtual ~FillMapCommand();
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+
+private:
+    State* _state;
+    QPoint _coord;
+    int _tileIdx;
+    quint8* _oldMap;
+    QSize _mapSize;
+};
+
+// PaintMapCommand
+class PaintMapCommand : public QUndoCommand
+{
+public:
+    PaintMapCommand(State *state, const QPoint& position, int tileIdx, bool mergeable, QUndoCommand *parent = nullptr);
+    virtual ~PaintMapCommand();
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+    int id() const Q_DECL_OVERRIDE { return Cmd_PaintMap; }
+    bool mergeWith(const QUndoCommand* other) Q_DECL_OVERRIDE;
+
+private:
+    State* _state;
+    int _tileIdx;
+    bool _mergeable;
+    QList<QPoint> _points;
+    quint8* _oldMap;
+    QSize _mapSize;
+};
+
+// ClearMapCommand
+class ClearMapCommand : public QUndoCommand
+{
+public:
+    ClearMapCommand(State *state, int tileIdx, QUndoCommand *parent = nullptr);
+    virtual ~ClearMapCommand();
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+
+private:
+    State* _state;
+    int _tileIdx;
+    quint8* _oldMap;
+    QSize _mapSize;
+
 };
