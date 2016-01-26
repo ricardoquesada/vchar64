@@ -57,8 +57,6 @@ protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
-    void updateSelectedChar();
-
 private:
     bool _displayGrid;
     QSize _sizeHint;

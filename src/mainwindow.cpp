@@ -135,15 +135,16 @@ void MainWindow::updateWindow()
     // update event() does not get propagated if dockWidget are floating.
     // manual update it
     if (_ui->dockWidget_charset->isFloating())
-        _ui->dockWidget_charset->update();
+        _ui->charsetWidget->update();
+    if (_ui->dockWidget_tileset->isFloating())
+        _ui->tilesetWidget->update();
+    if (_ui->dockWidget_map->isFloating())
+        _ui->mapWidget->update();
+
     if (_ui->dockWidget_colors->isFloating())
         _ui->dockWidget_colors->update();
     if (_ui->dockWidget_tileIndex->isFloating())
         _ui->dockWidget_tileIndex->update();
-    if (_ui->dockWidget_tileset->isFloating())
-        _ui->dockWidget_tileset->update();
-    if (_ui->dockWidget_map->isFloating())
-        _ui->dockWidget_map->update();
 
     if (_ui->mdiArea->currentSubWindow())
         _ui->mdiArea->currentSubWindow()->update();

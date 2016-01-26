@@ -180,7 +180,6 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
                     _selectingSize = {1,1};
                 }
                 _cursorPos = {x,y};
-                updateSelectedChar();
             }
 
             update();
@@ -257,6 +256,11 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
 
+    auto state = MainWindow::getCurrentState();
+    auto oldCursorPos = _cursorPos;
+    auto oldSelecting = _selecting;
+    bool spacePressed = false;
+
     QPoint point;
     switch (event->key()) {
     case Qt::Key_Left:
@@ -271,12 +275,18 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Up:
         point = {0,-1};
         break;
+    case Qt::Key_Space:
+        spacePressed = true;
+        break;
     default:
         QWidget::keyPressEvent(event);
         return;
     }
 
-    bool selecting = (event->modifiers() & Qt::ShiftModifier);
+    bool selecting = false;
+
+    if (_mode == SELECT_MODE)
+        selecting = (event->modifiers() & Qt::ShiftModifier);
 
     // disabling selecting?
     if (_selecting && !selecting) {
@@ -303,13 +313,21 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
             _cursorPos += point;
             _cursorPos = {qBound(0, _cursorPos.x(), _mapSize.width()-1),
                           qBound(0, _cursorPos.y(), _mapSize.height()-1)};
-
-            updateSelectedChar();
         }
     }
-
     _selecting = selecting;
-    update();
+
+    if (_cursorPos != oldCursorPos || _selecting != oldSelecting)
+        update();
+
+    if (_mode == PAINT_MODE && spacePressed)
+    {
+        state->mapPaint(_cursorPos, state->getTileIndex(), false);
+    }
+    else if (_mode == FILL_MODE && spacePressed)
+    {
+        state->mapFill(_cursorPos, state->getTileIndex());
+    }
 }
 
 QSize MapWidget::sizeHint() const
@@ -378,19 +396,6 @@ void MapWidget::onTileUpdated(int tileIndex)
 {
     Q_UNUSED(tileIndex);
     update();
-}
-
-void MapWidget::updateSelectedChar()
-{
-    auto state = MainWindow::getCurrentState();
-
-    if (state)
-    {
-        int index = _cursorPos.y() * _mapSize.width() + _cursorPos.x();
-        auto map = state->getMapBuffer();
-
-        state->setCharIndex(map[index]);
-    }
 }
 
 void MapWidget::setMode(MapMode mode)
