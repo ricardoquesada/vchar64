@@ -111,7 +111,7 @@ public:
      * @brief The CopyRange struct
      */
     struct CopyRange {
-        enum {
+        enum BufferType{
             CHARS,
             TILES,
             MAP
@@ -126,7 +126,7 @@ public:
         /** how many blocks to copy */
         int count;
         /** what to copy: chars or tiles */
-        int type;
+        BufferType type;
         /** tileProperties, only needed when type==TILES. */
         TileProperties tileProperties;
     };
@@ -380,9 +380,9 @@ public:
      * @brief paste paste previously copied range starting from charIndex
      * @param offset offset in bytes
      * @param copyRange range to paste
-     * @param charsetBuffer buffer that has the 256 chars
+     * @param origBuffer buffer that contains the data to paste
      */
-    void paste(int offset, const CopyRange* copyRange, const quint8* charsetBuffer);
+    void paste(int offset, const CopyRange* copyRange, const quint8* origBuffer);
 
     void cut(int offset, const CopyRange& copyRange);
 
@@ -496,7 +496,11 @@ protected:
     void _setCharIndex(int charIndex);
     void _setTileIndex(int tileIndex);
 
-    void _paste(int charIndex, const CopyRange& copyRange, const quint8* charsetBuffer);
+    void _pasteChars(int charIndex, const CopyRange& copyRange, const quint8* origBuffer);
+    void _pasteTiles(int charIndex, const CopyRange& copyRange, const quint8* origBuffer);
+    void _pasteMap(int charIndex, const CopyRange& copyRange, const quint8* origBuffer);
+
+    void _paste(int charIndex, const CopyRange& copyRange, const quint8* origBuffer);
     void _tileInvert(int tileIndex);
     void _tileClear(int tileIndex);
     void _tileFlipHorizontally(int tileIndex);

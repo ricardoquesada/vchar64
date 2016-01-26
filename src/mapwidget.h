@@ -17,6 +17,7 @@ limitations under the License.
 #pragma once
 
 #include <QWidget>
+#include "state.h"
 
 // draws the map of the state (screen RAM + color RAM + charset)
 class MapWidget : public QWidget
@@ -36,7 +37,8 @@ public:
 
     void enableGrid(bool enabled);
     void setMode(MapMode mode);
-
+    void getSelectionRange(State::CopyRange* copyRange) const;
+    int getCursorPos() const;
 
 signals:
 

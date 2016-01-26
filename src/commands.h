@@ -63,7 +63,8 @@ private:
 class PasteCommand : public QUndoCommand
 {
 public:
-    PasteCommand(State *state, int charIndex, const State::CopyRange* copyRange, const quint8* charsetBuffer, QUndoCommand *parent = nullptr);
+    PasteCommand(State *state, int charIndex, const State::CopyRange* copyRange, const quint8* buffer, QUndoCommand *parent = nullptr);
+    virtual ~PasteCommand();
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -71,8 +72,8 @@ private:
     State* _state;
     int _charIndex;
 
-    quint8 _copyBuffer[State::CHAR_BUFFER_SIZE + State::TILE_ATTRIBS_BUFFER_SIZE];
-    quint8 _origBuffer[State::CHAR_BUFFER_SIZE + State::TILE_ATTRIBS_BUFFER_SIZE];
+    quint8* _copyBuffer;
+    quint8* _origBuffer;
     State::CopyRange _copyRange;
 };
 

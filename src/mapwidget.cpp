@@ -37,7 +37,7 @@ MapWidget::MapWidget(QWidget *parent)
     , _displayGrid(false)
     , _mapSize({40,25})
     , _tileSize({1,1})
-    , _mode(PAINT_MODE)
+    , _mode(SELECT_MODE)
     , _commandMergeable(false)
 {
     // FIXME: should be updated when the map size changes
@@ -338,6 +338,47 @@ QSize MapWidget::sizeHint() const
 //
 //
 //
+void MapWidget::getSelectionRange(State::CopyRange* copyRange) const
+{
+    Q_ASSERT(copyRange);
+
+    // if map has no selection, it works the same
+    // since selectingSize will be {1,1}
+
+    // calculate absolute values of origin/size
+    QPoint fixed_origin = _cursorPos;
+    QSize fixed_size = _selectingSize;
+
+    if (_selectingSize.width() < 0)
+    {
+        fixed_origin.setX(_cursorPos.x() + _selectingSize.width());
+        fixed_size.setWidth(-_selectingSize.width());
+    }
+
+    if (_selectingSize.height() < 0)
+    {
+        fixed_origin.setY(_cursorPos.y() + _selectingSize.height());
+        fixed_size.setHeight(-_selectingSize.height());
+    }
+
+    // transform origin/size to offset, blockSize, ...
+
+    copyRange->offset = fixed_origin.y() * _mapSize.width() + fixed_origin.x();
+    copyRange->blockSize = fixed_size.width();
+    copyRange->count = fixed_size.height();
+    copyRange->skip = _mapSize.width() - fixed_size.width();
+
+    copyRange->type = State::CopyRange::MAP;
+    copyRange->tileProperties.size = {-1, -1};
+    copyRange->tileProperties.interleaved = -1;
+}
+
+int MapWidget::getCursorPos() const
+{
+    return _cursorPos.y() * _mapSize.width() + _cursorPos.x();
+}
+
+
 void MapWidget::enableGrid(bool enabled)
 {
     if (_displayGrid != enabled)

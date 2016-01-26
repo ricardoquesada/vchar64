@@ -88,15 +88,45 @@ void ClearTileCommand::redo()
 
 // PasteCommand
 
-PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange* copyRange, const quint8* charsetBuffer, QUndoCommand *parent)
+PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange* copyRange, const quint8* buffer, QUndoCommand *parent)
     : QUndoCommand(parent)
+    , _state(state)
+    , _charIndex(charIndex)
+    , _copyBuffer(nullptr)
+    , _origBuffer(nullptr)
+    , _copyRange(*copyRange)
 {
-    _charIndex = charIndex;
-    _state = state;
-    _copyRange = *copyRange;
-    memcpy(_copyBuffer, charsetBuffer, sizeof(_copyBuffer));
 
-    setText(QObject::tr("Paste #%1").arg(_charIndex));
+    int sizeToCopy = -1;
+    if (copyRange->type == State::CopyRange::CHARS || copyRange->type == State::CopyRange::TILES)
+    {
+        sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_ATTRIBS_BUFFER_SIZE;
+        _copyBuffer = (quint8*)malloc(sizeToCopy);
+        _origBuffer = (quint8*)malloc(sizeToCopy);
+    }
+    else /* MAP */
+    {
+        sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
+        _copyBuffer = (quint8*)malloc(sizeToCopy);
+        _origBuffer = (quint8*)malloc(sizeToCopy);
+    }
+
+    memcpy(_copyBuffer, buffer, sizeToCopy);
+
+    static const QString types[] = {
+        QObject::tr("Chars"),
+        QObject::tr("Tiles"),
+        QObject::tr("Map")
+    };
+
+    setText(QObject::tr("Paste %1").
+            arg(types[_copyRange.type]));
+}
+
+PasteCommand::~PasteCommand()
+{
+    free(_copyBuffer);
+    free(_origBuffer);
 }
 
 void PasteCommand::undo()
@@ -113,8 +143,15 @@ void PasteCommand::undo()
 
 void PasteCommand::redo()
 {
-    memcpy(_origBuffer, _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
-    memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileAttribs(), State::TILE_ATTRIBS_BUFFER_SIZE);
+    if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES)
+    {
+        memcpy(_origBuffer, _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
+        memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileAttribs(), State::TILE_ATTRIBS_BUFFER_SIZE);
+    }
+    else /* MAP */
+    {
+        memcpy(_origBuffer, _state->getMapBuffer(), _state->getMapSize().width() * _state->getMapSize().height());
+    }
     _state->_paste(_charIndex, _copyRange, _copyBuffer);
 }
 

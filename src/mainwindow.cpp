@@ -461,7 +461,7 @@ void MainWindow::setupMapDock()
 
     toolbar->addAction(_ui->actionClear_Map);
 
-    _ui->actionPaint_Mode->setChecked(true);
+    _ui->actionSelect_Mode->setChecked(true);
 
     connect(button, &QToolButton::clicked, this, &MainWindow::onToolButton_mapSize_clicked);
     connect(checkBox, &QCheckBox::clicked, this, &MainWindow::onCheckBox_map_clicked);
@@ -1062,7 +1062,6 @@ void MainWindow::on_actionCopy_triggered()
 void MainWindow::on_actionPaste_triggered()
 {
     auto state = getState();
-    int cursorPos = _ui->charsetWidget->getCursorPos();
 
     quint8* buffer;
     State::CopyRange *range;
@@ -1080,6 +1079,10 @@ void MainWindow::on_actionPaste_triggered()
             msgBox.exec();
             return;
         }
+
+        int cursorPos = (range->type == State::CopyRange::CHARS || range->type == State::CopyRange::TILES)
+                    ? _ui->charsetWidget->getCursorPos()
+                    : _ui->mapWidget->getCursorPos();
 
         state->paste(cursorPos, range, buffer);
     }
@@ -1332,15 +1335,25 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
     State::CopyRange copyRange;
     if (_ui->charsetWidget->hasFocus())
         _ui->charsetWidget->getSelectionRange(&copyRange);
-    else
+    else if (_ui->tilesetWidget->hasFocus())
         _ui->tilesetWidget->getSelectionRange(&copyRange);
+    else if (_ui->mapWidget->hasFocus())
+        _ui->mapWidget->getSelectionRange(&copyRange);
 
     auto clipboard = QApplication::clipboard();
     auto mimeData = new QMimeData;
     QByteArray array((char*)&copyRange, sizeof(copyRange));
-    array.append((const char*)state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
-    array.append((const char*)state->getTileAttribs(), State::TILE_ATTRIBS_BUFFER_SIZE);
-    mimeData->setData("vchar64/charsetrange", array);
+    if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES)
+    {
+        array.append((const char*)state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
+        array.append((const char*)state->getTileAttribs(), State::TILE_ATTRIBS_BUFFER_SIZE);
+    }
+    else /* MAP */
+    {
+        array.append((const char*)state->getMapBuffer(), state->getMapSize().width() * state->getMapSize().height());
+    }
+
+    mimeData->setData("vchar64/range", array);
 
     clipboard->setMimeData(mimeData);
 
@@ -1349,24 +1362,14 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
 
 bool MainWindow::bufferFromClipboard(State::CopyRange **out_range, quint8** out_buffer) const
 {
-    bool ret = false;
-
     QClipboard* clipboard = QApplication::clipboard();
     const QMimeData* mimeData = clipboard->mimeData();
-    QByteArray bytearray = mimeData->data("vchar64/charsetrange");
+    QByteArray bytearray = mimeData->data("vchar64/range");
 
-    if (bytearray.size() == sizeof(**out_range) + State::CHAR_BUFFER_SIZE + State::TILE_ATTRIBS_BUFFER_SIZE)
-    {
-        auto data = bytearray.data();
-        *out_range = (State::CopyRange*) data;
-        data += sizeof(State::CopyRange);
-        *out_buffer = (quint8*) data;
-        ret = true;
-    }
-    else
-    {
-        qDebug() << "Invalid clipboard buffer: " << bytearray.size();
-    }
+    auto data = bytearray.data();
+    *out_range = (State::CopyRange*) data;
+    data += sizeof(State::CopyRange);
+    *out_buffer = (quint8*) data;
 
-    return ret;
+    return true;
 }
