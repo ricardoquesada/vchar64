@@ -432,7 +432,7 @@ void SetColorCommand::redo()
 
 // SetForegroundColorMode
 
-SetForegroundColorMode::SetForegroundColorMode(State *state, int mode, QUndoCommand *parent)
+SetForegroundColorMode::SetForegroundColorMode(State *state, State::ForegroundColorMode mode, QUndoCommand *parent)
     : QUndoCommand(parent)
     , _state(state)
     , _mode(mode)

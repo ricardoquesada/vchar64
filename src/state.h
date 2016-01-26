@@ -32,6 +32,8 @@ class State : public QObject
     Q_OBJECT
 
     friend class StateImport;
+    friend class StateExport;
+
     friend class BigCharWidget;
 
     friend class PaintTileCommand;
@@ -240,13 +242,13 @@ public:
      * In PER_TILE, each tile has its own color.
      * @param mode
      */
-    void setForegroundColorMode(int mode);
+    void setForegroundColorMode(ForegroundColorMode mode);
 
     /**
      * @brief getForegroundColorMode
      * @return
      */
-    int getForegroundColorMode() const;
+    ForegroundColorMode getForegroundColorMode() const;
 
     /**
      * @brief shouldBeDisplayedInMulticolor whether or not the char should be displayed as multicolor.
@@ -513,7 +515,7 @@ protected:
 
     void _tileSetPen(int tileIndex, const QPoint& position, int pen);
     void _setMulticolorMode(bool enabled);
-    void _setForegroundColorMode(int mode);
+    void _setForegroundColorMode(ForegroundColorMode mode);
     void _setTileProperties(const TileProperties& properties);
     void _setColorForPen(int pen, int color, int tileIdx);
 
@@ -532,7 +534,7 @@ protected:
     int _mapSizeAllocedBytes;
 
     bool _multicolorMode;
-    int _foregroundColorMode;
+    ForegroundColorMode _foregroundColorMode;
 
     int _selectedPen;
     int _penColors[PEN_MAX];

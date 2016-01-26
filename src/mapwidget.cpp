@@ -58,6 +58,10 @@ void MapWidget::paintEvent(QPaintEvent *event)
         return;
 
     auto screenRAM = state->getMapBuffer();
+    auto mapSize = state->getMapSize();
+
+    // FIXME:
+    _mapSize = mapSize;
 
     QPainter painter;
     painter.begin(this);
@@ -71,11 +75,11 @@ void MapWidget::paintEvent(QPaintEvent *event)
     const int tw = _tileSize.width();
     const int th = _tileSize.height();
 
-    for (int y=0; y<_mapSize.height(); y++)
+    for (int y=0; y<mapSize.height(); y++)
     {
-        for (int x=0; x<_mapSize.width(); ++x)
+        for (int x=0; x<mapSize.width(); ++x)
         {
-            auto tileIdx = screenRAM[y * _mapSize.width() + x];
+            auto tileIdx = screenRAM[y * mapSize.width() + x];
             quint8 charIdx = tileProperties.interleaved == 1 ?
                                                         tileIdx * tw * th :
                                                         tileIdx;
@@ -100,13 +104,13 @@ void MapWidget::paintEvent(QPaintEvent *event)
         pen.setStyle(Qt::DashLine);
         painter.setPen(pen);
 
-        for (int y=0; y<=_mapSize.height(); ++y)
+        for (int y=0; y<=mapSize.height(); ++y)
             painter.drawLine(QPointF(0, y * PIXEL_SIZE * th * 8),
-                             QPointF(_mapSize.width() * PIXEL_SIZE * tw * 8, y * PIXEL_SIZE * th * 8));
+                             QPointF(mapSize.width() * PIXEL_SIZE * tw * 8, y * PIXEL_SIZE * th * 8));
 
-        for (int x=0; x<=_mapSize.width(); ++x)
+        for (int x=0; x<=mapSize.width(); ++x)
             painter.drawLine(QPointF(x * PIXEL_SIZE * tw * 8, 0),
-                             QPointF(x * PIXEL_SIZE * tw * 8, _mapSize.height() * PIXEL_SIZE * th *8));
+                             QPointF(x * PIXEL_SIZE * tw * 8, mapSize.height() * PIXEL_SIZE * th *8));
     }
 
     QPen pen;
@@ -259,6 +263,7 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
     auto state = MainWindow::getCurrentState();
     auto oldCursorPos = _cursorPos;
     auto oldSelecting = _selecting;
+    auto oldSelectingSize = _selectingSize;
     bool spacePressed = false;
 
     QPoint point;
@@ -317,7 +322,7 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
     }
     _selecting = selecting;
 
-    if (_cursorPos != oldCursorPos || _selecting != oldSelecting)
+    if (_cursorPos != oldCursorPos || _selecting != oldSelecting || _selectingSize != oldSelectingSize)
         update();
 
     if (_mode == PAINT_MODE && spacePressed)

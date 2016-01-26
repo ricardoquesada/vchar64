@@ -104,7 +104,7 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
 
 qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5header)
 {
-    if (v5header->flags & 03)
+    if (!(v5header->flags & 0b00000010))
     {
         MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: CTM is not expanded"));
         qDebug() << "CTM is not expanded. Cannot load it";
@@ -120,16 +120,33 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
     auto total = file.read((char*)state->_charset, toRead);
 
     for (int i=0; i<4; i++)
-        state->setColorForPen(i, v5header->colors[i]);
+        state->_setColorForPen(i, v5header->colors[i], -1);
 
-    state->setMulticolorMode(v5header->flags & 0b00000100);
+    state->_setMulticolorMode(v5header->flags & 0b00000100);
 
     State::TileProperties tp;
     tp.interleaved = 1;
     // some files reports size == 0. Bug in CTMv5?
     tp.size.setWidth(qMax((int)v5header->tile_width,1));
     tp.size.setHeight(qMax((int)v5header->tile_height,1));
-    state->setTileProperties(tp);
+    state->_setTileProperties(tp);
+
+    if (v5header->color_mode == 0 || v5header->color_mode == 1)
+    {
+        state->_setForegroundColorMode((State::ForegroundColorMode)v5header->color_mode);
+        state->_setMapSize(QSize(v5header->map_width, v5header->map_height));
+
+        // skip char_data
+        file.seek(file.pos() + num_chars);
+
+        // since it is expanded, there are no tile_data
+
+        // read tile_colours
+        file.read((char*)state->_tileAttribs, v5header->num_tiles);
+
+        // read map
+        file.read((char*)state->_map, v5header->tile_height * v5header->tile_width);
+    }
 
     return total;
 }
@@ -192,6 +209,14 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
         return -1;
     }
 
+    if (header.version > 2)
+    {
+        MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: VChar version not supported"));
+        qDebug() << "VChar version not supported";
+        return -1;
+    }
+
+    // common for version 1 and version
 
     int num_chars = qFromLittleEndian((int)header.num_chars);
     int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
@@ -202,14 +227,27 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     auto total = file.read((char*)state->_charset, toRead);
 
     for (int i=0; i<4; i++)
-        state->setColorForPen(i, header.colors[i]);
+        state->_setColorForPen(i, header.colors[i], -1);
 
-    state->setMulticolorMode(header.vic_res);
+    state->_setMulticolorMode(header.vic_res);
     State::TileProperties properties;
     properties.size = {header.tile_width, header.tile_height};
     properties.interleaved = header.char_interleaved;
-    state->setTileProperties(properties);
+    state->_setTileProperties(properties);
 
+    // version 2 only
+    if (header.version == 2)
+    {
+        int color_mode = header.color_mode;
+        state->_setForegroundColorMode((State::ForegroundColorMode)color_mode);
+
+        int map_width = qFromLittleEndian((int)header.map_width);
+        int map_height = qFromLittleEndian((int)header.map_height);
+        state->_setMapSize(QSize(map_width, map_height));
+
+        file.read((char*)state->_tileAttribs, State::TILE_ATTRIBS_BUFFER_SIZE);
+        file.read((char*)state->_map, map_width * map_height);
+    }
     return total;
 }
 

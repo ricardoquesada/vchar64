@@ -306,20 +306,26 @@ public:
     struct VChar64Header
     {
         char id[5];                 // must be VChar
-        char version;               // must be 1
+        char version;               // must be 2
         char colors[4];             // BGR, MC1, MC2, RAM.
         char vic_res;               // 0 = Hi Resolution, 1 = Multicolour.
 
         quint16 num_chars;          // 16-bits, Number of chars - 1 (low, high).
 
-        quint8 tile_width;            // between 1-8
-        quint8 tile_height;           // between 1-8
-        quint8 char_interleaved;      // between 1-128
+        quint8 tile_width;          // between 1-8
+        quint8 tile_height;         // between 1-8
+        quint8 char_interleaved;    // between 1-128
 
-        char reserved[16];          // Must be 32 bytes in total
+        // until here, it shares same structure as version 1
+
+        char color_mode;            // 0 = Global, 1 = Per Tile
+
+        quint16 map_width;          // 16-bit Map width (low, high).
+        quint16 map_height;         // 16-bit Map height (low, high).
+
+        char reserved[11];           // Must be 32 bytes in total
     };
 #pragma pack(pop)
-
     static_assert (sizeof(VChar64Header) == 32, "Size is not correct");
 
 #pragma pack(push)

@@ -31,10 +31,10 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
 
     strncpy(header.id, "VChar", 5);
 
-    header.version = 1;
+    header.version = 2;
 
     for (int i=0;i<4;i++)
-        header.colors[i] = state->getColorForPen(i);
+        header.colors[i] = state->_penColors[i];
 
     short chars = state->CHAR_BUFFER_SIZE / 8;
 
@@ -48,13 +48,27 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
 
     header.vic_res = state->isMulticolorMode();
 
+    header.color_mode = state->getForegroundColorMode();
+    header.map_width = qToLittleEndian(state->getMapSize().width());
+    header.map_height = qToLittleEndian(state->getMapSize().height());
+
     QByteArray arrayHeader((const char*)&header, sizeof(header));
     auto total = file.write(arrayHeader);
 
-
+    // charset
     auto buffer = state->getCharsetBuffer();
-    QByteArray arrayData((char*)buffer, state->CHAR_BUFFER_SIZE);
-    total += file.write(arrayData);
+    QByteArray arrayCharset((char*)buffer, State::CHAR_BUFFER_SIZE);
+    total += file.write(arrayCharset);
+
+    // attribs
+    buffer = state->getTileAttribs();
+    QByteArray arrayAttribs((char*)buffer, State::TILE_ATTRIBS_BUFFER_SIZE);
+    total += file.write(arrayAttribs);
+
+    // map
+    buffer = state->getMapBuffer();
+    QByteArray arrayMap((char*)buffer, state->getMapSize().width() * state->getMapSize().height());
+    total += file.write(arrayMap);
 
     file.flush();
 

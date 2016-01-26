@@ -417,12 +417,12 @@ void State::_setMulticolorMode(bool enabled)
     }
 }
 
-void State::setForegroundColorMode(int mode)
+void State::setForegroundColorMode(State::ForegroundColorMode mode)
 {
     getUndoStack()->push(new SetForegroundColorMode(this, mode));
 }
 
-void State::_setForegroundColorMode(int mode)
+void State::_setForegroundColorMode(ForegroundColorMode mode)
 {
     if (_foregroundColorMode != mode)
     {
@@ -432,7 +432,7 @@ void State::_setForegroundColorMode(int mode)
     }
 }
 
-int State::getForegroundColorMode() const
+State::ForegroundColorMode State::getForegroundColorMode() const
 {
     return _foregroundColorMode;
 }
@@ -448,7 +448,7 @@ int State::getColorForPen(int pen, int tileIdx) const
 
     bool foregroundAndPerTile = (pen == PEN_FOREGROUND && _foregroundColorMode == FOREGROUND_COLOR_PER_TILE);
 
-    Q_ASSERT(!(tileIdx == -1 && foregroundAndPerTile) && "Provide a valid tileIdx");
+    Q_ASSERT((!foregroundAndPerTile || tileIdx != -1) && "Provide a valid tileIdx");
 
     if (foregroundAndPerTile)
         // making travis happy: -Werror=array-bounds

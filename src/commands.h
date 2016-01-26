@@ -251,14 +251,14 @@ private:
 class SetForegroundColorMode : public QUndoCommand
 {
 public:
-    SetForegroundColorMode(State *state, int mode, QUndoCommand *parent = nullptr);
+    SetForegroundColorMode(State *state, State::ForegroundColorMode mode, QUndoCommand *parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
 private:
     State* _state;
-    int _mode;
-    int _oldMode;
+    State::ForegroundColorMode _mode;
+    State::ForegroundColorMode _oldMode;
 };
 
 class SetMapSizeCommand : public QUndoCommand
