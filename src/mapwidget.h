@@ -43,13 +43,13 @@ public:
 signals:
 
 public slots:
-    void updateColor();
     void onTilePropertiesUpdated();
     void onMapSizeUpdated();
     void onMapContentUpdated();
     void onMulticolorModeToggled(bool state);
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);
+    void onCharsetUpdated();
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

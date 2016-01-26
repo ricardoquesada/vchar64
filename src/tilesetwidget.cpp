@@ -414,7 +414,7 @@ void TilesetWidget::onTileUpdated(int tileIndex)
     update();
 }
 
-void TilesetWidget::updateColor()
+void TilesetWidget::onCharsetUpdated()
 {
     update();
 }

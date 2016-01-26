@@ -368,14 +368,14 @@ void BigCharWidget::onColorPropertiesUpdated(int pen)
     update();
 }
 
-void BigCharWidget::updateColor()
-{
-    update();
-}
-
 void BigCharWidget::onTileUpdated(int tileIndex)
 {
     Q_UNUSED(tileIndex);
+    update();
+}
+
+void BigCharWidget::onCharsetUpdated()
+{
     update();
 }
 

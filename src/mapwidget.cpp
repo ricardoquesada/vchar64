@@ -388,12 +388,6 @@ void MapWidget::enableGrid(bool enabled)
     }
 }
 
-void MapWidget::updateColor()
-{
-    update();
-}
-
-
 void MapWidget::onTilePropertiesUpdated()
 {
     _tileSize = MainWindow::getCurrentState()->getTileProperties().size;
@@ -436,6 +430,11 @@ void MapWidget::onColorPropertiesUpdated(int pen)
 void MapWidget::onTileUpdated(int tileIndex)
 {
     Q_UNUSED(tileIndex);
+    update();
+}
+
+void MapWidget::onCharsetUpdated()
+{
     update();
 }
 

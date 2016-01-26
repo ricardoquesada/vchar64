@@ -37,8 +37,8 @@ public slots:
     void onMulticolorModeToggled(bool state);
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);
+    void onCharsetUpdated();
 
-    void updateColor();
     bool hasSelection() const;
     void getSelectionRange(State::CopyRange* copyRange) const;
 

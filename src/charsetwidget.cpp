@@ -333,7 +333,7 @@ void CharsetWidget::onTileUpdated(int tileIndex)
     update();
 }
 
-void CharsetWidget::updateColor()
+void CharsetWidget::onCharsetUpdated()
 {
     update();
 }

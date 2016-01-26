@@ -333,8 +333,11 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::tileUpdated, _ui->charsetWidget, &CharsetWidget::onTileUpdated);
     connect(state, &State::tileUpdated, _ui->tilesetWidget, &TilesetWidget::onTileUpdated);
     connect(state, &State::tileUpdated, _ui->mapWidget, &MapWidget::onTileUpdated);
+    connect(state, &State::charsetUpdated, bigcharWidget, &BigCharWidget::onCharsetUpdated);
+    connect(state, &State::charsetUpdated, _ui->charsetWidget, &CharsetWidget::onCharsetUpdated);
+    connect(state, &State::charsetUpdated, _ui->tilesetWidget, &TilesetWidget::onCharsetUpdated);
+    connect(state, &State::charsetUpdated, _ui->mapWidget, &MapWidget::onCharsetUpdated);
     connect(state, &State::charIndexUpdated, this, &MainWindow::onCharIndexUpdated);
-    connect(state, &State::charsetUpdated, this, &MainWindow::updateWindow);
     connect(state, &State::fileLoaded, this, &MainWindow::updateWindow);
     connect(state, &State::colorPropertiesUpdated, this, &MainWindow::onColorPropertiesUpdated);
     connect(state, &State::colorPropertiesUpdated, bigcharWidget, &BigCharWidget::onColorPropertiesUpdated);
@@ -453,9 +456,9 @@ void MainWindow::setupMapDock()
 
     toolbar->addSeparator();
 
+    toolbar->addAction(_ui->actionSelect_Mode);
     toolbar->addAction(_ui->actionPaint_Mode);
     toolbar->addAction(_ui->actionFill_Map);
-    toolbar->addAction(_ui->actionSelect_Mode);
 
     toolbar->addSeparator();
 

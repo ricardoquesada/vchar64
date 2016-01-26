@@ -40,7 +40,7 @@ public slots:
     void onMulticolorModeToggled(bool state);
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);
-    void updateColor();
+    void onCharsetUpdated();
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
