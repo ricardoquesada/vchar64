@@ -47,7 +47,7 @@ protected:
     bool tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM);
     int getColorByPaletteProximity(int colorIndex, const std::vector<int> &colorsToFind);
 
-    void convert();
+    bool convert();
     void updateWidgets();
 
 private slots:

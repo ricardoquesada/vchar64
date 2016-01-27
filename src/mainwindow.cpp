@@ -119,6 +119,7 @@ void MainWindow::serverDisconnected()
 
 void MainWindow::documentWasModified()
 {
+    // global flag
     bool modified = false;
     auto list = _ui->mdiArea->subWindowList();
     for (auto l: list)
@@ -491,7 +492,11 @@ void MainWindow::updateMenus()
         _ui->actionSave,
         _ui->actionSaveAs,
         _ui->actionClose,
-        _ui->actionClose_All
+        _ui->actionClose_All,
+
+        _ui->actionCopy,
+        _ui->actionPaste,
+        _ui->actionCut
     };
     const int TOTAL_ACTIONS = sizeof(actions)/sizeof(actions[0]);
     for (int i=0; i<TOTAL_ACTIONS; i++)
@@ -844,9 +849,9 @@ void MainWindow::on_actionImport_Koala_image_triggered()
     ImportKoalaDialog dialog(this);
     if (dialog.exec())
     {
-//        _ui->mdiArea->currentSubWindow()->setWindowFilePath(dialog.getFilepath());
-//        _ui->mdiArea->currentSubWindow()->setWindowFilePath(QFileInfo(dialog.getFilepath()).baseName());
-//        setWindowFilePath(dialog.getFilepath());
+        _ui->mdiArea->currentSubWindow()->setWindowFilePath(dialog.getFilepath());
+        _ui->mdiArea->currentSubWindow()->setWindowFilePath(QFileInfo(dialog.getFilepath()).baseName());
+        setWindowFilePath(dialog.getFilepath());
     }
 }
 

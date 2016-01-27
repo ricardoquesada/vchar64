@@ -48,6 +48,11 @@ ImportKoalaDialog::~ImportKoalaDialog()
     delete ui;
 }
 
+const QString& ImportKoalaDialog::getFilepath() const
+{
+    return _filepath;
+}
+
 void ImportKoalaDialog::on_pushButton_clicked()
 {
     auto filter = tr("Koala files");
@@ -94,8 +99,7 @@ bool ImportKoalaDialog::validateKoalaFile(const QString& filepath)
     if (info.exists() && info.isFile() && (info.size() == 10003 || info.size() == 10002))
     {
         ui->widgetKoala->loadKoala(filepath);
-        convert();
-        return true;
+        return convert();
     }
     return false;
 }
@@ -481,7 +485,7 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
     return true;
 }
 
-void ImportKoalaDialog::convert()
+bool ImportKoalaDialog::convert()
 {
     auto orig = ui->widgetKoala;
     auto conv = ui->widgetCharset;
@@ -499,7 +503,22 @@ void ImportKoalaDialog::convert()
 
     orig->reportResults();
 
-    ui->lineEditUnique->setText(QString::number(orig->_uniqueChars.size()));
+    int uniqueChars = orig->_uniqueChars.size();
+    ui->lineEditUnique->setText(QString::number(uniqueChars));
+    if (uniqueChars > 256)
+    {
+        QPalette palette;
+        palette.setColor(QPalette::Base, Qt::red);
+        palette.setColor(QPalette::Text, Qt::white);
+        ui->lineEditUnique->setPalette(palette);
+
+        return false;
+    }
+
+    QPalette palette;
+    palette.setColor(QPalette::Base, Qt::white);
+    palette.setColor(QPalette::Text, Qt::black);
+    ui->lineEditUnique->setPalette(palette);
 
     for (int i=0; i<3; ++i)
         conv->_d02x[i] = orig->_d02xColors[i];
@@ -524,6 +543,8 @@ void ImportKoalaDialog::convert()
     }
 
     conv->update();
+
+    return true;
 }
 
 void ImportKoalaDialog::on_radioForegroundMostUsed_clicked()
