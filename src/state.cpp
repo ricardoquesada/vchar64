@@ -72,31 +72,7 @@ State::State(quint8 *charset, quint8 *tileAttribs, quint8 *map, const QSize& map
     }
     else
     {
-        memset(_map, 0x20, _mapSize.width() * _mapSize.height());
-                            //1234567890123456789012345678901234567890
-        const char hello[] = "                                        " \
-                             "    **** COMMODORE 64 BASIC V2 ****     " \
-                             "                                        " \
-                             " 64K RAM SYSTEM  38911 BASIC BYTES FREE ";
-
-        // ASCII to PETSCII screen codes
-        for (int i=0; i<(int)sizeof(hello)-1; ++i)
-            _map[i] = hello[i] & ~0x40;
-        const char happy[][3] = {
-            {85, 67, 73},
-            {81, 82, 83},
-            {74, 114, 75},
-            {67, 91, 67},
-            {32, 66, 32},
-            {112, 113, 110},
-            {66, 32, 66},
-        };
-        const int centerOffset = 5 * _mapSize.width() + 19;
-        for (int y=0; y<7; ++y)
-        {
-            for (int x=0; x<3; ++x)
-                _map[y * _mapSize.width() + x + centerOffset] = happy[y][x];
-        }
+        setupDefaultMap();
     }
     _mapSizeAllocedBytes = mapSize.width() * mapSize.height();
 }
@@ -1425,4 +1401,41 @@ void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
 BigCharWidget* State::getBigCharWidget() const
 {
     return _bigCharWidget;
+}
+
+void State::setupDefaultMap()
+{
+    memset(_map, 0x20, _mapSize.width() * _mapSize.height());
+                        //1234567890123456789012345678901234567890
+    const char hello[] = "                                        " \
+                         "    **** COMMODORE 64 BASIC V2 ****     " \
+                         "                                        " \
+                         " 64K RAM SYSTEM  38911 BASIC BYTES FREE ";
+
+    // ASCII to PETSCII screen codes
+    for (int i=0; i<(int)sizeof(hello)-1; ++i)
+        _map[i] = hello[i] & ~0x40;
+
+    const char happy[][3] = {
+        {85, 67, 73},
+        {81, 82, 83},
+        {74, 114, 75},
+        {67, 91, 67},
+        {32, 66, 32},
+        {112, 113, 110},
+        {66, 32, 66},
+    };
+    const int centerOffset = 5 * _mapSize.width() + 19;
+    for (int y=0; y<7; ++y)
+    {
+        for (int x=0; x<3; ++x)
+            _map[y * _mapSize.width() + x + centerOffset] = happy[y][x];
+    }
+
+                        //1234567890123456789012345678901234567890
+    const char sign[] = "RETRO.MOE                            PVM";
+    // ASCII to PETSCII screen codes
+    for (int i=0; i<(int)sizeof(sign)-1; ++i)
+        _map[24*_mapSize.width() + i] = sign[i] & ~0x40;
+
 }

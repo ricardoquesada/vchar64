@@ -74,6 +74,8 @@ public:
      */
     void openDefaultDocument();
 
+    void readSettings();
+
 public slots:
     void xlinkConnected();
     void xlinkDisconnected();
@@ -96,7 +98,6 @@ protected:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    void readSettings();
     void saveSettings();
     void createActions();
     void createDefaults();

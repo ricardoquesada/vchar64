@@ -66,6 +66,11 @@ int main(int argc, char *argv[])
     QApplication::setWindowIcon(QIcon(":/res/logo512.png"));
 
     MainWindow* mainWin = MainWindow::getInstance();
+
+    // FIXME: readSettings() should be outside the constructor to prevent a recursion
+    // when the docks are floating
+    mainWin->readSettings();
+
     mainWin->show();
 
     QObject::connect(&app, &VChar64Application::fileOpenRequest, mainWin, &MainWindow::openFile);

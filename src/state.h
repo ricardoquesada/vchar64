@@ -493,6 +493,8 @@ protected:
     Char getCharFromTile(int tileIndex, int x, int y) const;
     void setCharForTile(int tileIndex, int x, int y, const Char& chr);
 
+    void setupDefaultMap();
+
     void floodFillImpl(const QPoint& coord, int targetTile, int newTile);
 
     void _setCharIndex(int charIndex);

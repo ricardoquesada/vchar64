@@ -84,8 +84,6 @@ MainWindow::MainWindow(QWidget *parent)
     createUndoView();
     setupMapDock();
     setupStatusBar();
-
-//    readSettings();
 }
 
 MainWindow::~MainWindow()
@@ -225,6 +223,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::createUndoView()
 {
     auto undoDock = new QDockWidget(tr("Undo List"), this);
+    undoDock->setObjectName(QStringLiteral("undoDock"));
 
     auto state = getState();
 
@@ -232,6 +231,8 @@ void MainWindow::createUndoView()
         _undoView = new QUndoView(state->getUndoStack(), undoDock);
     else
         _undoView = new QUndoView(undoDock);
+
+    _undoView->setObjectName(QStringLiteral("undoView"));
 
     undoDock->setWidget(_undoView);
     undoDock->setFloating(true);
@@ -245,13 +246,16 @@ void MainWindow::readSettings()
 {
     // before restoring settings, save the current layout
     // needed for "reset layout"
-    _settings.setValue(QLatin1String("MainWindow/0.11/defaultGeometry"), saveGeometry());
-    _settings.setValue(QLatin1String("MainWindow/0.11/defaultWindowState"), saveState());
+    _settings.setValue(QLatin1String("MainWindow/defaultGeometry"), saveGeometry());
+    _settings.setValue(QLatin1String("MainWindow/defaultWindowState"), saveState(11));
 
-    auto geom = _settings.value(QLatin1String("MainWindow/0.11/geometry")).toByteArray();
-    auto state = _settings.value(QLatin1String("MainWindow/0.11/windowState")).toByteArray();
+    auto geom = _settings.value(QLatin1String("MainWindow/geometry")).toByteArray();
+    auto state = _settings.value(QLatin1String("MainWindow/windowState")).toByteArray();
 
-    restoreState(state);
+    _settings.dumpObjectTree();
+//    qDebug() << state;
+//    qDebug() << geom;
+    restoreState(state, 11);
     restoreGeometry(geom);
 
     QAction* actions[] = {
@@ -267,8 +271,8 @@ void MainWindow::readSettings()
 
 void MainWindow::saveSettings()
 {
-    _settings.setValue(QLatin1String("MainWindow/0.11/geometry"), saveGeometry());
-    _settings.setValue(QLatin1String("MainWindow/0.11/windowState"), saveState());
+    _settings.setValue(QLatin1String("MainWindow/geometry"), saveGeometry());
+    _settings.setValue(QLatin1String("MainWindow/windowState"), saveState(11));
     _settings.setValue(QLatin1String("palette"), Palette::getActivePalette());
 }
 
