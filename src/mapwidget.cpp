@@ -184,6 +184,11 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
                     _selectingSize = {1,1};
                 }
                 _cursorPos = {x,y};
+
+                // update tileIndex
+                auto state = MainWindow::getCurrentState();
+                int mapOffset = _cursorPos.y() * _mapSize.width() + _cursorPos.x();
+                state->setTileIndex(state->getMapBuffer()[mapOffset]);
             }
 
             update();
@@ -322,8 +327,18 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
     }
     _selecting = selecting;
 
+    // update tile index
+    if (_cursorPos != oldCursorPos)
+    {
+        int mapOffset = _cursorPos.y() * _mapSize.width() + _cursorPos.x();
+        state->setTileIndex(state->getMapBuffer()[mapOffset]);
+    }
+
+    // update cursor or select range
     if (_cursorPos != oldCursorPos || _selecting != oldSelecting || _selectingSize != oldSelectingSize)
+    {
         update();
+    }
 
     if (_mode == PAINT_MODE && spacePressed)
     {
