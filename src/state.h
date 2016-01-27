@@ -384,7 +384,7 @@ public:
      * @param copyRange range to paste
      * @param origBuffer buffer that contains the data to paste
      */
-    void paste(int offset, const CopyRange* copyRange, const quint8* origBuffer);
+    void paste(int offset, const CopyRange &copyRange, const quint8* origBuffer);
 
     void cut(int offset, const CopyRange& copyRange);
 

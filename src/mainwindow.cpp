@@ -1073,7 +1073,7 @@ void MainWindow::on_actionPaste_triggered()
                     ? _ui->charsetWidget->getCursorPos()
                     : _ui->mapWidget->getCursorPos();
 
-        state->paste(cursorPos, range, buffer);
+        state->paste(cursorPos, *range, buffer);
     }
 }
 

@@ -830,7 +830,7 @@ void State::cut(int offset, const CopyRange &copyRange)
     getUndoStack()->push(new CutCommand(this, offset, copyRange));
 }
 
-void State::paste(int offset, const CopyRange* copyRange, const quint8* origBuffer)
+void State::paste(int offset, const CopyRange& copyRange, const quint8* origBuffer)
 {
     getUndoStack()->push(new PasteCommand(this, offset, copyRange, origBuffer));
 }

@@ -88,17 +88,17 @@ void ClearTileCommand::redo()
 
 // PasteCommand
 
-PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange* copyRange, const quint8* buffer, QUndoCommand *parent)
+PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& copyRange, const quint8* buffer, QUndoCommand *parent)
     : QUndoCommand(parent)
     , _state(state)
     , _charIndex(charIndex)
     , _copyBuffer(nullptr)
     , _origBuffer(nullptr)
-    , _copyRange(*copyRange)
+    , _copyRange(copyRange)
 {
 
     int sizeToCopy = -1;
-    if (copyRange->type == State::CopyRange::CHARS || copyRange->type == State::CopyRange::TILES)
+    if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES)
     {
         sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_ATTRIBS_BUFFER_SIZE;
         _copyBuffer = (quint8*)malloc(sizeToCopy);
@@ -159,13 +159,44 @@ void PasteCommand::redo()
 
 CutCommand::CutCommand(State *state, int charIndex, const State::CopyRange& copyRange, QUndoCommand *parent)
     : QUndoCommand(parent)
+    , _state(state)
+    , _charIndex(charIndex)
+    , _zeroBuffer(nullptr)
+    , _origBuffer(nullptr)
+    , _copyRange(copyRange)
 {
-    _charIndex = charIndex;
-    _state = state;
-    _copyRange = copyRange;
-    memset(_zeroBuffer, 0, sizeof(_zeroBuffer));
+    int sizeToCopy = -1;
+    if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES)
+    {
+        sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_ATTRIBS_BUFFER_SIZE;
+        _zeroBuffer = (quint8*)malloc(sizeToCopy);
+        _origBuffer = (quint8*)malloc(sizeToCopy);
 
-    setText(QObject::tr("Cut #%1").arg(_charIndex));
+        memset(_zeroBuffer, 0, sizeToCopy);
+    }
+    else /* MAP */
+    {
+        sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
+        _zeroBuffer = (quint8*)malloc(sizeToCopy);
+        _origBuffer = (quint8*)malloc(sizeToCopy);
+
+        memset(_zeroBuffer, 0 /*state->getTileIndex()*/, sizeToCopy);
+    }
+
+    static const QString types[] = {
+        QObject::tr("Chars"),
+        QObject::tr("Tiles"),
+        QObject::tr("Map")
+    };
+
+    setText(QObject::tr("Cut %1").
+            arg(types[_copyRange.type]));
+}
+
+CutCommand::~CutCommand()
+{
+    free(_zeroBuffer);
+    free(_origBuffer);
 }
 
 void CutCommand::undo()
@@ -179,7 +210,15 @@ void CutCommand::undo()
 
 void CutCommand::redo()
 {
-    memcpy(_origBuffer, _state->getCharsetBuffer(), sizeof(_origBuffer));
+    if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES)
+    {
+        memcpy(_origBuffer, _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
+        memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileAttribs(), State::TILE_ATTRIBS_BUFFER_SIZE);
+    }
+    else /* MAP */
+    {
+        memcpy(_origBuffer, _state->getMapBuffer(), _state->getMapSize().width() * _state->getMapSize().height());
+    }
     _state->_paste(_charIndex, _copyRange, _zeroBuffer);
 }
 // FlipTileHCommand

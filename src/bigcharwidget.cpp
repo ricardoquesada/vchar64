@@ -74,8 +74,9 @@ void BigCharWidget::paintPixel(int x, int y, int pen)
             pen = 1;
         _state->tilePaint(_tileIndex, QPoint(x,y), pen, _commandMergeable);
     }
+
     // redraw cursor
-    else update();
+    update();
 }
 
 void BigCharWidget::cyclePixel(int x, int y)
