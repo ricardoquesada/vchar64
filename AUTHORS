@@ -11,5 +11,6 @@ Henning Bekel (http://henning-bekel.de):
 
 
 Additional:
-Used [Tiled](http://mapeditor.org) source code to learn how to code an editor in Qt
+ - Used [Tiled](http://mapeditor.org) and [QtCreator](https://github.com/qtproject/qt-creator) source code to learn how to code an editor in Qt
+ - Somes ideas taken from [Charpad](http://www.subchristsoftware.com/charpad.htm) and [Cuneiform](http://csdb.dk/release/?id=110)
 

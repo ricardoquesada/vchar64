@@ -282,6 +282,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>(out of 256)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -344,10 +351,14 @@
     </layout>
    </item>
   </layout>
-  <zorder>frame</zorder>
-  <zorder>checkBoxGrid</zorder>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>ColorRectWidget</class>
+   <extends>QWidget</extends>
+   <header>colorrectwidget.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>ImportKoalaOrigWidget</class>
    <extends>QWidget</extends>
@@ -358,12 +369,6 @@
    <class>ImportKoalaConvWidget</class>
    <extends>QWidget</extends>
    <header>importkoalaconvwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ColorRectWidget</class>
-   <extends>QWidget</extends>
-   <header>colorrectwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

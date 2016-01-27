@@ -309,6 +309,7 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::tilePropertiesUpdated, _ui->mapWidget, &MapWidget::onTilePropertiesUpdated);
 
     connect(state, &State::mapSizeUpdated, _ui->mapWidget, &MapWidget::onMapSizeUpdated);
+    connect(state, &State::mapSizeUpdated, this, &MainWindow::onMapSizeUpdated);
     connect(state, &State::mapContentUpdated, _ui->mapWidget, &MapWidget::onMapContentUpdated);
 
     connect(state, &State::tileUpdated, bigcharWidget, &BigCharWidget::onTileUpdated);
@@ -394,7 +395,7 @@ void MainWindow::createActions()
 
     connect(_ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::onSubWindowActivated);
 
-    connect(_ui->spinBox_tileIndex, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged(int)));
+    connect(_ui->spinBox_tileIndex, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxValueChanged);
 
 
 //
@@ -428,9 +429,20 @@ void MainWindow::setupMapDock()
     toolbar->setIconSize(QSize(16,16));
     _ui->verticalLayout_map->addWidget(toolbar);
 
-    auto button = new QToolButton(this);
-    button->setText(tr("Map Size..."));
-    toolbar->addWidget(button);
+    auto label = new QLabel(tr("Map Size"), this);
+    toolbar->addWidget(label);
+    _spinBoxMapX = new QSpinBox(this);
+    _spinBoxMapY = new QSpinBox(this);
+    QSpinBox* spins[] = {_spinBoxMapX, _spinBoxMapY};
+    for (int i=0; i<2; i++)
+    {
+        spins[i]->setMinimum(1);
+        spins[i]->setMaximum(4096);
+        connect(spins[i], static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxMapSize_valueChanged);
+        toolbar->addWidget(spins[i]);
+    }
+
+    toolbar->addSeparator();
 
     auto checkBox = new QCheckBox(this);
     checkBox->setText(tr("Grid"));
@@ -448,7 +460,6 @@ void MainWindow::setupMapDock()
 
     _ui->actionSelect_Mode->setChecked(true);
 
-    connect(button, &QToolButton::clicked, this, &MainWindow::onToolButton_mapSize_clicked);
     connect(checkBox, &QCheckBox::clicked, this, &MainWindow::onCheckBox_map_clicked);
 }
 
@@ -484,6 +495,9 @@ void MainWindow::updateMenus()
     _ui->menuEdit->setEnabled(withDocuments);
     _ui->menuTile->setEnabled(withDocuments);
     _ui->menuColors->setEnabled(withDocuments);
+
+    _spinBoxMapX->setEnabled(withDocuments);
+    _spinBoxMapY->setEnabled(withDocuments);
 
     QAction* actions[] =
     {
@@ -1155,10 +1169,29 @@ void MainWindow::on_actionMap_Properties_triggered()
     dialog.exec();
 }
 
-void MainWindow::onToolButton_mapSize_clicked()
+void MainWindow::onSpinBoxMapSize_valueChanged(int newValue)
 {
-    on_actionMap_Properties_triggered();
+    Q_UNUSED(newValue);
+    auto state = getState();
+    if (state)
+    {
+        int x = _spinBoxMapX->value();
+        int y = _spinBoxMapY->value();
+        state->setMapSize(QSize(x,y));
+    }
 }
+
+void MainWindow::onMapSizeUpdated()
+{
+    auto state = getState();
+    if (state)
+    {
+        auto mapSize = state->getMapSize();
+        _spinBoxMapX->setValue(mapSize.width());
+        _spinBoxMapY->setValue(mapSize.height());
+    }
+}
+
 
 void MainWindow::onCheckBox_map_clicked(bool checked)
 {

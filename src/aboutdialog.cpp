@@ -27,7 +27,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
     const char *htmlraw = R"html(
 <p align="center"><img height="92" width="92" src=":/res/logo512.png"></p>
 <p align="center"><font size="+2"><b>VChar64</b></font><br><i>Version %1</i></p>
-<p align="center">Copyright 2015 Ricardo Quesada<br>(see the <a href="https://github.com/ricardoquesada/vchar64/blob/master/AUTHORS">AUTHORS</a> file for a full list of contributors)</p>
+<p align="center">Copyright 2015, 2016 Ricardo Quesada<br>(see the <a href="https://github.com/ricardoquesada/vchar64/blob/master/AUTHORS">AUTHORS</a> file for a full list of contributors)</p>
 <p align="center">You may modify and redistribute this program under the terms of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License v2.0.<a/>
 <p align="center"><a href="https://github.com/ricardoquesada/vchar64/">https://github.com/ricardoquesada/vchar64</a></p>
 )html";

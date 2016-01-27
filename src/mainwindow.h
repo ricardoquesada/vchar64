@@ -28,6 +28,7 @@ class QUndoView;
 class QLabel;
 class QMdiSubWindow;
 class QUndoView;
+class QSpinBox;
 QT_END_NAMESPACE
 
 namespace Ui {
@@ -184,7 +185,8 @@ private slots:
     void on_actionMap_Properties_triggered();
 
     void onCheckBox_map_clicked(bool checked);
-    void onToolButton_mapSize_clicked();
+    void onSpinBoxMapSize_valueChanged(int newValue);
+    void onMapSizeUpdated();
 
     void on_actionFill_Map_triggered();
 
@@ -204,4 +206,8 @@ private:
     QUndoView* _undoView;
 
     QSettings _settings;
+
+    // FIXME: Should be moved to the "map dock" once it is implemented
+    QSpinBox* _spinBoxMapX;
+    QSpinBox* _spinBoxMapY;
 };
