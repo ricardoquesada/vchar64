@@ -737,6 +737,16 @@ void MainWindow::activatePalette(int paletteIndex)
 
     for (int i=0; i<5; i++)
         actions[i]->setChecked(i==paletteIndex);
+
+    // FIXME: there should be an event to propage the palette changes...
+    // in the meantime, do it manually
+    _ui->dockWidget_colors->update();
+    _ui->tilesetWidget->update();
+    _ui->charsetWidget->update();
+    _ui->mapWidget->update();
+    auto state = getState();
+    if (state)
+        state->getBigCharWidget()->update();
 }
 
 void MainWindow::on_actionPalette_0_triggered()
