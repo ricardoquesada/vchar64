@@ -104,14 +104,18 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
 
 qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5header)
 {
-    if (!(v5header->flags & 0b00000010))
+    // Must be expanded, or tile system disabled:
+    // flags that we don't want: flags & 0b11 = 0b01
+    if ((v5header->flags & 0b00000011) == 0b00000001)
     {
         MainWindow::getInstance()->setErrorMessage(QObject::tr("Error: CTM is not expanded"));
         qDebug() << "CTM is not expanded. Cannot load it";
         return -1;
     }
 
-    int num_chars = qFromLittleEndian(v5header->num_chars);
+    int num_chars = qFromLittleEndian(v5header->num_chars) + 1;
+    int num_tiles = qFromLittleEndian(v5header->num_tiles) + 1;
+    QSize map_size = QSize(qFromLittleEndian(v5header->map_width), qFromLittleEndian(v5header->map_height));
     int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
 
     // clean previous memory in case not all the chars are loaded
@@ -131,22 +135,41 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
     tp.size.setHeight(qMax((int)v5header->tile_height,1));
     state->_setTileProperties(tp);
 
-    if (v5header->color_mode == 0 || v5header->color_mode == 1)
-    {
-        state->_setForegroundColorMode((State::ForegroundColorMode)v5header->color_mode);
-        state->_setMapSize(QSize(v5header->map_width, v5header->map_height));
 
-        // skip char_data
+    // if color_mode is per_char, convert it to per_tile
+    state->_setForegroundColorMode((State::ForegroundColorMode)!!v5header->color_mode);
+    state->_setMapSize(map_size);
+
+    // color_mode == PER CHAR ?
+    if (v5header->color_mode == 2)
+    {
+        // place char attribs in tile attribs
+        file.read((char*)state->_tileAttribs, num_chars);
+        // clean the upper nibble
+        for (int i=0; i<num_chars; ++i)
+            state->_tileAttribs[i] &= 0x0f;
+    }
+    else
+    {
+        // if colo
         file.seek(file.pos() + num_chars);
 
-        // since it is expanded, there are no tile_data
-
-        // read tile_colours
-        file.read((char*)state->_tileAttribs, v5header->num_tiles);
-
-        // read map
-        file.read((char*)state->_map, v5header->tile_height * v5header->tile_width);
+        // color_mode == PER TILE ? or GLOBAL?
+        file.read((char*)state->_tileAttribs, num_tiles);
     }
+
+    // since it is expanded, there are no tile_data
+
+    int mapInBytes = map_size.width() * map_size.height();
+    quint16* tmpBuffer = (quint16*) malloc(mapInBytes * 2);
+    // read map
+    file.read((char*)tmpBuffer, mapInBytes * 2);
+    for (int i=0; i<mapInBytes; i++)
+    {
+        // FIXME: what happens with tiles bigger than 255?
+        state->_map[i] = tmpBuffer[i] & 0xff;
+    }
+    free(tmpBuffer);
 
     return total;
 }

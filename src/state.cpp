@@ -129,6 +129,8 @@ void State::refresh()
     emit tilePropertiesUpdated();
     emit multicolorModeToggled(shouldBeDisplayedInMulticolor());
     emit colorPropertiesUpdated(_selectedPen);
+    emit mapSizeUpdated();
+    emit mapContentUpdated();
 }
 
 void State::emitNewState()
