@@ -328,7 +328,7 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
     _selecting = selecting;
 
     // update tile index
-    if (_cursorPos != oldCursorPos)
+    if (_mode == SELECT_MODE && _cursorPos != oldCursorPos)
     {
         int mapOffset = _cursorPos.y() * _mapSize.width() + _cursorPos.x();
         state->setTileIndex(state->getMapBuffer()[mapOffset]);
