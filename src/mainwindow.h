@@ -79,7 +79,6 @@ public slots:
     void serverConnected();
     void serverDisconnected();
     void documentWasModified();
-    void updateWindow();
     void onCharIndexUpdated(int);
     void onMulticolorModeToggled(bool);
     void onTilePropertiesUpdated();

@@ -128,28 +128,6 @@ void MainWindow::documentWasModified()
     setWindowModified(modified);
 }
 
-void MainWindow::updateWindow()
-{
-    update();
-
-    // update event() does not get propagated if dockWidget are floating.
-    // manual update it
-    if (_ui->dockWidget_charset->isFloating())
-        _ui->charsetWidget->update();
-    if (_ui->dockWidget_tileset->isFloating())
-        _ui->tilesetWidget->update();
-    if (_ui->dockWidget_map->isFloating())
-        _ui->mapWidget->update();
-
-    if (_ui->dockWidget_colors->isFloating())
-        _ui->dockWidget_colors->update();
-    if (_ui->dockWidget_tileIndex->isFloating())
-        _ui->dockWidget_tileIndex->update();
-
-    if (_ui->mdiArea->currentSubWindow())
-        _ui->mdiArea->currentSubWindow()->update();
-}
-
 void MainWindow::onTilePropertiesUpdated()
 {
     // update max tile index
@@ -184,8 +162,11 @@ void MainWindow::onMulticolorModeToggled(bool newvalue)
 
 void MainWindow::onColorPropertiesUpdated(int pen)
 {
-    auto state = getState();
+    // update components in the "color widget"
+    _ui->dockWidget_colors->update();
 
+    // udpate the status bar
+    auto state = getState();
     if (state)
     {
         int color = state->getColorForPen(pen, state->getTileIndex());
@@ -338,7 +319,7 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::charsetUpdated, _ui->tilesetWidget, &TilesetWidget::onCharsetUpdated);
     connect(state, &State::charsetUpdated, _ui->mapWidget, &MapWidget::onCharsetUpdated);
     connect(state, &State::charIndexUpdated, this, &MainWindow::onCharIndexUpdated);
-    connect(state, &State::fileLoaded, this, &MainWindow::updateWindow);
+//    connect(state, &State::fileLoaded, this, &MainWindow::updateWindow);
     connect(state, &State::colorPropertiesUpdated, this, &MainWindow::onColorPropertiesUpdated);
     connect(state, &State::colorPropertiesUpdated, bigcharWidget, &BigCharWidget::onColorPropertiesUpdated);
     connect(state, &State::colorPropertiesUpdated, _ui->charsetWidget, &CharsetWidget::onColorPropertiesUpdated);
@@ -598,7 +579,6 @@ void MainWindow::on_actionEmptyProject_triggered()
     auto state = new State;
 
     createDocument(state);
-    updateWindow();
     setWindowFilePath(tr("(untitled)"));
     _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
     _ui->mdiArea->currentSubWindow()->setWindowTitle(tr("(untitled)"));
@@ -610,7 +590,6 @@ void MainWindow::on_actionC64DefaultUppercase_triggered()
     if (state->openFile(":/res/c64-chargen-uppercase.bin"))
     {
         createDocument(state);
-        updateWindow();
         setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowTitle(tr("(untitled)"));
@@ -627,7 +606,6 @@ void MainWindow::on_actionC64DefaultLowercase_triggered()
     if (state->openFile(":/res/c64-chargen-lowercase.bin"))
     {
         createDocument(state);
-        updateWindow();
         setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowTitle(tr("(untitled)"));
@@ -759,8 +737,6 @@ void MainWindow::activatePalette(int paletteIndex)
 
     for (int i=0; i<5; i++)
         actions[i]->setChecked(i==paletteIndex);
-
-    updateWindow();
 }
 
 void MainWindow::on_actionPalette_0_triggered()

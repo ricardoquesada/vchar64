@@ -70,7 +70,7 @@ void BigCharWidget::paintPixel(int x, int y, int pen)
 {
     if (_state->tileGetPen(_tileIndex, QPoint(x,y)) != pen)
     {
-        if (!_state->shouldBeDisplayedInMulticolor() && pen)
+        if (!_state->shouldBeDisplayedInMulticolor2(_tileIndex) && pen)
             pen = 1;
         _state->tilePaint(_tileIndex, QPoint(x,y), pen, _commandMergeable);
     }
@@ -90,7 +90,7 @@ void BigCharWidget::cyclePixel(int x, int y)
     int nextPenHR[] = {State::PEN_FOREGROUND,
                        State::PEN_BACKGROUND};
 
-    if (_state->shouldBeDisplayedInMulticolor())
+    if (_state->shouldBeDisplayedInMulticolor2(_tileIndex))
         pen = nextPenMC[pen];
     else
         pen = nextPenHR[pen];
@@ -158,8 +158,10 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
 {
     event->accept();
 
+    bool updated = false;
+    bool ismc = _state->shouldBeDisplayedInMulticolor2(_tileIndex);
     auto oldCursorPos = _cursorPos;
-    int increment_x = _state->shouldBeDisplayedInMulticolor() ? 2 : 1;
+    int increment_x =  ismc ? 2 : 1;
 
     switch (event->key()) {
     case Qt::Key_Left:
@@ -176,20 +178,27 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_1:
         paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_BACKGROUND);
+        updated = true;
         break;
     case Qt::Key_2:
         paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_FOREGROUND);
+        updated = true;
         break;
     case Qt::Key_3:
-        if (_state->shouldBeDisplayedInMulticolor())
+        if (ismc) {
             paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_MULTICOLOR1);
+            updated = true;
+        }
         break;
     case Qt::Key_4:
-        if (_state->shouldBeDisplayedInMulticolor())
+        if (ismc) {
             paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_MULTICOLOR2);
+            updated = true;
+        }
         break;
     case Qt::Key_Space:
         cyclePixel(_cursorPos.x(), _cursorPos.y());
+        updated = true;
         break;
     default:
         QWidget::keyPressEvent(event);
@@ -200,6 +209,9 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
 
     // redraw cursor
     if (oldCursorPos != _cursorPos)
+        updated = true;
+
+    if (updated)
         update();
 }
 
@@ -249,7 +261,7 @@ void BigCharWidget::paintCursor(QPainter& painter)
 
     int bit_width = 1;
     int x = _cursorPos.x();
-    if (_state->shouldBeDisplayedInMulticolor())
+    if (_state->shouldBeDisplayedInMulticolor2(_tileIndex))
     {
         bit_width = 2;
 

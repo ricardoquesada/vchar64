@@ -30,6 +30,7 @@ limitations under the License.
 #include "stateimport.h"
 #include "stateexport.h"
 #include "commands.h"
+#include "palette.h"
 
 const int State::CHAR_BUFFER_SIZE;
 
