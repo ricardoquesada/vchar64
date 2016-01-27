@@ -402,7 +402,7 @@ public:
     void tileShiftUp(int tileIndex);
     void tileShiftDown(int tileIndex);
 
-    /** Returns the used pen for a certain bit of a tile.
+    /** Returns the used pen for a certain position of a tile.
         returns 0 or 1 in normal mode
         returns 0, 1, 2 or 3 in multicolor mode
     */
