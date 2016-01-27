@@ -80,7 +80,9 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
     char ignore[4];
     file.read(ignore, sizeof(ignore));
 
-    int num_chars = qFromLittleEndian(v4header->num_chars);
+    int num_chars = qFromLittleEndian(v4header->num_chars) + 1;
+    int num_tiles = v4header->num_tiles + 1;
+    QSize map_size = QSize(qFromLittleEndian(v4header->map_width), qFromLittleEndian(v4header->map_height));
     int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
 
     // clean previous memory in case not all the chars are loaded
@@ -89,15 +91,63 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
     auto total = file.read((char*)state->_charset, toRead);
 
     for (int i=0; i<4; i++)
-        state->setColorForPen(i, v4header->colors[i]);
+        state->_setColorForPen(i, v4header->colors[i], -1);
 
-    state->setMulticolorMode(v4header->vic_res);
+    state->_setMulticolorMode(v4header->vic_res);
 
     State::TileProperties tp;
     tp.interleaved = 1;
     tp.size.setWidth(v4header->tile_width);
     tp.size.setHeight(v4header->tile_height);
     state->setTileProperties(tp);
+
+    // cell data is not present when not expanded...
+
+    // if color_mode is per_char, convert it to per_tile
+    state->_setForegroundColorMode((State::ForegroundColorMode)!!v4header->color_mode);
+    state->_setMapSize(map_size);
+
+    if (v4header->color_mode == 0)
+    {
+        /* global */
+
+        /* skip char attribs */
+        file.seek(file.pos() + num_chars);
+
+        /* skip cell attribs */
+        file.seek(file.pos() + num_tiles * v4header->tile_width * v4header->tile_height);
+
+        /* no tile attribs */
+    }
+    else if (v4header->color_mode == 1)
+    {
+        /* tile attribs */
+
+        /* skip char attribs */
+        file.seek(file.pos() + num_chars);
+
+        /* skip cell attribs */
+        file.seek(file.pos() + num_tiles * v4header->tile_width * v4header->tile_height);
+
+        /* read tile attribs */
+        total += file.read((char*)state->_tileAttribs, num_tiles);
+    }
+    else if (v4header->color_mode == 2)
+    {
+        /* char attribs */
+
+        /* skip char attribs */
+        total += file.read((char*)state->_tileAttribs, num_chars);
+
+        /* skip cell attribs */
+        file.seek(file.pos() + num_tiles * v4header->tile_width * v4header->tile_height);
+
+        /* no tile attribs */
+    }
+
+    int mapInBytes = map_size.width() * map_size.height();
+    // read map
+    total += file.read((char*)state->_map, mapInBytes);
 
     return total;
 }
@@ -151,11 +201,12 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
     }
     else
     {
-        // if colo
         file.seek(file.pos() + num_chars);
 
-        // color_mode == PER TILE ? or GLOBAL?
-        file.read((char*)state->_tileAttribs, num_tiles);
+        if (v5header->color_mode == 1)
+            file.read((char*)state->_tileAttribs, num_tiles);
+        /* else, don't read in global mode */
+
     }
 
     // since it is expanded, there are no tile_data
