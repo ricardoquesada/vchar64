@@ -538,7 +538,7 @@ int State::tileGetPen(int tileIndex, const QPoint& position)
     int ret = 0;
 
     // not multicolor: expected result: 0 or 1
-    if (!_multicolorMode)
+    if (!shouldBeDisplayedInMulticolor2(tileIndex))
     {
         uint8_t mask = 1 << (7-b);
         ret = (c & mask) >> (7-b);
@@ -575,7 +575,7 @@ void State::_tileSetPen(int tileIndex, const QPoint& position, int pen)
     uint8_t b = bitIndex%8;
     uint8_t and_mask = 0x00;
     uint8_t or_mask = 0x00;
-    if (!shouldBeDisplayedInMulticolor())
+    if (!shouldBeDisplayedInMulticolor2(tileIndex))
     {
         and_mask = 1 << (7-b);
         or_mask = pen << (7-b);
@@ -1155,7 +1155,7 @@ void State::_tileShiftLeft(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
-    int times = shouldBeDisplayedInMulticolor() ? 2 : 1;
+    int times = shouldBeDisplayedInMulticolor2(tileIndex) ? 2 : 1;
 
     // shift two times in multicolor mode
     for (int i=0; i<times; ++i)
@@ -1200,7 +1200,7 @@ void State::_tileShiftRight(int tileIndex)
     quint8* charPtr = getCharAtIndex(charIndex);
 
     // shift two times in multicolor mode
-    int times = shouldBeDisplayedInMulticolor() ? 2 : 1;
+    int times = shouldBeDisplayedInMulticolor2(tileIndex) ? 2 : 1;
     for (int i=0; i<times; i++)
     {
         // top tile first
