@@ -1,30 +1,36 @@
-0.0.11 (xx February 2016)
+0.0.11 (?? February 2016) (Happy Birthday Release)
 
-* [NEW]: Added Koala import support. Only works if it can convert it in <= 256
-	chars
+* [NEW]: Added Koala import support.
+        Includes different heuristics
+        Only works if it can convert the image in 256 or less chars
 * [NEW]: Added Tile Map support
-	Supports copy & paste & cut
-	It has Rect Select, Flood Fill, Paint tools. Plus Clear and Grid
-	'Export' supports exporting the map data
+        Supports copy & paste & cut
+        It has Rect Select, Flood Fill, Paint tools. Plus Clear and Grid
+        'Export' supports exporting the map data
 * [NEW]: Added "one foregrond color per tile" mode (the other one is Global colors)
-	'Export' supports exporting the "tile colors"
+        'Export' supports exporting the "tile colors"
 * [NEW]: Import CharPad: Added support for tile colors and map
 * [NEW]: Tile Dock: has an scroll area
-* [NEW]: Added "tests" subdirectory which contains many... test files
+* [NEW]: Tests: added new subdirectory which contains many... test files
+* [NEW]: Examples: added Commando and Subchrist Chrome examples
 * [NEW]: Menu: Moved "Tile" actions from 'Edit' to 'Tile'
-		Moved docks actions from "View / Views" to "View"
-		Added new "Map" menu
+         Moved docks actions from "View / Views" to "View"
+         Added new "Map" menu
 * [NEW] Toolbar: Added "New", "Undo" and "Redo" actions
+* [NEW] Server: C128 images uses a .d71 disk image instead of a .d64 disk
+        image
 * [BUGFIX] Color Dock: Pens were grouped in the "Pen" group
-	Color Palette grows/shrinks automatically
+        Color Palette grows/shrinks automatically
 * [BUGFIX]: Internal code: signals code simplified. Less duplicate signals
+        (faster redraws)
 * [BUGFIX]: Shortcuts 1,2,3,4 work as expected again
-* [BUGFIX]: Imports CharPad files correctly
+* [BUGFIX]: Imports CharPad files correctly (both v4 and v5 format)
+
 
 0.0.10 (5 January 2016)
 
 * [NEW] C64/C128 VChar TCP/IP server. Allows to preview your changes in
-	real C64 or C128 (in C128 mode).
+        real C64 or C128 (in C128 mode).
 * [NEW] Xlink menu moved under the "Preview" menu
 * [BUGFIX] Fix minor bugs in Xlink.
 
@@ -49,8 +55,8 @@
 * [NEW] When focus in BigcharWidget, 'space' sets the next pen
 * [NEW] When focus in BigcharWidget, keys '1', '2', '3', '4' sets
         BACKGROUND, FOREGROUND, MULTICOLOR1 and MULTICOLOR2 respectively
-	Kind of restoring the old behavior, but instead of changing the color
-	it sets the pixel with those colors
+        Kind of restoring the old behavior, but instead of changing the color
+        it sets the pixel with those colors
 * [NEW] TilesetWidget view: previews the "chars" as "tiles".
 * [NEW] Associates .vchar64proj to VChar64
 * [NEW] Added support to import VICE Snapshot files
@@ -59,7 +65,7 @@
 * [NEW] Added "View -> Reset Layout"
 * [NEW] Reports errors on status bar
 * [NEW] New samples: boulderdash_1x2, caren_1x2,cuneiform_2x2
-	ianmic02_2x2,rambo_2x2, reset04_2x3,reset06_3x3,reset07_2x2
+        ianmic02_2x2,rambo_2x2, reset04_2x3,reset06_3x3,reset07_2x2
 
 * [BUGFIX] Clear Tile works as expected with interleaved tiles
 * [BUGFIX] Tile Index / Rotate Action udpated correctly after tile properties
