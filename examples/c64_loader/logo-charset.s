@@ -1,4 +1,5 @@
-; Exported from VChar64
+; Exported using VChar64 v0.0.10-83-g24ef-dirty
+; Total bytes: 2048
 charset:
 .byte $7a,$6a,$6a,$6a,$2a,$aa,$aa,$aa,$b4,$a4,$a5,$a4,$a1,$a9,$a8,$ab	; 0
 .byte $ba,$ea,$aa,$aa,$aa,$aa,$aa,$aa,$bb,$ae,$ab,$be,$fa,$ea,$aa,$aa	; 16
@@ -128,3 +129,4 @@ charset:
 .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	; 2000
 .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	; 2016
 .byte $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00	; 2032
+CHARSET_COUNT = 2048

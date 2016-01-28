@@ -20,6 +20,7 @@ limitations under the License.
 #include <QByteArray>
 #include <QTextStream>
 #include <QDebug>
+#include <QApplication>
 
 
 #include "stateimport.h"
@@ -125,7 +126,8 @@ qint64 StateExport::saveAsm(const QString& filename, const void* buffer, int buf
     const unsigned char* charBuffer = (const unsigned char*) buffer;
 
     QTextStream out(&file);
-    out << "; Exported from VChar64\n";
+    out << "; Exported using VChar64 v" << QApplication::applicationVersion() << "\n";
+    out << "; Total bytes: " << bufferSize << "\n";
     out << label << ":\n";
     for (int i=0; i<bufferSize;)
     {
@@ -144,6 +146,7 @@ qint64 StateExport::saveAsm(const QString& filename, const void* buffer, int buf
         }
         out << "\t; " << dec << i-j << "\n";
     }
+    out << label.toUpper() << "_COUNT = " << bufferSize << "\n";
 
     qDebug() << "File exported as ASM successfully: " << file.fileName();
     out.flush();

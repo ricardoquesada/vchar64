@@ -221,7 +221,7 @@ static QString filenameFixSuffix(const QString& filename, State::ExportFeature s
     QString validDescriptions[] = {
         "-charset",
         "-map",
-        "-attribs"
+        "-colors"
     };
     const int MAX_DESC = sizeof(validDescriptions) / sizeof(validDescriptions[0]);
 
@@ -335,7 +335,7 @@ bool State::exportAsm(const QString& filename, int whatToExport)
 
     if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_ATTRIBS),
-                                     _tileAttribs, sizeof(_tileAttribs), "attribs") > 0);
+                                     _tileAttribs, sizeof(_tileAttribs), "colors") > 0);
 
     if (ret)
     {

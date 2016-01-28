@@ -98,7 +98,7 @@ dst_hi = * + 2
 
         ; copies 256 chars
         ldx #$00
-loop:   lda logo + $0000,x
+loop:   lda map + $0000,x
         sta $0400 + $0000,x             ; screen chars
 
         ; copies its color
@@ -108,13 +108,13 @@ loop:   lda logo + $0000,x
 
         ; copies 256 chars as well, but overwrites
         ; some of the previous one. it copies 144 new chars
-        lda logo  + (LOGO_COUNT .MOD 256),x
-        sta $0400 + (LOGO_COUNT .MOD 256),x ; screen chars
+        lda map + (MAP_COUNT .MOD 256),x
+        sta $0400 + (MAP_COUNT .MOD 256),x ; screen chars
 
         ; copies its color
         tay
         lda colors,y
-        sta $d800 + (LOGO_COUNT .MOD 256),x ; colors for the chars
+        sta $d800 + (MAP_COUNT .MOD 256),x ; colors for the chars
 
         inx
         bne loop
@@ -122,6 +122,6 @@ loop:   lda logo + $0000,x
         rts
 .endproc
 
-.include "logo-attribs.s"
+.include "logo-colors.s"
 .include "logo-map.s"
 .include "logo-charset.s"
