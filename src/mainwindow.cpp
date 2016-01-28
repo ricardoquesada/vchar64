@@ -53,6 +53,7 @@ limitations under the License.
 #include "mapwidget.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
+static const int STATE_VERSION = 11;
 
 MainWindow* MainWindow::getInstance()
 {
@@ -247,15 +248,12 @@ void MainWindow::readSettings()
     // before restoring settings, save the current layout
     // needed for "reset layout"
     _settings.setValue(QLatin1String("MainWindow/defaultGeometry"), saveGeometry());
-    _settings.setValue(QLatin1String("MainWindow/defaultWindowState"), saveState(11));
+    _settings.setValue(QLatin1String("MainWindow/defaultWindowState"), saveState(STATE_VERSION));
 
     auto geom = _settings.value(QLatin1String("MainWindow/geometry")).toByteArray();
     auto state = _settings.value(QLatin1String("MainWindow/windowState")).toByteArray();
 
-    _settings.dumpObjectTree();
-//    qDebug() << state;
-//    qDebug() << geom;
-    restoreState(state, 11);
+    restoreState(state, STATE_VERSION);
     restoreGeometry(geom);
 
     QAction* actions[] = {
@@ -272,7 +270,7 @@ void MainWindow::readSettings()
 void MainWindow::saveSettings()
 {
     _settings.setValue(QLatin1String("MainWindow/geometry"), saveGeometry());
-    _settings.setValue(QLatin1String("MainWindow/windowState"), saveState(11));
+    _settings.setValue(QLatin1String("MainWindow/windowState"), saveState(STATE_VERSION));
     _settings.setValue(QLatin1String("palette"), Palette::getActivePalette());
 }
 
@@ -1252,9 +1250,9 @@ void MainWindow::on_actionPrevious_Tile_triggered()
 
 void MainWindow::on_actionReset_Layout_triggered()
 {
-    auto geom = _settings.value(QLatin1String("MainWindow/0.11/defaultGeometry")).toByteArray();
-    auto state = _settings.value(QLatin1String("MainWindow/0.11/defaultWindowState")).toByteArray();
-    restoreState(state);
+    auto geom = _settings.value(QLatin1String("MainWindow/defaultGeometry")).toByteArray();
+    auto state = _settings.value(QLatin1String("MainWindow/defaultWindowState")).toByteArray();
+    restoreState(state, STATE_VERSION);
     restoreGeometry(geom);
 
 //    // center it
