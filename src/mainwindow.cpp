@@ -1177,7 +1177,14 @@ void MainWindow::onSpinBoxMapSize_valueChanged(int newValue)
     {
         int x = _spinBoxMapX->value();
         int y = _spinBoxMapY->value();
-        state->setMapSize(QSize(x,y));
+        QSize newSize(x,y);
+        // FIXME: onMapSizeUpdated() calls setValue()
+        // and setValue() triggers this callback, but it is possible
+        // that no value was changed. So in order to avoid
+        // an action in the UndoView, we check first the size
+        auto currentSize = state->getMapSize();
+        if (newSize != currentSize)
+            state->setMapSize(newSize);
     }
 }
 
