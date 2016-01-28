@@ -13,8 +13,9 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 
 ## Features
 
-* Char editing: 
-    * Clear, Copy & Paste
+* Char editing:
+    * Cut, Copy & Paste
+    * Clear
     * Invert
     * Flip Horizontally, Vertically
     * Rotate
@@ -23,8 +24,11 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 * Tile support:
     * From 1x1 to 8x8
     * Custom Distance in chars between tiles
+* Map support    
 * Imports CharPad 1.8 and 2.0 projects
-* Exports to Raw and Prg
+* Imports Koala image files
+* Imports VICE snapshot images
+* Exports to Assembly, Raw and Prg
 * Emulates different palettes: VICE, Pepto, Frodo, etc...
 * Two Live Preview modes:
     * [TCP/IP server](https://github.com/ricardoquesada/vchar64/blob/master/server/README.md) support. Video: https://www.youtube.com/watch?v=yNCK_wZbo40
@@ -34,13 +38,11 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 
 In no particular order:
 
-* Images support
-   * Import images and convert them to charset + color
-* Tilemap editor (similar to CharPad but with Tiled look & feel)
-   * Tile free
-   * Map + tile editing
-   * Character / Tile animation support
-   * Add mini-character / mini-tile view
+* Improved Koala Import support
+* Import Koala to PETSCII
+* Improved Tile Map editor
+* Improved Tile support
+* Character / Tile animation support
 * Sprite
    * Sprite editing
    * Sprite animation

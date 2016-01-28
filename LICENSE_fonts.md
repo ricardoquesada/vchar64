@@ -1,5 +1,5 @@
-Resources in the example directory were ripped from different programs.
-Unknown license, most probably proprietary license.
+Resources in the example directory were ripped/taken from different programs.
+Most probably they are under a proprietary license. Don't use them, they are provided just as examples.
 
 * astra_2x2: http://kofler.dot.at/c64/download/astra_xy_multi.zip
 * boulderdash_1x2: From [Boulder Dash](http://csdb.dk/release/?id=82884) game
