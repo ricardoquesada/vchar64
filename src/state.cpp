@@ -1423,11 +1423,13 @@ void State::setupDefaultMap()
         {74, 114, 75},
         {67, 91, 67},
         {32, 66, 32},
-        {112, 113, 110},
-        {66, 32, 66},
+        {32, 114, 32},
+        {85, 113, 73},
+        {66, 86, 66},
+        {74, 67, 75}
     };
     const int centerOffset = 5 * _mapSize.width() + 19;
-    for (int y=0; y<7; ++y)
+    for (int y=0; y<9; ++y)
     {
         for (int x=0; x<3; ++x)
             _map[y * _mapSize.width() + x + centerOffset] = happy[y][x];
