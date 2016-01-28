@@ -448,9 +448,7 @@ void MainWindow::setupMapDock()
 
     toolbar->addSeparator();
 
-    auto checkBox = new QCheckBox(this);
-    checkBox->setText(tr("Grid"));
-    toolbar->addWidget(checkBox);
+    toolbar->addAction(_ui->actionToggle_Grid);
 
     toolbar->addSeparator();
 
@@ -463,8 +461,6 @@ void MainWindow::setupMapDock()
     toolbar->addAction(_ui->actionClear_Map);
 
     _ui->actionSelect_Mode->setChecked(true);
-
-    connect(checkBox, &QCheckBox::clicked, this, &MainWindow::onCheckBox_map_clicked);
 }
 
 void MainWindow::setupStatusBar()
@@ -1196,12 +1192,6 @@ void MainWindow::onMapSizeUpdated()
     }
 }
 
-
-void MainWindow::onCheckBox_map_clicked(bool checked)
-{
-    _ui->mapWidget->enableGrid(checked);
-}
-
 void MainWindow::on_actionXlinkConnection_triggered()
 {
     auto preview = XlinkPreview::getInstance();
@@ -1334,6 +1324,11 @@ void MainWindow::on_actionSelect_Mode_triggered()
     _ui->mapWidget->setMode(MapWidget::SELECT_MODE);
 }
 
+void MainWindow::on_actionToggle_Grid_triggered()
+{
+    _ui->mapWidget->enableGrid(_ui->actionToggle_Grid->isChecked());
+}
+
 //
 //
 BigCharWidget* MainWindow::getBigcharWidget() const
@@ -1404,3 +1399,4 @@ bool MainWindow::bufferFromClipboard(State::CopyRange **out_range, quint8** out_
 
     return true;
 }
+

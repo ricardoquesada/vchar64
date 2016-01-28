@@ -653,5 +653,6 @@
         <file>res/icons/16x16/actions/zoom-out.png</file>
         <file>res/icons/22x22/actions/stock-tool-bucket-fill.png</file>
         <file>res/icons/22x22/actions/stock-tool-rect-select.png</file>
+        <file>res/icons/22x22/actions/stock-tool-grid.png</file>
     </qresource>
 </RCC>

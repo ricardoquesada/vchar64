@@ -1029,6 +1029,21 @@
     <string>Rectangular Select Tool</string>
    </property>
   </action>
+  <action name="actionToggle_Grid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/res/icons/22x22/actions/stock-tool-grid.png</normaloff>:/res/icons/22x22/actions/stock-tool-grid.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Grid</string>
+   </property>
+   <property name="toolTip">
+    <string>Enables / Disables Grid</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

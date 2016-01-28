@@ -185,7 +185,6 @@ private slots:
 
     void on_actionMap_Properties_triggered();
 
-    void onCheckBox_map_clicked(bool checked);
     void onSpinBoxMapSize_valueChanged(int newValue);
     void onMapSizeUpdated();
 
@@ -196,6 +195,8 @@ private slots:
     void on_actionSelect_Mode_triggered();
 
     void on_actionClear_Map_triggered();
+
+    void on_actionToggle_Grid_triggered();
 
 private:
     QVector<QAction*> _recentFiles;
