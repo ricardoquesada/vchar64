@@ -126,6 +126,13 @@ void MainWindow::documentWasModified()
         modified |= static_cast<BigCharWidget*>(l->widget())->getState()->isModified();
     }
     setWindowModified(modified);
+
+    auto state = getState();
+    if (state)
+    {
+        _ui->actionUndo->setEnabled(state->getUndoStack()->canUndo());
+        _ui->actionRedo->setEnabled(state->getUndoStack()->canRedo());
+    }
 }
 
 void MainWindow::onTilePropertiesUpdated()
