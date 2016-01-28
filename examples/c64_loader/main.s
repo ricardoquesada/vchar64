@@ -51,7 +51,7 @@ loop1:  sta $0400,x                     ; clears the screen memory
 
         lda colors + $67               ; get color for tile $67
         ldx #$00
-loop2:  sta $d800,x                     ; clears the screen memory
+loop2:  sta $d800,x                    ; clears the color RAM
         sta $d900,x
         sta $da00,x
         sta $dae8,x
@@ -67,10 +67,9 @@ loop2:  sta $d800,x                     ; clears the screen memory
 ;=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-;
 .proc setup_charset
         ; copies the charset to $3800
-        ; Another (simpler) alternative is to import 
-        ; the charset directly to $3800 by using the SEGMENET or the ORG directives
+        ; The alternative, is to import the charset data directly to $3800
 
-        ldy #7
+        ldy #7                          ; 256 * 8 = 2048 bytes to copy
 outer_loop:
         ldx #0
 inner_loop:
@@ -83,7 +82,7 @@ dst_hi = * + 2
         inc src_hi
         inc dst_hi
         dey
-        bne outer_loop
+        bpl outer_loop
         rts
         
 .endproc
@@ -111,7 +110,7 @@ loop:   lda map + $0000,x
         lda map + (MAP_COUNT .MOD 256),x
         sta $0400 + (MAP_COUNT .MOD 256),x ; screen chars
 
-        ; copies its color
+        ; copies its colors
         tay
         lda colors,y
         sta $d800 + (MAP_COUNT .MOD 256),x ; colors for the chars
