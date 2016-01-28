@@ -100,7 +100,7 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
     int sizeToCopy = -1;
     if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES)
     {
-        sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_ATTRIBS_BUFFER_SIZE;
+        sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
         _copyBuffer = (quint8*)malloc(sizeToCopy);
         _origBuffer = (quint8*)malloc(sizeToCopy);
     }
@@ -146,7 +146,7 @@ void PasteCommand::redo()
     if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES)
     {
         memcpy(_origBuffer, _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
-        memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileAttribs(), State::TILE_ATTRIBS_BUFFER_SIZE);
+        memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileColors(), State::TILE_COLORS_BUFFER_SIZE);
     }
     else /* MAP */
     {
@@ -168,7 +168,7 @@ CutCommand::CutCommand(State *state, int charIndex, const State::CopyRange& copy
     int sizeToCopy = -1;
     if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES)
     {
-        sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_ATTRIBS_BUFFER_SIZE;
+        sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
         _zeroBuffer = (quint8*)malloc(sizeToCopy);
         _origBuffer = (quint8*)malloc(sizeToCopy);
 
@@ -213,7 +213,7 @@ void CutCommand::redo()
     if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES)
     {
         memcpy(_origBuffer, _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
-        memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileAttribs(), State::TILE_ATTRIBS_BUFFER_SIZE);
+        memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileColors(), State::TILE_COLORS_BUFFER_SIZE);
     }
     else /* MAP */
     {

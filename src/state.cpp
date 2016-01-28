@@ -35,7 +35,7 @@ limitations under the License.
 const int State::CHAR_BUFFER_SIZE;
 
 // target constructor
-State::State(quint8 *charset, quint8 *tileAttribs, quint8 *map, const QSize& mapSize)
+State::State(quint8 *charset, quint8 *tileColors, quint8 *map, const QSize& mapSize)
     : _totalChars(0)
     , _mapSize(mapSize)
     , _multicolorMode(false)
@@ -60,9 +60,9 @@ State::State(quint8 *charset, quint8 *tileAttribs, quint8 *map, const QSize& map
         memcpy(_charset, charset, sizeof(_charset));
     else memset(_charset, 0, sizeof(_charset));
 
-    if (tileAttribs)
-        memcpy(_tileAttribs, tileAttribs, sizeof(_tileAttribs));
-    else memset(_tileAttribs, 11, sizeof(_tileAttribs));
+    if (tileColors)
+        memcpy(_tileColors, tileColors, sizeof(_tileColors));
+    else memset(_tileColors, 11, sizeof(_tileColors));
 
     Q_ASSERT(_mapSize.width() * _mapSize.height() > 0 && "Invalid size");
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
@@ -110,7 +110,7 @@ void State::reset()
     _exportedFeatures = EXPORT_FEATURE_CHARSET;
 
     memset(_charset, 0, sizeof(_charset));
-    memset(_tileAttribs, 11, sizeof(_tileAttribs));
+    memset(_tileColors, 11, sizeof(_tileColors));
     memset(_map, 0, _mapSize.width() * _mapSize.height());
 }
 
@@ -279,9 +279,9 @@ bool State::exportRaw(const QString& filename, int whatToExport)
         ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
                                      _map, _mapSize.width() * _mapSize.height()) > 0);
 
-    if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
-        ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_ATTRIBS),
-                                     _tileAttribs, sizeof(_tileAttribs)) > 0);
+    if (ret && (whatToExport & EXPORT_FEATURE_COLORS))
+        ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
+                                     _tileColors, sizeof(_tileColors)) > 0);
 
     if (ret)
     {
@@ -304,9 +304,9 @@ bool State::exportPRG(const QString& filename, quint16 addresses[3], int whatToE
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
                                      _map, _mapSize.width() * _mapSize.height(), addresses[1]) > 0);
 
-    if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
-        ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_ATTRIBS),
-                                     _tileAttribs, sizeof(_tileAttribs), addresses[2]) > 0);
+    if (ret && (whatToExport & EXPORT_FEATURE_COLORS))
+        ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
+                                     _tileColors, sizeof(_tileColors), addresses[2]) > 0);
 
     if (ret)
     {
@@ -333,9 +333,9 @@ bool State::exportAsm(const QString& filename, int whatToExport)
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_MAP ),
                                      _map, _mapSize.width() * _mapSize.height(), "map") > 0);
 
-    if (ret && (whatToExport & EXPORT_FEATURE_ATTRIBS))
-        ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_ATTRIBS),
-                                     _tileAttribs, sizeof(_tileAttribs), "colors") > 0);
+    if (ret && (whatToExport & EXPORT_FEATURE_COLORS))
+        ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
+                                     _tileColors, sizeof(_tileColors), "colors") > 0);
 
     if (ret)
     {
@@ -387,7 +387,7 @@ bool State::shouldBeDisplayedInMulticolor2(int tileIdx) const
 
     return (_multicolorMode &&
             ((_foregroundColorMode == FOREGROUND_COLOR_GLOBAL && _penColors[PEN_FOREGROUND] >= 8) ||
-            (_foregroundColorMode == FOREGROUND_COLOR_PER_TILE && (_tileAttribs[tileIdx] & 0xf) >= 8))
+            (_foregroundColorMode == FOREGROUND_COLOR_PER_TILE && (_tileColors[tileIdx] & 0xf) >= 8))
             );
 }
 
@@ -447,7 +447,7 @@ int State::getColorForPen(int pen, int tileIdx) const
 
     if (foregroundAndPerTile)
         // making travis happy: -Werror=array-bounds
-        return _tileAttribs[(quint8)tileIdx];
+        return _tileColors[(quint8)tileIdx];
     return _penColors[pen];
 }
 
@@ -470,14 +470,14 @@ void State::_setColorForPen(int pen, int color, int tileIdx)
 
     Q_ASSERT((tileIdx != -1 || !foregroundAndPerTile) && "Invalid Tile index");
 
-    int currentColor = foregroundAndPerTile ? _tileAttribs[tileIdx] : _penColors[pen];
+    int currentColor = foregroundAndPerTile ? _tileColors[tileIdx] : _penColors[pen];
 
     if (currentColor != color)
     {
         bool oldvalue = shouldBeDisplayedInMulticolor2(tileIdx);
 
         if (foregroundAndPerTile)
-            _tileAttribs[tileIdx] = color;
+            _tileColors[tileIdx] = color;
         else _penColors[pen] = color;
 
         bool newvalue = shouldBeDisplayedInMulticolor2(tileIdx);
@@ -727,9 +727,9 @@ const quint8* State::getMapBuffer() const
     return _map;
 }
 
-const quint8* State::getTileAttribs() const
+const quint8* State::getTileColors() const
 {
-    return _tileAttribs;
+    return _tileColors;
 }
 
 
@@ -834,11 +834,11 @@ void State::_pasteChars(int charIndex, const CopyRange& copyRange, const quint8*
     int count = copyRange.count;
 
     quint8* chrdst = _charset + (charIndex * 8);
-    quint8* attrdst = _tileAttribs + charIndex;
+    quint8* attrdst = _tileColors + charIndex;
 
-    const quint8* attribsBuffer = origBuffer + CHAR_BUFFER_SIZE;
+    const quint8* colorsBuffer = origBuffer + CHAR_BUFFER_SIZE;
     const quint8* chrsrc = origBuffer + (copyRange.offset * 8);
-    const quint8* attrsrc = attribsBuffer + copyRange.offset;
+    const quint8* attrsrc = colorsBuffer + copyRange.offset;
 
     while (count>0)
     {
@@ -864,7 +864,7 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
     Q_ASSERT(charIndex >=0 && charIndex< CHAR_BUFFER_SIZE && "Invalid charIndex size");
 
     int count = copyRange.count;
-    const quint8* attribsBuffer = origBuffer + CHAR_BUFFER_SIZE;
+    const quint8* colorsBuffer = origBuffer + CHAR_BUFFER_SIZE;
 
     if (copyRange.tileProperties.size != _tileProperties.size)
     {
@@ -888,7 +888,7 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
             int dstidx = (tileDstIdx + i + dstskip) * interleavedFactorDst;
 
             // copy colors
-            _tileAttribs[tileDstIdx + i + dstskip] = attribsBuffer[tileSrcIdx + i + srcskip];
+            _tileColors[tileDstIdx + i + dstskip] = colorsBuffer[tileSrcIdx + i + srcskip];
 
             // when interleaved, break the copy to prevent ugly artifacts
             if (_tileProperties.interleaved != 1 && dstidx >= (256 / tileSize))
@@ -1345,7 +1345,7 @@ void State::_setTileIndex(int tileIndex)
 {
     if (_tileIndex != tileIndex)
     {
-        if (_foregroundColorMode == FOREGROUND_COLOR_PER_TILE && _tileAttribs[tileIndex] != _tileAttribs[_tileIndex])
+        if (_foregroundColorMode == FOREGROUND_COLOR_PER_TILE && _tileColors[tileIndex] != _tileColors[_tileIndex])
             emit colorPropertiesUpdated(PEN_FOREGROUND);
 
         _tileIndex = tileIndex;

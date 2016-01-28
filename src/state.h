@@ -62,7 +62,7 @@ public:
     const static int CHAR_BUFFER_SIZE = 8 * 256;
 
     // char attributes: color (4-bit LSB)
-    const static int TILE_ATTRIBS_BUFFER_SIZE = 256;
+    const static int TILE_COLORS_BUFFER_SIZE = 256;
 
     // Max Tile size: 8x8
     const static int MAX_TILE_WIDTH = 8;
@@ -87,9 +87,9 @@ public:
         EXPORT_FEATURE_NONE = 0,
         EXPORT_FEATURE_CHARSET = 1 << 0,
         EXPORT_FEATURE_MAP = 1 << 1,
-        EXPORT_FEATURE_ATTRIBS = 1 << 2,
+        EXPORT_FEATURE_COLORS = 1 << 2,
 
-        EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_ATTRIBS)
+        EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_COLORS)
     };
 
     // format to export
@@ -136,11 +136,11 @@ public:
     /**
      * @brief State the Target constructor
      * @param charset charset to use or nullptr
-     * @param tileAttribs tileAttribs to use or nullptr
+     * @param tileColors tileColors to use or nullptr
      * @param map map to use or nullPtr
      * @param mapSize map size
      */
-    State(quint8* charset, quint8* tileAttribs, quint8* map, const QSize &mapSize);
+    State(quint8* charset, quint8* tileColors, quint8* map, const QSize &mapSize);
     /**
      * @brief State constructor (a delegating constructor)
      */
@@ -374,7 +374,7 @@ public:
     //
     const quint8* getCharsetBuffer() const;
     const quint8* getMapBuffer() const;
-    const quint8* getTileAttribs() const;
+    const quint8* getTileColors() const;
 
     void resetCharsetBuffer();
 
@@ -530,7 +530,7 @@ protected:
     int _totalChars;
 
     quint8 _charset[State::CHAR_BUFFER_SIZE];
-    quint8 _tileAttribs[State::TILE_ATTRIBS_BUFFER_SIZE];
+    quint8 _tileColors[State::TILE_COLORS_BUFFER_SIZE];
     quint8* _map;
     QSize _mapSize;
     int _mapSizeAllocedBytes;
@@ -563,13 +563,13 @@ protected:
     // filename of the exported file (.raw, .prg, .s)
     QString _exportedFilename;
 
-    // When "prg" the value contains of the addresses for: charset, map and char attribs
+    // When "prg" the value contains of the addresses for: charset, map and tile colors
     quint16 _exportedAddresses[3];
 
     // RAW, PRG, or ASM
     int _exportedFormat;
 
-    // Charset? Map? Attribs?
+    // Charset? Map? Colors?
     int _exportedFeatures;
 
     QUndoStack* _undoStack;

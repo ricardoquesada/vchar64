@@ -44,7 +44,7 @@ private slots:
 
     void on_checkBox_charset_clicked(bool checked);
     void on_checkBox_map_clicked(bool checked);
-    void on_checkBox_attribs_clicked(bool checked);
+    void on_checkBox_tileColors_clicked(bool checked);
 
 private:
     void accept();

@@ -64,7 +64,7 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
     _checkBox_clicked = _state->getExportedFeatures();
     ui->checkBox_charset->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_CHARSET);
     ui->checkBox_map->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_MAP);
-    ui->checkBox_attribs->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_ATTRIBS);
+    ui->checkBox_tileColors->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_COLORS);
 
     int format = _state->getExportedFormat();
 
@@ -103,8 +103,8 @@ void ExportDialog::accept()
 
     if (ui->checkBox_map->isChecked())
         whatToExport |= State::EXPORT_FEATURE_MAP;
-    if (ui->checkBox_attribs->isChecked())
-        whatToExport |= State::EXPORT_FEATURE_ATTRIBS;
+    if (ui->checkBox_tileColors->isChecked())
+        whatToExport |= State::EXPORT_FEATURE_COLORS;
     if (ui->checkBox_charset->isChecked())
         whatToExport |= State::EXPORT_FEATURE_CHARSET;
 
@@ -198,12 +198,12 @@ void ExportDialog::on_checkBox_map_clicked(bool checked)
     updateButtons();
 }
 
-void ExportDialog::on_checkBox_attribs_clicked(bool checked)
+void ExportDialog::on_checkBox_tileColors_clicked(bool checked)
 {
     if (checked)
-        _checkBox_clicked |= State::EXPORT_FEATURE_ATTRIBS;
+        _checkBox_clicked |= State::EXPORT_FEATURE_COLORS;
     else
-        _checkBox_clicked &= ~State::EXPORT_FEATURE_ATTRIBS;
+        _checkBox_clicked &= ~State::EXPORT_FEATURE_COLORS;
     updateButtons();
 }
 

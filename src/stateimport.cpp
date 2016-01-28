@@ -130,14 +130,14 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
         file.seek(file.pos() + num_tiles * v4header->tile_width * v4header->tile_height);
 
         /* read tile attribs */
-        total += file.read((char*)state->_tileAttribs, num_tiles);
+        total += file.read((char*)state->_tileColors, num_tiles);
     }
     else if (v4header->color_mode == 2)
     {
         /* char attribs */
 
         /* skip char attribs */
-        total += file.read((char*)state->_tileAttribs, num_chars);
+        total += file.read((char*)state->_tileColors, num_chars);
 
         /* skip cell attribs */
         file.seek(file.pos() + num_tiles * v4header->tile_width * v4header->tile_height);
@@ -193,18 +193,18 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
     // color_mode == PER CHAR ?
     if (v5header->color_mode == 2)
     {
-        // place char attribs in tile attribs
-        file.read((char*)state->_tileAttribs, num_chars);
+        // place char attribs in tile colors
+        file.read((char*)state->_tileColors, num_chars);
         // clean the upper nibble
         for (int i=0; i<num_chars; ++i)
-            state->_tileAttribs[i] &= 0x0f;
+            state->_tileColors[i] &= 0x0f;
     }
     else
     {
         file.seek(file.pos() + num_chars);
 
         if (v5header->color_mode == 1)
-            file.read((char*)state->_tileAttribs, num_tiles);
+            file.read((char*)state->_tileColors, num_tiles);
         /* else, don't read in global mode */
 
     }
@@ -319,7 +319,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
         int map_height = qFromLittleEndian((int)header.map_height);
         state->_setMapSize(QSize(map_width, map_height));
 
-        file.read((char*)state->_tileAttribs, State::TILE_ATTRIBS_BUFFER_SIZE);
+        file.read((char*)state->_tileColors, State::TILE_COLORS_BUFFER_SIZE);
         file.read((char*)state->_map, map_width * map_height);
     }
     return total;

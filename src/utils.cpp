@@ -32,7 +32,7 @@ void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, cons
     static const quint8 hr_masks[] = {128, 64, 32, 16, 8, 4, 2, 1};
 
     auto charset = state->getCharsetBuffer();
-    auto attribs = state->getTileAttribs();
+    auto tileColors = state->getTileColors();
     int tileIdx = state->getTileIndexFromCharIndex(charIdx);
     auto ismc = state->shouldBeDisplayedInMulticolor2(tileIdx);
 
@@ -76,7 +76,7 @@ void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, cons
                     if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
                         colorIndex = state->getColorForPen(State::PEN_FOREGROUND);
                     else
-                        colorIndex = attribs[tileIdx];
+                        colorIndex = tileColors[tileIdx];
                 }
                 break;
 
@@ -92,7 +92,7 @@ void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, cons
                 if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
                     colorIndex = state->getColorForPen(State::PEN_FOREGROUND) - 8;
                 else
-                    colorIndex = attribs[tileIdx] - 8;
+                    colorIndex = tileColors[tileIdx] - 8;
                 break;
             default:
                 qDebug() << "MapWidget::paintEvent Invalid color: " << color << " at x,y=" << orig;

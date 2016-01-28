@@ -61,10 +61,10 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     QByteArray arrayCharset((char*)buffer, State::CHAR_BUFFER_SIZE);
     total += file.write(arrayCharset);
 
-    // attribs
-    buffer = state->getTileAttribs();
-    QByteArray arrayAttribs((char*)buffer, State::TILE_ATTRIBS_BUFFER_SIZE);
-    total += file.write(arrayAttribs);
+    // colors
+    buffer = state->getTileColors();
+    QByteArray arrayColors((char*)buffer, State::TILE_COLORS_BUFFER_SIZE);
+    total += file.write(arrayColors);
 
     // map
     buffer = state->getMapBuffer();

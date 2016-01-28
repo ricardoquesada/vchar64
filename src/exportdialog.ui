@@ -67,9 +67,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox_attribs">
+       <widget class="QCheckBox" name="checkBox_tileColors">
         <property name="text">
-         <string>Char Colors</string>
+         <string>Tile Colors</string>
         </property>
        </widget>
       </item>
