@@ -1,19 +1,21 @@
 0.0.11 (?? February 2016) (Happy Birthday Release)
 
-* [NEW]: Added Koala import support.
+* [NEW] Added Koala import support.
         Includes different heuristics
         Only works if it can convert the image in 256 or less chars
-* [NEW]: Added Tile Map support
+* [NEW] Added Tile Map support
         Supports copy & paste & cut
         It has Rect Select, Flood Fill, Paint tools. Plus Clear and Grid
         'Export' supports exporting the map data
-* [NEW]: Added "one foregrond color per tile" mode (the other one is Global colors)
+* [NEW] Added "one foregrond color per tile" mode (the other one is Global colors)
         'Export' supports exporting the "tile colors"
-* [NEW]: Import CharPad: Added support for tile colors and map
-* [NEW]: Tile Dock: has an scroll area
-* [NEW]: Tests: added new subdirectory which contains many... test files
-* [NEW]: Examples: added Commando and Subchrist Chrome examples
-* [NEW]: Menu: Moved "Tile" actions from 'Edit' to 'Tile'
+* [NEW] Import CharPad: Added support for tile colors and map
+* [NEW] Tile Dock: has an scroll area
+* [NEW] Tests: added new subdirectory which contains many... test files
+* [NEW] Examples: added Commando and Subchrist Chrome examples
+* [NEW] Examples: added c64_loader. Shows how to load the exported data in the
+	c64
+* [NEW] Menu: Moved "Tile" actions from 'Edit' to 'Tile'
          Moved docks actions from "View / Views" to "View"
          Added new "Map" menu
 * [NEW] Toolbar: Added "New", "Undo" and "Redo" actions
