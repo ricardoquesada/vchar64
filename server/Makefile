@@ -45,3 +45,7 @@ vchar64d-c128.d71: c128-makes
 	$(C1541) -attach $@ -write cs8900a.eth            				cs8900a.eth,s
 	$(C1541) -attach $@ -write lan91c96.eth           				lan91c96.eth,s
 
+clean:
+	rm *.eth *.c64 *.c128 *.a *.map obj_c128/* obj_c64/*
+	rmdir obj_c128 obj_c64
+
