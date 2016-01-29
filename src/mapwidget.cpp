@@ -39,10 +39,11 @@ MapWidget::MapWidget(QWidget *parent)
     , _tileSize({1,1})
     , _mode(SELECT_MODE)
     , _commandMergeable(false)
+    , _pixelSize(PIXEL_SIZE)
 {
     // FIXME: should be updated when the map size changes
-    _sizeHint = {_mapSize.width() * _tileSize.width() * PIXEL_SIZE * 8,
-                 _mapSize.height() * _tileSize.height() * PIXEL_SIZE * 8};
+    _sizeHint = {(int)(_mapSize.width() * _tileSize.width() * _pixelSize * 8),
+                 (int)(_mapSize.height() * _tileSize.height() * _pixelSize * 8)};
     setMinimumSize(_sizeHint);
 }
 
@@ -89,7 +90,7 @@ void MapWidget::paintEvent(QPaintEvent *event)
                 int xx = x * tw + char_idx % tw;
                 int yy = y * th + char_idx / tw;
 
-                utilsDrawChar(state, &painter, QSize(PIXEL_SIZE, PIXEL_SIZE), QPoint(OFFSET, OFFSET), QPoint(xx, yy), charIdx);
+                utilsDrawChar(state, &painter, QSizeF(_pixelSize, _pixelSize), QPoint(OFFSET, OFFSET), QPoint(xx, yy), charIdx);
 
                 charIdx += tileProperties.interleaved;
             }
@@ -105,12 +106,12 @@ void MapWidget::paintEvent(QPaintEvent *event)
         painter.setPen(pen);
 
         for (int y=0; y<=mapSize.height(); ++y)
-            painter.drawLine(QPointF(0, y * PIXEL_SIZE * th * 8),
-                             QPointF(mapSize.width() * PIXEL_SIZE * tw * 8, y * PIXEL_SIZE * th * 8));
+            painter.drawLine(QPointF(0, y * _pixelSize * th * 8),
+                             QPointF(mapSize.width() * _pixelSize * tw * 8, y * _pixelSize * th * 8));
 
         for (int x=0; x<=mapSize.width(); ++x)
-            painter.drawLine(QPointF(x * PIXEL_SIZE * tw * 8, 0),
-                             QPointF(x * PIXEL_SIZE * tw * 8, mapSize.height() * PIXEL_SIZE * th *8));
+            painter.drawLine(QPointF(x * _pixelSize * tw * 8, 0),
+                             QPointF(x * _pixelSize * tw * 8, mapSize.height() * _pixelSize * th *8));
     }
 
     QPen pen;
@@ -125,19 +126,19 @@ void MapWidget::paintEvent(QPaintEvent *event)
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(149,195,244,64));
-        painter.drawRect(_cursorPos.x() * 8 * tw * PIXEL_SIZE + OFFSET,
-                         _cursorPos.y() * 8 * th * PIXEL_SIZE + OFFSET,
-                         _selectingSize.width() * tw * 8 * PIXEL_SIZE,
-                         _selectingSize.height() * th * 8 * PIXEL_SIZE);
+        painter.drawRect(_cursorPos.x() * 8 * tw * _pixelSize + OFFSET,
+                         _cursorPos.y() * 8 * th * _pixelSize + OFFSET,
+                         _selectingSize.width() * tw * 8 * _pixelSize,
+                         _selectingSize.height() * th * 8 * _pixelSize);
     }
     else
     {
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(128,0,0,0));
-        painter.drawRect(_cursorPos.x() * 8 * tw * PIXEL_SIZE + OFFSET,
-                         _cursorPos.y() * 8 * th * PIXEL_SIZE + OFFSET,
-                         8 * tw * PIXEL_SIZE, 8 * th * PIXEL_SIZE);
+        painter.drawRect(_cursorPos.x() * 8 * tw * _pixelSize + OFFSET,
+                         _cursorPos.y() * 8 * th * _pixelSize + OFFSET,
+                         8 * tw * _pixelSize, 8 * th * _pixelSize);
     }
 
     painter.end();
@@ -149,8 +150,8 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
 
     auto pos = event->localPos();
 
-    int x = (pos.x() - OFFSET) / PIXEL_SIZE / _tileSize.width() / 8;
-    int y = (pos.y() - OFFSET) / PIXEL_SIZE / _tileSize.height() / 8;
+    int x = (pos.x() - OFFSET) / _pixelSize / _tileSize.width() / 8;
+    int y = (pos.y() - OFFSET) / _pixelSize / _tileSize.height() / 8;
 
     if (event->button() == Qt::LeftButton)
     {
@@ -219,8 +220,8 @@ void MapWidget::mouseMoveEvent(QMouseEvent * event)
     if (event->buttons() == Qt::LeftButton)
     {
         auto pos = event->localPos();
-        int x = (pos.x() - OFFSET) / PIXEL_SIZE / _tileSize.width() / 8;
-        int y = (pos.y() - OFFSET) / PIXEL_SIZE / _tileSize.height() / 8;
+        int x = (pos.x() - OFFSET) / _pixelSize / _tileSize.width() / 8;
+        int y = (pos.y() - OFFSET) / _pixelSize / _tileSize.height() / 8;
 
         if (_mode == SELECT_MODE)
         {
@@ -398,7 +399,6 @@ int MapWidget::getCursorPos() const
     return _cursorPos.y() * _mapSize.width() + _cursorPos.x();
 }
 
-
 void MapWidget::enableGrid(bool enabled)
 {
     if (_displayGrid != enabled)
@@ -408,12 +408,22 @@ void MapWidget::enableGrid(bool enabled)
     }
 }
 
+void MapWidget::setZoomLevel(int zoomLevel)
+{
+    _pixelSize = zoomLevel * PIXEL_SIZE / 100.0;
+    onMapSizeUpdated();
+}
+
+//
+// slots
+//
+
 void MapWidget::onTilePropertiesUpdated()
 {
     _tileSize = MainWindow::getCurrentState()->getTileProperties().size;
 
-    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * PIXEL_SIZE * 8,
-                      _mapSize.height() * _tileSize.height() * PIXEL_SIZE * 8);
+    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * _pixelSize * 8,
+                      _mapSize.height() * _tileSize.height() * _pixelSize * 8);
 
     setMinimumSize(_sizeHint);
     update();
@@ -423,8 +433,8 @@ void MapWidget::onMapSizeUpdated()
 {
     _mapSize = MainWindow::getCurrentState()->getMapSize();
 
-    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * PIXEL_SIZE * 8,
-                      _mapSize.height() * _tileSize.height() * PIXEL_SIZE * 8);
+    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * _pixelSize * 8,
+                      _mapSize.height() * _tileSize.height() * _pixelSize * 8);
 
     setMinimumSize(_sizeHint);
     update();

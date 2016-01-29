@@ -39,6 +39,7 @@ public:
     void setMode(MapMode mode);
     void getSelectionRange(State::CopyRange* copyRange) const;
     int getCursorPos() const;
+    void setZoomLevel(int zoomLevel);
 
 signals:
 
@@ -69,4 +70,5 @@ private:
     QSize _tileSize;
     MapMode _mode;
     bool _commandMergeable;
+    float _pixelSize;
 };

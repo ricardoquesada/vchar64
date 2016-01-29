@@ -20,11 +20,12 @@ limitations under the License.
 #include <QPoint>
 #include <QSize>
 #include <QDebug>
+#include <QtCore/qmath.h>
 
 #include "state.h"
 #include "palette.h"
 
-void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, const QPoint& offset, const QPoint& orig, int charIdx)
+void utilsDrawChar(State* state, QPainter* painter, const QSizeF& pixelSize, const QPoint& offset, const QPoint& orig, int charIdx)
 {
     Q_ASSERT(charIdx >=0 && charIdx < 256 && "Invalid charIdx");
 
@@ -101,8 +102,8 @@ void utilsDrawChar(State* state, QPainter* painter, const QSize& pixelSize, cons
             painter->setBrush(Palette::getColor(colorIndex));
             painter->drawRect( (orig.x() * 8 + j * bit_width) * pixelSize.width() + offset.x(),
                              (orig.y() * 8 + i) * pixelSize.height() + offset.y(),
-                             pixelSize.width() * bit_width,
-                             pixelSize.height());
+                             qCeil(pixelSize.width() * bit_width),
+                             qCeil(pixelSize.height()));
         }
     }
 }

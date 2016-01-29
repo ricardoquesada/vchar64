@@ -36,6 +36,7 @@ limitations under the License.
 #include <QApplication>
 #include <QToolBar>
 #include <QToolButton>
+#include <QComboBox>
 
 #include "state.h"
 #include "xlinkpreview.h"
@@ -460,12 +461,38 @@ void MainWindow::setupMapDock()
     toolbar->addAction(_ui->actionSelect_Mode);
     toolbar->addAction(_ui->actionPaint_Mode);
     toolbar->addAction(_ui->actionFill_Map);
+    _ui->actionSelect_Mode->setChecked(true);
 
     toolbar->addSeparator();
 
     toolbar->addAction(_ui->actionClear_Map);
 
-    _ui->actionSelect_Mode->setChecked(true);
+    toolbar->addSeparator();
+
+    QWidget* empty = new QWidget();
+    empty->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    toolbar->addWidget(empty);
+
+    _comboBoxMapZoom = new QComboBox(this);
+    _comboBoxMapZoom->addItem("200%", QVariant(200));
+    _comboBoxMapZoom->addItem("175%", QVariant(175));
+    _comboBoxMapZoom->addItem("150%", QVariant(150));
+    _comboBoxMapZoom->addItem("125%", QVariant(125));
+    _comboBoxMapZoom->addItem("100%", QVariant(100));
+    _comboBoxMapZoom->addItem("75%", QVariant(75));
+    _comboBoxMapZoom->addItem("50%", QVariant(50));
+    _comboBoxMapZoom->addItem("25%", QVariant(25));
+    _comboBoxMapZoom->setCurrentIndex(4); // 100%
+    toolbar->addWidget(_comboBoxMapZoom);
+
+
+    connect(_comboBoxMapZoom, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
+        [&](int index)
+        {
+            auto variant = _comboBoxMapZoom->itemData(index);
+            _ui->mapWidget->setZoomLevel(variant.toInt());
+        }
+    );
 }
 
 void MainWindow::setupStatusBar()

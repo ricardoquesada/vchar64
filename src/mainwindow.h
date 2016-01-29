@@ -29,6 +29,7 @@ class QLabel;
 class QMdiSubWindow;
 class QUndoView;
 class QSpinBox;
+class QComboBox;
 QT_END_NAMESPACE
 
 namespace Ui {
@@ -212,4 +213,5 @@ private:
     // FIXME: Should be moved to the "map dock" once it is implemented
     QSpinBox* _spinBoxMapX;
     QSpinBox* _spinBoxMapY;
+    QComboBox* _comboBoxMapZoom;
 };
