@@ -36,6 +36,11 @@ class State : public QObject
 
     friend class BigCharWidget;
 
+    // yep, all the Commands are friend of State
+    // this is because State invokes the commands
+    // and then the Commands calls the protected methods
+    // that actually modify the State without calling the Commands
+    // A Command must never trigger another Command
     friend class PaintTileCommand;
     friend class PasteCommand;
     friend class CutCommand;
@@ -135,15 +140,15 @@ public:
 
     /**
      * @brief State the Target constructor
+     * @param filename the loaded name. Used when save/export is called
      * @param charset charset to use or nullptr
      * @param tileColors tileColors to use or nullptr
      * @param map map to use or nullPtr
      * @param mapSize map size
      */
-    State(quint8* charset, quint8* tileColors, quint8* map, const QSize &mapSize);
-    /**
-     * @brief State constructor (a delegating constructor)
-     */
+    State(const QString& filename, quint8* charset, quint8* tileColors, quint8* map, const QSize &mapSize);
+    /* delegating constructors */
+    State(const QString& filename);
     State();
 
     /**
@@ -176,11 +181,10 @@ public:
 
     /**
      * @brief importCharset sets a new charset. emits fileLoaded();
-     * @param filename filename to be associated with the import. No files are actually loaded
      * @param charset pointer to the charset
      * @param charsetSize size of the charset
      */
-    void importCharset(const QString &filename, const quint8* charset, int charsetSize);
+    void importCharset(const quint8* charset, int charsetSize);
 
     /**
      * @brief emitNewState hackish way to notify that a new state has been created

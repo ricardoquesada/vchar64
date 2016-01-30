@@ -592,7 +592,11 @@ void ImportKoalaDialog::on_checkBoxGrid_clicked()
 
 void ImportKoalaDialog::on_pushButtonImport_clicked()
 {
-    auto state = new State(ui->widgetCharset->_charset, ui->widgetCharset->_colorRAMForChars, ui->widgetCharset->_screenRAM, QSize(40,25));
+    // update last used dir
+    QFileInfo info(ui->lineEdit->text());
+    QSettings("RetroMoe","VChar64").setValue("dir/lastdir", info.absolutePath());
+
+    auto state = new State(info.filePath(), ui->widgetCharset->_charset, ui->widgetCharset->_colorRAMForChars, ui->widgetCharset->_screenRAM, QSize(40,25));
 
     state->setColorForPen(State::PEN_BACKGROUND, ui->widgetCharset->_d02x[0]);
     state->setColorForPen(State::PEN_MULTICOLOR1, ui->widgetCharset->_d02x[1]);
@@ -602,12 +606,8 @@ void ImportKoalaDialog::on_pushButtonImport_clicked()
     state->setMulticolorMode(true);
     state->setForegroundColorMode(State::FOREGROUND_COLOR_PER_TILE);
 
-
     MainWindow::getInstance()->createDocument(state);
 
-    // update last used dir
-    QFileInfo info(ui->lineEdit->text());
-    QSettings("RetroMoe","VChar64").setValue("dir/lastdir", info.absolutePath());
 
     accept();
 }

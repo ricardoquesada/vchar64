@@ -52,11 +52,11 @@ const QString& ImportVICEDialog::getFilepath() const
 //
 void ImportVICEDialog::on_pushButton_import_clicked()
 {
-    auto state = new State;
+    auto state = new State(_filepath);
     state->setMulticolorMode(ui->checkBox->checkState() == Qt::Checked);
 
     // FIXME: must be called after 'setMulticolorMode' since it reset the undo stack
-    state->importCharset(_filepath, ui->widget->getBuffer() + ui->spinBox->value(), State::CHAR_BUFFER_SIZE);
+    state->importCharset(ui->widget->getBuffer() + ui->spinBox->value(), State::CHAR_BUFFER_SIZE);
 
     MainWindow::getInstance()->createDocument(state);
     QFileInfo info(ui->lineEdit->text());

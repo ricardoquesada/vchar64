@@ -35,7 +35,7 @@ limitations under the License.
 const int State::CHAR_BUFFER_SIZE;
 
 // target constructor
-State::State(quint8 *charset, quint8 *tileColors, quint8 *map, const QSize& mapSize)
+State::State(const QString &filename, quint8 *charset, quint8 *tileColors, quint8 *map, const QSize& mapSize)
     : _totalChars(0)
     , _mapSize(mapSize)
     , _multicolorMode(false)
@@ -45,7 +45,7 @@ State::State(quint8 *charset, quint8 *tileColors, quint8 *map, const QSize& mapS
     , _tileProperties{{1,1},1}
     , _charIndex(0)
     , _tileIndex(0)
-    , _loadedFilename("")
+    , _loadedFilename(filename)
     , _savedFilename("")
     , _exportedFilename("")
     , _exportedAddresses{0,0,0}
@@ -78,8 +78,14 @@ State::State(quint8 *charset, quint8 *tileColors, quint8 *map, const QSize& mapS
 }
 
 // Delegating constructor
+
+State::State(const QString& filename)
+    : State(filename, nullptr, nullptr, nullptr, QSize(40,25))
+{
+}
+
 State::State()
-    : State(nullptr, nullptr, nullptr, QSize(40,25))
+    : State("", nullptr, nullptr, nullptr, QSize(40,25))
 {
 }
 
@@ -100,7 +106,7 @@ void State::reset()
     _penColors[PEN_FOREGROUND] = 11;
     _tileProperties.size = {1,1};
     _tileProperties.interleaved = 1;
-    _loadedFilename = "";
+    _loadedFilename = "untitled";
     _savedFilename = "";
     _exportedFilename = "";
     _exportedAddresses[0] = 0;
@@ -194,14 +200,13 @@ bool State::openFile(const QString& filename)
 
     return true;
 }
-void State::importCharset(const QString& filename, const quint8 *charset, int charsetSize)
+void State::importCharset(const quint8 *charset, int charsetSize)
 {
     Q_ASSERT(charset);
     Q_ASSERT(charsetSize <= CHAR_BUFFER_SIZE);
 
     resetCharsetBuffer();
     memcpy(_charset, charset, qMin(CHAR_BUFFER_SIZE, charsetSize));
-    _loadedFilename = filename;
 }
 
 static QString filenameFixSuffix(const QString& filename, State::ExportFeature suffix)
