@@ -834,11 +834,11 @@ void State::_pasteChars(int charIndex, const CopyRange& copyRange, const quint8*
     int count = copyRange.count;
 
     quint8* chrdst = _charset + (charIndex * 8);
-    quint8* attrdst = _tileColors + charIndex;
+    quint8* colordst = _tileColors + charIndex;
 
     const quint8* colorsBuffer = origBuffer + CHAR_BUFFER_SIZE;
     const quint8* chrsrc = origBuffer + (copyRange.offset * 8);
-    const quint8* attrsrc = colorsBuffer + copyRange.offset;
+    const quint8* colorsrc = colorsBuffer + copyRange.offset;
 
     while (count>0)
     {
@@ -847,13 +847,13 @@ void State::_pasteChars(int charIndex, const CopyRange& copyRange, const quint8*
         if (bytesToCopy <0)
             break;
         memcpy(chrdst, chrsrc, bytesToCopy);
-        memcpy(attrdst, attrsrc, bytesToCopy/8);
+        memcpy(colordst, colorsrc, bytesToCopy/8);
         emit bytesUpdated((chrdst - _charset), bytesToCopy);
 
         chrdst += (copyRange.blockSize + copyRange.skip) * 8;
         chrsrc += (copyRange.blockSize + copyRange.skip) * 8;
-        attrdst += copyRange.blockSize + copyRange.skip;
-        attrsrc += copyRange.blockSize + copyRange.skip;
+        colordst += copyRange.blockSize + copyRange.skip;
+        colorsrc += copyRange.blockSize + copyRange.skip;
         count--;
     }
     emit charsetUpdated();
