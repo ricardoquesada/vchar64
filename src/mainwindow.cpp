@@ -212,6 +212,24 @@ void MainWindow::onColorPropertiesUpdated(int pen)
     }
 }
 
+void MainWindow::refresh()
+{
+    auto state = getState();
+
+    onTilePropertiesUpdated();
+    onColorPropertiesUpdated(State::PEN_BACKGROUND);
+    onColorPropertiesUpdated(State::PEN_FOREGROUND);
+    onColorPropertiesUpdated(State::PEN_MULTICOLOR1);
+    onColorPropertiesUpdated(State::PEN_MULTICOLOR2);
+
+    onMulticolorModeToggled(state->isMulticolorMode());
+    onMapSizeUpdated();
+
+    _undoView->setStack(state->getUndoStack());
+
+    _ui->dockWidget_colors->update();
+}
+
 //
 //
 //
@@ -301,7 +319,6 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::tileUpdated, xlinkpreview, &XlinkPreview::tileUpdated);
     connect(state, &State::colorPropertiesUpdated, xlinkpreview, &XlinkPreview::colorPropertiesUpdated);
     connect(state, &State::multicolorModeToggled, xlinkpreview, &XlinkPreview::colorPropertiesUpdated);
-    connect(state, &State::charsetUpdated, xlinkpreview, &XlinkPreview::fileLoaded);
 
     auto serverpreview = ServerPreview::getInstance();
     connect(state, &State::fileLoaded, serverpreview, &ServerPreview::fileLoaded);
@@ -309,7 +326,12 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::tileUpdated, serverpreview, &ServerPreview::tileUpdated);
     connect(state, &State::colorPropertiesUpdated, serverpreview, &ServerPreview::colorPropertiesUpdated);
     connect(state, &State::multicolorModeToggled, serverpreview, &ServerPreview::colorPropertiesUpdated);
-    connect(state, &State::charsetUpdated, serverpreview, &ServerPreview::fileLoaded);
+
+    connect(state, &State::fileLoaded, this, &MainWindow::refresh);
+    connect(state, &State::fileLoaded, bigcharWidget, &BigCharWidget::onCharsetUpdated);
+    connect(state, &State::fileLoaded, _ui->tilesetWidget, &TilesetWidget::onCharsetUpdated);
+    connect(state, &State::fileLoaded, _ui->charsetWidget, &CharsetWidget::onCharsetUpdated);
+    connect(state, &State::fileLoaded, _ui->mapWidget, &MapWidget::onCharsetUpdated);
 
     connect(state, &State::tilePropertiesUpdated, this, &MainWindow::onTilePropertiesUpdated);
     connect(state, &State::tilePropertiesUpdated, bigcharWidget, &BigCharWidget::onTilePropertiesUpdated);
@@ -329,7 +351,6 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::charsetUpdated, _ui->tilesetWidget, &TilesetWidget::onCharsetUpdated);
     connect(state, &State::charsetUpdated, _ui->mapWidget, &MapWidget::onCharsetUpdated);
     connect(state, &State::charIndexUpdated, this, &MainWindow::onCharIndexUpdated);
-//    connect(state, &State::fileLoaded, this, &MainWindow::updateWindow);
     connect(state, &State::colorPropertiesUpdated, this, &MainWindow::onColorPropertiesUpdated);
     connect(state, &State::colorPropertiesUpdated, bigcharWidget, &BigCharWidget::onColorPropertiesUpdated);
     connect(state, &State::colorPropertiesUpdated, _ui->charsetWidget, &CharsetWidget::onColorPropertiesUpdated);
@@ -354,7 +375,6 @@ BigCharWidget* MainWindow::createDocument(State* state)
 
     // HACK:
     state->emitNewState();
-    state->refresh();
 
     state->clearUndoStack();
 
@@ -444,9 +464,11 @@ void MainWindow::setupMapDock()
     {
         spins[i]->setMinimum(1);
         spins[i]->setMaximum(4096);
-        connect(spins[i], static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxMapSize_valueChanged);
         toolbar->addWidget(spins[i]);
     }
+    connect(_spinBoxMapX, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxMapSizeX_valueChanged);
+    connect(_spinBoxMapY, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxMapSizeY_valueChanged);
+
 
     toolbar->addSeparator();
 
@@ -1197,20 +1219,35 @@ void MainWindow::on_actionMap_Properties_triggered()
     dialog.exec();
 }
 
-void MainWindow::onSpinBoxMapSize_valueChanged(int newValue)
+void MainWindow::onSpinBoxMapSizeX_valueChanged(int newValue)
 {
-    Q_UNUSED(newValue);
     auto state = getState();
     if (state)
     {
-        int x = _spinBoxMapX->value();
-        int y = _spinBoxMapY->value();
-        QSize newSize(x,y);
         // FIXME: onMapSizeUpdated() calls setValue()
         // and setValue() triggers this callback, but it is possible
         // that no value was changed. So in order to avoid
         // an action in the UndoView, we check first the size
         auto currentSize = state->getMapSize();
+
+        QSize newSize(newValue, currentSize.height());
+        if (newSize != currentSize)
+            state->setMapSize(newSize);
+    }
+}
+
+void MainWindow::onSpinBoxMapSizeY_valueChanged(int newValue)
+{
+    auto state = getState();
+    if (state)
+    {
+        // FIXME: onMapSizeUpdated() calls setValue()
+        // and setValue() triggers this callback, but it is possible
+        // that no value was changed. So in order to avoid
+        // an action in the UndoView, we check first the size
+        auto currentSize = state->getMapSize();
+
+        QSize newSize(currentSize.width(), newValue);
         if (newSize != currentSize)
             state->setMapSize(newSize);
     }
@@ -1306,10 +1343,7 @@ void MainWindow::onSubWindowActivated(QMdiSubWindow* subwindow)
 
         auto state = getState();
         if (state)
-        {
-            state->refresh();
-            _undoView->setStack(state->getUndoStack());
-        }
+            state->emitNewState();
     }
     updateMenus();
 }

@@ -473,3 +473,4 @@ void MapWidget::setMode(MapMode mode)
     if (_mode != mode)
         _mode = mode;
 }
+

@@ -365,10 +365,6 @@ void ServerPreview::colorPropertiesUpdated()
 //
 // Proto methods
 //
-void  ServerPreview::protoFlush()
-{
-    _socket->flush();
-}
 
 void  ServerPreview::protoPing(quint8 pingValue)
 {

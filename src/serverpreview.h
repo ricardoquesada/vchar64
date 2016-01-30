@@ -62,7 +62,6 @@ protected:
     virtual ~ServerPreview();
 
     // Proto: generic
-    void protoFlush();
     void protoPoke(quint16 addr, quint8 value);
     void protoPeek(quint16 addr, quint8* value);
     void protoFill(quint16 addr, quint8 value, quint16 count);

@@ -93,7 +93,7 @@ public slots:
     void onSubWindowActivated(QMdiSubWindow* subwindow);
     void onSpinBoxValueChanged(int tileIndex);
     bool on_actionSave_triggered();
-
+    void refresh();
 
 protected:
     explicit MainWindow(QWidget *parent = 0);
@@ -186,7 +186,8 @@ private slots:
 
     void on_actionMap_Properties_triggered();
 
-    void onSpinBoxMapSize_valueChanged(int newValue);
+    void onSpinBoxMapSizeX_valueChanged(int newValue);
+    void onSpinBoxMapSizeY_valueChanged(int newValue);
     void onMapSizeUpdated();
 
     void on_actionFill_Map_triggered();
