@@ -392,6 +392,11 @@ void BigCharWidget::onCharsetUpdated()
     update();
 }
 
+void BigCharWidget::onFileLoaded()
+{
+    onTilePropertiesUpdated();
+}
+
 //
 // overrides
 //

@@ -328,8 +328,8 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::multicolorModeToggled, serverpreview, &ServerPreview::colorPropertiesUpdated);
 
     connect(state, &State::fileLoaded, this, &MainWindow::refresh);
-    connect(state, &State::fileLoaded, bigcharWidget, &BigCharWidget::onCharsetUpdated);
-    connect(state, &State::fileLoaded, _ui->tilesetWidget, &TilesetWidget::onCharsetUpdated);
+    connect(state, &State::fileLoaded, bigcharWidget, &BigCharWidget::onFileLoaded);
+    connect(state, &State::fileLoaded, _ui->tilesetWidget, &TilesetWidget::onFileLoaded);
     connect(state, &State::fileLoaded, _ui->charsetWidget, &CharsetWidget::onCharsetUpdated);
     connect(state, &State::fileLoaded, _ui->mapWidget, &MapWidget::onCharsetUpdated);
 

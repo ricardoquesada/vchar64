@@ -71,6 +71,10 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
         int x = (pos.x() - OFFSET) / _pixelSize.width() / 8 / tw;
         int y = (pos.y() - OFFSET) / _pixelSize.height() / 8 / th;
 
+        // sanity check
+        x = qBound(0, x, _tileColums - 1);
+        y = qBound(0, y, _tileRows - 1);
+
         int tileIndex = x + y * (_columns / tw);
 
         // quick sanity check
@@ -417,6 +421,11 @@ void TilesetWidget::onTileUpdated(int tileIndex)
 void TilesetWidget::onCharsetUpdated()
 {
     update();
+}
+
+void TilesetWidget::onFileLoaded()
+{
+    onTilePropertiesUpdated();
 }
 
 // public

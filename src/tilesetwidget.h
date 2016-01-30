@@ -38,6 +38,7 @@ public slots:
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);
     void onCharsetUpdated();
+    void onFileLoaded();
 
     bool hasSelection() const;
     void getSelectionRange(State::CopyRange* copyRange) const;

@@ -153,6 +153,10 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
     int x = (pos.x() - OFFSET) / _pixelSize / _tileSize.width() / 8;
     int y = (pos.y() - OFFSET) / _pixelSize / _tileSize.height() / 8;
 
+    // sanity check
+    x = qBound(0, x, _mapSize.width() - 1);
+    y = qBound(0, y, _mapSize.height() - 1);
+
     if (event->button() == Qt::LeftButton)
     {
         if (_mode == SELECT_MODE)
@@ -473,4 +477,3 @@ void MapWidget::setMode(MapMode mode)
     if (_mode != mode)
         _mode = mode;
 }
-
