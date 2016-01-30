@@ -48,9 +48,6 @@ public slots:
     // file loaded, or new project
     void fileLoaded();
 
-    // when one byte in a part of the tile changes
-    void byteUpdated(int byteIndex);
-
     // when a range of bytes in the charset changes (e.g. due to a paste)
     void bytesUpdated(int pos, int count);
 
@@ -59,9 +56,6 @@ public slots:
 
     // multi-color / hires or new colors
     void colorPropertiesUpdated();
-
-    // a color was selected
-    void colorSelected();
 
 protected:
     ServerPreview();

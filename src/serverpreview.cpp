@@ -169,7 +169,7 @@ void ServerPreview::updateForegroundColor()
     if(!isConnected()) return;
 
     auto state = MainWindow::getCurrentState();
-    uchar foreground = state->getColorForPen(State::PEN_FOREGROUND);
+    uchar foreground = state->getColorForPen(State::PEN_FOREGROUND, state->getTileIndex());
     protoFill(0xd800, foreground, 40 * 25);
 }
 
@@ -320,14 +320,6 @@ void ServerPreview::fileLoaded()
     updateTiles();
 }
 
-void ServerPreview::byteUpdated(int byteIndex)
-{
-    if(!isConnected()) return;
-    auto state = MainWindow::getCurrentState();
-
-    protoSetByte(byteIndex, state->getCharsetBuffer()[byteIndex]);
-}
-
 void ServerPreview::bytesUpdated(int pos, int count)
 {
     if(!isConnected()) return;
@@ -360,20 +352,6 @@ void ServerPreview::tileUpdated(int tileIndex)
             protoSetChars(charIndex, state->getCharAtIndex(charIndex), 1);
             charIndex += properties.interleaved;
         }
-    }
-}
-
-void ServerPreview::colorSelected()
-{
-    if(!isConnected()) return;
-
-    auto state = MainWindow::getCurrentState();
-
-    switch(state->getSelectedPen()) {
-    case 0: updateBackgroundColor(); break;
-    case 1: updateMulticolor1(); break;
-    case 2: updateMulticolor2(); break;
-    case 3: updateForegroundColor(); break;
     }
 }
 

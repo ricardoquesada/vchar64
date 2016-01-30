@@ -439,9 +439,6 @@ signals:
     // when the map content is updated
     void mapContentUpdated();
 
-    // when one byte in a part of the tile changes
-    void byteUpdated(int);
-
     // when a range of bytes in the charset changes (e.g. due to a paste)
     void bytesUpdated(int pos, int count);
 

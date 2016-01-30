@@ -297,7 +297,6 @@ BigCharWidget* MainWindow::createDocument(State* state)
 
     auto xlinkpreview = XlinkPreview::getInstance();
     connect(state, &State::fileLoaded, xlinkpreview, &XlinkPreview::fileLoaded);
-    connect(state, &State::byteUpdated, xlinkpreview, &XlinkPreview::byteUpdated);
     connect(state, &State::bytesUpdated, xlinkpreview, &XlinkPreview::bytesUpdated);
     connect(state, &State::tileUpdated, xlinkpreview, &XlinkPreview::tileUpdated);
     connect(state, &State::colorPropertiesUpdated, xlinkpreview, &XlinkPreview::colorPropertiesUpdated);
@@ -306,7 +305,6 @@ BigCharWidget* MainWindow::createDocument(State* state)
 
     auto serverpreview = ServerPreview::getInstance();
     connect(state, &State::fileLoaded, serverpreview, &ServerPreview::fileLoaded);
-    connect(state, &State::byteUpdated, serverpreview, &ServerPreview::byteUpdated);
     connect(state, &State::bytesUpdated, serverpreview, &ServerPreview::bytesUpdated);
     connect(state, &State::tileUpdated, serverpreview, &ServerPreview::tileUpdated);
     connect(state, &State::colorPropertiesUpdated, serverpreview, &ServerPreview::colorPropertiesUpdated);
@@ -393,13 +391,11 @@ void MainWindow::createActions()
     _ui->colorRectWidget_3->setPen(State::PEN_MULTICOLOR2);
 
     auto xlinkPreview = XlinkPreview::getInstance();
-//    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, xlinkPreview, &XlinkPreview::colorSelected);
     connect(xlinkPreview, &XlinkPreview::previewConnected, this, &MainWindow::xlinkConnected);
     connect(xlinkPreview, &XlinkPreview::previewDisconnected, this, &MainWindow::xlinkDisconnected);
     _ui->menuXlink->setEnabled(xlinkPreview->isAvailable());
 
     auto serverPreview = ServerPreview::getInstance();
-//    connect(_ui->paletteWidget, &PaletteWidget::colorSelected, serverPreview, &ServerPreview::colorSelected);
     connect(serverPreview, &ServerPreview::previewConnected, this, &MainWindow::serverConnected);
     connect(serverPreview, &ServerPreview::previewDisconnected, this, &MainWindow::serverDisconnected);
 

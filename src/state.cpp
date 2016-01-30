@@ -588,7 +588,6 @@ void State::_tileSetPen(int tileIndex, const QPoint& position, int pen)
     if (c != _charset[byteIndex]) {
         _charset[byteIndex] = c;
 
-        emit byteUpdated(byteIndex);
         emit tileUpdated(tileIndex);
         emit contentsChanged();
     }

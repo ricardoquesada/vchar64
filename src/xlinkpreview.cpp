@@ -95,7 +95,7 @@ void XlinkPreview::updateForegroundColor()
     if(!isConnected()) return;
 
     auto state = MainWindow::getCurrentState();
-    uchar foreground = state->getColorForPen(State::PEN_FOREGROUND);
+    uchar foreground = state->getColorForPen(State::PEN_FOREGROUND, state->getTileIndex());
     foreground |= state->isMulticolorMode() ? 8 : 0;
 
     xlink_fill(0xb7, 0x00, 0xd800, foreground, 1000);
@@ -182,14 +182,6 @@ void XlinkPreview::fileLoaded()
     if(!isConnected()) return;
 
     install();
-}
-
-void XlinkPreview::byteUpdated(int byteIndex)
-{
-    if(!isConnected()) return;
-
-    auto state = MainWindow::getCurrentState();
-    xlink_poke(0xb7, 0x00, 0x3000 + byteIndex, state->getCharsetBuffer()[byteIndex]);
 }
 
 void XlinkPreview::bytesUpdated(int pos, int count)
