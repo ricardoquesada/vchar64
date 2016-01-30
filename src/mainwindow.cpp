@@ -325,7 +325,8 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::bytesUpdated, serverpreview, &ServerPreview::bytesUpdated);
     connect(state, &State::tileUpdated, serverpreview, &ServerPreview::tileUpdated);
     connect(state, &State::colorPropertiesUpdated, serverpreview, &ServerPreview::colorPropertiesUpdated);
-    connect(state, &State::multicolorModeToggled, serverpreview, &ServerPreview::colorPropertiesUpdated);
+    connect(state, &State::multicolorModeToggled, serverpreview, &ServerPreview::multicolorModeUpdated);
+    connect(state, &State::tilePropertiesUpdated, serverpreview, &ServerPreview::tilePropertiesUpdated);
 
     connect(state, &State::fileLoaded, this, &MainWindow::refresh);
     connect(state, &State::fileLoaded, bigcharWidget, &BigCharWidget::onFileLoaded);

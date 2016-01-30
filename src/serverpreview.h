@@ -55,7 +55,10 @@ public slots:
     void tileUpdated(int tileIndex);
 
     // multi-color / hires or new colors
-    void colorPropertiesUpdated();
+    void colorPropertiesUpdated(int pen);
+
+    void multicolorModeUpdated(bool toggled);
+    void tilePropertiesUpdated();
 
 protected:
     ServerPreview();
@@ -80,6 +83,8 @@ protected:
 
     void updateBackgroundColor();
     void updateForegroundColor();
+    void updateForegroundColorForCharset();
+    void updateForegroundColorForTileset();
     void updateMulticolor1();
     void updateMulticolor2();
     void updateColorMode();

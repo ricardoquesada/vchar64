@@ -148,7 +148,7 @@ void ServerPreview::onConnected()
 
     updateCharset();
     updateColorProperties();
-    updateTiles();
+    updateTiles();    
 }
 
 void ServerPreview::onDisconnected()
@@ -164,13 +164,114 @@ void ServerPreview::updateBackgroundColor()
     protoPoke(0xd021, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
 }
 
+void ServerPreview::updateForegroundColorForCharset()
+{
+    auto state = MainWindow::getCurrentState();
+    struct vchar64d_proto_header* header;
+    struct vchar64d_proto_set_mem* payload;
+
+    static const quint16 CHARS_TO_COPY = 40 * 8;
+    static const quint16 COLOR_RAM = 0xd800;
+    auto tileColors = state->getTileColors();
+
+    int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
+    char* data = (char*) malloc(size);
+
+    header = (struct vchar64d_proto_header*) data;
+    payload = (struct vchar64d_proto_set_mem*) (data + sizeof(*header));
+    quint8* chars = (quint8*)&payload->data;
+
+    header->type = TYPE_SET_MEM;
+    payload->addr = qToLittleEndian(COLOR_RAM);
+    payload->count = qToLittleEndian(CHARS_TO_COPY);
+
+    // clean the screen memory since "fill" won't fill everything
+    memset(chars, 0x08, CHARS_TO_COPY);
+
+    for (int y=0; y<8; ++y)
+    {
+        for (int x=0; x<32; ++x)
+        {
+            chars[y * 40 + x] = tileColors[state->getTileIndexFromCharIndex(y * 32 + x)];
+        }
+    }
+
+    sendOrQueueData(data, size);
+}
+
+void ServerPreview::updateForegroundColorForTileset()
+{
+    auto state = MainWindow::getCurrentState();
+    struct vchar64d_proto_header* header;
+    struct vchar64d_proto_set_mem* payload;
+
+    static const quint16 CHARS_TO_COPY = 40 * 10;
+    static const quint16 COLOR_RAM = 0xd800 + 12 * 40;
+    auto tileColors = state->getTileColors();
+    auto currentTileProperties = state->getTileProperties();
+
+    int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
+    char* data = (char*) malloc(size);
+
+    header = (struct vchar64d_proto_header*) data;
+    payload = (struct vchar64d_proto_set_mem*) (data + sizeof(*header));
+    quint8* chars = (quint8*)&payload->data;
+
+    header->type = TYPE_SET_MEM;
+    payload->addr = qToLittleEndian(COLOR_RAM);
+    payload->count = qToLittleEndian(CHARS_TO_COPY);
+
+    // clean the screen memory since "fill" won't fill everything
+    memset(chars, 0x08, CHARS_TO_COPY);
+
+    // fill the screen memory
+    int tw = currentTileProperties.size.width();
+    int th = currentTileProperties.size.height();
+
+    int max_tiles = 256 / (tw*th);
+
+    // 32 columns
+    int columns = (32 / currentTileProperties.size.width()) * currentTileProperties.size.width();
+
+
+    for (int i=0; i<max_tiles;i++)
+    {
+        quint8 index = currentTileProperties.interleaved == 1 ?
+                    i * tw * th :
+                    i;
+        int w = (i * tw) % columns;
+        int h = th * ((i * tw) / columns);
+
+        for (int char_idx=0; char_idx < (tw * th); char_idx++)
+        {
+            int local_w = w + char_idx % tw;
+            int local_h = h + char_idx / tw;
+
+            chars[local_h * 40 + local_w] = tileColors[state->getTileIndexFromCharIndex(index)];
+
+            index += currentTileProperties.interleaved;
+        }
+    }
+
+    sendOrQueueData(data, size);
+}
+
 void ServerPreview::updateForegroundColor()
 {
     if(!isConnected()) return;
 
     auto state = MainWindow::getCurrentState();
-    uchar foreground = state->getColorForPen(State::PEN_FOREGROUND, state->getTileIndex());
-    protoFill(0xd800, foreground, 40 * 25);
+
+    if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
+    {
+        uchar foreground = state->getColorForPen(State::PEN_FOREGROUND, -1);
+        protoFill(0xd800, foreground, 40 * 25);
+    }
+    else
+    {
+        updateForegroundColorForCharset();
+        updateForegroundColorForTileset();
+    }
 }
 
 void ServerPreview::updateMulticolor1()
@@ -194,11 +295,7 @@ void ServerPreview::updateColorMode()
     if(!isConnected()) return;
 
     auto state = MainWindow::getCurrentState();
-//    uchar control = 0x08;
-//    xlink_peek(0x37, 0x00, 0xd016, &control);
     protoPoke(0xd016, state->isMulticolorMode() ? 0x18 : 0x08);
-
-    updateForegroundColor();
 }
 
 void ServerPreview::updateColorProperties()
@@ -206,7 +303,9 @@ void ServerPreview::updateColorProperties()
     updateBackgroundColor();
     updateMulticolor1();
     updateMulticolor2();
-    updateColorMode(); // also updates foreground color
+    updateForegroundColor();
+
+    updateColorMode();
 }
 
 void ServerPreview::updateCharset()
@@ -355,11 +454,25 @@ void ServerPreview::tileUpdated(int tileIndex)
     }
 }
 
-void ServerPreview::colorPropertiesUpdated()
+void ServerPreview::colorPropertiesUpdated(int pen)
 {
     if(!isConnected()) return;
-
     updateColorMode();
+
+    if (pen == State::PEN_FOREGROUND)
+        updateForegroundColor();
+}
+
+void ServerPreview::multicolorModeUpdated(bool toggled)
+{
+    Q_UNUSED(toggled);
+    updateColorMode();
+}
+
+void ServerPreview::tilePropertiesUpdated()
+{
+    updateTiles();
+    updateForegroundColor();
 }
 
 //
