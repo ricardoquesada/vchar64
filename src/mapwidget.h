@@ -51,6 +51,7 @@ public slots:
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);
     void onCharsetUpdated();
+    void onFileLoaded();
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

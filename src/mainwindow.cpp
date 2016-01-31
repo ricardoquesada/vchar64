@@ -332,7 +332,7 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::fileLoaded, bigcharWidget, &BigCharWidget::onFileLoaded);
     connect(state, &State::fileLoaded, _ui->tilesetWidget, &TilesetWidget::onFileLoaded);
     connect(state, &State::fileLoaded, _ui->charsetWidget, &CharsetWidget::onCharsetUpdated);
-    connect(state, &State::fileLoaded, _ui->mapWidget, &MapWidget::onCharsetUpdated);
+    connect(state, &State::fileLoaded, _ui->mapWidget, &MapWidget::onFileLoaded);
 
     connect(state, &State::tilePropertiesUpdated, this, &MainWindow::onTilePropertiesUpdated);
     connect(state, &State::tilePropertiesUpdated, bigcharWidget, &BigCharWidget::onTilePropertiesUpdated);
