@@ -672,13 +672,15 @@ void ImportKoalaDialog::mousePressEvent(QMouseEvent* event)
 
             if (diag.exec())
             {
+                // FIXME: most probably this is not needed since the signal colorSelected
+                // will change it...
                 widgets[i]->setColorIndex(diag.getSelectedColor());
                 convert();
             }
             else
             {
                 // restore original color, since the color can be changed
-                // from the SelectColorDialog
+                // within the colorSelected signal
                 widgets[i]->setColorIndex(currentColor);
                 convert();
             }
