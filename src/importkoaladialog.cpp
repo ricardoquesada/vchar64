@@ -131,7 +131,10 @@ int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int,int>>& usedC
                         colorsToFind.push_back(i);
                 }
 
-                cacheColor = getColorByPaletteProximity(color, colorsToFind);
+                if (ui->radioButtonBrightness->isChecked())
+                    cacheColor = getColorByPaletteBrightness(color, colorsToFind);
+                else
+                    cacheColor = getColorByPaletteProximity(color, colorsToFind);
 
                 // inform which is the Hi Color used to create the Color Ram
                 if (ui->radioForegroundMostUsed->isChecked())
@@ -263,6 +266,34 @@ void ImportKoalaDialog::normalizeWithNeighborStrategy(char* key, int hiColorRAM)
     }
 }
 
+int ImportKoalaDialog::getColorByPaletteBrightness(int colorIndex, const std::vector<int>& colorsToFind)
+{
+    const int brightness[] = {0x01, 0x0d, 0x07, 0x0f, 0x03, 0x05, 0x0a, 0x0c,
+                              0x0e, 0x08, 0x04, 0x02, 0x0b, 0x06, 0x09, 0x00};
+
+    std::vector<std::pair<int,int>> usedColors = {
+        {0,0}, {0,1}, {0,2}, {0,3}, {0,4}, {0,5}, {0,6}, {0,7},
+        {0,8}, {0,9}, {0,10}, {0,11}, {0,12}, {0,13}, {0,14}, {0,15}
+    };
+
+    // find indexColor;
+    auto found_iter = std::find(std::begin(brightness), std::end(brightness), colorIndex);
+    Q_ASSERT(found_iter != std::end(brightness) && "Invalid index color");
+    int idx = std::distance(std::begin(brightness), found_iter);
+
+    for (int j=0; j<16; j++)
+    {
+        int tmpColor = brightness[j];
+        if (std::find(std::begin(colorsToFind), std::end(colorsToFind), brightness[j]) != std::end(colorsToFind))
+        {
+            usedColors[tmpColor].first += std::max(0, 16 - abs(idx-j));
+        }
+    }
+
+    std::sort(std::begin(usedColors), std::end(usedColors));
+    return usedColors[15].second;
+}
+
 int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vector<int>& colorsToFind)
 {
     // FIXME:
@@ -359,7 +390,10 @@ void ImportKoalaDialog::normalizeWithPaletteStrategy(char* key, int hiColorRAM)
                                                  _colorRAM};
 
                 // Palette proximity Strategy
-                newColor = getColorByPaletteProximity(colorIndex, colorsToFind);
+                if (ui->radioButtonBrightness->isChecked())
+                    newColor = getColorByPaletteBrightness(colorIndex, colorsToFind);
+                else
+                    newColor = getColorByPaletteProximity(colorIndex, colorsToFind);
                 key[y*4+x] = _hex[newColor];
             }
         }
@@ -370,7 +404,7 @@ void ImportKoalaDialog::normalizeKey(char* key, int hiColorRAM)
 {
     if (ui->radioButtonNeighbor->isChecked())
         normalizeWithNeighborStrategy(key, hiColorRAM);
-    else /* palette or random */
+    else /* Palette 1 or Palette 2*/
         normalizeWithPaletteStrategy(key, hiColorRAM);
 }
 
@@ -578,6 +612,11 @@ void ImportKoalaDialog::on_radioButtonNeighbor_clicked()
     convert();
 }
 
+void ImportKoalaDialog::on_radioButtonBrightness_clicked()
+{
+    convert();
+}
+
 void ImportKoalaDialog::on_radioButtonPalette_clicked()
 {
     convert();
@@ -621,8 +660,9 @@ void ImportKoalaDialog::updateWidgets()
 {
     QWidget* widgets[] =
     {
-        ui->radioButtonNeighbor,
+        ui->radioButtonBrightness,
         ui->radioButtonPalette,
+        ui->radioButtonNeighbor,
         ui->radioForegroundMostUsed,
         ui->radioForegroundMostUsedLow,
         ui->radioD02xManual,

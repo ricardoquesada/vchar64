@@ -45,6 +45,7 @@ protected:
     void normalizeWithPaletteStrategy(char* key, int hiColorRAM);
     void normalizeWithNeighborStrategy(char* key, int hiColorRAM);
     bool tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM);
+    int getColorByPaletteBrightness(int colorIndex, const std::vector<int> &colorsToFind);
     int getColorByPaletteProximity(int colorIndex, const std::vector<int> &colorsToFind);
 
     bool convert();
@@ -56,8 +57,9 @@ private slots:
     void on_radioD02xMostUsedHi_clicked();
     void on_radioForegroundMostUsed_clicked();
     void on_radioForegroundMostUsedLow_clicked();
-    void on_radioButtonNeighbor_clicked();
+    void on_radioButtonBrightness_clicked();
     void on_radioButtonPalette_clicked();
+    void on_radioButtonNeighbor_clicked();
 
     void on_checkBoxGrid_clicked();
 
