@@ -200,9 +200,9 @@
          <number>5</number>
         </property>
         <item>
-         <widget class="QRadioButton" name="radioButtonBrightness">
+         <widget class="QRadioButton" name="radioButtonLuminance">
           <property name="text">
-           <string>Brightness proximity</string>
+           <string>Luminance proximity</string>
           </property>
           <property name="checked">
            <bool>true</bool>
