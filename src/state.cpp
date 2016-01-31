@@ -1428,7 +1428,7 @@ void State::setupDefaultMap()
     }
 
                         //1234567890123456789012345678901234567890
-    const char sign[] = "RETRO.MOE                            PVM";
+    const char sign[] = "PUNGAS.SPACE                   RETRO.MOE";
     // ASCII to PETSCII screen codes
     for (int i=0; i<(int)sizeof(sign)-1; ++i)
         _map[24*_mapSize.width() + i] = sign[i] & ~0x40;

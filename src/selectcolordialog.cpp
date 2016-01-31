@@ -50,6 +50,8 @@ void SelectColorDialog::setCurrentColor(int colorIndex)
 
         _selectedColor = colorIndex;
         _widgets[_selectedColor]->setSelected(true);
+
+        emit colorSelected(colorIndex);
     }
 }
 

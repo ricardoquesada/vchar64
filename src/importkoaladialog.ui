@@ -121,7 +121,7 @@
      <item row="1" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <property name="spacing">
-        <number>0</number>
+        <number>1</number>
        </property>
        <item>
         <widget class="ColorRectWidget" name="widgetD021" native="true">

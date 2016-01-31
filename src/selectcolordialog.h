@@ -20,13 +20,16 @@ public:
     void setCurrentColor(int colorIndex);
     int getSelectedColor() const;
 
+signals:
+    void colorSelected(int colorIndex);
+
 protected:
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
 private:
     Ui::SelectColorDialog *ui;
-    int _selectedColor;
 
+    int _selectedColor;
     ColorRectWidget* _widgets[16];
 };
 

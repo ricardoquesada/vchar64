@@ -661,11 +661,25 @@ void ImportKoalaDialog::mousePressEvent(QMouseEvent* event)
             // will also trigger convert
             ui->radioD02xManual->setChecked(true);
 
+            auto currentColor = widgets[i]->getColorIndex();
             SelectColorDialog diag(this);
-            diag.setCurrentColor(widgets[i]->getColorIndex());
+            diag.setCurrentColor(currentColor);
+
+            connect(&diag, &SelectColorDialog::colorSelected, [&](int colorIndex){
+                widgets[i]->setColorIndex(colorIndex);
+                convert();
+            });
+
             if (diag.exec())
             {
                 widgets[i]->setColorIndex(diag.getSelectedColor());
+                convert();
+            }
+            else
+            {
+                // restore original color, since the color can be changed
+                // from the SelectColorDialog
+                widgets[i]->setColorIndex(currentColor);
                 convert();
             }
             event->accept();

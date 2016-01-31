@@ -96,7 +96,7 @@ void ColorRectWidget::paintEvent(QPaintEvent *event)
         pen.setStyle(Qt::PenStyle::SolidLine);
         painter.setPen(pen);
 
-        painter.drawRect(0, 0, width(), height());
+        painter.drawRect(0, 0, width()-1, height()-1);
     }
 
     painter.end();
