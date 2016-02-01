@@ -471,6 +471,7 @@ void ServerPreview::multicolorModeUpdated(bool toggled)
 
 void ServerPreview::tilePropertiesUpdated()
 {
+    if(!isConnected()) return;
     updateTiles();
     updateForegroundColor();
 }
