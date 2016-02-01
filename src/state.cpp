@@ -25,6 +25,8 @@ limitations under the License.
 #include <QFile>
 #include <QFileInfo>
 #include <QDebug>
+#include <QtGlobal>
+#include <QTime>
 
 #include "mainwindow.h"
 #include "stateimport.h"
@@ -1399,15 +1401,30 @@ BigCharWidget* State::getBigCharWidget() const
 void State::setupDefaultMap()
 {
     memset(_map, 0x20, _mapSize.width() * _mapSize.height());
-                        //1234567890123456789012345678901234567890
-    const char hello[] = "                                        " \
-                         "    **** COMMODORE 64 BASIC V2 ****     " \
-                         "                                        " \
-                         " 64K RAM SYSTEM  38911 BASIC BYTES FREE ";
+                          //1234567890123456789012345678901234567890
+    const char hello64[] = "                                        " \
+                           "    **** COMMODORE 64 BASIC V2 ****     " \
+                           "                                        " \
+                           " 64K RAM SYSTEM  38911 BASIC BYTES FREE ";
 
+    const char hello128[] = "                                        " \
+                            " COMMODORE BASIC V7.0 122365 BYTES FREE " \
+                            "   (C)1986 COMMODORE ELECTRONICS, LTD.  " \
+                            "         (C)1977 MICROSOFT CORP.        " \
+                            "           ALL RIGHTS RESERVED          ";
+    struct {
+        const char* hello;
+        int helloSize;
+    } hellos[] = {
+        {hello64, sizeof(hello64)-1},
+        {hello128, sizeof(hello128)-1}
+    };
+
+    qsrand(QTime::currentTime().msec());
+    int helloidx = qrand() % 2;
     // ASCII to PETSCII screen codes
-    for (int i=0; i<(int)sizeof(hello)-1; ++i)
-        _map[i] = hello[i] & ~0x40;
+    for (int i=0; i<hellos[helloidx].helloSize; ++i)
+        _map[i] = hellos[helloidx].hello[i] & ~0x40;
 
     const char happy[][3] = {
         {85, 67, 73},
