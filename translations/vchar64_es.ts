@@ -236,7 +236,7 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../src/importkoaladialog.ui" line="242"/>
         <source>Unique Chars:</source>
-        <translation>Caracteres únicos</translation>
+        <translation>Caracteres únicos:</translation>
     </message>
     <message>
         <location filename="../src/importkoaladialog.ui" line="258"/>
@@ -717,7 +717,7 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../src/mainwindow.ui" line="967"/>
         <source>Import Koala image...</source>
-        <translation>Importar imágen Koala</translation>
+        <translation>Importar imágen Koala...</translation>
     </message>
     <message>
         <location filename="../src/mainwindow.ui" line="972"/>
@@ -727,12 +727,12 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../src/mainwindow.ui" line="981"/>
         <source>Clear Map</source>
-        <translation>Borrar mapa</translation>
+        <translation>Limpiar mapa</translation>
     </message>
     <message>
         <location filename="../src/mainwindow.ui" line="984"/>
         <source>Clear map with selected tile</source>
-        <translation>Borrar mapa con el mosaico seleccionado</translation>
+        <translation>Limpiar mapa con el mosaico seleccionado</translation>
     </message>
     <message>
         <location filename="../src/mainwindow.ui" line="996"/>
@@ -995,7 +995,7 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../src/mainwindow.ui" line="915"/>
         <source>Import VICE snapshot...</source>
-        <translation>Importar snpshot de VICE...</translation>
+        <translation>Importar snapshot de VICE...</translation>
     </message>
     <message>
         <location filename="../src/mainwindow.cpp" line="101"/>
@@ -1305,7 +1305,7 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../src/commands.cpp" line="75"/>
         <source>Clear Tile #%1</source>
-        <translation>Borrar mosaico #%1</translation>
+        <translation>Limpiar mosaico #%1</translation>
     </message>
     <message>
         <location filename="../src/commands.cpp" line="117"/>
