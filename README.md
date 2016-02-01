@@ -38,10 +38,10 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 
 In no particular order:
 
-* Improved Koala Import support
-* Import Koala to PETSCII
-* Improved Tile Map editor
-* Improved Tile support
+* Multiple charset import in Koala Import
+* Convert to PETSCII
+* Tile: one color per char
+* Tile: arbitrary composition of tiles
 * Character / Tile animation support
 * Sprite
    * Sprite editing
@@ -69,8 +69,8 @@ $ git clone https://github.com/ricardoquesada/vchar64.git
 
 ## Download binaries
 
-* [vchar64-v0.0.10 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.0.10/vchar64-0.0.10.win32.zip)
-* [vchar64-v0.0.10 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.0.10/vchar64-0.0.10.dmg.zip)
+* [vchar64-v0.0.10 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.0.11/vchar64-0.0.11.win32.zip)
+* [vchar64-v0.0.10 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.0.11/vchar64-0.0.11.dmg.zip)
 
 ## License
 
