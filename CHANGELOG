@@ -22,6 +22,7 @@
 * [NEW] Server: C128 images uses a .d71 disk image instead of a .d64 disk
         image
 * [NEW] Server: Supports "one color per tile" mode
+* [BUGFIX] cut: works as expected.
 * [BUGFIX] Color Dock: Pens were grouped in the "Pen" group
         Color Palette grows/shrinks automatically
 * [BUGFIX]: Internal code: signals code simplified. Less duplicate signals

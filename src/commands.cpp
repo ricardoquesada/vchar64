@@ -133,7 +133,8 @@ void PasteCommand::undo()
 {
     State::CopyRange reversedCopyRange = _copyRange;
 
-    if (reversedCopyRange.tileProperties.interleaved == 1)
+    // FIXME: doesn't work when tiles are copied/paste to/from different tile properties
+    if (_copyRange.type == State::CopyRange::TILES && reversedCopyRange.tileProperties.interleaved == 1)
         reversedCopyRange.offset = _charIndex / (reversedCopyRange.tileProperties.size.width() * reversedCopyRange.tileProperties.size.height());
     else
         reversedCopyRange.offset = _charIndex;
@@ -201,9 +202,13 @@ CutCommand::~CutCommand()
 
 void CutCommand::undo()
 {
-    State::CopyRange reversedCopyRange;
-    memcpy(&reversedCopyRange, &_copyRange, sizeof(State::CopyRange));
-    reversedCopyRange.offset = _charIndex;
+    State::CopyRange reversedCopyRange = _copyRange;
+
+    // FIXME: doesn't work when tiles are copied/paste to/from different tile properties
+    if (_copyRange.type == State::CopyRange::TILES && reversedCopyRange.tileProperties.interleaved == 1)
+        reversedCopyRange.offset = _charIndex / (reversedCopyRange.tileProperties.size.width() * reversedCopyRange.tileProperties.size.height());
+    else
+        reversedCopyRange.offset = _charIndex;
 
     _state->_paste(_charIndex, reversedCopyRange, _origBuffer);
 }

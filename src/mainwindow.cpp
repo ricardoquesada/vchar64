@@ -1106,10 +1106,13 @@ void MainWindow::on_actionShiftDown_triggered()
 void MainWindow::on_actionCut_triggered()
 {
     auto state = getState();
-    auto copyRange = bufferToClipboard(state);
+    auto range = bufferToClipboard(state);
 
-    int indexChar = copyRange.offset;
-    state->cut(indexChar, copyRange);
+    int cursorPos = (range.type == State::CopyRange::CHARS || range.type == State::CopyRange::TILES)
+                ? _ui->charsetWidget->getCursorPos()
+                : _ui->mapWidget->getCursorPos();
+
+    state->cut(cursorPos, range);
 }
 
 void MainWindow::on_actionCopy_triggered()
