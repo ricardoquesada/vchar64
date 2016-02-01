@@ -1,20 +1,18 @@
-0.0.11 (?? February 2016) (Happy Birthday Release)
+0.0.11 (1 February 2016) (Happy Birthday Release)
 
 * [NEW] Added Koala import support.
         Includes different heuristics
         Only works if it can convert the image in 256 or less chars
 * [NEW] Added Tile Map support
-        Supports copy & paste & cut
+        Supports copy & paste & cut. Plus Undo & Redo
         It has Rect Select, Flood Fill, Paint tools. Plus Clear and Grid
+	It has Zoom and an scroll area.
         'Export' supports exporting the map data
-* [NEW] Added "one foregrond color per tile" mode (the other one is Global colors)
+* [NEW] Added "global foreground / one per tile" mode 
         'Export' supports exporting the "tile colors"
+* [NEW] Export: Added "assembler" export format
 * [NEW] Import CharPad: Added support for tile colors and map
 * [NEW] Tile Dock: has an scroll area
-* [NEW] Tests: added new subdirectory which contains many... test files
-* [NEW] Examples: added Commando and Subchrist Chrome examples
-* [NEW] Examples: added c64_loader. Shows how to load the exported data in the
-	c64
 * [NEW] Menu: Moved "Tile" actions from 'Edit' to 'Tile'
          Moved docks actions from "View / Views" to "View"
          Added new "Map" menu
@@ -22,6 +20,10 @@
 * [NEW] Server: C128 images uses a .d71 disk image instead of a .d64 disk
         image
 * [NEW] Server: Supports "one color per tile" mode
+* [NEW] Tests: added new subdirectory which contains many... test files
+* [NEW] Examples: added Commando and Subchrist Chrome examples
+* [NEW] Examples: added c64_loader. Shows how to load the exported data in the
+	c64
 * [BUGFIX] cut: works as expected.
 * [BUGFIX] Color Dock: Pens were grouped in the "Pen" group
         Color Palette grows/shrinks automatically
@@ -29,6 +31,7 @@
         (faster redraws)
 * [BUGFIX]: Shortcuts 1,2,3,4 work as expected again
 * [BUGFIX]: Imports CharPad files correctly (both v4 and v5 format)
+* [BUGFIX]: Server: Don't send duplciated data (faster transfers)
 
 
 0.0.10 (5 January 2016)
