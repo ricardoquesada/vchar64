@@ -289,13 +289,13 @@ void ImportKoalaOrigWidget::reportResults()
         if (keyIsValid)
         {
             // it->second is the vector<pair<int,int>>
-            validChars += it->second.size();
+            validChars += (int)it->second.size();
             validUniqueChars++;
         }
         else
         {
             // it->second is the vector<pair<int,int>>
-            invalidChars += it->second.size();
+            invalidChars += (int)it->second.size();
             invalidUniqueChars++;
         }
     }

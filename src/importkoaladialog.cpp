@@ -536,7 +536,7 @@ bool ImportKoalaDialog::convert()
 
     orig->reportResults();
 
-    int uniqueChars = orig->_uniqueChars.size();
+    int uniqueChars = (int)orig->_uniqueChars.size();
     ui->lineEditUnique->setText(QString::number(uniqueChars));
     if (uniqueChars > 256)
     {
