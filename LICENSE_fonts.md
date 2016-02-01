@@ -14,3 +14,4 @@ Most probably they are under a proprietary license. Don't use them, they are pro
 * reset07_2x2: From [Reset issue #07](http://csdb.dk/release/?id=139954) magazine
 * subchrist_chrome_2_2: From [CharPad](http://www.subchristsoftware.com/charpad.htm) editor
 * commando_l1: From [Commando](http://csdb.dk/release/?id=130990) game
+* unknown_2x2: From [Hexen Collection](http://csdb.dk/release/?id=144857) intro
