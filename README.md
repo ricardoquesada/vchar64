@@ -26,13 +26,13 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
     * Custom Distance in chars between tiles
 * Map support    
 * Imports CharPad 1.8 and 2.0 projects
-* Imports Koala image files
+* Imports Koala image files: [Demo Video](https://www.youtube.com/watch?v=wIBTINBCngs)
 * Imports VICE snapshot images
 * Exports to Assembly, Raw and Prg
 * Emulates different palettes: VICE, Pepto, Frodo, etc...
 * Two Live Preview modes:
-    * [TCP/IP server](https://github.com/ricardoquesada/vchar64/blob/master/server/README.md) support. Video: https://www.youtube.com/watch?v=yNCK_wZbo40
-    * [xlink](http://henning-bekel.de/xlink/) support. Video: https://www.youtube.com/watch?v=ZaSR_mxRfmo
+    * [TCP/IP server](https://github.com/ricardoquesada/vchar64/blob/master/server/README.md) support. [Demo Video](https://www.youtube.com/watch?v=yNCK_wZbo40)
+    * [xlink](http://henning-bekel.de/xlink/) support. [Demo Video](https://www.youtube.com/watch?v=ZaSR_mxRfmo)
 
 ## Roadmap
 
