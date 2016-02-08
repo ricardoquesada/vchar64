@@ -17,7 +17,7 @@ win32 {
     DESTDIR = ../bin
 }
 TEMPLATE = app
-VERSION = 0.0.11
+VERSION = 0.0.12
 GIT_VERSION = $$system(git describe --abbrev=4 --dirty --always --tags)
 DEFINES += GIT_VERSION=\\\"$$GIT_VERSION\\\"
 
@@ -43,17 +43,17 @@ SOURCES += main.cpp\
     tilesetwidget.cpp \
     vchar64application.cpp \
     importvicedialog.cpp \
-    importcharsetwidget.cpp \
     fileutils.cpp \
     serverpreview.cpp \
     serverconnectdialog.cpp \
     importkoaladialog.cpp \
-    importkoalaorigwidget.cpp \
-    importkoalaconvwidget.cpp \
     selectcolordialog.cpp \
     mapwidget.cpp \
     utils.cpp \
-    mappropertiesdialog.cpp
+    mappropertiesdialog.cpp \
+    importkoalacharsetwidget.cpp \
+    importkoalabitmapwidget.cpp \
+    importvicecharsetwidget.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -72,18 +72,18 @@ HEADERS  += mainwindow.h \
     tilesetwidget.h \
     vchar64application.h \
     importvicedialog.h \
-    importcharsetwidget.h \
     fileutils.h \
     serverpreview.h \
     serverconnectdialog.h \
     serverprotocol.h \
     importkoaladialog.h \
-    importkoalaconvwidget.h \
-    importkoalaorigwidget.h \
     selectcolordialog.h \
     mapwidget.h \
     utils.h \
-    mappropertiesdialog.h
+    mappropertiesdialog.h \
+    importkoalacharsetwidget.h \
+    importkoalabitmapwidget.h \
+    importvicecharsetwidget.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \

@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2016 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,31 +17,30 @@ limitations under the License.
 #pragma once
 
 #include <QWidget>
-#include "state.h"
 
-class ImportCharsetWidget : public QWidget
+// draws a screen (40x25) with a charset, screen ram, color ram and multicolors
+class ImportKoalaCharsetWidget : public QWidget
 {
     Q_OBJECT
 
+    friend class ImportKoalaDialog;
+
 public:
-    ImportCharsetWidget(QWidget *parent=nullptr);
-    /**
-     * @brief setBuffer copies a buffer of 64k which belongs to the C64 RAM
-     * @param buffer the buffer
-     */
-    void setBuffer(quint8* buffer);
-    quint8* getBuffer();
+    explicit ImportKoalaCharsetWidget(QWidget *parent = 0);
+
+    void paintEvent(QPaintEvent *event);
+    void populateScreenAndColorRAM(const std::vector<std::pair<int,int>>& coords, quint8 screenRAM, quint8 colorRAM);
+    void setCharset(int charIndex, quint8* chardef);
+    void enableGrid(bool enabled);
+
+signals:
 
 public slots:
-    void multicolorToggled(bool toggled);
-    void addressChanged(int offset);
 
-protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-
-    int _memoryOffset;
-    bool _multicolor;
-    quint8 _buffer[65536];
-
+private:
+    quint8 _colorRAMForChars[256];
+    quint8 _screenRAM[40*25];
+    quint8 _d02x[3];
+    quint8 _charset[256*8];
+    bool _displayGrid;
 };
-

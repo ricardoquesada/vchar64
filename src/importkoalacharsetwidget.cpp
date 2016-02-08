@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "importkoalaconvwidget.h"
+#include "importkoalacharsetwidget.h"
 
 #include <functional>
 
@@ -32,7 +32,7 @@ static const int COLUMNS = 40;
 static const int ROWS = 25;
 static const int OFFSET = 0;
 
-ImportKoalaConvWidget::ImportKoalaConvWidget(QWidget *parent)
+ImportKoalaCharsetWidget::ImportKoalaCharsetWidget(QWidget *parent)
     : QWidget(parent)
     , _displayGrid(false)
 {
@@ -47,7 +47,7 @@ ImportKoalaConvWidget::ImportKoalaConvWidget(QWidget *parent)
     _d02x[2] = 2;
 }
 
-void ImportKoalaConvWidget::populateScreenAndColorRAM(const std::vector<std::pair<int,int>>& coords, quint8 screenRAM, quint8 colorRAM)
+void ImportKoalaCharsetWidget::populateScreenAndColorRAM(const std::vector<std::pair<int,int>>& coords, quint8 screenRAM, quint8 colorRAM)
 {
     for (const auto& pair: coords)
     {
@@ -59,7 +59,7 @@ void ImportKoalaConvWidget::populateScreenAndColorRAM(const std::vector<std::pai
     _colorRAMForChars[screenRAM] = colorRAM;
 }
 
-void ImportKoalaConvWidget::setCharset(int charIndex, quint8* chardef)
+void ImportKoalaCharsetWidget::setCharset(int charIndex, quint8* chardef)
 {
     for (int i=0; i<8; i++)
     {
@@ -70,7 +70,7 @@ void ImportKoalaConvWidget::setCharset(int charIndex, quint8* chardef)
 //
 // Overriden
 //
-void ImportKoalaConvWidget::paintEvent(QPaintEvent *event)
+void ImportKoalaCharsetWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
 
@@ -151,7 +151,7 @@ void ImportKoalaConvWidget::paintEvent(QPaintEvent *event)
     painter.end();
 }
 
-void ImportKoalaConvWidget::enableGrid(bool enabled)
+void ImportKoalaCharsetWidget::enableGrid(bool enabled)
 {
     if (_displayGrid != enabled)
     {

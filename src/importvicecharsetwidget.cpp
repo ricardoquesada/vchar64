@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "importcharsetwidget.h"
+#include "importvicecharsetwidget.h"
 
 #include <QPainter>
 #include <QPaintEvent>
@@ -28,7 +28,7 @@ static const int COLUMNS = 32;
 static const int ROWS = 8;
 static const int OFFSET = 0;
 
-ImportCharsetWidget::ImportCharsetWidget(QWidget *parent)
+ImportVICECharsetWidget::ImportVICECharsetWidget(QWidget *parent)
     : QWidget(parent)
     , _memoryOffset(0)
     , _multicolor(false)
@@ -41,7 +41,7 @@ ImportCharsetWidget::ImportCharsetWidget(QWidget *parent)
 //
 // Overriden
 //
-void ImportCharsetWidget::paintEvent(QPaintEvent *event)
+void ImportVICECharsetWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
 
@@ -113,13 +113,13 @@ void ImportCharsetWidget::paintEvent(QPaintEvent *event)
 //
 // public
 //
-void ImportCharsetWidget::setBuffer(quint8* buffer)
+void ImportVICECharsetWidget::setBuffer(quint8* buffer)
 {
     memcpy(_buffer, buffer, sizeof(_buffer));
     update();
 }
 
-quint8* ImportCharsetWidget::getBuffer()
+quint8* ImportVICECharsetWidget::getBuffer()
 {
     return _buffer;
 }
@@ -127,13 +127,13 @@ quint8* ImportCharsetWidget::getBuffer()
 //
 // public slots
 //
-void ImportCharsetWidget::multicolorToggled(bool toggled)
+void ImportVICECharsetWidget::multicolorToggled(bool toggled)
 {
     _multicolor = toggled;
     update();
 }
 
-void ImportCharsetWidget::addressChanged(int offset)
+void ImportVICECharsetWidget::addressChanged(int offset)
 {
     _memoryOffset = offset;
     update();

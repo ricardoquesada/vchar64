@@ -46,7 +46,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="ImportKoalaOrigWidget" name="widgetKoala" native="true">
+      <widget class="ImportKoalaBitmapWidget" name="widgetKoala" native="true">
        <property name="minimumSize">
         <size>
          <width>320</width>
@@ -56,7 +56,7 @@
       </widget>
      </item>
      <item>
-      <widget class="ImportKoalaConvWidget" name="widgetCharset" native="true">
+      <widget class="ImportKoalaCharsetWidget" name="widgetCharset" native="true">
        <property name="minimumSize">
         <size>
          <width>320</width>
@@ -344,15 +344,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ImportKoalaOrigWidget</class>
+   <class>ImportKoalaBitmapWidget</class>
    <extends>QWidget</extends>
-   <header>importkoalaorigwidget.h</header>
+   <header>importkoalabitmapwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ImportKoalaConvWidget</class>
+   <class>ImportKoalaCharsetWidget</class>
    <extends>QWidget</extends>
-   <header>importkoalaconvwidget.h</header>
+   <header>importkoalacharsetwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

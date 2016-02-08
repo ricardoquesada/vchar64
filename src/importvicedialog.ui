@@ -56,7 +56,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="ImportCharsetWidget" name="widget" native="true">
+       <widget class="ImportVICECharsetWidget" name="widget" native="true">
         <property name="minimumSize">
          <size>
           <width>512</width>
@@ -153,14 +153,10 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ImportCharsetWidget</class>
+   <class>ImportVICECharsetWidget</class>
    <extends>QWidget</extends>
-   <header>importcharsetwidget.h</header>
+   <header>importvicecharsetwidget.h</header>
    <container>1</container>
-   <slots>
-    <slot>multicolorToggled(bool)</slot>
-    <slot>addressChanged(int)</slot>
-   </slots>
   </customwidget>
  </customwidgets>
  <tabstops>

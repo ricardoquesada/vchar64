@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "importkoalaorigwidget.h"
+#include "importkoalabitmapwidget.h"
 
 #include <functional>
 
@@ -22,6 +22,7 @@ limitations under the License.
 #include <QPaintEvent>
 #include <QFile>
 #include <QDebug>
+#include <QGuiApplication>
 
 #include "palette.h"
 #include "state.h"
@@ -32,11 +33,14 @@ static const int COLUMNS = 40;
 static const int ROWS = 25;
 static const int OFFSET = 0;
 
-ImportKoalaOrigWidget::ImportKoalaOrigWidget(QWidget *parent)
+ImportKoalaBitmapWidget::ImportKoalaBitmapWidget(QWidget *parent)
     : QWidget(parent)
     , _offsetX(0)
     , _offsetY(0)
     , _displayGrid(false)
+    , _selecting(false)
+    , _selectingSize({0,0})
+    , _cursorPos({0,0})
 {
     memset(_framebuffer, 0, sizeof(_framebuffer));
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
@@ -46,7 +50,7 @@ ImportKoalaOrigWidget::ImportKoalaOrigWidget(QWidget *parent)
 //
 // Overriden
 //
-void ImportKoalaOrigWidget::paintEvent(QPaintEvent *event)
+void ImportKoalaBitmapWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
 
@@ -85,10 +89,98 @@ void ImportKoalaOrigWidget::paintEvent(QPaintEvent *event)
     painter.end();
 }
 
+void ImportKoalaBitmapWidget::mousePressEvent(QMouseEvent * event)
+{
+    event->accept();
+
+    auto pos = event->localPos();
+
+    int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
+    int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
+
+    // sanity check
+    x = qBound(0, x, COLUMNS - 1);
+    y = qBound(0, y, ROWS - 1);
+
+    if (event->button() == Qt::LeftButton)
+    {
+        if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier)
+        {
+            // Click + Shift == select mode
+            _selecting = true;
+
+            if (x >= _cursorPos.x())
+                x++;
+            if (y >= _cursorPos.y())
+                y++;
+
+            _selectingSize = {x - _cursorPos.x(),
+                              y - _cursorPos.y()};
+
+            // sanity check
+            _selectingSize = {
+                qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS - _cursorPos.x()),
+                qBound(-_cursorPos.y(), _selectingSize.height(), ROWS - _cursorPos.y())
+            };
+        }
+        else
+        {
+            // click without shift == select single char and clear select mode
+            if (_selecting)
+            {
+                _selecting = false;
+                _selectingSize = {1,1};
+            }
+            _cursorPos = {x,y};
+        }
+
+        update();
+    }
+}
+
+void ImportKoalaBitmapWidget::mouseMoveEvent(QMouseEvent * event)
+{
+    event->accept();
+
+    if (event->buttons() == Qt::LeftButton)
+    {
+        auto pos = event->localPos();
+        int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
+        int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
+
+        if (x >= _cursorPos.x())
+            x++;
+        if (y >= _cursorPos.y())
+            y++;
+
+        _selectingSize = {x - _cursorPos.x(),
+                          y - _cursorPos.y()};
+
+        // sanity check
+        _selectingSize = {
+            qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS-_cursorPos.x()),
+            qBound(-_cursorPos.y(), _selectingSize.height(), ROWS-_cursorPos.y())
+        };
+
+        _selecting = true;
+        update();
+    }
+}
+
+void ImportKoalaBitmapWidget::mouseReleaseEvent(QMouseEvent * event)
+{
+    event->accept();
+}
+
+void ImportKoalaBitmapWidget::keyPressEvent(QKeyEvent *event)
+{
+    event->accept();
+}
+
 //
 // public
 //
-void ImportKoalaOrigWidget::loadKoala(const QString& koalaFilepath)
+void ImportKoalaBitmapWidget::loadKoala(const QString& koalaFilepath)
 {
     // call it before updating the _koalaBuffer
     resetOffset();
@@ -107,7 +199,7 @@ void ImportKoalaOrigWidget::loadKoala(const QString& koalaFilepath)
     findUniqueChars();
 }
 
-void ImportKoalaOrigWidget::enableGrid(bool enabled)
+void ImportKoalaBitmapWidget::enableGrid(bool enabled)
 {
     if (_displayGrid != enabled)
     {
@@ -119,7 +211,7 @@ void ImportKoalaOrigWidget::enableGrid(bool enabled)
 //
 // protected
 //
-void ImportKoalaOrigWidget::resetColors()
+void ImportKoalaBitmapWidget::resetColors()
 {
     // reset state
     _colorsUsed.clear();
@@ -131,7 +223,7 @@ void ImportKoalaOrigWidget::resetColors()
         _d02xColors[i] = -1;
 }
 
-void ImportKoalaOrigWidget::resetOffset()
+void ImportKoalaBitmapWidget::resetOffset()
 {
     if (_offsetX != 0 || _offsetY != 0)
     {
@@ -141,13 +233,13 @@ void ImportKoalaOrigWidget::resetOffset()
     }
 }
 
-void ImportKoalaOrigWidget::setOffset(int offsetx, int offsety)
+void ImportKoalaBitmapWidget::setOffset(int offsetx, int offsety)
 {
     Q_UNUSED(offsetx);
     Q_UNUSED(offsety);
 }
 
-void ImportKoalaOrigWidget::findUniqueChars()
+void ImportKoalaBitmapWidget::findUniqueChars()
 {
     static const char hex[] = "0123456789ABCDEF";
 
@@ -194,7 +286,7 @@ void ImportKoalaOrigWidget::findUniqueChars()
          deb << "Color:" << _colorsUsed[i].second << "=" << _colorsUsed[i].first << "\n";
 }
 
-void ImportKoalaOrigWidget::toFrameBuffer()
+void ImportKoalaBitmapWidget::toFrameBuffer()
 {
     // 25 rows
     for (int y=0; y<ROWS; ++y)
@@ -251,7 +343,7 @@ void ImportKoalaOrigWidget::toFrameBuffer()
     update();
 }
 
-void ImportKoalaOrigWidget::reportResults()
+void ImportKoalaBitmapWidget::reportResults()
 {
     int validChars = 0;
     int invalidChars = 0;
@@ -305,7 +397,7 @@ void ImportKoalaOrigWidget::reportResults()
     qDebug() << "$d021,22,23=" << _d02xColors[0] << _d02xColors[1] << _d02xColors[2];
 }
 
-void ImportKoalaOrigWidget::strategyD02xAbove8()
+void ImportKoalaBitmapWidget::strategyD02xAbove8()
 {
     // the most used colors whose values are >=8 are going to be used for d021, d022 and d023
     // if can't find 3 colors, list is completed with most used colors whose value is < 8
@@ -334,7 +426,7 @@ void ImportKoalaOrigWidget::strategyD02xAbove8()
     }
 }
 
-void ImportKoalaOrigWidget::strategyD02xAny()
+void ImportKoalaBitmapWidget::strategyD02xAny()
 {
     // three most used colors are the ones to be used for d021, d022 and d023
     for (int i=0; i<3; ++i)

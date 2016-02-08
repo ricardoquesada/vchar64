@@ -21,19 +21,23 @@ limitations under the License.
 #include <QWidget>
 #include "state.h"
 
-class ImportKoalaOrigWidget : public QWidget
+class ImportKoalaBitmapWidget : public QWidget
 {
     Q_OBJECT
 
     friend class ImportKoalaDialog;
 public:
-    ImportKoalaOrigWidget(QWidget *parent=nullptr);
+    ImportKoalaBitmapWidget(QWidget *parent=nullptr);
     void loadKoala(const QString &koalaFilepath);
     void enableGrid(bool enabled);
     void setOffset(int offsetx, int offsety);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent * event) Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
     void resetColors();
     void resetOffset();
@@ -79,5 +83,10 @@ protected:
     quint8 _d02xColors[3];
 
     bool _displayGrid;
+
+    // selecting ivars
+    bool _selecting;
+    QSize _selectingSize;
+    QPoint _cursorPos;
 };
 
