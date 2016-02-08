@@ -50,6 +50,8 @@ void ImportKoalaCharsetWidget::clean()
     _d02x[0] = 0;
     _d02x[1] = 1;
     _d02x[2] = 2;
+
+    update();
 }
 
 void ImportKoalaCharsetWidget::populateScreenAndColorRAM(const std::vector<std::pair<int,int>>& coords, quint8 screenRAM, quint8 colorRAM)

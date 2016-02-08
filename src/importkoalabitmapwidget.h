@@ -45,7 +45,7 @@ protected:
     void resetColors();
     void resetOffset();
     void toFrameBuffer();
-    void findUniqueChars();
+    void findUniqueCells();
     QRect getSelectedRegion() const;
 
     void reportResults();
@@ -73,7 +73,7 @@ protected:
 
     // key: color sequence
     // data: positions in screen ram
-    std::unordered_map<std::string, std::vector<std::pair<int,int>>> _uniqueChars;
+    std::unordered_map<std::string, std::vector<std::pair<int,int>>> _uniqueCells;
 
     // first: count, second: color index
     std::vector<std::pair<int,int>> _colorsUsed;

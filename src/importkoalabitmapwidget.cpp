@@ -201,7 +201,7 @@ void ImportKoalaBitmapWidget::loadKoala(const QString& koalaFilepath)
 void ImportKoalaBitmapWidget::parseKoala()
 {
     resetColors();
-    findUniqueChars();
+    findUniqueCells();
 }
 
 void ImportKoalaBitmapWidget::enableGrid(bool enabled)
@@ -252,13 +252,13 @@ void ImportKoalaBitmapWidget::resetColors()
     _colorsUsed.clear();
     for (int i=0; i<16; i++)
         _colorsUsed.push_back(std::make_pair(0,i));
-    _uniqueChars.clear();
+    _uniqueCells.clear();
 
     for (int i=0; i<3; i++)
         _d02xColors[i] = -1;
 }
 
-void ImportKoalaBitmapWidget::findUniqueChars()
+void ImportKoalaBitmapWidget::findUniqueCells()
 {
     static const char hex[] = "0123456789ABCDEF";
 
@@ -285,28 +285,22 @@ void ImportKoalaBitmapWidget::findUniqueChars()
             std::string skey(key);
             Q_ASSERT(skey.size() == 8*4 && "Invalid Key");
 
-            if (_uniqueChars.find(skey) == _uniqueChars.end())
+            if (_uniqueCells.find(skey) == _uniqueCells.end())
             {
                 std::vector<std::pair<int,int>> v;
                 v.push_back(std::make_pair(x,y));
-                _uniqueChars[skey] = v;
+                _uniqueCells[skey] = v;
             }
             else
             {
-                _uniqueChars[skey].push_back(std::make_pair(x,y));
+                _uniqueCells[skey].push_back(std::make_pair(x,y));
             }
         }
     }
 
-    qDebug() << "Total unique chars:" << _uniqueChars.size();
-
     // FIXME: descending sort... just pass a "greater" function instead of reversing the result
     std::sort(std::begin(_colorsUsed), std::end(_colorsUsed));
     std::reverse(std::begin(_colorsUsed), std::end(_colorsUsed));
-
-    auto deb = qDebug();
-    for (int i=0; i<16; i++)
-         deb << "Color:" << _colorsUsed[i].second << "=" << _colorsUsed[i].first << "\n";
 }
 
 void ImportKoalaBitmapWidget::toFrameBuffer()
@@ -370,12 +364,12 @@ void ImportKoalaBitmapWidget::toFrameBuffer()
 
 void ImportKoalaBitmapWidget::reportResults()
 {
-    int validChars = 0;
-    int invalidChars = 0;
-    int validUniqueChars = 0;
-    int invalidUniqueChars = 0;
+    int validCells = 0;
+    int invalidCells = 0;
+    int validUniqueCells = 0;
+    int invalidUniqueCells = 0;
 
-    for (auto it=_uniqueChars.begin(); it!=_uniqueChars.end(); ++it)
+    for (auto it=_uniqueCells.begin(); it!=_uniqueCells.end(); ++it)
     {
         bool keyIsValid = true;
         auto key = it->first;
@@ -406,20 +400,24 @@ void ImportKoalaBitmapWidget::reportResults()
         if (keyIsValid)
         {
             // it->second is the vector<pair<int,int>>
-            validChars += (int)it->second.size();
-            validUniqueChars++;
+            validCells += (int)it->second.size();
+            validUniqueCells++;
         }
         else
         {
             // it->second is the vector<pair<int,int>>
-            invalidChars += (int)it->second.size();
-            invalidUniqueChars++;
+            invalidCells += (int)it->second.size();
+            invalidUniqueCells++;
         }
     }
 
-    qDebug() << "Valid chars: " << validChars << " Valid Unique chars: " << validUniqueChars;
-    qDebug() << "Invalid chars:" << invalidChars << " Invalid Unique chars: " << invalidUniqueChars;
+    qDebug() << "Valid cells: " << validCells << " Valid Unique cells: " << validUniqueCells;
+    qDebug() << "Invalid cells:" << invalidCells << " Invalid Unique cells: " << invalidUniqueCells;
     qDebug() << "$d021,22,23=" << _d02xColors[0] << _d02xColors[1] << _d02xColors[2];
+
+    auto deb = qDebug();
+    for (int i=0; i<16; i++)
+         deb << "Color:" << _colorsUsed[i].second << "=" << _colorsUsed[i].first << "\n";
 }
 
 void ImportKoalaBitmapWidget::strategyD02xAbove8()

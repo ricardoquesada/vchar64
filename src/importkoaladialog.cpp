@@ -17,6 +17,8 @@ limitations under the License.
 #include "importkoaladialog.h"
 #include "ui_importkoaladialog.h"
 
+#include <string>
+
 #include <QFileDialog>
 #include <QSettings>
 #include <QDebug>
@@ -27,6 +29,13 @@ limitations under the License.
 #include "selectcolordialog.h"
 
 static const char* _hex ="0123456789ABCDEF";
+static quint8 dehexify(char h)
+{
+    h -= '0';
+    if (h>9)
+        h -= 7;
+    return h;
+}
 
 ImportKoalaDialog::ImportKoalaDialog(QWidget *parent)
     : QDialog(parent)
@@ -160,9 +169,7 @@ static int getValueFromKey(int x, int y, const char* key)
 {
     if (x<0 || x>=4 || y<0 || y>=8)
         return -1;
-    int c = key[y*4+x] - '0';
-    if (c>9)
-        c -= 7;
+    int c = dehexify(key[y*4+x]);
     return c;
 }
 
@@ -541,9 +548,53 @@ bool ImportKoalaDialog::convert()
         bitmap->_d02xColors[2] = ui->widgetD023->getColorIndex();
     }
 
-    bitmap->reportResults();
+//    bitmap->reportResults();
 
-    int uniqueChars = (int)bitmap->_uniqueChars.size();
+    QPalette palette;
+    palette.setColor(QPalette::Base, Qt::white);
+    palette.setColor(QPalette::Text, Qt::black);
+    ui->lineEditUnique->setPalette(palette);
+
+    for (int i=0; i<3; ++i)
+        charset->_d02x[i] = bitmap->_d02xColors[i];
+
+    // set colors in widgets
+    ColorRectWidget* colorRects[] = { ui->widgetD021, ui->widgetD022, ui->widgetD023 };
+    for (int i=0; i<3; ++i)
+    {
+        if (bitmap->_d02xColors[i] != 255)
+            colorRects[i]->setColorIndex(bitmap->_d02xColors[i]);
+    }
+
+    // find uniqueChars, which could be smaller than bitmap->_uniqueCells
+    _uniqueChars.clear();
+    for (auto it = std::begin(bitmap->_uniqueCells); it != std::end(bitmap->_uniqueCells); ++it)
+    {
+        quint8 chardef[8];
+        memset(chardef, 0, sizeof(chardef));
+
+        quint8 colorRAM;
+        // it->first: key
+        processChardef(it->first, chardef, &colorRAM);
+        Q_ASSERT(colorRAM >=0 && colorRAM<16 && "Invalid colorRAM");
+
+        // chardef + colorRAM == unique Char
+        std::string key("");
+        for (int i=0; i<8; ++i)
+        {
+            key += _hex[chardef[i] >> 4];
+            key += _hex[chardef[i] & 0x0f];
+        }
+        key += _hex[colorRAM];
+
+        if (_uniqueChars.find(key) != std::end(_uniqueChars))
+            // append coordinates since they all share the same key
+            _uniqueChars[key].insert(_uniqueChars[key].end(), it->second.begin(), it->second.end());
+        else _uniqueChars[key] = it->second;
+    }
+
+    // check if unique chars are < 256
+    int uniqueChars = _uniqueChars.size();
     ui->lineEditUnique->setText(QString::number(uniqueChars));
     if (uniqueChars > 256)
     {
@@ -555,31 +606,20 @@ bool ImportKoalaDialog::convert()
         return false;
     }
 
-    QPalette palette;
-    palette.setColor(QPalette::Base, Qt::white);
-    palette.setColor(QPalette::Text, Qt::black);
-    ui->lineEditUnique->setPalette(palette);
-
-    for (int i=0; i<3; ++i)
-        charset->_d02x[i] = bitmap->_d02xColors[i];
-
-    ColorRectWidget* colorRects[] = { ui->widgetD021, ui->widgetD022, ui->widgetD023 };
-    for (int i=0; i<3; ++i)
-    {
-        if (bitmap->_d02xColors[i] != 255)
-            colorRects[i]->setColorIndex(bitmap->_d02xColors[i]);
-    }
-
+    // Populate the charset, screen RAM and color RAM
     int charsetCount = 0;
-
-    for (auto it = bitmap->_uniqueChars.begin(); it != bitmap->_uniqueChars.end(); ++it)
+    for (auto it = std::begin(_uniqueChars); it != std::end(_uniqueChars); ++it)
     {
         quint8 chardef[8];
-        memset(chardef, 0, sizeof(chardef));
+        for (int i=0; i<8; i++)
+        {
+            quint8 hi = dehexify(it->first.c_str()[i*2]);
+            quint8 lo = dehexify(it->first.c_str()[i*2+1]);
+            chardef[i] = (hi << 4) + lo;
+        }
+        quint8 colorRAM = dehexify(it->first.c_str()[16]);
 
-        quint8 colorRAM;
-        processChardef(it->first, chardef, &colorRAM);
-
+        // it->second: list of coordiantes
         charset->populateScreenAndColorRAM(it->second, charsetCount, colorRAM);
         charset->setCharset(charsetCount, chardef);
 
@@ -679,20 +719,20 @@ void ImportKoalaDialog::updateWidgets()
 {
     QWidget* widgets[] =
     {
-        ui->radioButtonLuminance,
-        ui->radioButtonPalette,
-        ui->radioButtonNeighbor,
-        ui->radioForegroundMostUsed,
-        ui->radioForegroundMostUsedLow,
-        ui->radioD02xManual,
-        ui->radioD02xMostUsed,
-        ui->radioD02xMostUsedHi,
-        ui->widgetCharset,
+//        ui->radioButtonLuminance,
+//        ui->radioButtonPalette,
+//        ui->radioButtonNeighbor,
+//        ui->radioForegroundMostUsed,
+//        ui->radioForegroundMostUsedLow,
+//        ui->radioD02xManual,
+//        ui->radioD02xMostUsed,
+//        ui->radioD02xMostUsedHi,
+//        ui->widgetCharset,
 //        ui->widgetKoala,
-        ui->lineEditUnique,
-        ui->widgetD021,
-        ui->widgetD022,
-        ui->widgetD023,
+//        ui->lineEditUnique,
+//        ui->widgetD021,
+//        ui->widgetD022,
+//        ui->widgetD023,
         ui->pushButtonImport
     };
 

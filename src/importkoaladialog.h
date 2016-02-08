@@ -78,4 +78,10 @@ private:
     Ui::ImportKoalaDialog *ui;
     bool _validKoalaFile;
     QString _filepath;
+
+    // the difference between bitmap->uniqueCells and this one
+    // is that _uniqueCells is about "bitmaps" unique cells.
+    // and where is about the converted chars, which is usually less
+    // since it could have more duplicates
+    std::unordered_map<std::string, std::vector<std::pair<int,int>>> _uniqueChars;
 };
