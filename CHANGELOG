@@ -3,6 +3,8 @@
 * [NEW] Koala Import: supports importing subregions. Useful when 256 chars are
         not enough to import the whole bitmap
 * [NEW] Added unknown font. Ripped from here: http://csdb.dk/release/?id=144857
+* [BUGFIX] Koala Import: detects duplicates chars, making the converstion
+        smaller
 
 
 0.0.11 (1 February 2016) (Happy Birthday Release)
