@@ -269,6 +269,8 @@ void ImportKoalaDialog::normalizeWithNeighborStrategy(char* key, int hiColorRAM)
 
 int ImportKoalaDialog::getColorByLuminanceProximity(int colorIndex, const std::vector<int>& colorsToFind)
 {
+    Q_ASSERT(colorIndex>=0 && colorIndex<16 && "Invalid Color Index");
+
 //    const int luminances[] = {0x01, 0x0d, 0x07, 0x0f, 0x03, 0x05, 0x0a, 0x0c, 0x0e, 0x08, 0x04, 0x02, 0x0b, 0x06, 0x09, 0x00};
     const int luminances[] = {0x01, 0x0d, 0x07, 0x03, 0x0f, 0x05, 0x0a, 0x0e, 0x0c, 0x08, 0x04, 0x02, 0x0b, 0x09, 0x06, 0x00};
 //    const int luminances[] = {0x01, 0x0d, 0x07, 0x0f, 0x03, 0x0a, 0x05, 0x0e, 0x0c, 0x08, 0x04, 0x0b, 0x02, 0x09, 0x06, 0x00};
@@ -413,6 +415,8 @@ void ImportKoalaDialog::normalizeKey(char* key, int hiColorRAM)
 
 bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, quint8* outColorRAM)
 {
+    Q_ASSERT(key.size() == 8*4 && "Invalid Key Size");
+
     // For the heuristic:
     // used colors that are not the same as d021, d022 and d023
     // vector<used_colors,color_index>

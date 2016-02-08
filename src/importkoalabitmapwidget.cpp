@@ -277,11 +277,13 @@ void ImportKoalaBitmapWidget::findUniqueChars()
                 for (int j=0; j<4; ++j)
                 {
                     auto colorIndex = _framebuffer[(y * 8 + i) * 160 + (x * 4 + j)];
+                    Q_ASSERT(colorIndex>=0 && colorIndex<16 && "Invalid color");
                     key[i*4+j] = hex[colorIndex];
                     _colorsUsed[colorIndex].first++;
                 }
             }
             std::string skey(key);
+            Q_ASSERT(skey.size() == 8*4 && "Invalid Key");
 
             if (_uniqueChars.find(skey) == _uniqueChars.end())
             {
@@ -333,7 +335,7 @@ void ImportKoalaBitmapWidget::toFrameBuffer()
                     {
                     // bitmask 00: background ($d021)
                     case 0x0:
-                        colorIndex = _koala.backgroundColor;
+                        colorIndex = _koala.backgroundColor & 0x0f;
                         break;
 
                     // bitmask 01: #4-7 screen ram
@@ -354,6 +356,8 @@ void ImportKoalaBitmapWidget::toFrameBuffer()
                         qDebug() << "ImportKoalaWidget::paintEvent Invalid color: " << color << " at x,y=" << x << y;
                         break;
                     }
+
+                    Q_ASSERT(colorIndex>=0 && colorIndex<16 && "Invalid colorIndex");
 
                     _framebuffer[(y * 8 + i) * 160 + (x * 4 + j)] = colorIndex;
                 }
