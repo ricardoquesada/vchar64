@@ -56,10 +56,11 @@ int ColorRectWidget::getPen() const
 
 void ColorRectWidget::setColorIndex(int colorIndex)
 {
+    Q_ASSERT(colorIndex>=0 && colorIndex<16 && "Invalid color");
     if (_colorIndex != colorIndex)
     {
         _colorIndex = colorIndex;
-        _mode = SHOW_COLOR_MODE;
+        _mode = SHOW_COLORINDEX_MODE;
         update();
     }
 }
@@ -85,7 +86,7 @@ void ColorRectWidget::paintEvent(QPaintEvent *event)
 
     if (_mode == SHOW_PEN_MODE)
         painter.fillRect(event->rect(), Palette::getColorForPen(MainWindow::getCurrentState(), _pen));
-    else
+    else /* SHOW_COLORINDEX_MODE */
         painter.fillRect(event->rect(), Palette::getColor(_colorIndex));
 
     if (_selected)

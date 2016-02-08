@@ -70,6 +70,8 @@ private slots:
     void on_pushButtonImport_clicked();
     void on_pushButtonCancel_clicked();
 
+    void onSelectedRegionUpdated(const QRect& region);
+
 private:
 
     int _colorRAM;

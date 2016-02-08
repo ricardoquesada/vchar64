@@ -35,8 +35,6 @@ static const int OFFSET = 0;
 
 ImportKoalaBitmapWidget::ImportKoalaBitmapWidget(QWidget *parent)
     : QWidget(parent)
-    , _offsetX(0)
-    , _offsetY(0)
     , _displayGrid(false)
     , _selecting(false)
     , _selectingSize({0,0})
@@ -84,6 +82,18 @@ void ImportKoalaBitmapWidget::paintEvent(QPaintEvent *event)
 
         for (int x=0; x<=320; x=x+8)
             painter.drawLine(QPointF(x,0), QPointF(x,200));
+    }
+
+    if (_selecting)
+    {
+        auto pen = painter.pen();
+        pen.setColor({149,195,244,255});
+        painter.setPen(pen);
+        painter.setBrush(QColor(149,195,244,64));
+        painter.drawRect(_cursorPos.x() * 8 * PIXEL_SIZE + OFFSET,
+                         _cursorPos.y() * 8 * PIXEL_SIZE + OFFSET,
+                         _selectingSize.width() * 8 * PIXEL_SIZE,
+                         _selectingSize.height() * 8 * PIXEL_SIZE);
     }
 
     painter.end();
@@ -134,6 +144,8 @@ void ImportKoalaBitmapWidget::mousePressEvent(QMouseEvent * event)
             _cursorPos = {x,y};
         }
 
+        emit selectedRegionUpdated(getSelectedRegion());
+
         update();
     }
 }
@@ -163,18 +175,10 @@ void ImportKoalaBitmapWidget::mouseMoveEvent(QMouseEvent * event)
         };
 
         _selecting = true;
+
+        emit selectedRegionUpdated(getSelectedRegion());
         update();
     }
-}
-
-void ImportKoalaBitmapWidget::mouseReleaseEvent(QMouseEvent * event)
-{
-    event->accept();
-}
-
-void ImportKoalaBitmapWidget::keyPressEvent(QKeyEvent *event)
-{
-    event->accept();
 }
 
 //
@@ -182,20 +186,21 @@ void ImportKoalaBitmapWidget::keyPressEvent(QKeyEvent *event)
 //
 void ImportKoalaBitmapWidget::loadKoala(const QString& koalaFilepath)
 {
-    // call it before updating the _koalaBuffer
-    resetOffset();
-    resetColors();
-
     // in case the loaded file has less bytes than required, fill the buffer with zeroes
-    memset(&_koalaCopy, 0, sizeof(_koalaCopy));
+    memset(&_koala, 0, sizeof(_koala));
 
     QFile file(koalaFilepath);
     file.open(QIODevice::ReadOnly);
-    file.read((char*)&_koalaCopy, sizeof(_koalaCopy));
-
-    _koala = _koalaCopy;
+    file.read((char*)&_koala, sizeof(_koala));
 
     toFrameBuffer();
+
+    parseKoala();
+}
+
+void ImportKoalaBitmapWidget::parseKoala()
+{
+    resetColors();
     findUniqueChars();
 }
 
@@ -206,6 +211,36 @@ void ImportKoalaBitmapWidget::enableGrid(bool enabled)
         _displayGrid = enabled;
         update();
     }
+}
+
+QRect ImportKoalaBitmapWidget::getSelectedRegion() const
+{
+    QRect region = {0, 0, COLUMNS, ROWS};
+    if (_selecting)
+    {
+        if (_selectingSize.width() < 0)
+        {
+            region.setX(_cursorPos.x() + _selectingSize.width());
+            region.setWidth(-_selectingSize.width());
+        }
+        else
+        {
+            region.setX(_cursorPos.x());
+            region.setWidth(_selectingSize.width());
+        }
+
+        if (_selectingSize.height() < 0)
+        {
+            region.setY(_cursorPos.y() + _selectingSize.height());
+            region.setHeight(-_selectingSize.height());
+        }
+        else
+        {
+            region.setY(_cursorPos.y());
+            region.setHeight(_selectingSize.height());
+        }
+    }
+    return region;
 }
 
 //
@@ -223,29 +258,15 @@ void ImportKoalaBitmapWidget::resetColors()
         _d02xColors[i] = -1;
 }
 
-void ImportKoalaBitmapWidget::resetOffset()
-{
-    if (_offsetX != 0 || _offsetY != 0)
-    {
-        _koala = _koalaCopy;
-        _offsetX = 0;
-        _offsetY = 0;
-    }
-}
-
-void ImportKoalaBitmapWidget::setOffset(int offsetx, int offsety)
-{
-    Q_UNUSED(offsetx);
-    Q_UNUSED(offsety);
-}
-
 void ImportKoalaBitmapWidget::findUniqueChars()
 {
     static const char hex[] = "0123456789ABCDEF";
 
-    for (int y=0; y<25; ++y)
+    auto region = getSelectedRegion();
+
+    for (int y=region.y(); y < region.y() + region.height(); ++y)
     {
-        for (int x=0; x<40; ++x)
+        for (int x=region.x(); x < region.x() + region.width(); ++x)
         {
             // 8 * 4
             char key[33];

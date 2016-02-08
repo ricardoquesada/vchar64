@@ -39,6 +39,11 @@ ImportKoalaCharsetWidget::ImportKoalaCharsetWidget(QWidget *parent)
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
                  PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 
+    clean();
+}
+
+void ImportKoalaCharsetWidget::clean()
+{
     memset(_screenRAM, 0, sizeof(_screenRAM));
     memset(_colorRAMForChars, 0, sizeof(_colorRAMForChars));
     memset(_charset, 0, sizeof(_charset));

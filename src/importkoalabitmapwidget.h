@@ -19,6 +19,8 @@ limitations under the License.
 #include <unordered_map>
 
 #include <QWidget>
+#include <QRect>
+
 #include "state.h"
 
 class ImportKoalaBitmapWidget : public QWidget
@@ -30,19 +32,21 @@ public:
     ImportKoalaBitmapWidget(QWidget *parent=nullptr);
     void loadKoala(const QString &koalaFilepath);
     void enableGrid(bool enabled);
-    void setOffset(int offsetx, int offsety);
+    void parseKoala();
+
+signals:
+    void selectedRegionUpdated(const QRect& rect);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent * event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
 
     void resetColors();
     void resetOffset();
     void toFrameBuffer();
     void findUniqueChars();
+    QRect getSelectedRegion() const;
 
     void reportResults();
     void strategyD02xAbove8();
@@ -61,16 +65,11 @@ protected:
 #pragma pack(pop)
 
     struct koala _koala;
-    struct koala _koalaCopy;
 
     // one byte per pixel, although only the
     // 4 LSB will be used. Bits 7-4 are ignored
     // Bits 0-3 contains the C64 colors
     quint8 _framebuffer[160 * 200];
-
-    // Koala Offset
-    int _offsetX;
-    int _offsetY;
 
     // key: color sequence
     // data: positions in screen ram

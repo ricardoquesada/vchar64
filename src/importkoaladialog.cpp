@@ -38,6 +38,7 @@ ImportKoalaDialog::ImportKoalaDialog(QWidget *parent)
     auto lastDir = QSettings("RetroMoe","VChar64").value("dir/lastdir").toString();
     ui->lineEdit->setText(lastDir);
 
+    connect(ui->widgetKoala, &ImportKoalaBitmapWidget::selectedRegionUpdated, this, &ImportKoalaDialog::onSelectedRegionUpdated);
     updateWidgets();
 }
 
@@ -72,8 +73,9 @@ void ImportKoalaDialog::on_pushButton_clicked()
             _filepath = fn;
             ui->lineEdit->setText(fn);
 
-            _validKoalaFile = validateKoalaFile(fn);
+            ui->widgetCharset->clean();
 
+            validateKoalaFile(fn);
             updateWidgets();
         }
     }
@@ -97,7 +99,8 @@ bool ImportKoalaDialog::validateKoalaFile(const QString& filepath)
     if (info.exists() && info.isFile() && (info.size() == 10003 || info.size() == 10002))
     {
         ui->widgetKoala->loadKoala(filepath);
-        return convert();
+        _validKoalaFile = convert();
+        return _validKoalaFile;
     }
     return false;
 }
@@ -520,23 +523,23 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
 
 bool ImportKoalaDialog::convert()
 {
-    auto orig = ui->widgetKoala;
-    auto conv = ui->widgetCharset;
+    auto bitmap = ui->widgetKoala;
+    auto charset = ui->widgetCharset;
 
     if (ui->radioD02xMostUsed->isChecked())
-        orig->strategyD02xAny();
+        bitmap->strategyD02xAny();
     else if (ui->radioD02xMostUsedHi->isChecked())
-        orig->strategyD02xAbove8();
+        bitmap->strategyD02xAbove8();
     else /* manual */
     {
-        orig->_d02xColors[0] = ui->widgetD021->getColorIndex();
-        orig->_d02xColors[1] = ui->widgetD022->getColorIndex();
-        orig->_d02xColors[2] = ui->widgetD023->getColorIndex();
+        bitmap->_d02xColors[0] = ui->widgetD021->getColorIndex();
+        bitmap->_d02xColors[1] = ui->widgetD022->getColorIndex();
+        bitmap->_d02xColors[2] = ui->widgetD023->getColorIndex();
     }
 
-    orig->reportResults();
+    bitmap->reportResults();
 
-    int uniqueChars = (int)orig->_uniqueChars.size();
+    int uniqueChars = (int)bitmap->_uniqueChars.size();
     ui->lineEditUnique->setText(QString::number(uniqueChars));
     if (uniqueChars > 256)
     {
@@ -554,14 +557,18 @@ bool ImportKoalaDialog::convert()
     ui->lineEditUnique->setPalette(palette);
 
     for (int i=0; i<3; ++i)
-        conv->_d02x[i] = orig->_d02xColors[i];
-    ui->widgetD021->setColorIndex(orig->_d02xColors[0]);
-    ui->widgetD022->setColorIndex(orig->_d02xColors[1]);
-    ui->widgetD023->setColorIndex(orig->_d02xColors[2]);
+        charset->_d02x[i] = bitmap->_d02xColors[i];
+
+    ColorRectWidget* colorRects[] = { ui->widgetD021, ui->widgetD022, ui->widgetD023 };
+    for (int i=0; i<3; ++i)
+    {
+        if (bitmap->_d02xColors[i] != 255)
+            colorRects[i]->setColorIndex(bitmap->_d02xColors[i]);
+    }
 
     int charsetCount = 0;
 
-    for (auto it = orig->_uniqueChars.begin(); it != orig->_uniqueChars.end(); ++it)
+    for (auto it = bitmap->_uniqueChars.begin(); it != bitmap->_uniqueChars.end(); ++it)
     {
         quint8 chardef[8];
         memset(chardef, 0, sizeof(chardef));
@@ -569,13 +576,13 @@ bool ImportKoalaDialog::convert()
         quint8 colorRAM;
         processChardef(it->first, chardef, &colorRAM);
 
-        conv->populateScreenAndColorRAM(it->second, charsetCount, colorRAM);
-        conv->setCharset(charsetCount, chardef);
+        charset->populateScreenAndColorRAM(it->second, charsetCount, colorRAM);
+        charset->setCharset(charsetCount, chardef);
 
         charsetCount++;
     }
 
-    conv->update();
+    charset->update();
 
     return true;
 }
@@ -619,6 +626,15 @@ void ImportKoalaDialog::on_radioButtonLuminance_clicked()
 void ImportKoalaDialog::on_radioButtonPalette_clicked()
 {
     convert();
+}
+
+void ImportKoalaDialog::onSelectedRegionUpdated(const QRect& region)
+{
+    Q_UNUSED(region);
+    ui->widgetCharset->clean();
+    ui->widgetKoala->parseKoala();
+    _validKoalaFile = convert();
+    updateWidgets();
 }
 
 void ImportKoalaDialog::on_checkBoxGrid_clicked()
@@ -668,7 +684,7 @@ void ImportKoalaDialog::updateWidgets()
         ui->radioD02xMostUsed,
         ui->radioD02xMostUsedHi,
         ui->widgetCharset,
-        ui->widgetKoala,
+//        ui->widgetKoala,
         ui->lineEditUnique,
         ui->widgetD021,
         ui->widgetD022,

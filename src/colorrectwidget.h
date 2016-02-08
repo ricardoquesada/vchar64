@@ -29,7 +29,7 @@ public:
         SHOW_PEN_MODE,
 
         // displays the color based on a color index
-        SHOW_COLOR_MODE,
+        SHOW_COLORINDEX_MODE,
     };
 
 

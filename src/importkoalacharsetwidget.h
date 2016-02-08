@@ -33,6 +33,8 @@ public:
     void setCharset(int charIndex, quint8* chardef);
     void enableGrid(bool enabled);
 
+    void clean();
+
 signals:
 
 public slots:

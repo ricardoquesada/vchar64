@@ -1,4 +1,9 @@
+0.0.12 (? March 2016)
+
+* [NEW] Koala Import: supports importing subregions. Useful when 256 chars are
+        not enough to import the whole bitmap
 * [NEW] Added unknown font. Ripped from here: http://csdb.dk/release/?id=144857
+
 
 0.0.11 (1 February 2016) (Happy Birthday Release)
 
@@ -8,7 +13,7 @@
 * [NEW] Added Tile Map support
         Supports copy & paste & cut. Plus Undo & Redo
         It has Rect Select, Flood Fill, Paint tools. Plus Clear and Grid
-	It has Zoom and an scroll area.
+        It has Zoom and an scroll area.
         'Export' supports exporting the map data
 * [NEW] Added "global foreground / one per tile" mode 
         'Export' supports exporting the "tile colors"
@@ -25,7 +30,7 @@
 * [NEW] Tests: added new subdirectory which contains many... test files
 * [NEW] Examples: added Commando and Subchrist Chrome examples
 * [NEW] Examples: added c64_loader. Shows how to load the exported data in the
-	c64
+        c64
 * [BUGFIX] cut: works as expected.
 * [BUGFIX] Color Dock: Pens were grouped in the "Pen" group
         Color Palette grows/shrinks automatically
