@@ -127,9 +127,12 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
     QFile file(filepath);
 
     quint8 buffer[65536];
-    auto ret = StateImport::parseVICESnapshot(file, buffer);
-    if (ret >= 0)
+    quint16 charsetOffset;
+    auto ret = StateImport::parseVICESnapshot(file, buffer, &charsetOffset);
+    if (ret >= 0) {
         ui->widget->setBuffer(buffer);
+        ui->spinBox->setValue(charsetOffset);
+    }
     return (ret >= 0);
 }
 

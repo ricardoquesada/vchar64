@@ -325,7 +325,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     return total;
 }
 
-qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
+qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* outCharsetAddress)
 {
     struct VICESnapshotHeader header;
     struct VICESnapshoptModule module;
@@ -333,6 +333,8 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
 
     static const char VICE_MAGIC[] = "VICE Snapshot File\032";
     static const char VICE_C64MEM[] = "C64MEM";
+    static const char VICE_VICII[] = "VIC-II";
+    static const char VICE_CIA2[] = "CIA2";
 
     auto mainwindow = MainWindow::getInstance();
 
@@ -361,35 +363,74 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k)
     }
 
     int offset = file.pos();
-    bool found = false;
+    int c64memoffset = -1;
+    int cia2offset = -1;
+    int vic2offset = -1;
+    *outCharsetAddress = 0;     // in case we can't find the correct one
 
     while (1) {
         size = file.read((char*)&module, sizeof(module));
         if (size != sizeof(module))
             break;
 
-        /* Found?  */
-        if (memcmp(module.moduleName, VICE_C64MEM, sizeof(VICE_C64MEM)) == 0 &&
-                module.major == 0)
+        qDebug() << "VICE segment: " << module.moduleName;
+
+        /* C64MEM */
+        if (c64memoffset == -1 && memcmp(module.moduleName, VICE_C64MEM, sizeof(VICE_C64MEM)) == 0)
         {
-            found = true;
-            break;
+            c64memoffset = file.pos();
         }
+        /* CIA2 */
+        else if (cia2offset == -1 && memcmp(module.moduleName, VICE_CIA2, sizeof(VICE_CIA2)) == 0)
+        {
+            cia2offset = file.pos();
+        }
+        /* VICII */
+        else if (vic2offset == -1 && memcmp(module.moduleName, VICE_VICII, sizeof(VICE_VICII)) == 0)
+        {
+            vic2offset = file.pos();
+        }
+
         offset += qFromLittleEndian(module.lenght);
         if (!file.seek(offset))
             break;
     }
 
-    if (found)
+    if (c64memoffset != -1 && cia2offset != -1 && vic2offset != -1)
     {
+        // copy 64k memory
+        file.seek(c64memoffset);
         size = file.read((char*)&c64mem, sizeof(c64mem));
         if (size != sizeof(c64mem))
         {
             mainwindow->setErrorMessage(QObject::tr("Error: Invalid VICE C64MEM segment"));
             return -1;
         }
-
         memcpy(buffer64k, c64mem.ram, sizeof(c64mem.ram));
+
+        // find default charset
+        file.seek(cia2offset);
+        struct VICESnapshoptCIA2 cia2;
+        size = file.read((char*)&cia2, sizeof(cia2));
+        if (size != sizeof(cia2))
+        {
+            mainwindow->setErrorMessage(QObject::tr("Error: Invalid VICE CIA2 segment"));
+            return -1;
+        }
+        int bank_addr = (3 - (cia2.ora & 0x03)) * 16384;    // $dd00
+
+        file.seek(vic2offset);
+        struct VICESnapshoptVICII vic2;
+        size = file.read((char*)&vic2, sizeof(vic2));
+        if (size != sizeof(vic2))
+        {
+            mainwindow->setErrorMessage(QObject::tr("Error: Invalid VICE VIC-II segment"));
+            return -1;
+        }
+        int charset_offset = (vic2.registers[0x18] & 0x0e) >> 1;   // $d018 & 0x7
+        charset_offset *= 2048;
+
+        *outCharsetAddress = bank_addr + charset_offset;
     }
     else
     {

@@ -64,9 +64,10 @@ public:
      * @brief parseVICESnapshot parses a VICE snapshot file
      * @param file file to parse
      * @param buffer64k "out" buffer that will have the 64k RAM memory
+     * @param outCharsetAddress "out" address that will contain where the default charset is
      * @return
      */
-    static qint64 parseVICESnapshot(QFile& file, quint8* buffer64k);
+    static qint64 parseVICESnapshot(QFile& file, quint8* buffer64k, quint16 *outCharsetAddress);
 
     //
     // From CharPad documentation
@@ -354,6 +355,64 @@ public:
         quint8 exrom;               // state of the EXROM line (?)
         quint8 game;                // state of the GAME line (?)
         quint8 ram[65536];          // 64k RAM dump
+    };
+
+    struct VICESnapshoptCIA2
+    {
+        quint8 ora;                 // Output register A
+        quint8 orb;                 // Output register B
+        quint8 ddra;                // Data direction register A
+        quint8 ddrb;                // Data direction register B
+        quint16 tac;                // Timer A counter value
+        quint16 tbc;                // Timer B counter value
+        quint8 tod_ten;             // Time of Day - current tenth of second
+        quint8 tod_sec;             // Time of Day - current seconds
+        quint8 tod_min;             // Time of Day - current minutes
+        quint8 tod_hr;              // Time of Day - current hours
+        quint8 sdr;                 // contents of shift register
+        quint8 ier;                 // mask of enabled interrupt masks
+        quint8 cra;                 // Control register A
+        quint8 crb;                 // Control register B
+        quint16 tal;                // Timer A latch value
+        quint16 tbl;                // Timer B latch value
+        quint8 ifr;                 // mask of currently active interrupts
+        quint8 pbstate;             // Bit 6/7 reflect the PB6/7 toggle bit state.  Bit 2/3 reflect the corresponding port bit state.
+        quint8 srhbits;             // number of half-bits to still shift in/out SDR
+        quint8 alarm_ten;           // Time of Day - alarm tenth of second
+        quint8 alarm_sec;           // Time of Day - alarm seconds
+        quint8 alarm_min;           // Time of Day - alarm minutes
+        quint8 alarm_hr;            // Time of Day - alarm hours
+        quint8 readicr;             // current clock minus the clock when ICR was read last plus 128.
+        quint8 todlatched;          // Bit 0: 1= latched for reading, Bit 1: 2=stopped for writing
+        quint8 todl_ten;            // Time of Day - latched tenth of second
+        quint8 todl_sec;            // Time of Day - latched seconds
+        quint8 todl_min;            // Time of Day - latched minutes
+        quint8 todl_hr;             // Time of Day - latched hours
+        quint32 tod_ticks;          // clk ticks till next tenth of second
+        quint16 tastate;            // (v1.1+ only) The state bits of the CIA timer A, according to ciatimer.h
+        quint16 tbstate;            // (v1.1+ only) The state bits of the CIA timer B, according to ciatimer.h
+    };
+    struct VICESnapshoptVICII
+    {
+        quint8 allow_bad_lines;     // flag: if true, bad lines can happen
+        quint8 bad_line;            // flag: this is a bad line
+        quint8 blank_enabled;       // flag: draw lines in border color
+        quint8 color_buf[40];       // character memory buffer (loaded at bad line)
+        quint8 color_ram[1024];     // contents of color RAM
+        quint8 idle_state;          // flag: idle state enabled
+        quint8 lp_trigger;          // flag: light pen has been triggered
+        quint8 lp_x;                // light pen X
+        quint8 lp_Y;                // light pen Y
+        quint8 matrix_buf[40];      // video matrix buffer (loaded at bad line)
+        quint8 new_sprite_dma_mask; // value for SpriteDmaMask after drawing sprites
+        quint32 ram_base;           // pointer to the start of RAM seen by the VIC
+        quint8 raster_cycle;        // current vicii.raster cycle
+        quint16 raster_line;        // current vicii.raster line
+        quint8 registers[64];       // VIC-II registers
+
+        // sprites data, and more should be here... too lazy to add it.
+        // wanna help? send a Pull Request with the missing data. Take it from here:
+        // https://sourceforge.net/p/vice-emu/code/HEAD/tree/trunk/vice/src/vicii/viciidtv-snapshot.c
     };
 #pragma pack(pop)
 

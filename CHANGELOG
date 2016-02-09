@@ -3,6 +3,8 @@
 * [NEW] Koala Import: supports importing subregions. Useful when 256 chars are
         not enough to import the whole bitmap
 * [NEW] Added unknown font. Ripped from here: http://csdb.dk/release/?id=144857
+* [NEW] VICE snapshot import: Default charset address is the one that was used
+        at the moment the snapshot was taken
 * [BUGFIX] Koala Import: detects duplicates chars, making the converstion
         smaller
 
