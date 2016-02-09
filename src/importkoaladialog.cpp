@@ -603,8 +603,13 @@ bool ImportKoalaDialog::convert()
         palette.setColor(QPalette::Text, Qt::white);
         ui->lineEditUnique->setPalette(palette);
 
+        ui->labelWarning->setStyleSheet("QLabel { color : red; }");
+        ui->labelWarning->setText(tr("Select an smaller region using mouse"));
+
         return false;
     }
+    ui->labelWarning->setText("");
+
 
     // Populate the charset, screen RAM and color RAM
     int charsetCount = 0;
