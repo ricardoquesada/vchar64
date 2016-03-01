@@ -27,6 +27,7 @@ limitations under the License.
 #include <QDebug>
 #include <QtGlobal>
 #include <QTime>
+#include <QApplication>
 
 #include "mainwindow.h"
 #include "stateimport.h"
@@ -251,15 +252,29 @@ bool State::export_()
 {
     Q_ASSERT(_exportedFilename.length() > 0 && "Invalid filename");
 
+    bool ret = false;
     if (_exportedFormat == EXPORT_FORMAT_RAW)
-        return exportRaw(_exportedFilename, _exportedFeatures);
+        ret = exportRaw(_exportedFilename, _exportedFeatures);
 
     /* else */
-    if(_exportedFormat == EXPORT_FORMAT_PRG)
-        return exportPRG(_exportedFilename, _exportedAddresses, _exportedFeatures);
+    else if(_exportedFormat == EXPORT_FORMAT_PRG)
+        ret = exportPRG(_exportedFilename, _exportedAddresses, _exportedFeatures);
 
     /* else ASM */
-    return exportAsm(_exportedFilename, _exportedFeatures);
+    else
+        ret = exportAsm(_exportedFilename, _exportedFeatures);
+
+    QApplication::beep();
+
+    if (ret) {
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("Export: Ok"));
+    } else {
+        // beep twice on error
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("Export: Error"));
+        QApplication::beep();
+    }
+
+    return ret;
 }
 
 bool State::exportRaw(const QString& filename, int whatToExport)
@@ -343,27 +358,36 @@ bool State::exportAsm(const QString& filename, int whatToExport)
 
 bool State::saveProject(const QString& filename)
 {
+    bool ret;
     QFile file(filename);
 
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
-        return false;
+    ret = file.open(QIODevice::WriteOnly|QIODevice::Truncate);
 
-    qint64 length=0;
+    if (ret) {
+        qint64 length=0;
+        length = StateExport::saveVChar64(this, file);
+        file.close();
 
-    length = StateExport::saveVChar64(this, file);
+        ret = (length>0);
+        if (ret)
+        {
+            _savedFilename = filename;
+            _undoStack->clear();
+            emit contentsChanged();
+        }
+    }
 
-    file.close();
+    QApplication::beep();
+    if (ret)
+    {
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("Save: Ok"));
+    } else {
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("Save: Error"));
+        // beep twice on error
+        QApplication::beep();
+    }
 
-    if(length<=0)
-        return false;
-
-    _savedFilename = filename;
-
-    _undoStack->clear();
-
-    emit contentsChanged();
-
-    return true;
+    return ret;
 }
 
 //
@@ -864,7 +888,7 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
     if (copyRange.tileProperties.size != _tileProperties.size)
     {
         qDebug() << "Error. Src:" << copyRange.tileProperties.size << " Dst:" << _tileProperties.size;
-        MainWindow::getInstance()->setErrorMessage(tr("Error. Tile size different than src"));
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("Error. Tile size different than src"));
         return;
     }
 

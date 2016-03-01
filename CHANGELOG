@@ -5,6 +5,8 @@
 * [NEW] Added unknown font. Ripped from here: http://csdb.dk/release/?id=144857
 * [NEW] VICE snapshot import: Default charset address is the one that was used
         at the moment the snapshot was taken
+* [NEW] Save/Export: Plays one beep on success, two beeps on error
+* [BUGFIX] VICE/Koala Import: sets the name of the imported file in the tab
 * [BUGFIX] Koala Import: detects duplicates chars, making the converstion
         smaller
 

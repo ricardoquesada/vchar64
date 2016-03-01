@@ -613,9 +613,9 @@ void MainWindow::setRecentFile(const QString& fileName)
 //
 // MARK - Slots / Events / Callbacks
 //
-void MainWindow::setErrorMessage(const QString &errorMessage)
+void MainWindow::showMessageOnStatusBar(const QString& message)
 {
-    statusBar()->showMessage(errorMessage, 6000);
+    statusBar()->showMessage(message, 6000);
 }
 
 void MainWindow::onCharIndexUpdated(int charIndex)
@@ -904,7 +904,7 @@ void MainWindow::on_actionImport_VICE_snapshot_triggered()
     if (dialog.exec())
     {
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(dialog.getFilepath());
-        _ui->mdiArea->currentSubWindow()->setWindowFilePath(QFileInfo(dialog.getFilepath()).baseName());
+        _ui->mdiArea->currentSubWindow()->setWindowTitle(QFileInfo(dialog.getFilepath()).baseName());
         setWindowFilePath(dialog.getFilepath());
     }
 }
@@ -915,7 +915,7 @@ void MainWindow::on_actionImport_Koala_image_triggered()
     if (dialog.exec())
     {
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(dialog.getFilepath());
-        _ui->mdiArea->currentSubWindow()->setWindowFilePath(QFileInfo(dialog.getFilepath()).baseName());
+        _ui->mdiArea->currentSubWindow()->setWindowTitle(QFileInfo(dialog.getFilepath()).baseName());
         setWindowFilePath(dialog.getFilepath());
     }
 }
@@ -952,12 +952,10 @@ bool MainWindow::on_actionSaveAs_triggered()
             QFileInfo fi(filename);
             setWindowFilePath(fi.filePath());
             _ui->mdiArea->currentSubWindow()->setWindowFilePath(fi.filePath());
-            _ui->mdiArea->currentSubWindow()->setWindowFilePath(fi.baseName());
-            statusBar()->showMessage(tr("File saved to %1").arg(state->getSavedFilename()), 2000);
+            _ui->mdiArea->currentSubWindow()->setWindowTitle(fi.baseName());
         }
         else
         {
-            statusBar()->showMessage(tr("Error saving file"), 2000);
             QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
         }
 
@@ -1002,15 +1000,8 @@ void MainWindow::on_actionExport_triggered()
     }
     else
     {
-        if (state->export_())
-        {
-            statusBar()->showMessage(tr("File exported to %1").arg(state->getExportedFilename()), 2000);
-        }
-        else
-        {
-            statusBar()->showMessage(tr("Export failed"), 2000);
+        if (!state->export_())
             QMessageBox::warning(this, tr("Application"), tr("Error exporting file: ") + exportedFilename, QMessageBox::Ok);
-        }
     }
 }
 

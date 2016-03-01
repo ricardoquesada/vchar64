@@ -87,7 +87,7 @@ public slots:
     void onMulticolorModeToggled(bool);
     void onTilePropertiesUpdated();
     bool openFile(const QString& fileName);
-    void setErrorMessage(const QString& errorMessage);
+    void showMessageOnStatusBar(const QString& message);
     void onColorPropertiesUpdated(int pen);
     void onOpenRecentFileTriggered();
     void onSubWindowActivated(QMdiSubWindow* subwindow);
