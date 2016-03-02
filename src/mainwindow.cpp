@@ -179,30 +179,13 @@ void MainWindow::onColorPropertiesUpdated(int pen)
     {
         int color = state->getColorForPen(pen, state->getTileIndex());
 
-        QString colors[] = {
-            tr("Black"),
-            tr("White"),
-            tr("Red"),
-            tr("Cyan"),
-            tr("Violet"),
-            tr("Green"),
-            tr("Blue"),
-            tr("Yellow"),
-
-            tr("Orange"),
-            tr("Brown"),
-            tr("Light red"),
-            tr("Dark grey"),
-            tr("Grey"),
-            tr("Light green"),
-            tr("Light blue"),
-            tr("Light grey")
-        };
-
         int number = color;
         if (state->shouldBeDisplayedInMulticolor() && pen == State::PEN_FOREGROUND)
             color = color % 8;
-        _labelSelectedColor->setText(QString("%1: %3 (%2)").arg(tr("Color")).arg(number).arg(colors[color]));
+        _labelSelectedColor->setText(QString("Color: %1 (%2)")
+                                     .arg(Palette::color_names[color])
+                                     .arg(number));
+
 
         // update radio foreground mode
         auto foregroundColorMode = state->getForegroundColorMode();
@@ -519,11 +502,11 @@ void MainWindow::setupStatusBar()
     _labelSelectedColor = new QLabel(tr("Color: Black (0)"), this);
     statusBar()->addPermanentWidget(_labelSelectedColor);
 
-    _labelCharIdx = new QLabel(tr("Char: 000  $00"), this);
+    _labelCharIdx = new QLabel(tr("Char: 000"), this);
 //    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
     statusBar()->addPermanentWidget(_labelCharIdx);
 
-    _labelTileIdx = new QLabel(tr("Tile: 000  $00"), this);
+    _labelTileIdx = new QLabel(tr("Tile: 000"), this);
 //    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
     statusBar()->addPermanentWidget(_labelTileIdx);
 
@@ -622,16 +605,13 @@ void MainWindow::onCharIndexUpdated(int charIndex)
 {
     auto state = getState();
 
-    _labelCharIdx->setText(tr("Char: %1  $%2")
-                           .arg(charIndex, 3, 10, QLatin1Char(' '))
-                           .arg(charIndex, 2, 16, QLatin1Char('0')));
+    _labelCharIdx->setText(tr("Char: %1")
+                           .arg(charIndex, 3, 10, QLatin1Char(' ')));
 
     int tileIndex = state->getTileIndexFromCharIndex(charIndex);
 
-    _labelTileIdx->setText(tr("Tile: %1  $%2")
-                           .arg(tileIndex, 3, 10, QLatin1Char(' '))
-                           .arg(tileIndex, 2, 16, QLatin1Char('0')));
-
+    _labelTileIdx->setText(tr("Tile: %1")
+                           .arg(tileIndex, 3, 10, QLatin1Char(' ')));
 }
 
 void MainWindow::on_actionExit_triggered()

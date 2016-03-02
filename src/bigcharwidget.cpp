@@ -221,8 +221,13 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
     if (oldCursorPos != _cursorPos)
         updated = true;
 
-    if (updated)
+    if (updated) {
         update();
+
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2")
+                                                          .arg(_cursorPos.x())
+                                                          .arg(_cursorPos.y()));
+    }
 }
 
 

@@ -16,13 +16,18 @@ limitations under the License.
 
 #pragma once
 
+#include <QCoreApplication>
 #include <QColor>
 
 class State;
 
 class Palette
 {
+    Q_DECLARE_TR_FUNCTIONS(Palette)
+
 public:
+    static const QString color_names[16];
+
     enum {
         PEPTO,
         VICE,

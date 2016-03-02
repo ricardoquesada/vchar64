@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+#include <QCoreApplication>
+
 #include "palette.h"
 #include "state.h"
-
 
 static const QColor Palettes[][16] = {
     {
@@ -122,6 +123,26 @@ static const int MAX_PALETTES = sizeof(Palettes) / sizeof(Palettes[0]);
 
 // Default is Pepto
 int Palette::_paletteIndex = 0;
+
+const QString Palette::color_names[] = {
+     tr("Black"),
+     tr("White"),
+     tr("Red"),
+     tr("Cyan"),
+     tr("Violet"),
+     tr("Green"),
+     tr("Blue"),
+     tr("Yellow"),
+
+     tr("Orange"),
+     tr("Brown"),
+     tr("Light red"),
+     tr("Dark grey"),
+     tr("Grey"),
+     tr("Light green"),
+     tr("Light blue"),
+     tr("Light grey")
+};
 
 const QColor& Palette::getColorForPen(State* state, int pen)
 {

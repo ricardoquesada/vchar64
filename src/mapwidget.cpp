@@ -338,6 +338,10 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
             _cursorPos += point;
             _cursorPos = {qBound(0, _cursorPos.x(), _mapSize.width()-1),
                           qBound(0, _cursorPos.y(), _mapSize.height()-1)};
+
+            MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2")
+                                                              .arg(_cursorPos.x())
+                                                              .arg(_cursorPos.y()));
         }
     }
     _selecting = selecting;

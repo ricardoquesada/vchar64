@@ -38,6 +38,7 @@ PaletteWidget::PaletteWidget(QWidget *parent)
     , _sizeHint(_pixelSize.width() * COLUMNS, _pixelSize.height() * ROWS)
 {
     setMinimumSize(_sizeHint);
+    setMouseTracking(true);
 }
 
 void PaletteWidget::mousePressEvent(QMouseEvent * event)
@@ -48,6 +49,9 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
 
     int x = pos.x() / _pixelSize.width();
     int y = pos.y() / _pixelSize.height();
+
+    x = qBound(0, x, COLUMNS-1);
+    y = qBound(0, y, ROWS-1);
 
     int color = 8 * y + x;
 
@@ -64,6 +68,27 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
         }
     }
 }
+
+void PaletteWidget::mouseMoveEvent(QMouseEvent * event)
+{
+    event->accept();
+
+    if (event->buttons() == Qt::NoButton)
+    {
+        auto pos = event->localPos();
+
+        int x = pos.x() / _pixelSize.width();
+        int y = pos.y() / _pixelSize.height();
+
+        x = qBound(0, x, COLUMNS-1);
+        y = qBound(0, y, ROWS-1);
+
+        int color = 8 * y + x;
+
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("%1 (%2)").arg(Palette::color_names[color]).arg(color));
+    }
+}
+
 
 void PaletteWidget::paintEvent(QPaintEvent *event)
 {

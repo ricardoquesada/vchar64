@@ -227,6 +227,10 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
             {
                 _cursorPos = pos;
                 state->setTileIndex(tileIdx);
+
+                MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2")
+                                                                  .arg(_cursorPos.x())
+                                                                  .arg(_cursorPos.y()));
             }
         }
     }

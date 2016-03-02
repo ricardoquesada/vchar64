@@ -84,11 +84,26 @@ ExportDialog::~ExportDialog()
 
 void ExportDialog::on_pushBrowse_clicked()
 {
+    QString filters[] = {
+        tr("Asm files (*.s *.a *.asm)"),
+        tr("Raw files (*.raw *.bin)"),
+        tr("PRG files (*.prg *.64c)")
+    };
+
+    int filterIdx = 0;
+
+    if (ui->radioButton_asm->isChecked())
+        filterIdx = 0;
+    else if (ui->radioButton_raw->isChecked())
+        filterIdx = 1;
+    else if (ui->radioButton_prg->isChecked())
+        filterIdx = 2;
+
     auto filename = QFileDialog::getSaveFileName(this,
                                                  tr("Select filename"),
                                                  ui->editFilename->text(),
                                                  tr("Asm files (*.s *.a *.asm);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;Any file (*)"),
-                                                 nullptr,
+                                                 &filters[filterIdx],
                                                  QFileDialog::DontConfirmOverwrite);
 
     if (!filename.isEmpty())
