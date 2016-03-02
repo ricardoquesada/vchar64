@@ -45,6 +45,8 @@ MapWidget::MapWidget(QWidget *parent)
     _sizeHint = {(int)(_mapSize.width() * _tileSize.width() * _pixelSize * 8),
                  (int)(_mapSize.height() * _tileSize.height() * _pixelSize * 8)};
     setMinimumSize(_sizeHint);
+
+    setMouseTracking(true);
 }
 
 //
@@ -221,11 +223,19 @@ void MapWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
 
-    if (event->buttons() == Qt::LeftButton)
+    auto pos = event->localPos();
+    int x = (pos.x() - OFFSET) / _pixelSize / _tileSize.width() / 8;
+    int y = (pos.y() - OFFSET) / _pixelSize / _tileSize.height() / 8;
+
+    x = qBound(0, x, _mapSize.width()-1);
+    y = qBound(0, y, _mapSize.height()-1);
+
+    if (event->buttons() == Qt::NoButton)
     {
-        auto pos = event->localPos();
-        int x = (pos.x() - OFFSET) / _pixelSize / _tileSize.width() / 8;
-        int y = (pos.y() - OFFSET) / _pixelSize / _tileSize.height() / 8;
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
+    }
+    else if (event->buttons() == Qt::LeftButton)
+    {
 
         if (_mode == SELECT_MODE)
         {

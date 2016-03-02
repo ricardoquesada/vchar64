@@ -47,6 +47,8 @@ TilesetWidget::TilesetWidget(QWidget *parent)
     _sizeHint = {_columns * 8 * 2,
                  _rows * 8 * 2};
     setMinimumSize(_sizeHint);
+
+    setMouseTracking(true);
 }
 
 //
@@ -121,18 +123,24 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
 
-    if (event->buttons() == Qt::LeftButton)
+    auto pos = event->localPos();
+    auto state = MainWindow::getCurrentState();
+    auto tileProperties = state->getTileProperties();
+    int tw = tileProperties.size.width();
+    int th = tileProperties.size.height();
+
+    int x = (pos.x() - OFFSET) / _pixelSize.width() / 8 / tw;
+    int y = (pos.y() - OFFSET) / _pixelSize.height() / 8 / th;
+
+    x = qBound(0, x, _tileColums-1);
+    y = qBound(0, y, _tileRows-1);
+
+    if (event->buttons() == Qt::NoButton)
     {
-        auto state = MainWindow::getCurrentState();
-
-        auto pos = event->localPos();
-        auto tileProperties = state->getTileProperties();
-        int tw = tileProperties.size.width();
-        int th = tileProperties.size.height();
-
-        int x = (pos.x() - OFFSET) / _pixelSize.width() / 8 / tw;
-        int y = (pos.y() - OFFSET) / _pixelSize.height() / 8 / th;
-
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
+    }
+    else if (event->buttons() == Qt::LeftButton)
+    {
         // sanity check
         int tileIndex = x + y * (_columns / tw);
         if (! (tileIndex >= 0 && tileIndex < _maxTiles))

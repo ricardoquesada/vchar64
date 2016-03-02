@@ -6,6 +6,7 @@
 * [NEW] VICE snapshot import: Default charset address is the one that was used
         at the moment the snapshot was taken
 * [NEW] Save/Export: Plays one beep on success, two beeps on error
+* [NEW] Main Window: Status Bar shows the coordinates of the different widgets
 * [BUGFIX] VICE/Koala Import: sets the name of the imported file in the tab
 * [BUGFIX] Koala Import: detects duplicates chars, making the converstion
         smaller

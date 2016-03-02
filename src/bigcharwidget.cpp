@@ -44,6 +44,8 @@ BigCharWidget::BigCharWidget(State* state, QWidget *parent)
     setFocusPolicy(Qt::StrongFocus);
 
     setAttribute(Qt::WA_DeleteOnClose);
+
+    setMouseTracking(true);
 }
 
 BigCharWidget::~BigCharWidget()
@@ -130,20 +132,27 @@ void BigCharWidget::mouseMoveEvent(QMouseEvent * event)
 
     int x = pos.x() / _pixelSize.width();
     int y = pos.y() / _pixelSize.height();
-    if( x>=8*_tileProperties.size.width() || y>=8*_tileProperties.size.height())
-        return;
 
-    _cursorPos = {x,y};
+    x = qBound(0, x, 8 * _tileProperties.size.width() - 1);
+    y = qBound(0, y, 8 * _tileProperties.size.height() -1 );
 
-    int pen = _state->getSelectedPen();
+    if (event->buttons() == Qt::NoButton)
+    {
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
+    }
+    else
+    {
+        _cursorPos = {x,y};
+        int pen = _state->getSelectedPen();
 
-    auto&& button = event->buttons();
-    if (button == Qt::LeftButton)
-        paintPixel(x, y, pen);
-    else if(button == Qt::RightButton)
-        paintPixel(x, y, State::PEN_BACKGROUND);
+        auto&& button = event->buttons();
+        if (button == Qt::LeftButton)
+            paintPixel(x, y, pen);
+        else if(button == Qt::RightButton)
+            paintPixel(x, y, State::PEN_BACKGROUND);
 
-    _commandMergeable = true;
+        _commandMergeable = true;
+    }
 }
 
 void BigCharWidget::mouseReleaseEvent(QMouseEvent * event)

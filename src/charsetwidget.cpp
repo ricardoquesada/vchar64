@@ -43,6 +43,8 @@ CharsetWidget::CharsetWidget(QWidget *parent)
     _sizeHint = {COLUMNS * 8 * 2,
                  ROWS * 8 * 2};
     setMinimumSize(_sizeHint);
+
+    setMouseTracking(true);
 }
 
 void CharsetWidget::updateCharIndex(int charIndex)
@@ -109,12 +111,18 @@ void CharsetWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
 
-    if (event->buttons() == Qt::LeftButton)
-    {
-        auto pos = event->localPos();
-        int x = (pos.x() - OFFSET) / _pixelSize.width() / 8;
-        int y = (pos.y() - OFFSET) / _pixelSize.height() / 8;
+    auto pos = event->localPos();
+    int x = (pos.x() - OFFSET) / _pixelSize.width() / 8;
+    int y = (pos.y() - OFFSET) / _pixelSize.height() / 8;
+    x = qBound(0, x, COLUMNS-1);
+    y = qBound(0, y, ROWS-1);
 
+    if (event->buttons() == Qt::NoButton)
+    {
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
+    }
+    else if (event->buttons() == Qt::LeftButton)
+    {
         if (x >= _cursorPos.x())
             x++;
         if (y >= _cursorPos.y())

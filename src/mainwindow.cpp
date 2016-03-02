@@ -615,7 +615,7 @@ void MainWindow::setRecentFile(const QString& fileName)
 //
 void MainWindow::showMessageOnStatusBar(const QString& message)
 {
-    statusBar()->showMessage(message, 6000);
+    statusBar()->showMessage(message, 3000);
 }
 
 void MainWindow::onCharIndexUpdated(int charIndex)
