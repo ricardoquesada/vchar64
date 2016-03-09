@@ -1,4 +1,9 @@
-0.0.12 (? March 2016)
+0.0.13 (X April 2016)
+
+* [BUGFIX] Resizing maps works as expected
+
+
+0.0.12 (1 March 2016)
 
 * [NEW] Koala Import: supports importing subregions. Useful when 256 chars are
         not enough to import the whole bitmap
@@ -9,7 +14,7 @@
 * [NEW] Main Window: Status Bar shows the coordinates of the different widgets
 * [BUGFIX] Export: shows correct extension when browsing file
 * [BUGFIX] VICE/Koala Import: sets the name of the imported file in the tab
-* [BUGFIX] Koala Import: detects duplicates chars, making the converstion
+* [BUGFIX] Koala Import: detects duplicates chars, making the conversion
         smaller
 
 

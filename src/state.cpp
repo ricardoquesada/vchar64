@@ -77,7 +77,6 @@ State::State(const QString &filename, quint8 *charset, quint8 *tileColors, quint
     {
         setupDefaultMap();
     }
-    _mapSizeAllocedBytes = mapSize.width() * mapSize.height();
 }
 
 // Delegating constructor
@@ -640,14 +639,23 @@ void State::_setMapSize(const QSize& mapSize)
 {
     if (_mapSize != mapSize)
     {
-        // FIXME: never shrink, always grow... just to simplify the undo.
         const int newSizeInBytes = mapSize.width() * mapSize.height();
-        if ( newSizeInBytes > _mapSizeAllocedBytes)
+        quint8* newMap = (quint8*) calloc(newSizeInBytes, 1);
+        Q_ASSERT(newMap && "No memory");
+
+        for (int row=0; row<mapSize.height(); ++row)
         {
-            _map = (quint8*) realloc(_map, newSizeInBytes);
-            _mapSizeAllocedBytes = newSizeInBytes;
-            Q_ASSERT(_map && "No memory");
+            // no more rows to copy
+            if (row >= _mapSize.height())
+                break;
+
+            // bytes to copy per row
+            int toCopy = qMin(mapSize.width(), _mapSize.width());
+            memcpy(&newMap[mapSize.width() * row], &_map[_mapSize.width() * row], toCopy);
         }
+
+        free(_map);
+        _map = newMap;
         _mapSize = mapSize;
 
         emit mapSizeUpdated();

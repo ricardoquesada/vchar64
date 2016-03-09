@@ -534,7 +534,6 @@ protected:
     quint8 _tileColors[State::TILE_COLORS_BUFFER_SIZE];
     quint8* _map;
     QSize _mapSize;
-    int _mapSizeAllocedBytes;
 
     bool _multicolorMode;
     ForegroundColorMode _foregroundColorMode;

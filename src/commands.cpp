@@ -505,20 +505,30 @@ SetMapSizeCommand::SetMapSizeCommand(State *state, const QSize& mapSize, QUndoCo
     _state = state;
     _new = mapSize;
 
+    _old = _state->getMapSize();
+    _oldMap = (quint8*) malloc(_old.width() * _old.height());
+    Q_ASSERT(_oldMap && "No more memory");
+
+    memcpy(_oldMap, _state->_map, _old.width() * _old.height());
+
     setText(QObject::tr("Map Size %1x%2")
             .arg(mapSize.width())
             .arg(mapSize.height())
             );
 }
+SetMapSizeCommand::~SetMapSizeCommand()
+{
+    free(_oldMap);
+}
 
 void SetMapSizeCommand::undo()
 {
     _state->_setMapSize(_old);
+    _state->_setMap(_oldMap, _old);
 }
 
 void SetMapSizeCommand::redo()
 {
-    _old = _state->getMapSize();
     _state->_setMapSize(_new);
 }
 
