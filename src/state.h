@@ -316,6 +316,13 @@ public:
     const QSize& getMapSize() const;
 
     /**
+     * @brief getTileIndexFromMap returns the tiled index at mapPosition.
+     * @param mapPosition position in the map
+     * @return a tile index
+     */
+    int getTileIndexFromMap(const QPoint& mapCoord) const;
+
+    /**
      * @brief mapFill fills a certain region of the map
      * @param coord coordinates of the map
      * @param tileIdx the tile to use as filler

@@ -1,6 +1,8 @@
 0.0.13 (X April 2016)
 
 * [BUGFIX] Resizing maps works as expected
+* [BUGFIX] Displays correct tile in map when tile is resized.
+           Doesn't crash on debug mode as well.
 
 
 0.0.12 (1 March 2016)

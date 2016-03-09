@@ -60,7 +60,6 @@ void MapWidget::paintEvent(QPaintEvent *event)
     if (!state)
         return;
 
-    auto screenRAM = state->getMapBuffer();
     auto mapSize = state->getMapSize();
 
     // FIXME:
@@ -82,7 +81,7 @@ void MapWidget::paintEvent(QPaintEvent *event)
     {
         for (int x=0; x<mapSize.width(); ++x)
         {
-            auto tileIdx = screenRAM[y * mapSize.width() + x];
+            auto tileIdx = state->getTileIndexFromMap(QPoint(x,y));
             quint8 charIdx = tileProperties.interleaved == 1 ?
                                                         tileIdx * tw * th :
                                                         tileIdx;
@@ -194,8 +193,7 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
 
                 // update tileIndex
                 auto state = MainWindow::getCurrentState();
-                int mapOffset = _cursorPos.y() * _mapSize.width() + _cursorPos.x();
-                state->setTileIndex(state->getMapBuffer()[mapOffset]);
+                state->setTileIndex(state->getTileIndexFromMap(_cursorPos));
             }
 
             update();
@@ -349,8 +347,7 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
     // update tile index
     if (_mode == SELECT_MODE && _cursorPos != oldCursorPos)
     {
-        int mapOffset = _cursorPos.y() * _mapSize.width() + _cursorPos.x();
-        state->setTileIndex(state->getMapBuffer()[mapOffset]);
+        state->setTileIndex(state->getTileIndexFromMap(_cursorPos));
     }
 
     // update cursor or select range

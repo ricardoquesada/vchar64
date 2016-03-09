@@ -668,6 +668,16 @@ const QSize& State::getMapSize() const
     return _mapSize;
 }
 
+int State::getTileIndexFromMap(const QPoint& mapCoord) const
+{
+    Q_ASSERT(mapCoord.x() < _mapSize.width() && mapCoord.y() < _mapSize.height() && "Invalid map size");
+    int tileIndex = _map[_mapSize.width() * mapCoord.y() + mapCoord.x()];
+
+    // safety check: map could have tiles bigger than the maximum supported if the tiles were resized.
+    tileIndex = qBound(0, tileIndex, 256 / (_tileProperties.size.width() * _tileProperties.size.height()) - 1);
+    return tileIndex;
+}
+
 void State::floodFillImpl(const QPoint& coord, int targetTile, int newTile)
 {
     if (coord.x() < 0 || coord.x() >= _mapSize.width())
