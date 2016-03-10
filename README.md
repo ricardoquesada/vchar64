@@ -38,9 +38,8 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 
 In no particular order:
 
-* Multiple charset import in Koala Import
 * Convert to PETSCII
-* Tile: one color per char
+* Tile: add Color Per Char (currently it supports Color Per Tile or Global)
 * Tile: arbitrary composition of tiles
 * Character / Tile animation support
 * Sprite
