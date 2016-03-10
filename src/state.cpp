@@ -640,7 +640,10 @@ void State::_setMapSize(const QSize& mapSize)
     if (_mapSize != mapSize)
     {
         const int newSizeInBytes = mapSize.width() * mapSize.height();
-        quint8* newMap = (quint8*) calloc(newSizeInBytes, 1);
+        quint8* newMap = (quint8*) malloc(newSizeInBytes);
+        for (int i=0; i<newSizeInBytes; ++i)
+            newMap[i] = _tileIndex;
+
         Q_ASSERT(newMap && "No memory");
 
         for (int row=0; row<mapSize.height(); ++row)
