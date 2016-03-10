@@ -30,6 +30,7 @@ limitations under the License.
 static const int COLUMNS = 32;
 static const int ROWS = 8;
 static const int OFFSET = 2;
+static const int PIXEL_SIZE = 2;
 
 TilesetWidget::TilesetWidget(QWidget *parent)
     : QWidget(parent)
@@ -37,15 +38,15 @@ TilesetWidget::TilesetWidget(QWidget *parent)
     , _selecting(false)
     , _selectingSize({0,0})
     , _columns(COLUMNS)
-    , _tileColums(COLUMNS)
+    , _tileColumns(COLUMNS)
     , _rows(ROWS)
     , _tileRows(ROWS)
     , _maxTiles(256)
     , _sizeHint({0,0})
-    , _pixelSize({0,0})
+    , _pixelSize(PIXEL_SIZE)
 {
-    _sizeHint = {_columns * 8 * 2,
-                 _rows * 8 * 2};
+    _sizeHint = {_columns * 8 * PIXEL_SIZE,
+                 _rows * 8 * PIXEL_SIZE};
     setMinimumSize(_sizeHint);
 
     setMouseTracking(true);
@@ -70,11 +71,11 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
         int tw = tileProperties.size.width();
         int th = tileProperties.size.height();
 
-        int x = (pos.x() - OFFSET) / _pixelSize.width() / 8 / tw;
-        int y = (pos.y() - OFFSET) / _pixelSize.height() / 8 / th;
+        int x = (pos.x() - OFFSET) / _pixelSize / 8 / tw;
+        int y = (pos.y() - OFFSET) / _pixelSize / 8 / th;
 
         // sanity check
-        x = qBound(0, x, _tileColums - 1);
+        x = qBound(0, x, _tileColumns - 1);
         y = qBound(0, y, _tileRows - 1);
 
         int tileIndex = x + y * (_columns / tw);
@@ -98,7 +99,7 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
 
             // sanity check
             _selectingSize = {
-                qBound(-_cursorPos.x(), _selectingSize.width(), _tileColums - _cursorPos.x()),
+                qBound(-_cursorPos.x(), _selectingSize.width(), _tileColumns - _cursorPos.x()),
                 qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows - _cursorPos.y())
             };
             update();
@@ -129,10 +130,10 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
     int tw = tileProperties.size.width();
     int th = tileProperties.size.height();
 
-    int x = (pos.x() - OFFSET) / _pixelSize.width() / 8 / tw;
-    int y = (pos.y() - OFFSET) / _pixelSize.height() / 8 / th;
+    int x = (pos.x() - OFFSET) / _pixelSize / 8 / tw;
+    int y = (pos.y() - OFFSET) / _pixelSize / 8 / th;
 
-    x = qBound(0, x, _tileColums-1);
+    x = qBound(0, x, _tileColumns-1);
     y = qBound(0, y, _tileRows-1);
 
     if (event->buttons() == Qt::NoButton)
@@ -156,7 +157,7 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
 
         // sanity check
         _selectingSize = {
-            qBound(-_cursorPos.x(), _selectingSize.width(), _tileColums-_cursorPos.x()),
+            qBound(-_cursorPos.x(), _selectingSize.width(), _tileColumns-_cursorPos.x()),
             qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows-_cursorPos.y())
         };
 
@@ -212,17 +213,17 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
                 _selectingSize.setHeight(_selectingSize.height() + 1 * point.y());
 
             _selectingSize = {
-                qBound(-_cursorPos.x(), _selectingSize.width(), _tileColums-_cursorPos.x()),
+                qBound(-_cursorPos.x(), _selectingSize.width(), _tileColumns-_cursorPos.x()),
                 qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows-_cursorPos.y())
             };
         }
         else
         {
             auto pos = _cursorPos + point;
-            pos = {qBound(0, pos.x(), _tileColums-1),
+            pos = {qBound(0, pos.x(), _tileColumns-1),
                    qBound(0, pos.y(), _tileRows-1)};
 
-            int tileIdx =  pos.y() * _tileColums + pos.x();
+            int tileIdx =  pos.y() * _tileColumns + pos.x();
             if (pos != _cursorPos && tileIdx >=0 && tileIdx < _maxTiles)
             {
                 _cursorPos = pos;
@@ -280,10 +281,26 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
             int local_w = w + char_idx % tw;
             int local_h = h + char_idx / tw;
 
-            utilsDrawChar(state, &painter, _pixelSize, QPoint(OFFSET, OFFSET), QPoint(local_w, local_h), charIdx);
+            utilsDrawChar(state, &painter, QSizeF(_pixelSize, _pixelSize), QPoint(OFFSET, OFFSET), QPoint(local_w, local_h), charIdx);
 
             charIdx += tileProperties.interleaved;
         }
+    }
+
+    if (_displayGrid)
+    {
+        auto pen = painter.pen();
+        pen.setColor(QColor(0,128,0));
+        pen.setStyle(Qt::DashLine);
+        painter.setPen(pen);
+
+        for (int y=0; y <= _tileRows; ++y)
+            painter.drawLine(QPointF(0 + OFFSET, y * _pixelSize * 8 * th + OFFSET),
+                             QPointF(_tileColumns * _pixelSize * 8 * tw + OFFSET, y * _pixelSize * 8 * th + OFFSET));
+
+        for (int x=0; x <= _tileColumns; ++x)
+            painter.drawLine(QPointF(x * _pixelSize * 8 * tw + OFFSET, 0),
+                             QPointF(x * _pixelSize * 8 * tw + OFFSET, _tileRows * _pixelSize * 8 * th + OFFSET));
     }
 
     painter.setPen(Qt::NoPen);
@@ -298,19 +315,6 @@ QSize TilesetWidget::sizeHint() const
 {
     return _sizeHint;
 }
-
-void TilesetWidget::resizeEvent(QResizeEvent* event)
-{
-    Q_UNUSED(event);
-
-    int pixel_size_x = size().width() / (COLUMNS * 8);
-    int pixel_size_y = size().height() / (ROWS * 8);
-
-    // keep aspect ratio
-    int pixel_size = qMin(pixel_size_x, pixel_size_y);
-    _pixelSize = {pixel_size, pixel_size};
-}
-
 
 //
 // helpers
@@ -330,19 +334,19 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
     {
         painter.setPen(pen);
         painter.setBrush(QColor(149,195,244,64));
-        painter.drawRect(_cursorPos.x() * 8 * _pixelSize.width() * tw + OFFSET,
-                         _cursorPos.y() * 8 * _pixelSize.height() * th + OFFSET,
-                         _selectingSize.width() * 8 * _pixelSize.width() * tw,
-                         _selectingSize.height() * 8 * _pixelSize.height() * th);
+        painter.drawRect(_cursorPos.x() * 8 * _pixelSize * tw + OFFSET,
+                         _cursorPos.y() * 8 * _pixelSize * th + OFFSET,
+                         _selectingSize.width() * 8 * _pixelSize * tw,
+                         _selectingSize.height() * 8 * _pixelSize * th);
     }
     else
     {
         painter.setPen(pen);
         painter.setBrush(QColor(128,0,0,0));
-        painter.drawRect(_cursorPos.x() * 8 * _pixelSize.width() * tw + OFFSET,
-                         _cursorPos.y() * 8 * _pixelSize.height() * th + OFFSET,
-                         8 * _pixelSize.width() * tw,
-                         8 * _pixelSize.height() * th);
+        painter.drawRect(_cursorPos.x() * 8 * _pixelSize * tw + OFFSET,
+                         _cursorPos.y() * 8 * _pixelSize * th + OFFSET,
+                         8 * _pixelSize * tw,
+                         8 * _pixelSize * th);
     }
 }
 
@@ -359,15 +363,15 @@ void TilesetWidget::paintFocus(QPainter &painter)
 
         // vertical lines
         painter.drawLine(0, 0,
-                         0, _rows * _pixelSize.height() * 8 + OFFSET);
-        painter.drawLine(_columns * _pixelSize.width() * 8 + OFFSET, 0,
-                         _columns * _pixelSize.width() * 8 + OFFSET, _rows * _pixelSize.height() * 8 + OFFSET);
+                         0, _rows * _pixelSize * 8 + OFFSET);
+        painter.drawLine(_columns * _pixelSize * 8 + OFFSET, 0,
+                         _columns * _pixelSize * 8 + OFFSET, _rows * _pixelSize * 8 + OFFSET);
 
         // horizontal lines
         painter.drawLine(0, 0,
-                         _columns * _pixelSize.width() * 8 + OFFSET, 0);
-        painter.drawLine(0, _rows * _pixelSize.height() * 8 + OFFSET,
-                         _columns * _pixelSize.width() * 8 + OFFSET, _rows * _pixelSize.height() * 8 + OFFSET);
+                         _columns * _pixelSize * 8 + OFFSET, 0);
+        painter.drawLine(0, _rows * _pixelSize * 8 + OFFSET,
+                         _columns * _pixelSize * 8 + OFFSET, _rows * _pixelSize * 8 + OFFSET);
     }
 }
 
@@ -383,8 +387,8 @@ void TilesetWidget::onTileIndexUpdated(int selectedTileIndex)
         _selectingSize = {1,1};
     }
 
-    int x = selectedTileIndex % _tileColums;
-    int y = selectedTileIndex / _tileColums;
+    int x = selectedTileIndex % _tileColumns;
+    int y = selectedTileIndex / _tileColumns;
     if (_cursorPos.x() != x || _cursorPos.y() != y)
     {
         _cursorPos = {x, y};
@@ -398,15 +402,15 @@ void TilesetWidget::onTilePropertiesUpdated()
     auto properties = state->getTileProperties();
 
     _columns = (COLUMNS / properties.size.width()) * properties.size.width();
-    _tileColums = _columns / properties.size.width();
+    _tileColumns = _columns / properties.size.width();
 
     _rows = qCeil((256.0f / _columns) / properties.size.height()) * properties.size.height();
     _tileRows = _rows / properties.size.height();
 
     _maxTiles = 256 / (properties.size.width() * properties.size.height());
 
-    _sizeHint = QSize(_pixelSize.width() * _columns * 8 + OFFSET * 2,
-                 _pixelSize.height() * _rows * 8 + OFFSET * 2);
+    _sizeHint = QSize(_pixelSize * _columns * 8 + OFFSET * 2,
+                 _pixelSize * _rows * 8 + OFFSET * 2);
 
     setMinimumSize(_sizeHint);
     update();
@@ -472,13 +476,30 @@ void TilesetWidget::getSelectionRange(State::CopyRange* copyRange) const
     }
 
     // copying tiles, intead of chars, even if interleaved==1
-    copyRange->offset = fixed_origin.y() * _tileColums + fixed_origin.x();
+    copyRange->offset = fixed_origin.y() * _tileColumns + fixed_origin.x();
     copyRange->blockSize = fixed_size.width();
     copyRange->count = fixed_size.height();
-    copyRange->skip = _tileColums - fixed_size.width();
+    copyRange->skip = _tileColumns - fixed_size.width();
 
     copyRange->type = State::CopyRange::TILES;
     copyRange->tileProperties = tileProperties;
 }
 
+void TilesetWidget::enableGrid(bool enabled)
+{
+    if (_displayGrid != enabled)
+    {
+        _displayGrid = enabled;
+        update();
+    }
+}
 
+void TilesetWidget::setZoomLevel(int zoomLevel)
+{
+    _pixelSize = zoomLevel * PIXEL_SIZE / 100.0;
+
+    _sizeHint = QSize(COLUMNS * _pixelSize * 8, ROWS * _pixelSize * 8);
+
+    setMinimumSize(_sizeHint);
+    update();
+}

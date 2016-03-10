@@ -41,6 +41,8 @@ public slots:
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);
     void onCharsetUpdated();
+    void enableGrid(bool enabled);
+    void setZoomLevel(int zoomLevel);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
@@ -48,7 +50,6 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
 
     void updateCharIndex(int charIndex);
     void paintFocus(QPainter &painter);
@@ -58,6 +59,7 @@ protected:
     QSize _selectingSize;
     int _charIndex;
     QSize _sizeHint;
-    QSize _pixelSize;
+    float _pixelSize;
+    bool _displayGrid;
 };
 

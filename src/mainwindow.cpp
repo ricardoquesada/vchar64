@@ -84,6 +84,8 @@ MainWindow::MainWindow(QWidget *parent)
     createActions();
     createDefaults();
     createUndoView();
+    setupCharsetDock();
+    setupTilesetDock();
     setupMapDock();
     setupStatusBar();
 }
@@ -433,6 +435,76 @@ void MainWindow::createDefaults()
     _ui->dockWidget_charset->raise();
 }
 
+void MainWindow::setupCharsetDock()
+{
+    auto toolbar = new QToolBar(this);
+    toolbar->setIconSize(QSize(16,16));
+    _ui->verticalLayout_charset->addWidget(toolbar);
+
+    toolbar->addAction(_ui->actionToggle_CharsetGrid);
+
+    toolbar->addSeparator();
+
+    QWidget* empty = new QWidget();
+    empty->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    toolbar->addWidget(empty);
+
+    _comboBoxCharsetZoom = new QComboBox(this);
+    _comboBoxCharsetZoom->addItem("200%", QVariant(200));
+    _comboBoxCharsetZoom->addItem("175%", QVariant(175));
+    _comboBoxCharsetZoom->addItem("150%", QVariant(150));
+    _comboBoxCharsetZoom->addItem("125%", QVariant(125));
+    _comboBoxCharsetZoom->addItem("100%", QVariant(100));
+    _comboBoxCharsetZoom->addItem("75%", QVariant(75));
+    _comboBoxCharsetZoom->addItem("50%", QVariant(50));
+    _comboBoxCharsetZoom->addItem("25%", QVariant(25));
+    _comboBoxCharsetZoom->setCurrentIndex(4); // 100%
+    toolbar->addWidget(_comboBoxCharsetZoom);
+
+    connect(_comboBoxCharsetZoom, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
+        [&](int index)
+        {
+            auto variant = _comboBoxCharsetZoom->itemData(index);
+            _ui->charsetWidget->setZoomLevel(variant.toInt());
+        }
+    );
+}
+
+void MainWindow::setupTilesetDock()
+{
+    auto toolbar = new QToolBar(this);
+    toolbar->setIconSize(QSize(16,16));
+    _ui->verticalLayout_tileset->addWidget(toolbar);
+
+    toolbar->addAction(_ui->actionToggle_TilesetGrid);
+
+    toolbar->addSeparator();
+
+    QWidget* empty = new QWidget();
+    empty->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    toolbar->addWidget(empty);
+
+    _comboBoxTilesetZoom = new QComboBox(this);
+    _comboBoxTilesetZoom->addItem("200%", QVariant(200));
+    _comboBoxTilesetZoom->addItem("175%", QVariant(175));
+    _comboBoxTilesetZoom->addItem("150%", QVariant(150));
+    _comboBoxTilesetZoom->addItem("125%", QVariant(125));
+    _comboBoxTilesetZoom->addItem("100%", QVariant(100));
+    _comboBoxTilesetZoom->addItem("75%", QVariant(75));
+    _comboBoxTilesetZoom->addItem("50%", QVariant(50));
+    _comboBoxTilesetZoom->addItem("25%", QVariant(25));
+    _comboBoxTilesetZoom->setCurrentIndex(4); // 100%
+    toolbar->addWidget(_comboBoxTilesetZoom);
+
+    connect(_comboBoxTilesetZoom, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
+        [&](int index)
+        {
+            auto variant = _comboBoxTilesetZoom->itemData(index);
+            _ui->tilesetWidget->setZoomLevel(variant.toInt());
+        }
+    );
+}
+
 void MainWindow::setupMapDock()
 {
     auto toolbar = new QToolBar(this);
@@ -456,7 +528,7 @@ void MainWindow::setupMapDock()
 
     toolbar->addSeparator();
 
-    toolbar->addAction(_ui->actionToggle_Grid);
+    toolbar->addAction(_ui->actionToggle_MapGrid);
 
     toolbar->addSeparator();
 
@@ -1368,9 +1440,19 @@ void MainWindow::on_actionSelect_Mode_triggered()
     _ui->mapWidget->setMode(MapWidget::SELECT_MODE);
 }
 
-void MainWindow::on_actionToggle_Grid_triggered()
+void MainWindow::on_actionToggle_MapGrid_triggered()
 {
-    _ui->mapWidget->enableGrid(_ui->actionToggle_Grid->isChecked());
+    _ui->mapWidget->enableGrid(_ui->actionToggle_MapGrid->isChecked());
+}
+
+void MainWindow::on_actionToggle_CharsetGrid_triggered()
+{
+    _ui->charsetWidget->enableGrid(_ui->actionToggle_CharsetGrid->isChecked());
+}
+
+void MainWindow::on_actionToggle_TilesetGrid_triggered()
+{
+    _ui->tilesetWidget->enableGrid(_ui->actionToggle_TilesetGrid->isChecked());
 }
 
 //
@@ -1443,4 +1525,3 @@ bool MainWindow::bufferFromClipboard(State::CopyRange **out_range, quint8** out_
 
     return true;
 }
-

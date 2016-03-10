@@ -104,6 +104,8 @@ protected:
     void createDefaults();
     void createUndoView();
     void setupStatusBar();
+    void setupCharsetDock();
+    void setupTilesetDock();
     void setupMapDock();
     void closeState(State* state);
 
@@ -198,7 +200,11 @@ private slots:
 
     void on_actionClear_Map_triggered();
 
-    void on_actionToggle_Grid_triggered();
+    void on_actionToggle_MapGrid_triggered();
+
+    void on_actionToggle_CharsetGrid_triggered();
+
+    void on_actionToggle_TilesetGrid_triggered();
 
 private:
     QVector<QAction*> _recentFiles;
@@ -215,4 +221,11 @@ private:
     QSpinBox* _spinBoxMapX;
     QSpinBox* _spinBoxMapY;
     QComboBox* _comboBoxMapZoom;
+
+    // FIXME: Should be moved to the "charset dock" once it is implemented
+    QComboBox* _comboBoxCharsetZoom;
+
+    // FIXME: Should be moved to the "charset dock" once it is implemented
+    QComboBox* _comboBoxTilesetZoom;
+
 };

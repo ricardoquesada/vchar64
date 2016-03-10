@@ -42,7 +42,8 @@ public slots:
 
     bool hasSelection() const;
     void getSelectionRange(State::CopyRange* copyRange) const;
-
+    void enableGrid(bool enabled);
+    void setZoomLevel(int zoomLevel);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
@@ -50,7 +51,6 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
 
     void paintFocus(QPainter &painter);
     void paintPixel(QPainter &painter, int width, int height, quint8* charPtr);
@@ -59,11 +59,12 @@ protected:
     QPoint _cursorPos;
     bool _selecting;
     QSize _selectingSize;
-    int _columns, _tileColums;
+    int _columns, _tileColumns;
     int _rows, _tileRows;
     int _maxTiles;
 
     QSize _sizeHint;
-    QSize _pixelSize;
+    float _pixelSize;
+    bool _displayGrid;
 };
 

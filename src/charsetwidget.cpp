@@ -19,6 +19,7 @@ limitations under the License.
 #include <QPainter>
 #include <QPaintEvent>
 #include <QMdiSubWindow>
+#include <QPointF>
 
 #include "bigcharwidget.h"
 #include "palette.h"
@@ -30,6 +31,7 @@ limitations under the License.
 static const int COLUMNS = 32;
 static const int ROWS = 8;
 static const int OFFSET = 2;
+static const int PIXEL_SIZE = 2;
 
 CharsetWidget::CharsetWidget(QWidget *parent)
     : QWidget(parent)
@@ -38,10 +40,11 @@ CharsetWidget::CharsetWidget(QWidget *parent)
     , _selectingSize({1,1})
     , _charIndex(-1)
     , _sizeHint({0,0})
-    , _pixelSize({0,0})
+    , _pixelSize(PIXEL_SIZE)
+    , _displayGrid(false)
 {
-    _sizeHint = {COLUMNS * 8 * 2,
-                 ROWS * 8 * 2};
+    _sizeHint = {(int)(COLUMNS * 8 * _pixelSize),
+                 (int)(ROWS * 8 * _pixelSize)};
     setMinimumSize(_sizeHint);
 
     setMouseTracking(true);
@@ -67,8 +70,8 @@ void CharsetWidget::mousePressEvent(QMouseEvent * event)
 
     auto pos = event->localPos();
 
-    int x = (pos.x() - OFFSET) / _pixelSize.width() / 8;
-    int y = (pos.y() - OFFSET) / _pixelSize.height() / 8;
+    int x = (pos.x() - OFFSET) / _pixelSize / 8;
+    int y = (pos.y() - OFFSET) / _pixelSize / 8;
     int charIndex = x + y * COLUMNS;
 
     if (event->button() == Qt::LeftButton)
@@ -112,8 +115,8 @@ void CharsetWidget::mouseMoveEvent(QMouseEvent * event)
     event->accept();
 
     auto pos = event->localPos();
-    int x = (pos.x() - OFFSET) / _pixelSize.width() / 8;
-    int y = (pos.y() - OFFSET) / _pixelSize.height() / 8;
+    int x = (pos.x() - OFFSET) / _pixelSize / 8;
+    int y = (pos.y() - OFFSET) / _pixelSize / 8;
     x = qBound(0, x, COLUMNS-1);
     y = qBound(0, y, ROWS-1);
 
@@ -237,28 +240,44 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
 
             int index = w + h * COLUMNS;
 
-            utilsDrawChar(state, &painter, _pixelSize, QPoint(OFFSET, OFFSET), QPoint(w, h), index);
+            utilsDrawChar(state, &painter, QSizeF(_pixelSize, _pixelSize), QPoint(OFFSET, OFFSET), QPoint(w, h), index);
         }
+    }
+
+    if (_displayGrid)
+    {
+        auto pen = painter.pen();
+        pen.setColor(QColor(0,128,0));
+        pen.setStyle(Qt::DashLine);
+        painter.setPen(pen);
+
+        for (int y=0; y <= ROWS; ++y)
+            painter.drawLine(QPointF(0 + OFFSET, y * _pixelSize * 8 + OFFSET),
+                             QPointF(COLUMNS * _pixelSize * 8 + OFFSET, y * _pixelSize * 8 + OFFSET));
+
+        for (int x=0; x <= COLUMNS; ++x)
+            painter.drawLine(QPointF(x * _pixelSize * 8 + OFFSET, 0),
+                             QPointF(x * _pixelSize * 8 + OFFSET, ROWS * _pixelSize * 8 + OFFSET));
     }
 
     if (_selecting) {
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(149,195,244,64));
-        painter.drawRect(_cursorPos.x() * 8 * _pixelSize.width() + OFFSET,
-                         _cursorPos.y() * 8 * _pixelSize.height() + OFFSET,
-                         _selectingSize.width() * 8 * _pixelSize.width(),
-                         _selectingSize.height() * 8 * _pixelSize.height());
+        painter.drawRect(_cursorPos.x() * 8 * _pixelSize + OFFSET,
+                         _cursorPos.y() * 8 * _pixelSize + OFFSET,
+                         _selectingSize.width() * 8 * _pixelSize,
+                         _selectingSize.height() * 8 * _pixelSize);
     }
     else
     {
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(128,0,0,0));
-        painter.drawRect(_cursorPos.x() * 8 * _pixelSize.width() + OFFSET,
-                         _cursorPos.y() * 8 * _pixelSize.height() + OFFSET,
-                         8 * _pixelSize.width(),
-                         8 * _pixelSize.height());
+        painter.drawRect(_cursorPos.x() * 8 * _pixelSize + OFFSET,
+                         _cursorPos.y() * 8 * _pixelSize + OFFSET,
+                         8 * _pixelSize,
+                         8 * _pixelSize);
     }
 
     paintFocus(painter);
@@ -268,18 +287,6 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
 QSize CharsetWidget::sizeHint() const
 {
     return _sizeHint;
-}
-
-void CharsetWidget::resizeEvent(QResizeEvent* event)
-{
-    Q_UNUSED(event);
-
-    auto pixel_size_x = size().width() / (COLUMNS * 8);
-    auto pixel_size_y = size().height() / (ROWS * 8);
-
-    // keep aspect ratio
-    auto pixel_size = qMin(pixel_size_x, pixel_size_y);
-    _pixelSize = {pixel_size, pixel_size};
 }
 
 //
@@ -298,15 +305,15 @@ void CharsetWidget::paintFocus(QPainter &painter)
 
         // vertical lines
         painter.drawLine(0, 0,
-                         0, ROWS * _pixelSize.height() * 8 + OFFSET);
-        painter.drawLine(COLUMNS * _pixelSize.width() * 8 + OFFSET, 0,
-                         COLUMNS * _pixelSize.width() * 8 + OFFSET, ROWS * _pixelSize.height() * 8 + OFFSET);
+                         0, ROWS * _pixelSize * 8 + OFFSET);
+        painter.drawLine(COLUMNS * _pixelSize * 8 + OFFSET, 0,
+                         COLUMNS * _pixelSize * 8 + OFFSET, ROWS * _pixelSize * 8 + OFFSET);
 
         // horizontal lines
         painter.drawLine(0, 0,
-                         COLUMNS * _pixelSize.width() * 8 + OFFSET, 0);
-        painter.drawLine(0, ROWS * _pixelSize.height() * 8 + OFFSET,
-                         COLUMNS * _pixelSize.width() * 8 + OFFSET, ROWS * _pixelSize.height() * 8 + OFFSET);
+                         COLUMNS * _pixelSize * 8 + OFFSET, 0);
+        painter.drawLine(0, ROWS * _pixelSize * 8 + OFFSET,
+                         COLUMNS * _pixelSize * 8 + OFFSET, ROWS * _pixelSize * 8 + OFFSET);
     }
 }
 
@@ -397,4 +404,24 @@ void CharsetWidget::getSelectionRange(State::CopyRange* copyRange) const
 int CharsetWidget::getCursorPos() const
 {
     return _cursorPos.y() * COLUMNS + _cursorPos.x();
+}
+
+void CharsetWidget::enableGrid(bool enabled)
+{
+    if (_displayGrid != enabled)
+    {
+        _displayGrid = enabled;
+        update();
+    }
+}
+
+void CharsetWidget::setZoomLevel(int zoomLevel)
+{
+    _pixelSize = zoomLevel * PIXEL_SIZE / 100.0;
+
+    _sizeHint = QSize(COLUMNS * _pixelSize * 8, ROWS * _pixelSize * 8);
+
+    setMinimumSize(_sizeHint);
+    update();
+
 }
