@@ -30,6 +30,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
 <p align="center">Copyright 2015, 2016 Ricardo Quesada<br>(see the <a href="https://github.com/ricardoquesada/vchar64/blob/master/AUTHORS">AUTHORS</a> file for a full list of contributors)</p>
 <p align="center">You may modify and redistribute this program under the terms of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License v2.0.<a/>
 <p align="center"><a href="https://github.com/ricardoquesada/vchar64/">https://github.com/ricardoquesada/vchar64</a></p>
+<p align="center"><a href="http://retro.moe/">http://retro.moe</a></p>
 )html";
 
     const QString html = QCoreApplication::translate(
