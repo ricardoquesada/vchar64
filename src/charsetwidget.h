@@ -59,7 +59,7 @@ protected:
     QSize _selectingSize;
     int _charIndex;
     QSize _sizeHint;
-    float _pixelSize;
+    float _zoomLevel;
     bool _displayGrid;
 };
 

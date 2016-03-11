@@ -30,7 +30,7 @@ limitations under the License.
 static const int COLUMNS = 32;
 static const int ROWS = 8;
 static const int OFFSET = 2;
-static const int PIXEL_SIZE = 2;
+static const int ZOOM_LEVEL = 2;
 
 TilesetWidget::TilesetWidget(QWidget *parent)
     : QWidget(parent)
@@ -43,10 +43,10 @@ TilesetWidget::TilesetWidget(QWidget *parent)
     , _tileRows(ROWS)
     , _maxTiles(256)
     , _sizeHint({0,0})
-    , _pixelSize(PIXEL_SIZE)
+    , _zoomLevel(ZOOM_LEVEL)
 {
-    _sizeHint = {_columns * 8 * PIXEL_SIZE,
-                 _rows * 8 * PIXEL_SIZE};
+    _sizeHint = {(_columns * 8 + OFFSET) * ZOOM_LEVEL + 1,
+                 (_rows * 8 + OFFSET) * ZOOM_LEVEL + 1};
     setMinimumSize(_sizeHint);
 
     setMouseTracking(true);
@@ -71,8 +71,9 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
         int tw = tileProperties.size.width();
         int th = tileProperties.size.height();
 
-        int x = (pos.x() - OFFSET) / _pixelSize / 8 / tw;
-        int y = (pos.y() - OFFSET) / _pixelSize / 8 / th;
+        int x = (pos.x() / _zoomLevel - OFFSET) / 8 / tw;
+        int y = (pos.y() /_zoomLevel - OFFSET) / 8 / th;
+
 
         // sanity check
         x = qBound(0, x, _tileColumns - 1);
@@ -130,8 +131,8 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
     int tw = tileProperties.size.width();
     int th = tileProperties.size.height();
 
-    int x = (pos.x() - OFFSET) / _pixelSize / 8 / tw;
-    int y = (pos.y() - OFFSET) / _pixelSize / 8 / th;
+    int x = (pos.x() / _zoomLevel - OFFSET) / 8 / tw;
+    int y = (pos.y() /_zoomLevel - OFFSET) / 8 / th;
 
     x = qBound(0, x, _tileColumns-1);
     y = qBound(0, y, _tileRows-1);
@@ -251,6 +252,7 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
     QPainter painter;
 
     painter.begin(this);
+    painter.scale(_zoomLevel, _zoomLevel);
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
     painter.setBrush(QColor(0,0,0));
@@ -258,7 +260,7 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
 
     QPen pen;
     pen.setColor({149,195,244,255});
-    pen.setWidth(hasFocus() ? 3 : 1 );
+    pen.setWidthF((hasFocus() ? 3 : 1) / _zoomLevel );
     pen.setStyle(Qt::PenStyle::SolidLine);
 
     auto tileProperties = state->getTileProperties();
@@ -281,7 +283,7 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
             int local_w = w + char_idx % tw;
             int local_h = h + char_idx / tw;
 
-            utilsDrawCharInPainter(state, &painter, QSizeF(_pixelSize, _pixelSize), QPoint(OFFSET, OFFSET), QPoint(local_w, local_h), charIdx);
+            utilsDrawCharInPainter(state, &painter, QSizeF(1, 1), QPoint(OFFSET, OFFSET), QPoint(local_w, local_h), charIdx);
 
             charIdx += tileProperties.interleaved;
         }
@@ -292,15 +294,16 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
         auto pen = painter.pen();
         pen.setColor(QColor(0,128,0));
         pen.setStyle(Qt::DashLine);
+        pen.setWidthF(1.0 / _zoomLevel);
         painter.setPen(pen);
 
         for (int y=0; y <= _tileRows; ++y)
-            painter.drawLine(QPointF(0 + OFFSET, y * _pixelSize * 8 * th + OFFSET),
-                             QPointF(_tileColumns * _pixelSize * 8 * tw + OFFSET, y * _pixelSize * 8 * th + OFFSET));
+            painter.drawLine(QPointF(0 + OFFSET, y * 8 * th + OFFSET),
+                             QPointF(_tileColumns * 8 * tw + OFFSET, y * 8 * th + OFFSET));
 
         for (int x=0; x <= _tileColumns; ++x)
-            painter.drawLine(QPointF(x * _pixelSize * 8 * tw + OFFSET, 0),
-                             QPointF(x * _pixelSize * 8 * tw + OFFSET, _tileRows * _pixelSize * 8 * th + OFFSET));
+            painter.drawLine(QPointF(x * 8 * tw + OFFSET, OFFSET),
+                             QPointF(x * 8 * tw + OFFSET, _tileRows * 8 * th + OFFSET));
     }
 
     painter.setPen(Qt::NoPen);
@@ -326,7 +329,7 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
     int th = tileProperties.size.height();
 
     QPen pen;
-    pen.setWidth( hasFocus() ? 3 : 1);
+    pen.setWidthF(2 / _zoomLevel);
     pen.setColor({149,195,244,255});
     pen.setStyle(Qt::PenStyle::SolidLine);
 
@@ -334,19 +337,19 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
     {
         painter.setPen(pen);
         painter.setBrush(QColor(149,195,244,64));
-        painter.drawRect(_cursorPos.x() * 8 * _pixelSize * tw + OFFSET,
-                         _cursorPos.y() * 8 * _pixelSize * th + OFFSET,
-                         _selectingSize.width() * 8 * _pixelSize * tw,
-                         _selectingSize.height() * 8 * _pixelSize * th);
+        painter.drawRect(_cursorPos.x() * 8 * tw + OFFSET,
+                         _cursorPos.y() * 8 * th + OFFSET,
+                         _selectingSize.width() * 8 * tw,
+                         _selectingSize.height() * 8 * th);
     }
     else
     {
         painter.setPen(pen);
         painter.setBrush(QColor(128,0,0,0));
-        painter.drawRect(_cursorPos.x() * 8 * _pixelSize * tw + OFFSET,
-                         _cursorPos.y() * 8 * _pixelSize * th + OFFSET,
-                         8 * _pixelSize * tw,
-                         8 * _pixelSize * th);
+        painter.drawRect(_cursorPos.x() * 8 * tw + OFFSET,
+                         _cursorPos.y() * 8 * th + OFFSET,
+                         8 * tw,
+                         8 * th);
     }
 }
 
@@ -356,22 +359,22 @@ void TilesetWidget::paintFocus(QPainter &painter)
     {
         QPen pen;
         pen.setColor({149,195,244,255});
-        pen.setWidth(3);
+        pen.setWidthF(3 / _zoomLevel);
         pen.setStyle(Qt::PenStyle::SolidLine);
 
         painter.setPen(pen);
 
         // vertical lines
-        painter.drawLine(0, 0,
-                         0, _rows * _pixelSize * 8 + OFFSET);
-        painter.drawLine(_columns * _pixelSize * 8 + OFFSET, 0,
-                         _columns * _pixelSize * 8 + OFFSET, _rows * _pixelSize * 8 + OFFSET);
+        painter.drawLine(OFFSET-1, OFFSET-1,
+                         OFFSET-1, _rows * 8 + OFFSET);
+        painter.drawLine(_columns * 8 + OFFSET, OFFSET-1,
+                         _columns * 8 + OFFSET, _rows * 8 + OFFSET);
 
         // horizontal lines
-        painter.drawLine(0, 0,
-                         _columns * _pixelSize * 8 + OFFSET, 0);
-        painter.drawLine(0, _rows * _pixelSize * 8 + OFFSET,
-                         _columns * _pixelSize * 8 + OFFSET, _rows * _pixelSize * 8 + OFFSET);
+        painter.drawLine(OFFSET-1, OFFSET-1,
+                         _columns * 8 + 1, OFFSET-1);
+        painter.drawLine(OFFSET-1, _rows * 8 + OFFSET,
+                         _columns * 8 + OFFSET, _rows * 8 + OFFSET);
     }
 }
 
@@ -409,8 +412,8 @@ void TilesetWidget::onTilePropertiesUpdated()
 
     _maxTiles = 256 / (properties.size.width() * properties.size.height());
 
-    _sizeHint = QSize(_pixelSize * _columns * 8 + OFFSET * 2,
-                 _pixelSize * _rows * 8 + OFFSET * 2);
+    _sizeHint = QSize(_zoomLevel * _columns * 8 + OFFSET * 2,
+                 _zoomLevel * _rows * 8 + OFFSET * 2);
 
     setMinimumSize(_sizeHint);
     update();
@@ -496,9 +499,10 @@ void TilesetWidget::enableGrid(bool enabled)
 
 void TilesetWidget::setZoomLevel(int zoomLevel)
 {
-    _pixelSize = zoomLevel * PIXEL_SIZE / 100.0;
+    _zoomLevel = zoomLevel * ZOOM_LEVEL / 100.0;
 
-    _sizeHint = QSize(COLUMNS * _pixelSize * 8, ROWS * _pixelSize * 8);
+    _sizeHint = QSize((COLUMNS * 8 + OFFSET) * _zoomLevel + 1,
+                      (ROWS * 8 + OFFSET) * _zoomLevel + 1);
 
     setMinimumSize(_sizeHint);
     update();

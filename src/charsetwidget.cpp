@@ -31,7 +31,7 @@ limitations under the License.
 static const int COLUMNS = 32;
 static const int ROWS = 8;
 static const int OFFSET = 2;
-static const int PIXEL_SIZE = 2;
+static const int ZOOM_LEVEL = 2;
 
 CharsetWidget::CharsetWidget(QWidget *parent)
     : QWidget(parent)
@@ -40,11 +40,11 @@ CharsetWidget::CharsetWidget(QWidget *parent)
     , _selectingSize({1,1})
     , _charIndex(-1)
     , _sizeHint({0,0})
-    , _pixelSize(PIXEL_SIZE)
+    , _zoomLevel(ZOOM_LEVEL)
     , _displayGrid(false)
 {
-    _sizeHint = {(int)(COLUMNS * 8 * _pixelSize),
-                 (int)(ROWS * 8 * _pixelSize)};
+    _sizeHint = {(COLUMNS * 8 + OFFSET) * ZOOM_LEVEL + 1,
+                 (ROWS * 8 + OFFSET) * ZOOM_LEVEL + 1};
     setMinimumSize(_sizeHint);
 
     setMouseTracking(true);
@@ -70,8 +70,8 @@ void CharsetWidget::mousePressEvent(QMouseEvent * event)
 
     auto pos = event->localPos();
 
-    int x = (pos.x() - OFFSET) / _pixelSize / 8;
-    int y = (pos.y() - OFFSET) / _pixelSize / 8;
+    int x = (pos.x() / _zoomLevel - OFFSET) / 8;
+    int y = (pos.y() /_zoomLevel - OFFSET) / 8;
     int charIndex = x + y * COLUMNS;
 
     if (event->button() == Qt::LeftButton)
@@ -115,8 +115,8 @@ void CharsetWidget::mouseMoveEvent(QMouseEvent * event)
     event->accept();
 
     auto pos = event->localPos();
-    int x = (pos.x() - OFFSET) / _pixelSize / 8;
-    int y = (pos.y() - OFFSET) / _pixelSize / 8;
+    int x = (pos.x() / _zoomLevel - OFFSET) / 8;
+    int y = (pos.y() /_zoomLevel - OFFSET) / 8;
     x = qBound(0, x, COLUMNS-1);
     y = qBound(0, y, ROWS-1);
 
@@ -222,25 +222,19 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
     QPainter painter;
 
     painter.begin(this);
+    painter.scale(_zoomLevel, _zoomLevel);
+
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
     painter.setBrush(QColor(0,0,0));
     painter.setPen(Qt::NoPen);
-
-    QPen pen;
-    pen.setColor({149,195,244,255});
-    if (hasFocus())
-        pen.setWidth(3);
-    else
-        pen.setWidth(1);
-    pen.setStyle(Qt::PenStyle::SolidLine);
 
     for (int w=0; w<COLUMNS; w++) {
         for (int h=0; h<ROWS; h++) {
 
             int index = w + h * COLUMNS;
 
-            utilsDrawCharInPainter(state, &painter, QSizeF(_pixelSize, _pixelSize), QPoint(OFFSET, OFFSET), QPoint(w, h), index);
+            utilsDrawCharInPainter(state, &painter, QSizeF(1,1), QPoint(OFFSET, OFFSET), QPoint(w, h), index);
         }
     }
 
@@ -249,35 +243,43 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
         auto pen = painter.pen();
         pen.setColor(QColor(0,128,0));
         pen.setStyle(Qt::DashLine);
+        pen.setWidthF(1.0 / _zoomLevel);
         painter.setPen(pen);
 
+
         for (int y=0; y <= ROWS; ++y)
-            painter.drawLine(QPointF(0 + OFFSET, y * _pixelSize * 8 + OFFSET),
-                             QPointF(COLUMNS * _pixelSize * 8 + OFFSET, y * _pixelSize * 8 + OFFSET));
+            painter.drawLine(QPointF(0 + OFFSET, y * 8 + OFFSET),
+                             QPointF(COLUMNS * 8 + OFFSET, y * 8 + OFFSET));
 
         for (int x=0; x <= COLUMNS; ++x)
-            painter.drawLine(QPointF(x * _pixelSize * 8 + OFFSET, 0),
-                             QPointF(x * _pixelSize * 8 + OFFSET, ROWS * _pixelSize * 8 + OFFSET));
+            painter.drawLine(QPointF(x * 8 + OFFSET, OFFSET),
+                             QPointF(x * 8 + OFFSET, ROWS * 8 + OFFSET));
     }
 
-    if (_selecting) {
+    QPen pen;
+    pen.setColor({149,195,244,255});
+    pen.setWidthF(2.0 / _zoomLevel);
+    pen.setStyle(Qt::PenStyle::SolidLine);
+
+    if (_selecting)
+    {
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(149,195,244,64));
-        painter.drawRect(_cursorPos.x() * 8 * _pixelSize + OFFSET,
-                         _cursorPos.y() * 8 * _pixelSize + OFFSET,
-                         _selectingSize.width() * 8 * _pixelSize,
-                         _selectingSize.height() * 8 * _pixelSize);
+        painter.drawRect(_cursorPos.x() * 8 + OFFSET,
+                         _cursorPos.y() * 8 + OFFSET,
+                         _selectingSize.width() * 8,
+                         _selectingSize.height() * 8);
     }
     else
     {
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(128,0,0,0));
-        painter.drawRect(_cursorPos.x() * 8 * _pixelSize + OFFSET,
-                         _cursorPos.y() * 8 * _pixelSize + OFFSET,
-                         8 * _pixelSize,
-                         8 * _pixelSize);
+        painter.drawRect(_cursorPos.x() * 8 + OFFSET,
+                         _cursorPos.y() * 8 + OFFSET,
+                         8,
+                         8);
     }
 
     paintFocus(painter);
@@ -298,24 +300,23 @@ void CharsetWidget::paintFocus(QPainter &painter)
     {
         QPen pen;
         pen.setColor({149,195,244,255});
-        pen.setWidth(3);
+        pen.setWidthF(3 / _zoomLevel);
         pen.setStyle(Qt::PenStyle::SolidLine);
 
         painter.setPen(pen);
 
         // vertical lines
-        painter.drawLine(0, 0,
-                         0, ROWS * _pixelSize * 8 + OFFSET);
-        painter.drawLine(COLUMNS * _pixelSize * 8 + OFFSET, 0,
-                         COLUMNS * _pixelSize * 8 + OFFSET, ROWS * _pixelSize * 8 + OFFSET);
+        painter.drawLine(OFFSET-1, OFFSET-1,
+                         OFFSET-1, ROWS * 8 + OFFSET);
+        painter.drawLine(COLUMNS * 8 + OFFSET, OFFSET-1,
+                         COLUMNS * 8 + OFFSET, ROWS * 8 + 1);
 
         // horizontal lines
-        painter.drawLine(0, 0,
-                         COLUMNS * _pixelSize * 8 + OFFSET, 0);
-        painter.drawLine(0, ROWS * _pixelSize * 8 + OFFSET,
-                         COLUMNS * _pixelSize * 8 + OFFSET, ROWS * _pixelSize * 8 + OFFSET);
-    }
-}
+        painter.drawLine(OFFSET-1, OFFSET-1,
+                         COLUMNS * 8 + 1, OFFSET-1);
+        painter.drawLine(OFFSET-1, ROWS * 8 + OFFSET,
+                         COLUMNS * 8 + OFFSET, ROWS * 8 + OFFSET);
+    }}
 
 //
 // slots
@@ -417,9 +418,10 @@ void CharsetWidget::enableGrid(bool enabled)
 
 void CharsetWidget::setZoomLevel(int zoomLevel)
 {
-    _pixelSize = zoomLevel * PIXEL_SIZE / 100.0;
+    _zoomLevel = zoomLevel * ZOOM_LEVEL / 100.0;
 
-    _sizeHint = QSize(COLUMNS * _pixelSize * 8, ROWS * _pixelSize * 8);
+    _sizeHint = QSize((COLUMNS * 8 + OFFSET) * _zoomLevel + 1,
+                      (ROWS * 8 + OFFSET) * _zoomLevel + 1);
 
     setMinimumSize(_sizeHint);
     update();

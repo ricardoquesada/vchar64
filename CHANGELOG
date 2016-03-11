@@ -1,6 +1,8 @@
 0.0.13 (X April 2016)
 * [NEW] Charset and Tilset widgets have grid and zoom levels
-* [BUGFIX] Big maps scrolls normal speed
+* [BUGFIX] Maps scrolls normal speed (even big maps)
+* [BUGFIX] TilesetWidget and CharsetWidget use zoomLevel to instead of
+           pixelSize for zooming. Faster and less memory(?)
 * [BUGFIX] Resizing maps works as expected
 * [BUGFIX] Displays correct tile in map when tile is resized.
            Doesn't crash on debug mode as well.
