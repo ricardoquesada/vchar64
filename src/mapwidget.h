@@ -19,6 +19,10 @@ limitations under the License.
 #include <QWidget>
 #include "state.h"
 
+QT_BEGIN_NAMESPACE
+class QImage;
+QT_END_NAMESPACE
+
 // draws the map of the state (screen RAM + color RAM + charset)
 class MapWidget : public QWidget
 {
@@ -61,6 +65,8 @@ protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
+    void updateTileImages();
+
 private:
     bool _displayGrid;
     QSize _sizeHint;
@@ -71,5 +77,9 @@ private:
     QSize _tileSize;
     MapMode _mode;
     bool _commandMergeable;
-    float _pixelSize;
+    float _zoomLevel;
+
+    // For gain speed, each tile will be pre-renderer in a QImage
+    // a QImages will be renderer
+    QImage *_tileImages[256];
 };

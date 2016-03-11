@@ -250,7 +250,7 @@ void BigCharWidget::paintEvent(QPaintEvent *event)
     for (int y=0; y<_tileProperties.size.height(); y++) {
         for (int x=0; x<_tileProperties.size.width(); x++) {
 
-            utilsDrawChar(_state, &painter, _pixelSize, QPoint(0,0), QPoint(x,y), charIndex);
+            utilsDrawCharInPainter(_state, &painter, _pixelSize, QPoint(0,0), QPoint(x,y), charIndex);
             charIndex += _tileProperties.interleaved;
         }
     }

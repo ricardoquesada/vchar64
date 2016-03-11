@@ -20,10 +20,12 @@ limitations under the License.
 
 QT_BEGIN_NAMESPACE
 class QPainter;
+class QImage;
 class QPoint;
 class QSizeF;
 QT_END_NAMESPACE
 
 class State;
 
-void utilsDrawChar(State* state, QPainter* painter, const QSizeF& pixelSize, const QPoint& offset, const QPoint &orig, int charIdx);
+void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixelSize, const QPoint& offset, const QPoint &orig, int charIdx);
+void utilsDrawCharInImage(State* state, QImage* image, const QPoint &offset, int charIdx);

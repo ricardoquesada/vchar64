@@ -240,7 +240,7 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
 
             int index = w + h * COLUMNS;
 
-            utilsDrawChar(state, &painter, QSizeF(_pixelSize, _pixelSize), QPoint(OFFSET, OFFSET), QPoint(w, h), index);
+            utilsDrawCharInPainter(state, &painter, QSizeF(_pixelSize, _pixelSize), QPoint(OFFSET, OFFSET), QPoint(w, h), index);
         }
     }
 

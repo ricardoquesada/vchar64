@@ -25,7 +25,7 @@ limitations under the License.
 #include "state.h"
 #include "palette.h"
 
-void utilsDrawChar(State* state, QPainter* painter, const QSizeF& pixelSize, const QPoint& offset, const QPoint& orig, int charIdx)
+void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixelSize, const QPoint& offset, const QPoint& orig, int charIdx)
 {
     Q_ASSERT(charIdx >=0 && charIdx < 256 && "Invalid charIdx");
 
@@ -96,7 +96,7 @@ void utilsDrawChar(State* state, QPainter* painter, const QSizeF& pixelSize, con
                     colorIndex = tileColors[tileIdx] - 8;
                 break;
             default:
-                qDebug() << "MapWidget::paintEvent Invalid color: " << color << " at x,y=" << orig;
+                qDebug() << "utilsDrawCharInPainter: Invalid color: " << color << " at x,y=" << orig;
                 break;
             }
             painter->setBrush(Palette::getColor(colorIndex));
@@ -104,6 +104,91 @@ void utilsDrawChar(State* state, QPainter* painter, const QSizeF& pixelSize, con
                              (orig.y() * 8 + i) * pixelSize.height() + offset.y(),
                              qCeil(pixelSize.width() * bit_width),
                              qCeil(pixelSize.height()));
+        }
+    }
+}
+
+void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int charIdx)
+{
+    Q_ASSERT(charIdx >=0 && charIdx < 256 && "Invalid charIdx");
+
+    static const quint8 mc_masks[] = {192, 48, 12, 3};
+    static const quint8 hr_masks[] = {128, 64, 32, 16, 8, 4, 2, 1};
+
+    auto charset = state->getCharsetBuffer();
+    auto tileColors = state->getTileColors();
+    int tileIdx = state->getTileIndexFromCharIndex(charIdx);
+    auto ismc = state->shouldBeDisplayedInMulticolor2(tileIdx);
+
+    auto chardef = &charset[charIdx * 8];
+
+    for (int i=0; i<8; ++i)
+    {
+        auto byte = chardef[i];
+
+        int char_width = 8;
+        int bit_width = 1;      /* 8 = 8 * 1 */
+        const quint8* masks = &hr_masks[0];
+
+        if (ismc)
+        {
+            char_width = 4;
+            bit_width = 2;    /* 8 = 4 * 2 */
+            masks = mc_masks;
+        }
+
+        for (int j=0; j<char_width; ++j)
+        {
+            quint8 colorIndex = 0;
+            // get the two bits that reprent the color
+            quint8 color = byte & masks[j];
+            color >>= (8 - bit_width) - j * bit_width;
+
+            switch (color)
+            {
+            // bitmask 00: background ($d021)
+            case 0x0:
+                colorIndex = state->getColorForPen(State::PEN_BACKGROUND);
+                break;
+
+            // bitmask 01: multicolor #1 ($d022)
+            case 0x1:
+                if (ismc)
+                    colorIndex = state->getColorForPen(State::PEN_MULTICOLOR1);
+                else
+                {
+                    if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
+                        colorIndex = state->getColorForPen(State::PEN_FOREGROUND);
+                    else
+                        colorIndex = tileColors[tileIdx];
+                }
+                break;
+
+            // bitmask 10: multicolor #2 ($d023)
+            case 0x2:
+                Q_ASSERT(ismc && "error in logic");
+                colorIndex = state->getColorForPen(State::PEN_MULTICOLOR2);
+                break;
+
+            // bitmask 11: color RAM
+            case 0x3:
+                Q_ASSERT(ismc && "error in logic");
+                if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
+                    colorIndex = state->getColorForPen(State::PEN_FOREGROUND) - 8;
+                else
+                    colorIndex = tileColors[tileIdx] - 8;
+                break;
+            default:
+                qDebug() << "utilsDrawCharInImage: Invalid color: " << color;
+                break;
+            }
+            auto rgb = Palette::getColor(colorIndex).rgb();
+            if (ismc) {
+                image->setPixel(j * 2 + offset.x(), i + offset.y(), rgb);
+                image->setPixel(j * 2 + 1 + offset.x(), i + offset.y(), rgb);
+            } else {
+                image->setPixel(j + offset.x(), i + offset.y(), rgb);
+            }
         }
     }
 }
