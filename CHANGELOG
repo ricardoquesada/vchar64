@@ -1,5 +1,6 @@
 0.0.13 (X April 2016)
 * [NEW] Charset and Tilset widgets have grid and zoom levels
+* [NEW] Map Widget: can enter screen codes by using the keyboard
 * [BUGFIX] Maps scrolls normal speed (even big maps)
 * [BUGFIX] TilesetWidget and CharsetWidget use zoomLevel to instead of
            pixelSize for zooming. Faster and less memory(?)

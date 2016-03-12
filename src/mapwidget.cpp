@@ -281,6 +281,7 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
     auto oldSelecting = _selecting;
     auto oldSelectingSize = _selectingSize;
     bool spacePressed = false;
+    bool typing = false;
 
     QPoint point;
     switch (event->key()) {
@@ -296,18 +297,36 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Up:
         point = {0,-1};
         break;
+
+    case Qt::Key_Backspace:
+    case Qt::Key_Delete:
+        state->mapPaint(_cursorPos, 0x20, false);
+        point = {-1,0};
+        break;
+
     case Qt::Key_Space:
         spacePressed = true;
-        break;
+        if (_mode != SELECT_MODE)
+            break;
+        /* else fall-through */
     default:
-        QWidget::keyPressEvent(event);
-        return;
+        if (event->text().isEmpty())
+        {
+            QWidget::keyPressEvent(event);
+            return;
+        }
+        auto asciiCode = event->text().toLatin1()[0];
+        auto screenCode = utilsAsciiToScreenCode(asciiCode);
+        state->mapPaint(_cursorPos, screenCode, false);
+        point = {+1,0};
+        typing = true;
+        break;
     }
 
     bool selecting = false;
 
     if (_mode == SELECT_MODE)
-        selecting = (event->modifiers() & Qt::ShiftModifier);
+        selecting = (event->modifiers() & Qt::ShiftModifier) && !typing;
 
     // disabling selecting?
     if (_selecting && !selecting) {
