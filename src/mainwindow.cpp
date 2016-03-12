@@ -521,6 +521,7 @@ void MainWindow::setupMapDock()
         spins[i]->setMinimum(1);
         spins[i]->setMaximum(4096);
         toolbar->addWidget(spins[i]);
+        spins[i]->setKeyboardTracking(false);
     }
     connect(_spinBoxMapX, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxMapSizeX_valueChanged);
     connect(_spinBoxMapY, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxMapSizeY_valueChanged);
