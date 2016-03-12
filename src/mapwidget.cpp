@@ -304,6 +304,11 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
         point = {-1,0};
         break;
 
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
+        point = {-_cursorPos.x(),+1};
+        break;
+
     case Qt::Key_Space:
         spacePressed = true;
         if (_mode != SELECT_MODE)
