@@ -1219,7 +1219,7 @@ void MainWindow::on_actionReportBug_triggered()
 
 void MainWindow::on_actionDocumentation_triggered()
 {
-    QDesktopServices::openUrl(QUrl("https://github.com/ricardoquesada/vchar64/wiki"));
+    QDesktopServices::openUrl(QUrl("https://github.com/ricardoquesada/vchar64/wiki/Documentation"));
 }
 
 void MainWindow::on_actionAbout_triggered()
