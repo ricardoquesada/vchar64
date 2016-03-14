@@ -63,6 +63,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent * event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
     void updateTileImages();
@@ -78,6 +79,7 @@ private:
     MapMode _mode;
     bool _commandMergeable;
     float _zoomLevel;
+    int _altValue;      // value entered pressing ALT + number
 
     // For gain speed, each tile will be pre-renderer in a QImage
     // a QImages will be renderer

@@ -41,6 +41,7 @@ MapWidget::MapWidget(QWidget *parent)
     , _mode(SELECT_MODE)
     , _commandMergeable(false)
     , _zoomLevel(ZOOM_LEVEL)
+    , _altValue(-1)
 {
     // FIXME: should be updated when the map size changes
     _sizeHint = {(int)(_mapSize.width() * _tileSize.width() * _zoomLevel * 8),
@@ -320,11 +321,27 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
             QWidget::keyPressEvent(event);
             return;
         }
-        auto asciiCode = event->text().toLatin1()[0];
-        auto screenCode = utilsAsciiToScreenCode(asciiCode);
-        state->mapPaint(_cursorPos, screenCode, false);
-        point = {+1,0};
-        typing = true;
+
+        // Alting (ALT + number) ?
+        if (event->modifiers() & Qt::AltModifier &&
+                event->key() >= Qt::Key_0 &&
+                event->key() <= Qt::Key_9)
+        {
+            // 0-based
+            int keyValue = event->key() - Qt::Key_0;
+            if (_altValue == -1)
+                _altValue = keyValue;
+            else
+                _altValue = _altValue * 10 + keyValue;
+        }
+        else
+        {
+            auto asciiCode = event->text().toLatin1()[0];
+            auto screenCode = utilsAsciiToScreenCode(asciiCode);
+            state->mapPaint(_cursorPos, screenCode, false);
+            point = {+1,0};
+            typing = true;
+        }
         break;
     }
 
@@ -385,6 +402,21 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
     else if (_mode == FILL_MODE && spacePressed)
     {
         state->mapFill(_cursorPos, state->getTileIndex());
+    }
+}
+
+void MapWidget::keyReleaseEvent(QKeyEvent *event)
+{
+    event->accept();
+
+    if (_altValue != -1 && !(event->modifiers() & Qt::AltModifier))
+    {
+        auto state = MainWindow::getCurrentState();
+        state->mapPaint(_cursorPos, _altValue, false);
+        _cursorPos += {+1, 0};
+        _cursorPos = {qBound(0, _cursorPos.x(), _mapSize.width()-1),
+                      qBound(0, _cursorPos.y(), _mapSize.height()-1)};
+        _altValue = -1;
     }
 }
 
