@@ -44,6 +44,7 @@ TilesetWidget::TilesetWidget(QWidget *parent)
     , _maxTiles(256)
     , _sizeHint({0,0})
     , _zoomLevel(ZOOM_LEVEL)
+    , _displayGrid(false)
 {
     _sizeHint = {(_columns * 8 + OFFSET) * ZOOM_LEVEL + 1,
                  (_rows * 8 + OFFSET) * ZOOM_LEVEL + 1};
