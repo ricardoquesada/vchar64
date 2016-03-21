@@ -2,6 +2,9 @@
 * [NEW] Charset and Tilset widgets have grid and zoom levels
 * [NEW] Map Widget: can enter tiles by using the keyboard
 * [NEW] Map Widget: can enter tiles by using ALT + tile_number
+* [BUGFIX] Cut: works as expected when using "inverse" range
+			state->cut() no longer receives an offset since the offset
+			is taken from the range
 * [BUGFIX] Maps scrolls normal speed (even big maps)
 * [BUGFIX] TilesetWidget and CharsetWidget use zoomLevel to instead of
            pixelSize for zooming. Faster and less memory(?)

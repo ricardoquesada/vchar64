@@ -158,10 +158,9 @@ void PasteCommand::redo()
 
 // CutCommand
 
-CutCommand::CutCommand(State *state, int charIndex, const State::CopyRange& copyRange, QUndoCommand *parent)
+CutCommand::CutCommand(State *state, const State::CopyRange& copyRange, QUndoCommand *parent)
     : QUndoCommand(parent)
     , _state(state)
-    , _charIndex(charIndex)
     , _zeroBuffer(nullptr)
     , _origBuffer(nullptr)
     , _copyRange(copyRange)
@@ -184,6 +183,12 @@ CutCommand::CutCommand(State *state, int charIndex, const State::CopyRange& copy
         memset(_zeroBuffer, 0 /*state->getTileIndex()*/, sizeToCopy);
     }
 
+    // _charIndex: offset to be used for cut
+    if (_copyRange.type == State::CopyRange::TILES && _copyRange.tileProperties.interleaved == 1)
+        _charIndex = _copyRange.offset * (_copyRange.tileProperties.size.width() * _copyRange.tileProperties.size.height());
+    else
+        _charIndex = _copyRange.offset;
+
     static const QString types[] = {
         QObject::tr("Chars"),
         QObject::tr("Tiles"),
@@ -192,6 +197,7 @@ CutCommand::CutCommand(State *state, int charIndex, const State::CopyRange& copy
 
     setText(QObject::tr("Cut %1").
             arg(types[_copyRange.type]));
+
 }
 
 CutCommand::~CutCommand()

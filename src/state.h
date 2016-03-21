@@ -397,7 +397,11 @@ public:
      */
     void paste(int offset, const CopyRange &copyRange, const quint8* origBuffer);
 
-    void cut(int offset, const CopyRange& copyRange);
+    /**
+     * @brief cut cut the selected region. Region is filled with "zeroes"
+     * @param copyRange range to cut
+     */
+    void cut(const CopyRange& copyRange);
 
     //
     // tile manipulation

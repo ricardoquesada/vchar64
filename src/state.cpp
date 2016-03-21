@@ -857,9 +857,9 @@ quint8* State::getCharAtIndex(int charIndex)
     return &_charset[charIndex*8];
 }
 
-void State::cut(int offset, const CopyRange &copyRange)
+void State::cut(const CopyRange &copyRange)
 {
-    getUndoStack()->push(new CutCommand(this, offset, copyRange));
+    getUndoStack()->push(new CutCommand(this, copyRange));
 }
 
 void State::paste(int offset, const CopyRange& copyRange, const quint8* origBuffer)

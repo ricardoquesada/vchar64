@@ -80,7 +80,7 @@ private:
 class CutCommand : public QUndoCommand
 {
 public:
-    CutCommand(State *state, int charIndex, const State::CopyRange &copyRange, QUndoCommand *parent = nullptr);
+    CutCommand(State *state, const State::CopyRange &copyRange, QUndoCommand *parent = nullptr);
     virtual ~CutCommand();
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
