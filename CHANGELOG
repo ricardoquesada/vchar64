@@ -6,6 +6,8 @@
 			state->cut() no longer receives an offset since the offset
 			is taken from the range
 * [BUGFIX] Cut: doesn't crash if cut is triggered when no window has focus
+* [BUGFIX] Map widget: selecting with keyboard for the first time works as
+	       expected
 * [BUGFIX] Maps scrolls normal speed (even big maps)
 * [BUGFIX] TilesetWidget and CharsetWidget use zoomLevel to instead of
            pixelSize for zooming. Faster and less memory(?)
