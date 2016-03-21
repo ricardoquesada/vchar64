@@ -1151,7 +1151,8 @@ void MainWindow::on_actionCut_triggered()
 {
     auto state = getState();
     auto range = bufferToClipboard(state);
-    state->cut(range);
+    if (range.offset != -1)
+        state->cut(range);
 }
 
 void MainWindow::on_actionCopy_triggered()
@@ -1487,6 +1488,10 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
         _ui->tilesetWidget->getSelectionRange(&copyRange);
     else if (_ui->mapWidget->hasFocus())
         _ui->mapWidget->getSelectionRange(&copyRange);
+    else {
+        copyRange.offset = -1;
+        return copyRange;
+    }
 
     auto clipboard = QApplication::clipboard();
     auto mimeData = new QMimeData;
