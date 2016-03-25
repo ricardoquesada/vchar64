@@ -263,12 +263,10 @@ bool State::export_()
     else
         ret = exportAsm(_exportedFilename, _exportedFeatures);
 
-    QApplication::beep();
-
     if (ret) {
         MainWindow::getInstance()->showMessageOnStatusBar(tr("Export: Ok"));
     } else {
-        // beep twice on error
+        // beep on error
         MainWindow::getInstance()->showMessageOnStatusBar(tr("Export: Error"));
         QApplication::beep();
     }
@@ -376,13 +374,12 @@ bool State::saveProject(const QString& filename)
         }
     }
 
-    QApplication::beep();
     if (ret)
     {
         MainWindow::getInstance()->showMessageOnStatusBar(tr("Save: Ok"));
     } else {
         MainWindow::getInstance()->showMessageOnStatusBar(tr("Save: Error"));
-        // beep twice on error
+        // beep on error
         QApplication::beep();
     }
 

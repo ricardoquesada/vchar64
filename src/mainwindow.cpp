@@ -1169,8 +1169,28 @@ void MainWindow::on_actionPaste_triggered()
     State::CopyRange *range;
     if (bufferFromClipboard(&range, &buffer))
     {
+        // sanity check #1
+        // only paste it if the destination is compatible with the source
+        // valid scenarios:
+        // src: CHARS  dst: Charset / Tileset
+        // src: TILES  dst: Charset / Tileset
+        // src: MAP    dst: Map
+        if (!
+                (((range->type == State::CopyRange::CHARS || range->type == State::CopyRange::TILES) &&
+                (_ui->charsetWidget->hasFocus() || _ui->tilesetWidget->hasFocus()))
+                ||
+                (range->type == State::CopyRange::MAP && _ui->mapWidget->hasFocus())
+                ))
+        {
+            QApplication::beep();
+            return;
+        }
+
+        // Sanity check #2
+        // when copying tiles, make sure that they have the same size
         if (range->type == State::CopyRange::TILES && state->getTileProperties().size != range->tileProperties.size)
         {
+            QApplication::beep();
             QMessageBox msgBox(QMessageBox::Warning,
                                tr("Application"),
                                tr("Could not paste tiles when their sizes are different. Change the tile properties to {%1, %2}")
