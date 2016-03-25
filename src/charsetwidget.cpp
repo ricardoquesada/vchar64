@@ -332,6 +332,7 @@ void CharsetWidget::onCharIndexUpdated(int charIndex)
 
     _cursorPos.setX(charIndex % COLUMNS);
     _cursorPos.setY(charIndex / COLUMNS);
+    _charIndex = charIndex;
     update();
 }
 
