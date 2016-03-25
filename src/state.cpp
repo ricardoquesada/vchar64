@@ -368,7 +368,7 @@ bool State::saveProject(const QString& filename)
         ret = (length>0);
         if (ret)
         {
-            _savedFilename = filename;
+            _loadedFilename = _savedFilename = filename;
             _undoStack->clear();
             emit contentsChanged();
         }

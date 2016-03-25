@@ -4,6 +4,7 @@
 * [NEW] Map Widget: can enter tiles by using ALT + tile_number
 * [NEW] Beeps are only played when there is an error. Before two beeps
         were used on errors. Now a single beep.
+* [BUGFIX] Export: uses the name of recently saved project
 * [BUGFIX] Copy/Paste: doesn't allow copy paste invalid buffers
 * [BUGFIX] Cut: works as expected when using "inverse" range
 			state->cut() no longer receives an offset since the offset
