@@ -215,6 +215,19 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>editFilename</tabstop>
+  <tabstop>pushBrowse</tabstop>
+  <tabstop>checkBox_charset</tabstop>
+  <tabstop>checkBox_map</tabstop>
+  <tabstop>checkBox_tileColors</tabstop>
+  <tabstop>radioButton_asm</tabstop>
+  <tabstop>radioButton_raw</tabstop>
+  <tabstop>radioButton_prg</tabstop>
+  <tabstop>spinBox_charsetAddress</tabstop>
+  <tabstop>spinBox_mapAddress</tabstop>
+  <tabstop>spinBox_attribAddress</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
