@@ -576,7 +576,7 @@ bool ImportKoalaDialog::convert()
         quint8 colorRAM;
         // it->first: key
         processChardef(it->first, chardef, &colorRAM);
-        Q_ASSERT(colorRAM >=0 && colorRAM<16 && "Invalid colorRAM");
+        Q_ASSERT(colorRAM<16 && "Invalid colorRAM");
 
         // chardef + colorRAM == unique Char
         std::string key("");

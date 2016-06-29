@@ -276,8 +276,8 @@ void ImportKoalaBitmapWidget::findUniqueCells()
             {
                 for (int j=0; j<4; ++j)
                 {
-                    auto colorIndex = _framebuffer[(y * 8 + i) * 160 + (x * 4 + j)];
-                    Q_ASSERT(colorIndex>=0 && colorIndex<16 && "Invalid color");
+                    quint8 colorIndex = _framebuffer[(y * 8 + i) * 160 + (x * 4 + j)];
+                    Q_ASSERT(colorIndex<16 && "Invalid color");
                     key[i*4+j] = hex[colorIndex];
                     _colorsUsed[colorIndex].first++;
                 }
@@ -351,7 +351,7 @@ void ImportKoalaBitmapWidget::toFrameBuffer()
                         break;
                     }
 
-                    Q_ASSERT(colorIndex>=0 && colorIndex<16 && "Invalid colorIndex");
+                    Q_ASSERT(colorIndex<16 && "Invalid colorIndex");
 
                     _framebuffer[(y * 8 + i) * 160 + (x * 4 + j)] = colorIndex;
                 }
