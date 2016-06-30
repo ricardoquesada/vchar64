@@ -2,6 +2,7 @@
 * [NEW] Export: saves exported addresses in vcharproj file. Increased version to 3
 * [BUGFIX] Compiles on Ubuntu 16.04
 * [BUGFIX] Export: Export As shows most rencent export addresses
+* [BUGFIX] Save: sets the Undo Stack as clean, but doesn't clear it
 
 
 0.0.13 (15 April 2016)

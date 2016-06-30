@@ -130,7 +130,7 @@ void State::emitNewState()
 
 bool State::isModified() const
 {
-    return (!_undoStack->isClean());
+    return (!getUndoStack()->isClean());
 }
 
 bool State::openFile(const QString& filename)
@@ -369,7 +369,7 @@ bool State::saveProject(const QString& filename)
         if (ret)
         {
             _loadedFilename = _savedFilename = filename;
-            _undoStack->clear();
+            getUndoStack()->setClean();
             emit contentsChanged();
         }
     }
@@ -1392,12 +1392,12 @@ void State::_setTileIndex(int tileIndex)
 
 void State::undo()
 {
-    _undoStack->undo();
+    getUndoStack()->undo();
 }
 
 void State::redo()
 {
-    _undoStack->redo();
+    getUndoStack()->redo();
 }
 
 QUndoStack* State::getUndoStack() const
@@ -1407,7 +1407,7 @@ QUndoStack* State::getUndoStack() const
 
 void State::clearUndoStack()
 {
-    _undoStack->clear();
+    getUndoStack()->clear();
 }
 
 //
