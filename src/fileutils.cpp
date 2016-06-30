@@ -23,16 +23,17 @@ QString FileUtils::getShortNativePath(const QString& filename)
 {
 #ifdef Q_OS_UNIX
     auto filepath = QFileInfo(filename).canonicalFilePath();
-    auto homepath = QDir::cleanPath(QDir::homePath());
-    if (filepath.startsWith(homepath))
+    if (filepath.size() > 0)
     {
-        filepath.remove(homepath);
-        return QLatin1Char('~') + QDir::toNativeSeparators(filepath);
+        auto homepath = QDir::cleanPath(QDir::homePath());
+        if (filepath.startsWith(homepath))
+        {
+            filepath.remove(homepath);
+            return QLatin1Char('~') + QDir::toNativeSeparators(filepath);
+        }
+        return QDir::toNativeSeparators(QDir::cleanPath(filepath));
     }
-    return QDir::toNativeSeparators(QDir::cleanPath(filepath));
-#else
-    return QDir::toNativeSeparators(QDir::cleanPath(filename));
 #endif
-
+    return QDir::toNativeSeparators(QDir::cleanPath(filename));
 }
 

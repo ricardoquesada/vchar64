@@ -640,6 +640,8 @@ void MainWindow::updateRecentFiles()
         _recentFiles[i]->setText(FileUtils::getShortNativePath(files[i]));
         _recentFiles[i]->setData(files[i]);
         _recentFiles[i]->setVisible(true);
+        // enable only if the file exists
+        _recentFiles[i]->setEnabled(QFileInfo(files[i]).exists());
     }
     for (int j=numRecentFiles; j<MAX_RECENT_FILES; ++j)
     {
@@ -1006,6 +1008,9 @@ bool MainWindow::on_actionSaveAs_triggered()
             setWindowFilePath(fi.filePath());
             _ui->mdiArea->currentSubWindow()->setWindowFilePath(fi.filePath());
             _ui->mdiArea->currentSubWindow()->setWindowTitle(fi.baseName());
+
+            // add it to recent files
+            setRecentFile(filename);
         }
         else
         {

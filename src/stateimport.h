@@ -327,8 +327,10 @@ public:
         quint16 address_charset;    // 16-bit for the Charset export address
         quint16 address_map;        // 16-bit for the Map export address
         quint16 address_attribs;    // 16-bit for the Attribs/Colors export address
+        quint8 export_fields:4;     // LSB 4 bits. what fields should be exported: charset(1<<0), map(1<<1), color(1<<2)
+        quint8 export_type:4;       // MSB 4 bits: export type: 0: ASM, 1:BIN, 2:PRG
 
-        char reserved[5];           // Must be 32 bytes in total
+        char reserved[4];           // Must be 32 bytes in total
 
         // after the header comes:
         //  - charset[256 * 8]

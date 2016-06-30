@@ -355,9 +355,18 @@ bool State::exportAsm(const QString& filename, int whatToExport)
 
 bool State::saveProject(const QString& filename)
 {
-    bool ret;
-    QFile file(filename);
+    bool ret = false;
 
+    // don't save it nothing has changed. Same behavior as Qt Creator
+    if (getUndoStack()->isClean() && _savedFilename == filename)
+    {
+        // clean, nothing to save
+        QApplication::beep();
+        // hack: return true so that mainWindow doesn't treat it as an error
+        return true;
+    }
+
+    QFile file(filename);
     ret = file.open(QIODevice::WriteOnly|QIODevice::Truncate);
 
     if (ret) {
