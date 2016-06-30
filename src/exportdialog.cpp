@@ -75,6 +75,12 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
         ui->radioButton_asm
     };
     radios[format]->setChecked(true);
+
+    // populate export addresses with the most recently used
+    const quint16* addresses = _state->getExportedAddresses();
+    ui->spinBox_charsetAddress->setValue(addresses[0]);
+    ui->spinBox_mapAddress->setValue(addresses[1]);
+    ui->spinBox_attribAddress->setValue(addresses[2]);
 }
 
 ExportDialog::~ExportDialog()

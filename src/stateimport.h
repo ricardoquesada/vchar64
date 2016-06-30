@@ -325,6 +325,11 @@ public:
         quint16 map_height;         // 16-bit Map height (low, high).
 
         char reserved[11];           // Must be 32 bytes in total
+
+        // after the header comes:
+        //  - charset[256 * 8]
+        //  - tile_colors[256]
+        //  - map_data[map_width * map_height bytes]
     };
 #pragma pack(pop)
     static_assert (sizeof(VChar64Header) == 32, "Size is not correct");

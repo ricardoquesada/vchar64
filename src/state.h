@@ -290,6 +290,10 @@ public:
         return _exportedFormat;
     }
 
+    const quint16* getExportedAddresses() const {
+        return _exportedAddresses;
+    }
+
     // tile properties
     /**
      * @brief setTileProperties changes the tile properties

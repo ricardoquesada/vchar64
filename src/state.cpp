@@ -51,7 +51,7 @@ State::State(const QString &filename, quint8 *charset, quint8 *tileColors, quint
     , _loadedFilename(filename)
     , _savedFilename("")
     , _exportedFilename("")
-    , _exportedAddresses{0,0,0}
+    , _exportedAddresses{0x3800,0x4000,0x4400}
     , _exportedFormat(EXPORT_FORMAT_RAW)
     , _exportedFeatures(EXPORT_FEATURE_CHARSET)
     , _undoStack(nullptr)
