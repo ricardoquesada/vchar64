@@ -32,7 +32,7 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
 
     strncpy(header.id, "VChar", 5);
 
-    header.version = 2;
+    header.version = 3;
 
     for (int i=0;i<4;i++)
         header.colors[i] = state->_penColors[i];
@@ -52,6 +52,11 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     header.color_mode = state->getForegroundColorMode();
     header.map_width = qToLittleEndian(state->getMapSize().width());
     header.map_height = qToLittleEndian(state->getMapSize().height());
+
+    // export addresses
+    header.address_charset = qToLittleEndian(state->_exportedAddresses[0]);
+    header.address_map = qToLittleEndian(state->_exportedAddresses[1]);
+    header.address_attribs = qToLittleEndian(state->_exportedAddresses[2]);
 
     QByteArray arrayHeader((const char*)&header, sizeof(header));
     auto total = file.write(arrayHeader);

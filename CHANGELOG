@@ -1,6 +1,7 @@
 0.0.14 (XX July 2016)
-* [FIX] Compiles on Ubuntu 16.04
-* [FIX] Export: Export As shows most rencent export addresses
+* [NEW] Export: saves exported addresses in vcharproj file. Increased version to 3
+* [BUGFIX] Compiles on Ubuntu 16.04
+* [BUGFIX] Export: Export As shows most rencent export addresses
 
 
 0.0.13 (15 April 2016)

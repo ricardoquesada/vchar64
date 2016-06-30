@@ -307,7 +307,7 @@ public:
     struct VChar64Header
     {
         char id[5];                 // must be VChar
-        char version;               // must be 2
+        char version;               // must be 3
         char colors[4];             // BGR, MC1, MC2, RAM.
         char vic_res;               // 0 = Hi Resolution, 1 = Multicolour.
 
@@ -324,7 +324,11 @@ public:
         quint16 map_width;          // 16-bit Map width (low, high).
         quint16 map_height;         // 16-bit Map height (low, high).
 
-        char reserved[11];           // Must be 32 bytes in total
+        quint16 address_charset;    // 16-bit for the Charset export address
+        quint16 address_map;        // 16-bit for the Map export address
+        quint16 address_attribs;    // 16-bit for the Attribs/Colors export address
+
+        char reserved[5];           // Must be 32 bytes in total
 
         // after the header comes:
         //  - charset[256 * 8]

@@ -283,14 +283,14 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
         return -1;
     }
 
-    if (header.version > 2)
+    if (header.version > 3)
     {
         MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Error: VChar version not supported"));
         qDebug() << "VChar version not supported";
         return -1;
     }
 
-    // common for version 1 and version
+    // common for version 1, 2 and 3
 
     int num_chars = qFromLittleEndian((int)header.num_chars);
     int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
@@ -309,8 +309,8 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     properties.interleaved = header.char_interleaved;
     state->_setTileProperties(properties);
 
-    // version 2 only
-    if (header.version == 2)
+    // version 2 and 3 only
+    if (header.version == 2 || header.version == 3)
     {
         int color_mode = header.color_mode;
         state->_setForegroundColorMode((State::ForegroundColorMode)color_mode);
@@ -322,6 +322,19 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
         file.read((char*)state->_tileColors, State::TILE_COLORS_BUFFER_SIZE);
         file.read((char*)state->_map, map_width * map_height);
     }
+
+    // version 3 only
+    if (header.version == 3)
+    {
+        quint16 charset_addr = qFromLittleEndian(header.address_charset);
+        quint16 map_addr = qFromLittleEndian(header.address_map);
+        quint16 color_addr = qFromLittleEndian(header.address_attribs);
+
+        state->_exportedAddresses[0] = charset_addr;
+        state->_exportedAddresses[1] = map_addr;
+        state->_exportedAddresses[2] = color_addr;
+    }
+
     return total;
 }
 
