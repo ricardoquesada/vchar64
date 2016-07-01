@@ -61,13 +61,13 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
         ui->spinBox_mapAddress->setEnabled(toogled);
     });
 
-    _checkBox_clicked = _state->getExportedFeatures();
+    auto exportProperties = _state->getExportProperties();
+    _checkBox_clicked = exportProperties.features;
     ui->checkBox_charset->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_CHARSET);
     ui->checkBox_map->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_MAP);
     ui->checkBox_tileColors->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_COLORS);
 
-    int format = _state->getExportedFormat();
-
+    int format = exportProperties.format;
     /* don't change the order */
     QRadioButton* radios[] = {
         ui->radioButton_raw,
@@ -77,10 +77,9 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
     radios[format]->setChecked(true);
 
     // populate export addresses with the most recently used
-    const quint16* addresses = _state->getExportedAddresses();
-    ui->spinBox_charsetAddress->setValue(addresses[0]);
-    ui->spinBox_mapAddress->setValue(addresses[1]);
-    ui->spinBox_attribAddress->setValue(addresses[2]);
+    ui->spinBox_charsetAddress->setValue(exportProperties.addresses[0]);
+    ui->spinBox_mapAddress->setValue(exportProperties.addresses[1]);
+    ui->spinBox_attribAddress->setValue(exportProperties.addresses[2]);
 }
 
 ExportDialog::~ExportDialog()
@@ -120,31 +119,31 @@ void ExportDialog::accept()
 {
     bool ok = false;
     auto filename = ui->editFilename->text();
-    int whatToExport = State::EXPORT_FEATURE_NONE;
 
+    auto properties = _state->getExportProperties();
+    properties.features = State::EXPORT_FEATURE_NONE;
     if (ui->checkBox_map->isChecked())
-        whatToExport |= State::EXPORT_FEATURE_MAP;
+        properties.features |= State::EXPORT_FEATURE_MAP;
     if (ui->checkBox_tileColors->isChecked())
-        whatToExport |= State::EXPORT_FEATURE_COLORS;
+        properties.features |= State::EXPORT_FEATURE_COLORS;
     if (ui->checkBox_charset->isChecked())
-        whatToExport |= State::EXPORT_FEATURE_CHARSET;
+        properties.features |= State::EXPORT_FEATURE_CHARSET;
 
     if (ui->radioButton_raw->isChecked())
     {
-        ok = _state->exportRaw(filename, whatToExport);
+        ok = _state->exportRaw(filename, properties);
     }
     else if (ui->radioButton_prg->isChecked())
     {
-        quint16 addresses[3];
-        addresses[0] = ui->spinBox_charsetAddress->value();
-        addresses[1] = ui->spinBox_mapAddress->value();
-        addresses[2] = ui->spinBox_attribAddress->value();
+        properties.addresses[0] = ui->spinBox_charsetAddress->value();
+        properties.addresses[1] = ui->spinBox_mapAddress->value();
+        properties.addresses[2] = ui->spinBox_attribAddress->value();
 
-        ok = _state->exportPRG(filename, addresses, whatToExport);
+        ok = _state->exportPRG(filename, properties);
     }
     else if (ui->radioButton_asm->isChecked())
     {
-        ok = _state->exportAsm(filename, whatToExport);
+        ok = _state->exportAsm(filename, properties);
     }
 
     MainWindow *mainWindow = static_cast<MainWindow*>(parent());

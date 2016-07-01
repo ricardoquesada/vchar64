@@ -55,6 +55,7 @@ class State : public QObject
     friend class ClearTileCommand;
     friend class SetMulticolorModeCommand;
     friend class SetTilePropertiesCommand;
+    friend class SetExportPropertiesCommand;
     friend class SetMapSizeCommand;
     friend class SetColorCommand;
     friend class SetForegroundColorMode;
@@ -112,6 +113,12 @@ public:
     struct TileProperties {
         QSize size;
         int interleaved;
+    };
+
+    struct ExportProperties {
+        quint16 addresses[3];   // 0: CHARSET, 1:MAP, 2:COLORS
+        quint8 format;          // EXPORT_FORMAT
+        quint8 features;        // EXPORT_FEATURE
     };
 
     /**
@@ -173,9 +180,9 @@ public:
      */
     bool openFile(const QString& filename);
     bool saveProject(const QString& filename);
-    bool exportRaw(const QString& filename, int whatToExport);
-    bool exportPRG(const QString& filename, quint16 addresses[3], int whatToExport);
-    bool exportAsm(const QString& filename, int whatToExport);
+    bool exportRaw(const QString& filename, const ExportProperties &properties);
+    bool exportPRG(const QString& filename, const ExportProperties &properties);
+    bool exportAsm(const QString& filename, const ExportProperties &properties);
     // export is a defined keyword, so we use export_ instead
     bool export_();
 
@@ -282,19 +289,6 @@ public:
         return _exportedFilename;
     }
 
-    int getExportedFeatures() const {
-        return _exportedFeatures;
-    }
-
-    int getExportedFormat() const {
-        return _exportedFormat;
-    }
-
-    const quint16* getExportedAddresses() const {
-        return _exportedAddresses;
-    }
-
-    // tile properties
     /**
      * @brief setTileProperties changes the tile properties
      * emit tilePropertiesUpdated();
@@ -306,6 +300,18 @@ public:
      * @return the TileProperties being used
      */
     TileProperties getTileProperties() const;
+
+    /**
+     * @brief setExportProperties changes the export properties
+     * @param properties the new ExportProperties struct
+     */
+    void setExportProperties(const ExportProperties& properties);
+    /**
+     * @brief getExportProperties
+     * @return the ExportProperties being used
+     */
+    ExportProperties getExportProperties() const;
+
 
     /**
      * @brief seMapSize changes the map size
@@ -445,6 +451,7 @@ public:
      */
     int getCharIndex() const;
 
+
 signals:
     // file loaded, or new project
     void fileLoaded();
@@ -534,14 +541,16 @@ protected:
     void _tileSetPen(int tileIndex, const QPoint& position, int pen);
     void _setMulticolorMode(bool enabled);
     void _setForegroundColorMode(ForegroundColorMode mode);
-    void _setTileProperties(const TileProperties& properties);
     void _setColorForPen(int pen, int color, int tileIdx);
+    void _setTileProperties(const TileProperties& properties);
+    void _setExportProperties(const ExportProperties &properties);
 
     void _setMapSize(const QSize& mapSize);
     void _setMap(const quint8* buffer, const QSize& mapSize);
     void _mapClear(int tileIdx);
     void _mapPaint(const QPoint& coord, int tileIdx);
     void _mapFill(const QPoint& coord, int tileIdx);
+
 
     int _totalChars;
 
@@ -578,14 +587,8 @@ protected:
     // filename of the exported file (.raw, .prg, .s)
     QString _exportedFilename;
 
-    // When "prg" the value contains of the addresses for: charset, map and tile colors
-    quint16 _exportedAddresses[3];
-
-    // RAW, PRG, or ASM
-    int _exportedFormat;
-
-    // Charset? Map? Colors?
-    int _exportedFeatures;
+    // export properties
+    ExportProperties _exportProperties;
 
     QUndoStack* _undoStack;
 

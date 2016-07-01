@@ -218,6 +218,20 @@ private:
     State::TileProperties _old;
 };
 
+class SetExportPropertiesCommand : public QUndoCommand
+{
+public:
+    SetExportPropertiesCommand(State *state, const State::ExportProperties& properties, QUndoCommand *parent = nullptr);
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+
+private:
+    State* _state;
+    State::ExportProperties _new;
+    State::ExportProperties _old;
+};
+
+
 //
 class SetMulticolorModeCommand : public QUndoCommand
 {

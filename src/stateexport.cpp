@@ -53,10 +53,13 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     header.map_width = qToLittleEndian(state->getMapSize().width());
     header.map_height = qToLittleEndian(state->getMapSize().height());
 
-    // export addresses
-    header.address_charset = qToLittleEndian(state->_exportedAddresses[0]);
-    header.address_map = qToLittleEndian(state->_exportedAddresses[1]);
-    header.address_attribs = qToLittleEndian(state->_exportedAddresses[2]);
+    // export stuff
+    header.address_charset = qToLittleEndian(state->_exportProperties.addresses[0]);
+    header.address_map = qToLittleEndian(state->_exportProperties.addresses[1]);
+    header.address_attribs = qToLittleEndian(state->_exportProperties.addresses[2]);
+    header.export_features = state->_exportProperties.features;
+    header.export_format = state->_exportProperties.format;
+
 
     QByteArray arrayHeader((const char*)&header, sizeof(header));
     auto total = file.write(arrayHeader);

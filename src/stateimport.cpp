@@ -330,9 +330,11 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
         quint16 map_addr = qFromLittleEndian(header.address_map);
         quint16 color_addr = qFromLittleEndian(header.address_attribs);
 
-        state->_exportedAddresses[0] = charset_addr;
-        state->_exportedAddresses[1] = map_addr;
-        state->_exportedAddresses[2] = color_addr;
+        state->_exportProperties.addresses[0] = charset_addr;
+        state->_exportProperties.addresses[1] = map_addr;
+        state->_exportProperties.addresses[2] = color_addr;
+        state->_exportProperties.format = header.export_format;
+        state->_exportProperties.features = header.export_features;
     }
 
     return total;

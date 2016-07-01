@@ -1,7 +1,8 @@
-0.0.14 (XX July 2016)
+0.1.0 (XX July 2016)
 * [NEW] Export: saves exported addresses in vcharproj file. Increased version to 3
 * [BUGFIX] Compiles on Ubuntu 16.04
 * [BUGFIX] Export: Export As shows most rencent export addresses
+* [BUGFIX] Export: generates an Undo event only if it is different than previous state
 * [BUGFIX] Save: sets the Undo Stack as clean, but doesn't clear it
 * [BUGFIX] Save: saved files are appended to the recent files entry
 * [BUGFIX] Recent Files: Non existing entries appear as disabled

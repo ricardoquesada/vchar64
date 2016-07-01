@@ -51,9 +51,7 @@ State::State(const QString &filename, quint8 *charset, quint8 *tileColors, quint
     , _loadedFilename(filename)
     , _savedFilename("")
     , _exportedFilename("")
-    , _exportedAddresses{0x3800,0x4000,0x4400}
-    , _exportedFormat(EXPORT_FORMAT_RAW)
-    , _exportedFeatures(EXPORT_FEATURE_CHARSET)
+    , _exportProperties({{0x3800,0x4000,0x4400},EXPORT_FORMAT_RAW,EXPORT_FEATURE_CHARSET})
     , _undoStack(nullptr)
     , _bigCharWidget(nullptr)
 {
@@ -111,11 +109,11 @@ void State::reset()
     _loadedFilename = "untitled";
     _savedFilename = "";
     _exportedFilename = "";
-    _exportedAddresses[0] = 0;
-    _exportedAddresses[1] = 0;
-    _exportedAddresses[2] = 0;
-    _exportedFormat = EXPORT_FORMAT_RAW;
-    _exportedFeatures = EXPORT_FEATURE_CHARSET;
+    _exportProperties.addresses[0] = 0x3800;
+    _exportProperties.addresses[1] = 0x4000;
+    _exportProperties.addresses[2] = 0x4400;
+    _exportProperties.format = EXPORT_FORMAT_RAW;
+    _exportProperties.features = EXPORT_FEATURE_CHARSET;
 
     memset(_charset, 0, sizeof(_charset));
     memset(_tileColors, 11, sizeof(_tileColors));
@@ -191,12 +189,12 @@ bool State::openFile(const QString& filename)
         else if (filetype == FILETYPE_RAW || filetype == FILETYPE_PRG)
         {
             _exportedFilename = filename;
-            _exportedFeatures = EXPORT_FEATURE_CHARSET;
+            _exportProperties.features = EXPORT_FEATURE_CHARSET;
             if (filetype == FILETYPE_PRG) {
-                _exportedAddresses[0] = loadedAddress;
-                _exportedFormat = EXPORT_FORMAT_PRG;
+                _exportProperties.addresses[0] = loadedAddress;
+                _exportProperties.format = EXPORT_FORMAT_PRG;
             }
-            else _exportedFormat = EXPORT_FORMAT_RAW;
+            else _exportProperties.format = EXPORT_FORMAT_RAW;
         }
     }
 
@@ -252,16 +250,16 @@ bool State::export_()
     Q_ASSERT(_exportedFilename.length() > 0 && "Invalid filename");
 
     bool ret = false;
-    if (_exportedFormat == EXPORT_FORMAT_RAW)
-        ret = exportRaw(_exportedFilename, _exportedFeatures);
+    if (_exportProperties.format == EXPORT_FORMAT_RAW)
+        ret = exportRaw(_exportedFilename, _exportProperties);
 
     /* else */
-    else if(_exportedFormat == EXPORT_FORMAT_PRG)
-        ret = exportPRG(_exportedFilename, _exportedAddresses, _exportedFeatures);
+    else if(_exportProperties.format == EXPORT_FORMAT_PRG)
+        ret = exportPRG(_exportedFilename, _exportProperties);
 
     /* else ASM */
     else
-        ret = exportAsm(_exportedFilename, _exportedFeatures);
+        ret = exportAsm(_exportedFilename, _exportProperties);
 
     if (ret) {
         MainWindow::getInstance()->showMessageOnStatusBar(tr("Export: Ok"));
@@ -274,81 +272,80 @@ bool State::export_()
     return ret;
 }
 
-bool State::exportRaw(const QString& filename, int whatToExport)
+bool State::exportRaw(const QString& filename, const ExportProperties &properties)
 {
     bool ret = true;
 
-    if (ret && (whatToExport & EXPORT_FEATURE_CHARSET))
+    if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
                                      _charset, sizeof(_charset)) > 0);
 
-    if (ret && (whatToExport & EXPORT_FEATURE_MAP))
+    if (ret && (properties.features & EXPORT_FEATURE_MAP))
         ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
                                      _map, _mapSize.width() * _mapSize.height()) > 0);
 
-    if (ret && (whatToExport & EXPORT_FEATURE_COLORS))
+    if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
                                      _tileColors, sizeof(_tileColors)) > 0);
 
     if (ret)
     {
-        _exportedFormat = EXPORT_FORMAT_RAW;
-        _exportedFeatures = whatToExport;
         _exportedFilename = filename;
+        auto copy = properties;
+        copy.format = EXPORT_FORMAT_RAW;
+        setExportProperties(copy);
     }
     return ret;
 }
 
-bool State::exportPRG(const QString& filename, quint16 addresses[3], int whatToExport)
+bool State::exportPRG(const QString& filename, const ExportProperties& properties)
 {
     bool ret = true;
 
-    if (ret && (whatToExport & EXPORT_FEATURE_CHARSET))
+    if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
-                                     _charset, sizeof(_charset), addresses[0]) > 0);
+                                     _charset, sizeof(_charset), properties.addresses[0]) > 0);
 
-    if (ret && (whatToExport & EXPORT_FEATURE_MAP))
+    if (ret && (properties.features & EXPORT_FEATURE_MAP))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                                     _map, _mapSize.width() * _mapSize.height(), addresses[1]) > 0);
+                                     _map, _mapSize.width() * _mapSize.height(), properties.addresses[1]) > 0);
 
-    if (ret && (whatToExport & EXPORT_FEATURE_COLORS))
+    if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                                     _tileColors, sizeof(_tileColors), addresses[2]) > 0);
+                                     _tileColors, sizeof(_tileColors), properties.addresses[2]) > 0);
 
     if (ret)
     {
-        _exportedFormat = EXPORT_FORMAT_PRG;
-        _exportedAddresses[0] = addresses[0];
-        _exportedAddresses[1] = addresses[1];
-        _exportedAddresses[2] = addresses[2];
-
         _exportedFilename = filename;
-        _exportedFeatures = whatToExport;
+        auto copy = properties;
+        copy.format = EXPORT_FORMAT_PRG;
+        setExportProperties(copy);
         return true;
     }
     return ret;
 }
 
-bool State::exportAsm(const QString& filename, int whatToExport)
+bool State::exportAsm(const QString& filename, const ExportProperties &properties)
 {
     bool ret = true;
-    if (ret && (whatToExport & EXPORT_FEATURE_CHARSET))
+    if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
                                      _charset, sizeof(_charset), "charset") > 0);
 
-    if (ret && (whatToExport & EXPORT_FEATURE_MAP))
+    if (ret && (properties.features & EXPORT_FEATURE_MAP))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_MAP ),
                                      _map, _mapSize.width() * _mapSize.height(), "map") > 0);
 
-    if (ret && (whatToExport & EXPORT_FEATURE_COLORS))
+    if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
                                      _tileColors, sizeof(_tileColors), "colors") > 0);
 
     if (ret)
     {
-        _exportedFormat = EXPORT_FORMAT_ASM;
-        _exportedFeatures = whatToExport;
         _exportedFilename = filename;
+        auto copy = properties;
+        copy.format = EXPORT_FORMAT_ASM;
+        setExportProperties(copy);
     }
     return ret;
 }
@@ -617,6 +614,7 @@ void State::_tileSetPen(int tileIndex, const QPoint& position, int pen)
     }
 }
 
+// tile properties
 void State::setTileProperties(const TileProperties& properties)
 {
     getUndoStack()->push(new SetTilePropertiesCommand(this, properties));
@@ -634,6 +632,31 @@ void State::_setTileProperties(const TileProperties& properties)
 State::TileProperties State::getTileProperties() const
 {
     return _tileProperties;
+}
+
+// export properties
+void State::setExportProperties(const ExportProperties& properties)
+{
+    // Special case for export properties:
+    // Only submit command to the Undo Stack if it is different that the current properties
+    // This is in order to avoid generating a "dirty" signal, when in fact it is not
+    if (memcmp(&_exportProperties, &properties, sizeof(_exportProperties)) != 0) {
+        getUndoStack()->push(new SetExportPropertiesCommand(this, properties));
+    }
+}
+
+void State::_setExportProperties(const ExportProperties& properties)
+{
+    if (memcmp(&_exportProperties, &properties, sizeof(_exportProperties)) != 0) {
+        _exportProperties = properties;
+
+        emit contentsChanged();
+    }
+}
+
+State::ExportProperties State::getExportProperties() const
+{
+    return _exportProperties;
 }
 
 void State::setMapSize(const QSize& mapSize)

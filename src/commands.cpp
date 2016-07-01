@@ -428,6 +428,28 @@ void SetTilePropertiesCommand::redo()
     _state->_setTileProperties(_new);
 }
 
+// SetExportPropertiesCommand
+
+SetExportPropertiesCommand::SetExportPropertiesCommand(State *state, const State::ExportProperties& properties, QUndoCommand *parent)
+    : QUndoCommand(parent)
+{
+    _state = state;
+    _new = properties;
+
+    setText(QObject::tr("Export Properties"));
+}
+
+void SetExportPropertiesCommand::undo()
+{
+    _state->_setExportProperties(_old);
+}
+
+void SetExportPropertiesCommand::redo()
+{
+    _old = _state->getExportProperties();
+    _state->_setExportProperties(_new);
+}
+
 // SetMulticolorModeCommand
 
 SetMulticolorModeCommand::SetMulticolorModeCommand(State *state, bool multicolorEnabled, QUndoCommand *parent)
