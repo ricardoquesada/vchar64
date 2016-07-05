@@ -46,11 +46,25 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
         // we should replace it with .bin
         if (fn.length() != 0) {
             QFileInfo fileInfo(fn);
-            fn = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName() + ".bin";
+            fn = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName();
         }
     }
     if (fn.length() == 0)
-        fn = lastDir + "/" + "untitled.bin";
+        fn = lastDir + "/" + "untitled";
+
+    // set correct extension
+    auto exportProperties = _state->getExportProperties();
+    int format = exportProperties.format;
+
+    if (format == State::EXPORT_FORMAT_ASM)
+        fn += ".s";
+    else if (format == State::EXPORT_FORMAT_RAW)
+        fn += ".bin";
+    else if (format == State::EXPORT_FORMAT_PRG)
+        fn += ".prg";
+    else // bug
+        fn += ".xxx";
+
 
     ui->editFilename->setText(fn);
 
@@ -61,13 +75,11 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
         ui->spinBox_mapAddress->setEnabled(toogled);
     });
 
-    auto exportProperties = _state->getExportProperties();
     _checkBox_clicked = exportProperties.features;
     ui->checkBox_charset->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_CHARSET);
     ui->checkBox_map->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_MAP);
     ui->checkBox_tileColors->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_COLORS);
 
-    int format = exportProperties.format;
     /* don't change the order */
     QRadioButton* radios[] = {
         ui->radioButton_raw,
