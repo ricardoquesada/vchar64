@@ -38,6 +38,10 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
 
     auto lastDir = _settings.value(QLatin1String("dir/lastdir"), QDir::homePath()).toString();
 
+    // set correct extension
+    auto exportProperties = _state->getExportProperties();
+    int format = exportProperties.format;
+
     auto fn = _state->getExportedFilename();
     if (fn.length() == 0) {
         fn = state->getLoadedFilename();
@@ -47,24 +51,20 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
         if (fn.length() != 0) {
             QFileInfo fileInfo(fn);
             fn = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName();
+
+            if (format == State::EXPORT_FORMAT_ASM)
+                fn += ".s";
+            else if (format == State::EXPORT_FORMAT_RAW)
+                fn += ".bin";
+            else if (format == State::EXPORT_FORMAT_PRG)
+                fn += ".prg";
+            else // bug
+                fn += ".xxx";
         }
     }
+
     if (fn.length() == 0)
         fn = lastDir + "/" + "untitled";
-
-    // set correct extension
-    auto exportProperties = _state->getExportProperties();
-    int format = exportProperties.format;
-
-    if (format == State::EXPORT_FORMAT_ASM)
-        fn += ".s";
-    else if (format == State::EXPORT_FORMAT_RAW)
-        fn += ".bin";
-    else if (format == State::EXPORT_FORMAT_PRG)
-        fn += ".prg";
-    else // bug
-        fn += ".xxx";
-
 
     ui->editFilename->setText(fn);
 
