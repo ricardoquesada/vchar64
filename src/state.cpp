@@ -397,6 +397,7 @@ bool State::shouldBeDisplayedInMulticolor() const
 {
     // display char as multicolor only if multicolor is enabled
     // and foreground color is >= 8
+    // Use shouldBeDisplayedInMulticolor2() for a more reliable way to test it
     return (_multicolorMode && _penColors[State::PEN_FOREGROUND] >= 8);
 }
 
@@ -1414,10 +1415,15 @@ void State::_setTileIndex(int tileIndex)
 {
     if (_tileIndex != tileIndex)
     {
-        if (_foregroundColorMode == FOREGROUND_COLOR_PER_TILE && _tileColors[tileIndex] != _tileColors[_tileIndex])
+        int oldTileIndex = _tileIndex;
+
+        // set _tileIndex before emiting colorPropertiesUpdated
+        // since from there they might call getTileIndex() and it will be the incorrect one
+        _tileIndex = tileIndex;
+
+        if (_foregroundColorMode == FOREGROUND_COLOR_PER_TILE && _tileColors[tileIndex] != _tileColors[oldTileIndex])
             emit colorPropertiesUpdated(PEN_FOREGROUND);
 
-        _tileIndex = tileIndex;
         emit tileIndexUpdated(tileIndex);
     }
 }

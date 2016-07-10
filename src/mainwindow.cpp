@@ -162,7 +162,7 @@ void MainWindow::onMulticolorModeToggled(bool newvalue)
     // when in multicolor mode.
     // but also, this event could be triggered by clicking on multicolor checkbox
     // so using "newvalue" is not enough
-    bool enableradios = state->shouldBeDisplayedInMulticolor();
+    bool enableradios = state->shouldBeDisplayedInMulticolor2(state->getTileIndex());
     _ui->radioButton_multicolor1->setEnabled(enableradios);
     _ui->radioButton_multicolor2->setEnabled(enableradios);
 
@@ -179,10 +179,12 @@ void MainWindow::onColorPropertiesUpdated(int pen)
     auto state = getState();
     if (state)
     {
-        int color = state->getColorForPen(pen, state->getTileIndex());
+        int tileIndex = state->getTileIndex();
+        int color = state->getColorForPen(pen, tileIndex);
 
         int number = color;
-        if (state->shouldBeDisplayedInMulticolor() && pen == State::PEN_FOREGROUND)
+        bool multicolorEnabled = state->shouldBeDisplayedInMulticolor2(tileIndex);
+        if (multicolorEnabled && pen == State::PEN_FOREGROUND)
             color = color % 8;
         _labelSelectedColor->setText(QString("Color: %1 (%2)")
                                      .arg(Palette::color_names[color])
@@ -194,6 +196,10 @@ void MainWindow::onColorPropertiesUpdated(int pen)
         if (foregroundColorMode == State::FOREGROUND_COLOR_PER_TILE)
             _ui->radioButton_charColorPerChar->setChecked(true);
         else _ui->radioButton_charColorGlobal->setChecked(true);
+
+        // update multicolor
+        _ui->radioButton_multicolor1->setEnabled(multicolorEnabled);
+        _ui->radioButton_multicolor2->setEnabled(multicolorEnabled);
     }
 }
 
