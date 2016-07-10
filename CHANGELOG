@@ -7,6 +7,7 @@
 * [BUGFIX] Save: saved files are appended to the recent files entry
 * [BUGFIX] Recent Files: Non existing entries appear as disabled
 * [BUGFIX] Multicolor: radios are enabled/disabled accordingly
+* [BUGFIX] Multicolor: copy & paste updates multicolor as well
 
 
 0.0.13 (15 April 2016)

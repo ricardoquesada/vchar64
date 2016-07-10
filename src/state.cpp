@@ -927,6 +927,10 @@ void State::_pasteChars(int charIndex, const CopyRange& copyRange, const quint8*
         count--;
     }
     emit charsetUpdated();
+
+    // copying should also include updating the new colors and possible multi-color mode
+    emit colorPropertiesUpdated(PEN_FOREGROUND);
+//    emit contentsChanged();
 }
 
 void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8* origBuffer)
