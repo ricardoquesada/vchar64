@@ -24,7 +24,7 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 * Tile support:
     * From 1x1 to 8x8
     * Custom Distance in chars between tiles
-* Map support    
+* Map support
 * Imports CharPad 1.8 and 2.0 projects
 * Imports Koala image files: [Demo Video](https://www.youtube.com/watch?v=wIBTINBCngs)
 * Imports VICE snapshot images
@@ -68,8 +68,8 @@ $ git clone https://github.com/ricardoquesada/vchar64.git
 
 ## Download binaries
 
-* [vchar64-v0.0.13 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.0.13/vchar64-0.0.13.win32.zip)
-* [vchar64-v0.0.13 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.0.13/vchar64-0.0.13.mac.dmg)
+* [vchar64-v0.1.0 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.1.0/vchar64-0.1.0.win32.zip)
+* [vchar64-v0.1.0 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.1.0/vchar64-0.1.0.mac.dmg)
 
 ## License
 
