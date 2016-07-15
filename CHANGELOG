@@ -1,4 +1,4 @@
-0.1.0 (XX July 2016)
+0.1.0 (14 July 2016)
 * [NEW] Export: saves exported addresses in vcharproj file. Increased version to 3
 * [BUGFIX] Compiles on Ubuntu 16.04
 * [BUGFIX] Export: Export As shows most rencent export addresses

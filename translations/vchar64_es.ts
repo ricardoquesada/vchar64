@@ -170,7 +170,7 @@ Do you want to save your changes?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/exportdialog.cpp" line="103"/>
+        <location filename="../src/exportdialog.cpp" line="120"/>
         <source>Select filename</source>
         <translation>Seleccionar archivo</translation>
     </message>
@@ -179,32 +179,32 @@ Do you want to save your changes?</source>
         <translation type="vanished">Archivos RAW (*.raw *.bin);;Archivos PRG (*.prg *.64c);;Todos los archivos (*)</translation>
     </message>
     <message>
-        <location filename="../src/exportdialog.cpp" line="88"/>
+        <location filename="../src/exportdialog.cpp" line="105"/>
         <source>Asm files (*.s *.a *.asm)</source>
         <translation>Archivos ASM(*.s *.a *.asm)</translation>
     </message>
     <message>
-        <location filename="../src/exportdialog.cpp" line="89"/>
+        <location filename="../src/exportdialog.cpp" line="106"/>
         <source>Raw files (*.raw *.bin)</source>
         <translation>Archivos RAW (*.raw *.bin)</translation>
     </message>
     <message>
-        <location filename="../src/exportdialog.cpp" line="90"/>
+        <location filename="../src/exportdialog.cpp" line="107"/>
         <source>PRG files (*.prg *.64c)</source>
         <translation>Archivos PRG (*.prg *.64c)</translation>
     </message>
     <message>
-        <location filename="../src/exportdialog.cpp" line="105"/>
+        <location filename="../src/exportdialog.cpp" line="122"/>
         <source>Asm files (*.s *.a *.asm);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;Any file (*)</source>
         <translation>Archivos ASM(*.s *.a *.asm);;Archivos RAW (*.raw *.bin);;Archivos PRG (*.prg *.64c);;Todos los archivos (*)</translation>
     </message>
     <message>
-        <location filename="../src/exportdialog.cpp" line="150"/>
+        <location filename="../src/exportdialog.cpp" line="167"/>
         <source>File exported to %1</source>
         <translation>Archivo exportado como %1</translation>
     </message>
     <message>
-        <location filename="../src/exportdialog.cpp" line="154"/>
+        <location filename="../src/exportdialog.cpp" line="171"/>
         <source>Export failed</source>
         <translation>Error al exportar archivo</translation>
     </message>
@@ -599,7 +599,7 @@ Do you want to save your changes?</source>
     </message>
     <message>
         <location filename="../src/mainwindow.ui" line="545"/>
-        <location filename="../src/mainwindow.cpp" line="996"/>
+        <location filename="../src/mainwindow.cpp" line="1004"/>
         <location filename="../src/ui_mainwindow.h" line="781"/>
         <source>Save Project</source>
         <translation>Guardar Proyecto</translation>
@@ -1297,17 +1297,17 @@ Do you want to save your changes?</source>
         <translation type="vanished">Gris claro</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="237"/>
+        <location filename="../src/mainwindow.cpp" line="243"/>
         <source>Undo List</source>
         <translation>Lista de Deshacer</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="514"/>
+        <location filename="../src/mainwindow.cpp" line="520"/>
         <source>Map Size</source>
         <translation>Tamaño del mapa</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="575"/>
+        <location filename="../src/mainwindow.cpp" line="581"/>
         <source>Color: Black (0)</source>
         <translation>Color: Negro(0)</translation>
     </message>
@@ -1328,25 +1328,25 @@ Do you want to save your changes?</source>
         <translation type="vanished">Mosaico: %1 $%2</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="705"/>
-        <location filename="../src/mainwindow.cpp" line="706"/>
-        <location filename="../src/mainwindow.cpp" line="707"/>
-        <location filename="../src/mainwindow.cpp" line="716"/>
-        <location filename="../src/mainwindow.cpp" line="717"/>
-        <location filename="../src/mainwindow.cpp" line="718"/>
-        <location filename="../src/mainwindow.cpp" line="732"/>
-        <location filename="../src/mainwindow.cpp" line="733"/>
-        <location filename="../src/mainwindow.cpp" line="734"/>
+        <location filename="../src/mainwindow.cpp" line="713"/>
+        <location filename="../src/mainwindow.cpp" line="714"/>
+        <location filename="../src/mainwindow.cpp" line="715"/>
+        <location filename="../src/mainwindow.cpp" line="724"/>
+        <location filename="../src/mainwindow.cpp" line="725"/>
+        <location filename="../src/mainwindow.cpp" line="726"/>
+        <location filename="../src/mainwindow.cpp" line="740"/>
+        <location filename="../src/mainwindow.cpp" line="741"/>
+        <location filename="../src/mainwindow.cpp" line="742"/>
         <source>(untitled)</source>
         <translation>(sin_título)</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="932"/>
+        <location filename="../src/mainwindow.cpp" line="940"/>
         <source>All supported files</source>
         <translation>Todos los archivos soportados</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1358"/>
+        <location filename="../src/mainwindow.cpp" line="1369"/>
         <source>Could not connect to remote server</source>
         <translation>No se pudo conectar al servidor</translation>
     </message>
@@ -1355,16 +1355,16 @@ Do you want to save your changes?</source>
         <translation type="vanished">[sin_titulo]</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="924"/>
-        <location filename="../src/mainwindow.cpp" line="1012"/>
-        <location filename="../src/mainwindow.cpp" line="1035"/>
-        <location filename="../src/mainwindow.cpp" line="1057"/>
-        <location filename="../src/mainwindow.cpp" line="1195"/>
+        <location filename="../src/mainwindow.cpp" line="932"/>
+        <location filename="../src/mainwindow.cpp" line="1023"/>
+        <location filename="../src/mainwindow.cpp" line="1046"/>
+        <location filename="../src/mainwindow.cpp" line="1068"/>
+        <location filename="../src/mainwindow.cpp" line="1206"/>
         <source>Application</source>
         <translation>Aplicación</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="924"/>
+        <location filename="../src/mainwindow.cpp" line="932"/>
         <source>Error loading file: </source>
         <translation>Error cargando archivo:</translation>
     </message>
@@ -1375,53 +1375,53 @@ Do you want to save your changes?</source>
 ¿Desea guardas los cambios?</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="578"/>
+        <location filename="../src/mainwindow.cpp" line="584"/>
         <source>Char: 000</source>
         <translation>Caracter: 000</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="582"/>
+        <location filename="../src/mainwindow.cpp" line="588"/>
         <source>Tile: 000</source>
         <translation>Mosaico: 000</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="681"/>
+        <location filename="../src/mainwindow.cpp" line="689"/>
         <source>Char: %1</source>
         <translation>Caracter: %1</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="686"/>
+        <location filename="../src/mainwindow.cpp" line="694"/>
         <source>Tile: %1</source>
         <translation>Mosaico: %1</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="934"/>
+        <location filename="../src/mainwindow.cpp" line="942"/>
         <source>Select File</source>
         <translation>Seleccionar Archivo</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="936"/>
+        <location filename="../src/mainwindow.cpp" line="944"/>
         <source>All files (*);;All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;VChar64 Project (*.vchar64proj);;Raw (*.raw *.bin);;PRG (*.prg *.64c);;CharPad (*.ctm);;</source>
         <translation>Todos los archivos (*);;Todos los archivos soportados (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;Proyectos VChar64 (*.vchar64proj);;Raw (*.raw *.bin);;PRG (*.prg *.64c);;CharPad (*.ctm);;</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="998"/>
+        <location filename="../src/mainwindow.cpp" line="1006"/>
         <source>VChar64 project(*.vchar64proj)</source>
         <translation>Proyecto VChar64 (*.vchar64proj)</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1030"/>
+        <location filename="../src/mainwindow.cpp" line="1041"/>
         <source>File saved to %1</source>
         <translation>Archivo guardado en %1</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1034"/>
+        <location filename="../src/mainwindow.cpp" line="1045"/>
         <source>Error saving file</source>
         <translation>Error ar guardar archivo</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1012"/>
-        <location filename="../src/mainwindow.cpp" line="1035"/>
+        <location filename="../src/mainwindow.cpp" line="1023"/>
+        <location filename="../src/mainwindow.cpp" line="1046"/>
         <source>Error saving project file: </source>
         <translation>Error al guardar el archivo de proyecto:</translation>
     </message>
@@ -1434,17 +1434,17 @@ Do you want to save your changes?</source>
         <translation type="vanished">Error al exportar archivo</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1057"/>
+        <location filename="../src/mainwindow.cpp" line="1068"/>
         <source>Error exporting file: </source>
         <translation>Error al exportar el archivo:</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1196"/>
+        <location filename="../src/mainwindow.cpp" line="1207"/>
         <source>Could not paste tiles when their sizes are different. Change the tile properties to {%1, %2}</source>
         <translation>No se pudo pegar. Cambie las propiedades del mosaico a {%1, %2}</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1338"/>
+        <location filename="../src/mainwindow.cpp" line="1349"/>
         <source>Could not connect to remote C64</source>
         <translation>No se pudo conectar a la C64</translation>
     </message>
@@ -1704,42 +1704,47 @@ Do you want to save your changes?</source>
         <translation>Propiedad de mosaicos %1x%2 - %3</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="440"/>
+        <location filename="../src/commands.cpp" line="439"/>
+        <source>Export Properties</source>
+        <translation>Exportar propiedades</translation>
+    </message>
+    <message>
+        <location filename="../src/commands.cpp" line="462"/>
         <source>Multicolor enabled</source>
         <translation>Multicolor habilitado</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="442"/>
+        <location filename="../src/commands.cpp" line="464"/>
         <source>Multicolor disabled</source>
         <translation>Multicolor desabilitado</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="465"/>
+        <location filename="../src/commands.cpp" line="487"/>
         <source>Color[%1] = %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="490"/>
+        <location filename="../src/commands.cpp" line="512"/>
         <source>Foreground Mode = %1</source>
         <translation>Modo color primer plano = %1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="520"/>
+        <location filename="../src/commands.cpp" line="542"/>
         <source>Map Size %1x%2</source>
         <translation>Tamaño de mapa %1x%2</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="549"/>
+        <location filename="../src/commands.cpp" line="571"/>
         <source>Map Fill</source>
         <translation>LLenar mapa</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="580"/>
+        <location filename="../src/commands.cpp" line="602"/>
         <source>Map Clear</source>
         <translation>Limpiar mapa</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="614"/>
+        <location filename="../src/commands.cpp" line="636"/>
         <source>Paint Map #%1</source>
         <translation>Pintar mapa #%1</translation>
     </message>
@@ -1786,37 +1791,37 @@ Do you want to save your changes?</source>
         <translation>Error: Versión de VChar no soportada</translation>
     </message>
     <message>
-        <location filename="../src/stateimport.cpp" line="347"/>
+        <location filename="../src/stateimport.cpp" line="362"/>
         <source>Error: VICE file too small</source>
         <translation>Error: Archivo VICE muy pequeño</translation>
     </message>
     <message>
-        <location filename="../src/stateimport.cpp" line="355"/>
+        <location filename="../src/stateimport.cpp" line="370"/>
         <source>Error: VICE header too small</source>
         <translation>Error: Cabecera de archivo VICE muy pequeña</translation>
     </message>
     <message>
-        <location filename="../src/stateimport.cpp" line="361"/>
+        <location filename="../src/stateimport.cpp" line="376"/>
         <source>Error: Invalid VICE header Id</source>
         <translation>Error: Id inválido del archivo VICE</translation>
     </message>
     <message>
-        <location filename="../src/stateimport.cpp" line="406"/>
+        <location filename="../src/stateimport.cpp" line="421"/>
         <source>Error: Invalid VICE C64MEM segment</source>
         <translation>Error: Segmento C64MEM invalido</translation>
     </message>
     <message>
-        <location filename="../src/stateimport.cpp" line="417"/>
+        <location filename="../src/stateimport.cpp" line="432"/>
         <source>Error: Invalid VICE CIA2 segment</source>
         <translation>Error: Segmento VICE CIA2 inválido</translation>
     </message>
     <message>
-        <location filename="../src/stateimport.cpp" line="427"/>
+        <location filename="../src/stateimport.cpp" line="442"/>
         <source>Error: Invalid VICE VIC-II segment</source>
         <translation>Error: Segmento VICE VIC-II inválido</translation>
     </message>
     <message>
-        <location filename="../src/stateimport.cpp" line="437"/>
+        <location filename="../src/stateimport.cpp" line="452"/>
         <source>Error: VICE C64MEM segment not found</source>
         <translation>Error: No se encontró segmento C64MEM</translation>
     </message>
@@ -1833,27 +1838,27 @@ Do you want to save your changes?</source>
 <context>
     <name>State</name>
     <message>
-        <location filename="../src/state.cpp" line="267"/>
+        <location filename="../src/state.cpp" line="265"/>
         <source>Export: Ok</source>
         <translation>Exportar: Ok</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="270"/>
+        <location filename="../src/state.cpp" line="268"/>
         <source>Export: Error</source>
         <translation>Exportar: Error</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="379"/>
+        <location filename="../src/state.cpp" line="385"/>
         <source>Save: Ok</source>
         <translation>Guardar: Ok</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="381"/>
+        <location filename="../src/state.cpp" line="387"/>
         <source>Save: Error</source>
         <translation>Guardar: Error</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="909"/>
+        <location filename="../src/state.cpp" line="946"/>
         <source>Error. Tile size different than src</source>
         <translation>Error. Mosaico de tamaño distinto</translation>
     </message>
