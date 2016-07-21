@@ -1509,29 +1509,4 @@ void State::setupDefaultMap()
     // ASCII to PETSCII screen codes
     for (int i=0; i<hellos[helloidx].helloSize; ++i)
         _map[i] = hellos[helloidx].hello[i] & ~0x40;
-
-    const char happy[][3] = {
-        {85, 67, 73},
-        {81, 82, 83},
-        {74, 114, 75},
-        {67, 91, 67},
-        {32, 66, 32},
-        {32, 114, 32},
-        {85, 113, 73},
-        {66, 86, 66},
-        {74, 67, 75}
-    };
-    const int centerOffset = 5 * _mapSize.width() + 19;
-    for (int y=0; y<9; ++y)
-    {
-        for (int x=0; x<3; ++x)
-            _map[y * _mapSize.width() + x + centerOffset] = happy[y][x];
-    }
-
-                        //1234567890123456789012345678901234567890
-    const char sign[] = "PUNGAS.SPACE                   RETRO.MOE";
-    // ASCII to PETSCII screen codes
-    for (int i=0; i<(int)sizeof(sign)-1; ++i)
-        _map[24*_mapSize.width() + i] = sign[i] & ~0x40;
-
 }
