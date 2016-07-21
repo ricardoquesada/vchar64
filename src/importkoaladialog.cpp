@@ -41,6 +41,7 @@ ImportKoalaDialog::ImportKoalaDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::ImportKoalaDialog)
     , _validKoalaFile(false)
+    , _koaLoaded(false)
 {
     ui->setupUi(this);
 
@@ -93,15 +94,14 @@ void ImportKoalaDialog::on_pushButton_clicked()
 void ImportKoalaDialog::on_lineEdit_editingFinished()
 {
     auto filepath = ui->lineEdit->text();
-    _validKoalaFile = validateKoalaFile(filepath);
+    validateKoalaFile(filepath);
     updateWidgets();
 }
 
 
 // helpers
 
-
-bool ImportKoalaDialog::validateKoalaFile(const QString& filepath)
+void ImportKoalaDialog::validateKoalaFile(const QString& filepath)
 {
     QFileInfo info(filepath);
 
@@ -109,9 +109,12 @@ bool ImportKoalaDialog::validateKoalaFile(const QString& filepath)
     {
         ui->widgetKoala->loadKoala(filepath);
         _validKoalaFile = convert();
-        return _validKoalaFile;
+        _koaLoaded = true;
     }
-    return false;
+    else
+    {
+        _koaLoaded = _validKoalaFile = false;
+    }
 }
 
 int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int,int>>& usedColors, int* outHiColor)
@@ -724,29 +727,30 @@ void ImportKoalaDialog::updateWidgets()
 {
     QWidget* widgets[] =
     {
-//        ui->radioButtonLuminance,
-//        ui->radioButtonPalette,
-//        ui->radioButtonNeighbor,
-//        ui->radioForegroundMostUsed,
-//        ui->radioForegroundMostUsedLow,
-//        ui->radioD02xManual,
-//        ui->radioD02xMostUsed,
-//        ui->radioD02xMostUsedHi,
-//        ui->widgetCharset,
-//        ui->widgetKoala,
-//        ui->lineEditUnique,
-//        ui->widgetD021,
-//        ui->widgetD022,
-//        ui->widgetD023,
-        ui->pushButtonImport
+        ui->radioButtonLuminance,
+        ui->radioButtonPalette,
+        ui->radioButtonNeighbor,
+        ui->radioForegroundMostUsed,
+        ui->radioForegroundMostUsedLow,
+        ui->radioD02xManual,
+        ui->radioD02xMostUsed,
+        ui->radioD02xMostUsedHi,
+        ui->widgetCharset,
+        ui->widgetKoala,
+        ui->lineEditUnique,
+        ui->widgetD021,
+        ui->widgetD022,
+        ui->widgetD023,
     };
 
     const int COUNT = sizeof(widgets) / sizeof(widgets[0]);
 
     for (int i=0; i<COUNT; i++)
     {
-        widgets[i]->setEnabled(_validKoalaFile);
+        widgets[i]->setEnabled(_koaLoaded);
     }
+
+    ui->pushButtonImport->setEnabled(_validKoalaFile);
 }
 
 void ImportKoalaDialog::mousePressEvent(QMouseEvent* event)

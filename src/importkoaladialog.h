@@ -36,7 +36,7 @@ public:
 protected:
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
-    bool validateKoalaFile(const QString& filepath);
+    void validateKoalaFile(const QString& filepath);
     bool processChardef(const std::string& key, quint8 *outKey, quint8* outColorRAM);
 
     int findColorRAM(const std::vector<std::pair<int,int>>& usedColors, int *outHiColor);
@@ -77,6 +77,7 @@ private:
     int _colorRAM;
     Ui::ImportKoalaDialog *ui;
     bool _validKoalaFile;
+    bool _koaLoaded;
     QString _filepath;
 
     // the difference between bitmap->uniqueCells and this one
