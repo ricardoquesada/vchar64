@@ -620,6 +620,7 @@ void MainWindow::updateMenus()
         _ui->actionSaveAs,
         _ui->actionClose,
         _ui->actionClose_All,
+        _ui->actionCloneCurrentProject,
 
         _ui->actionCopy,
         _ui->actionPaste,
