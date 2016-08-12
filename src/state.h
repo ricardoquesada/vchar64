@@ -156,6 +156,7 @@ public:
     State(const QString& filename, quint8* charset, quint8* tileColors, quint8* map, const QSize &mapSize);
     /* delegating constructors */
     State(const QString& filename);
+    State(const State& copyFromMe);
     State();
 
     /**

@@ -959,7 +959,19 @@ void MainWindow::on_actionOpen_triggered()
     }
 }
 
-void MainWindow::on_actionImport_VICE_snapshot_triggered()
+void MainWindow::on_actionCloneCurrentProject_triggered()
+{
+    auto currentState = getState();
+    Q_ASSERT(currentState && "Invalid state");
+
+    auto newState = new State(*currentState);
+    createDocument(newState);
+    setWindowFilePath(tr("(untitled)"));
+    _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
+    _ui->mdiArea->currentSubWindow()->setWindowTitle(tr("(untitled)"));
+}
+
+void MainWindow::on_actionImportVICESnapshot_triggered()
 {
     ImportVICEDialog dialog(this);
     if (dialog.exec())
@@ -970,7 +982,7 @@ void MainWindow::on_actionImport_VICE_snapshot_triggered()
     }
 }
 
-void MainWindow::on_actionImport_Koala_image_triggered()
+void MainWindow::on_actionImportKoalaImage_triggered()
 {
     ImportKoalaDialog dialog(this);
     if (dialog.exec())

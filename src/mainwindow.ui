@@ -76,8 +76,9 @@
     <addaction name="menuNew"/>
     <addaction name="actionOpen"/>
     <addaction name="menuRecentFiles"/>
-    <addaction name="actionImport_VICE_snapshot"/>
-    <addaction name="actionImport_Koala_image"/>
+    <addaction name="actionCloneCurrentProject"/>
+    <addaction name="actionImportVICESnapshot"/>
+    <addaction name="actionImportKoalaImage"/>
     <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
@@ -224,7 +225,7 @@
           <x>0</x>
           <y>0</y>
           <width>563</width>
-          <height>135</height>
+          <height>77</height>
          </rect>
         </property>
         <property name="focusPolicy">
@@ -419,7 +420,7 @@
           <x>0</x>
           <y>0</y>
           <width>77</width>
-          <height>191</height>
+          <height>198</height>
          </rect>
         </property>
         <property name="focusPolicy">
@@ -463,7 +464,7 @@
           <x>0</x>
           <y>0</y>
           <width>77</width>
-          <height>147</height>
+          <height>198</height>
          </rect>
         </property>
         <property name="focusPolicy">
@@ -923,9 +924,9 @@
     <string>Ctrl+Left</string>
    </property>
   </action>
-  <action name="actionImport_VICE_snapshot">
+  <action name="actionImportVICESnapshot">
    <property name="text">
-    <string>Import VICE snapshot...</string>
+    <string>Import VICE Snapshot...</string>
    </property>
   </action>
   <action name="actionCut">
@@ -975,9 +976,9 @@
     <string>Connect</string>
    </property>
   </action>
-  <action name="actionImport_Koala_image">
+  <action name="actionImportKoalaImage">
    <property name="text">
-    <string>Import Koala image...</string>
+    <string>Import Koala Image...</string>
    </property>
   </action>
   <action name="actionMap_Properties">
@@ -1085,6 +1086,11 @@
    </property>
    <property name="toolTip">
     <string>Enables / Disables Grid</string>
+   </property>
+  </action>
+  <action name="actionCloneCurrentProject">
+   <property name="text">
+    <string>Clone Current Project</string>
    </property>
   </action>
  </widget>

@@ -172,7 +172,7 @@ private slots:
     void on_actionDocumentation_triggered();
     void on_actionNext_Tile_triggered();
     void on_actionPrevious_Tile_triggered();
-    void on_actionImport_VICE_snapshot_triggered();
+    void on_actionImportVICESnapshot_triggered();
     void on_actionReset_Layout_triggered();
     void on_actionClose_triggered();
     void on_actionClose_All_triggered();
@@ -180,7 +180,7 @@ private slots:
     void on_actionXlinkConnection_triggered();
     void on_actionServerConnection_triggered();
 
-    void on_actionImport_Koala_image_triggered();
+    void on_actionImportKoalaImage_triggered();
 
     void on_radioButton_charColorGlobal_clicked();
     void on_radioButton_charColorPerChar_clicked();
@@ -205,6 +205,8 @@ private slots:
     void on_actionToggle_CharsetGrid_triggered();
 
     void on_actionToggle_TilesetGrid_triggered();
+
+    void on_actionCloneCurrentProject_triggered();
 
 private:
     QVector<QAction*> _recentFiles;

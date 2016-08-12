@@ -4,13 +4,13 @@
 <context>
     <name>AboutDialog</name>
     <message>
-        <location filename="../src/aboutdialog.ui" line="20"/>
+        <location filename="../src/aboutdialog.ui" line="6"/>
         <location filename="../src/ui_aboutdialog.h" line="77"/>
         <source>About</source>
         <translation>Acerca</translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.ui" line="51"/>
+        <location filename="../src/aboutdialog.ui" line="30"/>
         <location filename="../src/ui_aboutdialog.h" line="78"/>
         <source>OK</source>
         <translation></translation>
@@ -332,22 +332,22 @@ Do you want to save your changes?</source>
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../src/importkoaladialog.cpp" line="66"/>
+        <location filename="../src/importkoaladialog.cpp" line="67"/>
         <source>Koala files</source>
         <translation>Archivos Koala</translation>
     </message>
     <message>
-        <location filename="../src/importkoaladialog.cpp" line="68"/>
+        <location filename="../src/importkoaladialog.cpp" line="69"/>
         <source>Select Koala File</source>
         <translation>Seleccionar archivo Koala</translation>
     </message>
     <message>
-        <location filename="../src/importkoaladialog.cpp" line="70"/>
+        <location filename="../src/importkoaladialog.cpp" line="71"/>
         <source>All files (*);;Koala files (*.koa *.kla);;</source>
         <translation>Todos los archivos (*);; Archivos Koala (*.koa *.kla);;</translation>
     </message>
     <message>
-        <location filename="../src/importkoaladialog.cpp" line="607"/>
+        <location filename="../src/importkoaladialog.cpp" line="610"/>
         <source>Select an smaller region using mouse</source>
         <translation>Seleccionar región más chica con el ratón</translation>
     </message>
@@ -439,44 +439,44 @@ Do you want to save your changes?</source>
         <translation>Nuevo</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="94"/>
+        <location filename="../src/mainwindow.ui" line="95"/>
         <location filename="../src/ui_mainwindow.h" line="933"/>
         <source>Edit</source>
         <translation>Editar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="106"/>
+        <location filename="../src/mainwindow.ui" line="107"/>
         <location filename="../src/ui_mainwindow.h" line="934"/>
         <source>&amp;Help</source>
         <translation>&amp;Ayuda</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="115"/>
+        <location filename="../src/mainwindow.ui" line="116"/>
         <location filename="../src/ui_mainwindow.h" line="935"/>
         <source>Tile</source>
         <translatorcomment>Not sure what is the best translation for this</translatorcomment>
         <translation>Mosaico</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="134"/>
+        <location filename="../src/mainwindow.ui" line="135"/>
         <location filename="../src/ui_mainwindow.h" line="936"/>
         <source>Preview</source>
         <translation>Vista Preliminar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="138"/>
+        <location filename="../src/mainwindow.ui" line="139"/>
         <location filename="../src/ui_mainwindow.h" line="937"/>
         <source>Xlink</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="144"/>
+        <location filename="../src/mainwindow.ui" line="145"/>
         <location filename="../src/ui_mainwindow.h" line="938"/>
         <source>TCP/IP Server</source>
         <translation>Servidor TCP/IP</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="153"/>
+        <location filename="../src/mainwindow.ui" line="154"/>
         <location filename="../src/ui_mainwindow.h" line="939"/>
         <source>View</source>
         <translation>Vista</translation>
@@ -486,46 +486,46 @@ Do you want to save your changes?</source>
         <translation type="vanished">Vistas</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="159"/>
-        <location filename="../src/mainwindow.ui" line="241"/>
+        <location filename="../src/mainwindow.ui" line="160"/>
+        <location filename="../src/mainwindow.ui" line="242"/>
         <location filename="../src/ui_mainwindow.h" line="940"/>
         <location filename="../src/ui_mainwindow.h" line="944"/>
         <source>Colors</source>
         <translation>Colores</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="163"/>
+        <location filename="../src/mainwindow.ui" line="164"/>
         <location filename="../src/ui_mainwindow.h" line="941"/>
         <source>Palette</source>
         <translation>Paleta</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="197"/>
+        <location filename="../src/mainwindow.ui" line="198"/>
         <location filename="../src/ui_mainwindow.h" line="943"/>
         <source>Charset</source>
         <translation>Caracteres</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="832"/>
+        <location filename="../src/mainwindow.ui" line="833"/>
         <location filename="../src/ui_mainwindow.h" line="874"/>
         <source>Foreground</source>
         <translation>Color primario</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="846"/>
+        <location filename="../src/mainwindow.ui" line="847"/>
         <location filename="../src/ui_mainwindow.h" line="876"/>
         <source>Multi Color #1</source>
         <translation>Multicolor #1</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="860"/>
+        <location filename="../src/mainwindow.ui" line="861"/>
         <location filename="../src/ui_mainwindow.h" line="878"/>
         <source>Multi Color #2</source>
         <translation>Multicolor #2</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="273"/>
-        <location filename="../src/mainwindow.ui" line="818"/>
+        <location filename="../src/mainwindow.ui" line="274"/>
+        <location filename="../src/mainwindow.ui" line="819"/>
         <location filename="../src/ui_mainwindow.h" line="872"/>
         <location filename="../src/ui_mainwindow.h" line="947"/>
         <source>Background</source>
@@ -536,412 +536,426 @@ Do you want to save your changes?</source>
         <translation type="vanished">Modo Multicolor</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="347"/>
-        <location filename="../src/mainwindow.ui" line="357"/>
+        <location filename="../src/mainwindow.ui" line="348"/>
+        <location filename="../src/mainwindow.ui" line="358"/>
         <location filename="../src/ui_mainwindow.h" line="954"/>
         <location filename="../src/ui_mainwindow.h" line="955"/>
         <source>Tile Index</source>
         <translation>Indice de Mosaico</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="392"/>
+        <location filename="../src/mainwindow.ui" line="393"/>
         <location filename="../src/ui_mainwindow.h" line="956"/>
         <source>Tileset</source>
         <translation>Mosaicos</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="504"/>
+        <location filename="../src/mainwindow.ui" line="505"/>
         <location filename="../src/ui_mainwindow.h" line="767"/>
         <source>Open File or Project...</source>
         <translation>Abrir Archivo o Proyecto...</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="507"/>
+        <location filename="../src/mainwindow.ui" line="508"/>
         <location filename="../src/ui_mainwindow.h" line="769"/>
         <source>Open VChar64 project</source>
         <translation>Abrir proyecto VChar64</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="510"/>
+        <location filename="../src/mainwindow.ui" line="511"/>
         <location filename="../src/ui_mainwindow.h" line="771"/>
         <source>Ctrl+O</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="522"/>
+        <location filename="../src/mainwindow.ui" line="523"/>
         <location filename="../src/ui_mainwindow.h" line="773"/>
         <source>Exit</source>
         <translation>Salir</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="525"/>
+        <location filename="../src/mainwindow.ui" line="526"/>
         <location filename="../src/ui_mainwindow.h" line="775"/>
         <source>Ctrl+Q</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="530"/>
+        <location filename="../src/mainwindow.ui" line="531"/>
         <location filename="../src/ui_mainwindow.h" line="776"/>
         <source>Export As...</source>
         <translation>Exportar Como...</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="533"/>
+        <location filename="../src/mainwindow.ui" line="534"/>
         <location filename="../src/ui_mainwindow.h" line="778"/>
         <source>Export As</source>
         <translation>Export como</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="536"/>
+        <location filename="../src/mainwindow.ui" line="537"/>
         <location filename="../src/ui_mainwindow.h" line="780"/>
         <source>Ctrl+Shift+E</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="545"/>
-        <location filename="../src/mainwindow.cpp" line="1004"/>
+        <location filename="../src/mainwindow.ui" line="546"/>
+        <location filename="../src/mainwindow.cpp" line="1016"/>
         <location filename="../src/ui_mainwindow.h" line="781"/>
         <source>Save Project</source>
         <translation>Guardar Proyecto</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="548"/>
+        <location filename="../src/mainwindow.ui" line="549"/>
         <location filename="../src/ui_mainwindow.h" line="783"/>
         <source>Save VChar64 project</source>
         <translation>Guardar Proyecto VChar64</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="551"/>
+        <location filename="../src/mainwindow.ui" line="552"/>
         <location filename="../src/ui_mainwindow.h" line="785"/>
         <source>Ctrl+S</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="560"/>
-        <location filename="../src/mainwindow.ui" line="563"/>
+        <location filename="../src/mainwindow.ui" line="561"/>
+        <location filename="../src/mainwindow.ui" line="564"/>
         <location filename="../src/ui_mainwindow.h" line="786"/>
         <location filename="../src/ui_mainwindow.h" line="788"/>
         <source>Copy</source>
         <translation>Copiar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="566"/>
+        <location filename="../src/mainwindow.ui" line="567"/>
         <location filename="../src/ui_mainwindow.h" line="790"/>
         <source>Ctrl+C</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="575"/>
-        <location filename="../src/mainwindow.ui" line="578"/>
+        <location filename="../src/mainwindow.ui" line="576"/>
+        <location filename="../src/mainwindow.ui" line="579"/>
         <location filename="../src/ui_mainwindow.h" line="791"/>
         <location filename="../src/ui_mainwindow.h" line="793"/>
         <source>Paste</source>
         <translation>Pegar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="581"/>
+        <location filename="../src/mainwindow.ui" line="582"/>
         <location filename="../src/ui_mainwindow.h" line="795"/>
         <source>Ctrl+V</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="590"/>
+        <location filename="../src/mainwindow.ui" line="591"/>
         <location filename="../src/ui_mainwindow.h" line="796"/>
         <source>Save Project As...</source>
         <translation>Guardar Proyecto como...</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="593"/>
+        <location filename="../src/mainwindow.ui" line="594"/>
         <location filename="../src/ui_mainwindow.h" line="798"/>
         <source>Save VChar64 Project As</source>
         <translation>Guardar Proyecto VChar64 como</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="596"/>
+        <location filename="../src/mainwindow.ui" line="597"/>
         <location filename="../src/ui_mainwindow.h" line="800"/>
         <source>Ctrl+Shift+S</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="601"/>
+        <location filename="../src/mainwindow.ui" line="602"/>
         <location filename="../src/ui_mainwindow.h" line="801"/>
         <source>Invert</source>
         <translation>Invertir</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="604"/>
+        <location filename="../src/mainwindow.ui" line="605"/>
         <location filename="../src/ui_mainwindow.h" line="803"/>
         <source>Invert character</source>
         <translation>Invertir caracter</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="607"/>
+        <location filename="../src/mainwindow.ui" line="608"/>
         <location filename="../src/ui_mainwindow.h" line="805"/>
         <source>Ctrl+Shift+I</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="612"/>
+        <location filename="../src/mainwindow.ui" line="613"/>
         <location filename="../src/ui_mainwindow.h" line="806"/>
         <source>Flip Horizontally</source>
         <translation>Dar vuelta horizontalmente</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="615"/>
+        <location filename="../src/mainwindow.ui" line="616"/>
         <location filename="../src/ui_mainwindow.h" line="808"/>
         <source>Flip Character horizontally</source>
         <translation>Dar vuelta horizontalmente</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="618"/>
+        <location filename="../src/mainwindow.ui" line="619"/>
         <location filename="../src/ui_mainwindow.h" line="810"/>
         <source>Ctrl+Shift+X</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="623"/>
+        <location filename="../src/mainwindow.ui" line="624"/>
         <location filename="../src/ui_mainwindow.h" line="811"/>
         <source>Flip Vertically</source>
         <translation>Dar vuelta verticalmente</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="626"/>
+        <location filename="../src/mainwindow.ui" line="627"/>
         <location filename="../src/ui_mainwindow.h" line="813"/>
         <source>Flip character vertically</source>
         <translation>Dar vuelta horizontalmente</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="629"/>
+        <location filename="../src/mainwindow.ui" line="630"/>
         <location filename="../src/ui_mainwindow.h" line="815"/>
         <source>Ctrl+Shift+Y</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="634"/>
+        <location filename="../src/mainwindow.ui" line="635"/>
         <location filename="../src/ui_mainwindow.h" line="816"/>
         <source>Rotate</source>
         <translation>Rotar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="637"/>
+        <location filename="../src/mainwindow.ui" line="638"/>
         <location filename="../src/ui_mainwindow.h" line="818"/>
         <source>Rotate Character 90 degrees</source>
         <translation>Rotar 90 grados el caracter</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="640"/>
+        <location filename="../src/mainwindow.ui" line="641"/>
         <location filename="../src/ui_mainwindow.h" line="820"/>
         <source>Ctrl+Shift+R</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="645"/>
+        <location filename="../src/mainwindow.ui" line="646"/>
         <location filename="../src/ui_mainwindow.h" line="821"/>
         <source>Clear</source>
         <translation>Limpiar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="648"/>
+        <location filename="../src/mainwindow.ui" line="649"/>
         <location filename="../src/ui_mainwindow.h" line="823"/>
         <source>Clear Character</source>
         <translation>Limpiar caracter</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="651"/>
+        <location filename="../src/mainwindow.ui" line="652"/>
         <location filename="../src/ui_mainwindow.h" line="825"/>
         <source>Ctrl+Shift+C</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="656"/>
+        <location filename="../src/mainwindow.ui" line="657"/>
         <location filename="../src/ui_mainwindow.h" line="826"/>
         <source>Shift Left</source>
         <translation>Mover a la izquierda</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="659"/>
+        <location filename="../src/mainwindow.ui" line="660"/>
         <location filename="../src/ui_mainwindow.h" line="828"/>
         <source>Shift one bit to the left</source>
         <translation>Mover un bit hacia la izquierda</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="662"/>
+        <location filename="../src/mainwindow.ui" line="663"/>
         <location filename="../src/ui_mainwindow.h" line="830"/>
         <source>Ctrl+Shift+Left</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="667"/>
+        <location filename="../src/mainwindow.ui" line="668"/>
         <location filename="../src/ui_mainwindow.h" line="831"/>
         <source>Shift Right</source>
         <translation>Mover a la derecha</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="670"/>
+        <location filename="../src/mainwindow.ui" line="671"/>
         <location filename="../src/ui_mainwindow.h" line="833"/>
         <source>Shift one bit to the right</source>
         <translation>Mover un bit hacia la derecha</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="673"/>
+        <location filename="../src/mainwindow.ui" line="674"/>
         <location filename="../src/ui_mainwindow.h" line="835"/>
         <source>Ctrl+Shift+Right</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="678"/>
+        <location filename="../src/mainwindow.ui" line="679"/>
         <location filename="../src/ui_mainwindow.h" line="836"/>
         <source>Shift Up</source>
         <translation>Mover hacia arriba</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="681"/>
+        <location filename="../src/mainwindow.ui" line="682"/>
         <location filename="../src/ui_mainwindow.h" line="838"/>
         <source>Shift Character Up</source>
         <translation>Mover una fila hacia arriba</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="684"/>
+        <location filename="../src/mainwindow.ui" line="685"/>
         <location filename="../src/ui_mainwindow.h" line="840"/>
         <source>Ctrl+Shift+Up</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="689"/>
+        <location filename="../src/mainwindow.ui" line="690"/>
         <location filename="../src/ui_mainwindow.h" line="841"/>
         <source>Shift Down</source>
         <translation>Mover hacia abajo</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="692"/>
+        <location filename="../src/mainwindow.ui" line="693"/>
         <location filename="../src/ui_mainwindow.h" line="843"/>
         <source>Shift Character Down</source>
         <translation>Mover una fila hacia abajo</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="695"/>
+        <location filename="../src/mainwindow.ui" line="696"/>
         <location filename="../src/ui_mainwindow.h" line="845"/>
         <source>Ctrl+Shift+Down</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="700"/>
+        <location filename="../src/mainwindow.ui" line="701"/>
         <location filename="../src/ui_mainwindow.h" line="846"/>
         <source>Report Bug</source>
         <translation>Reportar un defecto</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="751"/>
+        <location filename="../src/mainwindow.ui" line="752"/>
         <location filename="../src/ui_mainwindow.h" line="858"/>
         <source>Tile Properties</source>
         <translation>Propiedades del mosaico</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="937"/>
+        <location filename="../src/mainwindow.ui" line="929"/>
+        <source>Import VICE Snapshot...</source>
+        <translation>Importar Snapshot de VICE...</translation>
+    </message>
+    <message>
+        <location filename="../src/mainwindow.ui" line="938"/>
         <location filename="../src/ui_mainwindow.h" line="891"/>
         <source>Cut</source>
         <translation>Cortar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="940"/>
+        <location filename="../src/mainwindow.ui" line="941"/>
         <location filename="../src/ui_mainwindow.h" line="892"/>
         <source>Ctrl+X</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="945"/>
+        <location filename="../src/mainwindow.ui" line="946"/>
         <location filename="../src/ui_mainwindow.h" line="893"/>
         <source>Reset Layout</source>
         <translation>Resetear ventanas</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="954"/>
+        <location filename="../src/mainwindow.ui" line="955"/>
         <location filename="../src/ui_mainwindow.h" line="894"/>
         <source>Close</source>
         <translation>Cerrar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="957"/>
+        <location filename="../src/mainwindow.ui" line="958"/>
         <location filename="../src/ui_mainwindow.h" line="895"/>
         <source>Ctrl+W</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="962"/>
+        <location filename="../src/mainwindow.ui" line="963"/>
         <location filename="../src/ui_mainwindow.h" line="896"/>
         <source>Close All</source>
         <translation>Cerrar todas</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="965"/>
+        <location filename="../src/mainwindow.ui" line="966"/>
         <location filename="../src/ui_mainwindow.h" line="897"/>
         <source>Ctrl+Shift+W</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="980"/>
+        <location filename="../src/mainwindow.ui" line="981"/>
+        <source>Import Koala Image...</source>
+        <translation>Importar imágen Koala...</translation>
+    </message>
+    <message>
+        <location filename="../src/mainwindow.ui" line="1093"/>
+        <source>Clone Current Project</source>
+        <translation>Clonar Proyecto Actual</translation>
+    </message>
+    <message>
         <location filename="../src/ui_mainwindow.h" line="900"/>
         <source>Import Koala image...</source>
         <translation>Importar imágen Koala...</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="985"/>
+        <location filename="../src/mainwindow.ui" line="986"/>
         <location filename="../src/ui_mainwindow.h" line="901"/>
         <source>Map Properties</source>
         <translation>Propiedades del mapa</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="994"/>
+        <location filename="../src/mainwindow.ui" line="995"/>
         <location filename="../src/ui_mainwindow.h" line="902"/>
         <source>Clear Map</source>
         <translation>Limpiar mapa</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="997"/>
+        <location filename="../src/mainwindow.ui" line="998"/>
         <location filename="../src/ui_mainwindow.h" line="904"/>
         <source>Clear map with selected tile</source>
         <translation>Limpiar mapa con el mosaico seleccionado</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="1009"/>
+        <location filename="../src/mainwindow.ui" line="1010"/>
         <location filename="../src/ui_mainwindow.h" line="906"/>
         <source>Fill Map</source>
         <translation>LLenar mapa</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="1012"/>
+        <location filename="../src/mainwindow.ui" line="1013"/>
         <location filename="../src/ui_mainwindow.h" line="908"/>
         <source>Flood Fill Tool</source>
         <translation>Herramienta de llenado</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="1024"/>
+        <location filename="../src/mainwindow.ui" line="1025"/>
         <location filename="../src/ui_mainwindow.h" line="910"/>
         <source>Paint Mode</source>
         <translation>Modo pintar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="1027"/>
+        <location filename="../src/mainwindow.ui" line="1028"/>
         <location filename="../src/ui_mainwindow.h" line="912"/>
         <source>Paint Tool</source>
         <translation>Herramienta de pintar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="1039"/>
+        <location filename="../src/mainwindow.ui" line="1040"/>
         <location filename="../src/ui_mainwindow.h" line="914"/>
         <source>Select Mode</source>
         <translation>Seccionar modo</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="1042"/>
+        <location filename="../src/mainwindow.ui" line="1043"/>
         <location filename="../src/ui_mainwindow.h" line="916"/>
         <source>Rectangular Select Tool</source>
         <translation>Seleccionar rectángulo</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="1054"/>
-        <location filename="../src/mainwindow.ui" line="1069"/>
-        <location filename="../src/mainwindow.ui" line="1084"/>
+        <location filename="../src/mainwindow.ui" line="1055"/>
+        <location filename="../src/mainwindow.ui" line="1070"/>
+        <location filename="../src/mainwindow.ui" line="1085"/>
         <location filename="../src/ui_mainwindow.h" line="918"/>
         <location filename="../src/ui_mainwindow.h" line="922"/>
         <location filename="../src/ui_mainwindow.h" line="926"/>
@@ -949,9 +963,9 @@ Do you want to save your changes?</source>
         <translation>Prende/Apaga grilla</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="1057"/>
-        <location filename="../src/mainwindow.ui" line="1072"/>
-        <location filename="../src/mainwindow.ui" line="1087"/>
+        <location filename="../src/mainwindow.ui" line="1058"/>
+        <location filename="../src/mainwindow.ui" line="1073"/>
+        <location filename="../src/mainwindow.ui" line="1088"/>
         <location filename="../src/ui_mainwindow.h" line="920"/>
         <location filename="../src/ui_mainwindow.h" line="924"/>
         <location filename="../src/ui_mainwindow.h" line="928"/>
@@ -963,43 +977,43 @@ Do you want to save your changes?</source>
         <translation type="obsolete">Acerca</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="712"/>
+        <location filename="../src/mainwindow.ui" line="713"/>
         <location filename="../src/ui_mainwindow.h" line="848"/>
         <source>Show the application&apos;s About box</source>
         <translation>Mostrar el diálogo de Acerca de</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="717"/>
+        <location filename="../src/mainwindow.ui" line="718"/>
         <location filename="../src/ui_mainwindow.h" line="850"/>
         <source>About Qt</source>
         <translation>Acerca de Qt</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="720"/>
+        <location filename="../src/mainwindow.ui" line="721"/>
         <location filename="../src/ui_mainwindow.h" line="852"/>
         <source>Show the Qt library&apos;s About box</source>
         <translation>Mostrar el diálogo de Acerca de Qt</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="729"/>
+        <location filename="../src/mainwindow.ui" line="730"/>
         <location filename="../src/ui_mainwindow.h" line="854"/>
         <source>Clear Recent Files</source>
         <translation>Limpiar Archivos Recientes</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="738"/>
+        <location filename="../src/mainwindow.ui" line="739"/>
         <location filename="../src/ui_mainwindow.h" line="855"/>
         <source>Empty Project</source>
         <translation>Proyecto vacio</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="741"/>
+        <location filename="../src/mainwindow.ui" line="742"/>
         <location filename="../src/ui_mainwindow.h" line="856"/>
         <source>Ctrl+N</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="746"/>
+        <location filename="../src/mainwindow.ui" line="747"/>
         <location filename="../src/ui_mainwindow.h" line="857"/>
         <source>C64 Default Uppercase Charset</source>
         <translation>Caracteres en mayúscula de la C64</translation>
@@ -1009,26 +1023,26 @@ Do you want to save your changes?</source>
         <translation type="vanished">Propiedades de los mosaicos</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="754"/>
+        <location filename="../src/mainwindow.ui" line="755"/>
         <location filename="../src/ui_mainwindow.h" line="859"/>
         <source>Ctrl+T</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="759"/>
+        <location filename="../src/mainwindow.ui" line="760"/>
         <location filename="../src/ui_mainwindow.h" line="860"/>
         <source>Export</source>
         <translation>Exportar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="762"/>
+        <location filename="../src/mainwindow.ui" line="763"/>
         <location filename="../src/ui_mainwindow.h" line="861"/>
         <source>Ctrl+E</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="970"/>
-        <location filename="../src/mainwindow.ui" line="975"/>
+        <location filename="../src/mainwindow.ui" line="971"/>
+        <location filename="../src/mainwindow.ui" line="976"/>
         <location filename="../src/mainwindow.cpp" line="108"/>
         <location filename="../src/mainwindow.cpp" line="118"/>
         <location filename="../src/ui_mainwindow.h" line="898"/>
@@ -1037,191 +1051,190 @@ Do you want to save your changes?</source>
         <translation>Conectar</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="767"/>
-        <location filename="../src/mainwindow.ui" line="770"/>
+        <location filename="../src/mainwindow.ui" line="768"/>
+        <location filename="../src/mainwindow.ui" line="771"/>
         <location filename="../src/ui_mainwindow.h" line="862"/>
         <location filename="../src/ui_mainwindow.h" line="864"/>
         <source>C64 Default Lowercase Charset</source>
         <translation>Caracteres en minúscula de la C64</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="182"/>
-        <location filename="../src/mainwindow.ui" line="436"/>
+        <location filename="../src/mainwindow.ui" line="183"/>
+        <location filename="../src/mainwindow.ui" line="437"/>
         <location filename="../src/ui_mainwindow.h" line="942"/>
         <location filename="../src/ui_mainwindow.h" line="957"/>
         <source>Map</source>
         <translation>Mapa</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="251"/>
+        <location filename="../src/mainwindow.ui" line="252"/>
         <location filename="../src/ui_mainwindow.h" line="945"/>
         <source>Pen</source>
         <translation>Lápiz</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="266"/>
+        <location filename="../src/mainwindow.ui" line="267"/>
         <location filename="../src/ui_mainwindow.h" line="946"/>
         <source>Multicolor #2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="280"/>
+        <location filename="../src/mainwindow.ui" line="281"/>
         <location filename="../src/ui_mainwindow.h" line="948"/>
         <source>Foreground </source>
         <translation>Primer plano</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="293"/>
+        <location filename="../src/mainwindow.ui" line="294"/>
         <location filename="../src/ui_mainwindow.h" line="949"/>
         <source>Multicolor #1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="312"/>
+        <location filename="../src/mainwindow.ui" line="313"/>
         <location filename="../src/ui_mainwindow.h" line="950"/>
         <source>Multicolor Mode</source>
         <translation>Modo multicolor</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="319"/>
+        <location filename="../src/mainwindow.ui" line="320"/>
         <location filename="../src/ui_mainwindow.h" line="951"/>
         <source>Foreground Color Mode</source>
         <translation>Modo de color del primer plano</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="325"/>
+        <location filename="../src/mainwindow.ui" line="326"/>
         <location filename="../src/ui_mainwindow.h" line="952"/>
         <source>Global</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="335"/>
+        <location filename="../src/mainwindow.ui" line="336"/>
         <location filename="../src/ui_mainwindow.h" line="953"/>
         <source>One Per Tile</source>
         <translation>Uno por mosaico</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="779"/>
+        <location filename="../src/mainwindow.ui" line="780"/>
         <location filename="../src/ui_mainwindow.h" line="866"/>
         <source>Undo</source>
         <translation>Deshacer</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="782"/>
+        <location filename="../src/mainwindow.ui" line="783"/>
         <location filename="../src/ui_mainwindow.h" line="867"/>
         <source>Ctrl+Z</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="791"/>
+        <location filename="../src/mainwindow.ui" line="792"/>
         <location filename="../src/ui_mainwindow.h" line="868"/>
         <source>Redo</source>
         <translation>Rehacer</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="794"/>
+        <location filename="../src/mainwindow.ui" line="795"/>
         <location filename="../src/ui_mainwindow.h" line="869"/>
         <source>Ctrl+Shift+Z</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="802"/>
+        <location filename="../src/mainwindow.ui" line="803"/>
         <location filename="../src/ui_mainwindow.h" line="870"/>
         <source>Pepto</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="810"/>
+        <location filename="../src/mainwindow.ui" line="811"/>
         <location filename="../src/ui_mainwindow.h" line="871"/>
         <source>VICE</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="821"/>
+        <location filename="../src/mainwindow.ui" line="822"/>
         <location filename="../src/ui_mainwindow.h" line="873"/>
         <source>Ctrl+1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="835"/>
+        <location filename="../src/mainwindow.ui" line="836"/>
         <location filename="../src/ui_mainwindow.h" line="875"/>
         <source>Ctrl+2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="849"/>
+        <location filename="../src/mainwindow.ui" line="850"/>
         <location filename="../src/ui_mainwindow.h" line="877"/>
         <source>Ctrl+3</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="863"/>
+        <location filename="../src/mainwindow.ui" line="864"/>
         <location filename="../src/ui_mainwindow.h" line="879"/>
         <source>Ctrl+4</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="871"/>
+        <location filename="../src/mainwindow.ui" line="872"/>
         <location filename="../src/ui_mainwindow.h" line="880"/>
         <source>Enable Multicolor</source>
         <translation>Habilitar multicolor</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="874"/>
+        <location filename="../src/mainwindow.ui" line="875"/>
         <location filename="../src/ui_mainwindow.h" line="881"/>
         <source>Ctrl+M</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="882"/>
+        <location filename="../src/mainwindow.ui" line="883"/>
         <location filename="../src/ui_mainwindow.h" line="882"/>
         <source>Grayscale</source>
         <translation>Paleta de grises</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="890"/>
+        <location filename="../src/mainwindow.ui" line="891"/>
         <location filename="../src/ui_mainwindow.h" line="883"/>
         <source>Frodo</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="898"/>
+        <location filename="../src/mainwindow.ui" line="899"/>
         <location filename="../src/ui_mainwindow.h" line="884"/>
         <source>CCS64</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="907"/>
+        <location filename="../src/mainwindow.ui" line="908"/>
         <location filename="../src/ui_mainwindow.h" line="885"/>
         <source>Documentation</source>
         <translation>Documentación</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="912"/>
+        <location filename="../src/mainwindow.ui" line="913"/>
         <location filename="../src/ui_mainwindow.h" line="886"/>
         <source>Next Tile</source>
         <translation>Siguiente Mosaico</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="915"/>
+        <location filename="../src/mainwindow.ui" line="916"/>
         <location filename="../src/ui_mainwindow.h" line="887"/>
         <source>Ctrl+Right</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="920"/>
+        <location filename="../src/mainwindow.ui" line="921"/>
         <location filename="../src/ui_mainwindow.h" line="888"/>
         <source>Previous Tile</source>
         <translation>Previo Mosacio</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="923"/>
+        <location filename="../src/mainwindow.ui" line="924"/>
         <location filename="../src/ui_mainwindow.h" line="889"/>
         <source>Ctrl+Left</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.ui" line="928"/>
         <location filename="../src/ui_mainwindow.h" line="890"/>
         <source>Import VICE snapshot...</source>
         <translation>Importar snapshot de VICE...</translation>
@@ -1337,6 +1350,9 @@ Do you want to save your changes?</source>
         <location filename="../src/mainwindow.cpp" line="740"/>
         <location filename="../src/mainwindow.cpp" line="741"/>
         <location filename="../src/mainwindow.cpp" line="742"/>
+        <location filename="../src/mainwindow.cpp" line="969"/>
+        <location filename="../src/mainwindow.cpp" line="970"/>
+        <location filename="../src/mainwindow.cpp" line="971"/>
         <source>(untitled)</source>
         <translation>(sin_título)</translation>
     </message>
@@ -1346,7 +1362,7 @@ Do you want to save your changes?</source>
         <translation>Todos los archivos soportados</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1369"/>
+        <location filename="../src/mainwindow.cpp" line="1381"/>
         <source>Could not connect to remote server</source>
         <translation>No se pudo conectar al servidor</translation>
     </message>
@@ -1356,10 +1372,10 @@ Do you want to save your changes?</source>
     </message>
     <message>
         <location filename="../src/mainwindow.cpp" line="932"/>
-        <location filename="../src/mainwindow.cpp" line="1023"/>
-        <location filename="../src/mainwindow.cpp" line="1046"/>
-        <location filename="../src/mainwindow.cpp" line="1068"/>
-        <location filename="../src/mainwindow.cpp" line="1206"/>
+        <location filename="../src/mainwindow.cpp" line="1035"/>
+        <location filename="../src/mainwindow.cpp" line="1058"/>
+        <location filename="../src/mainwindow.cpp" line="1080"/>
+        <location filename="../src/mainwindow.cpp" line="1218"/>
         <source>Application</source>
         <translation>Aplicación</translation>
     </message>
@@ -1405,23 +1421,23 @@ Do you want to save your changes?</source>
         <translation>Todos los archivos (*);;Todos los archivos soportados (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;Proyectos VChar64 (*.vchar64proj);;Raw (*.raw *.bin);;PRG (*.prg *.64c);;CharPad (*.ctm);;</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1006"/>
+        <location filename="../src/mainwindow.cpp" line="1018"/>
         <source>VChar64 project(*.vchar64proj)</source>
         <translation>Proyecto VChar64 (*.vchar64proj)</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1041"/>
+        <location filename="../src/mainwindow.cpp" line="1053"/>
         <source>File saved to %1</source>
         <translation>Archivo guardado en %1</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1045"/>
+        <location filename="../src/mainwindow.cpp" line="1057"/>
         <source>Error saving file</source>
         <translation>Error ar guardar archivo</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1023"/>
-        <location filename="../src/mainwindow.cpp" line="1046"/>
+        <location filename="../src/mainwindow.cpp" line="1035"/>
+        <location filename="../src/mainwindow.cpp" line="1058"/>
         <source>Error saving project file: </source>
         <translation>Error al guardar el archivo de proyecto:</translation>
     </message>
@@ -1434,17 +1450,17 @@ Do you want to save your changes?</source>
         <translation type="vanished">Error al exportar archivo</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1068"/>
+        <location filename="../src/mainwindow.cpp" line="1080"/>
         <source>Error exporting file: </source>
         <translation>Error al exportar el archivo:</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1207"/>
+        <location filename="../src/mainwindow.cpp" line="1219"/>
         <source>Could not paste tiles when their sizes are different. Change the tile properties to {%1, %2}</source>
         <translation>No se pudo pegar. Cambie las propiedades del mosaico a {%1, %2}</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1349"/>
+        <location filename="../src/mainwindow.cpp" line="1361"/>
         <source>Could not connect to remote C64</source>
         <translation>No se pudo conectar a la C64</translation>
     </message>
@@ -1838,27 +1854,27 @@ Do you want to save your changes?</source>
 <context>
     <name>State</name>
     <message>
-        <location filename="../src/state.cpp" line="265"/>
+        <location filename="../src/state.cpp" line="289"/>
         <source>Export: Ok</source>
         <translation>Exportar: Ok</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="268"/>
+        <location filename="../src/state.cpp" line="292"/>
         <source>Export: Error</source>
         <translation>Exportar: Error</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="385"/>
+        <location filename="../src/state.cpp" line="409"/>
         <source>Save: Ok</source>
         <translation>Guardar: Ok</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="387"/>
+        <location filename="../src/state.cpp" line="411"/>
         <source>Save: Error</source>
         <translation>Guardar: Error</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="946"/>
+        <location filename="../src/state.cpp" line="970"/>
         <source>Error. Tile size different than src</source>
         <translation>Error. Mosaico de tamaño distinto</translation>
     </message>

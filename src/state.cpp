@@ -84,6 +84,30 @@ State::State(const QString& filename)
 {
 }
 
+State::State(const State &copyFromMe)
+    : _totalChars(copyFromMe._totalChars)
+    , _mapSize(copyFromMe._mapSize)
+    , _multicolorMode(copyFromMe._multicolorMode)
+    , _foregroundColorMode(copyFromMe._foregroundColorMode)
+    , _selectedPen(copyFromMe._selectedPen)
+    , _tileProperties(copyFromMe._tileProperties)
+    , _charIndex(copyFromMe._charIndex)
+    , _tileIndex(copyFromMe._tileIndex)
+    , _loadedFilename(copyFromMe._loadedFilename)
+    , _savedFilename("")
+    , _exportedFilename("")
+    , _exportProperties(copyFromMe._exportProperties)
+    , _undoStack(nullptr)
+    , _bigCharWidget(nullptr)
+{
+    memcpy(_penColors, copyFromMe._penColors, sizeof(_penColors));
+    memcpy(_charset, copyFromMe._charset, sizeof(_charset));
+    memcpy(_tileColors, copyFromMe._tileColors, sizeof(_tileColors));
+
+    _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
+    memcpy(_map, copyFromMe._map, _mapSize.width() * _mapSize.height());
+}
+
 State::State()
     : State("", nullptr, nullptr, nullptr, QSize(40,25))
 {
