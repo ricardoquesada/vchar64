@@ -85,7 +85,8 @@ State::State(const QString& filename)
 }
 
 State::State(const State &copyFromMe)
-    : _totalChars(copyFromMe._totalChars)
+    : QObject()
+    , _totalChars(copyFromMe._totalChars)
     , _mapSize(copyFromMe._mapSize)
     , _multicolorMode(copyFromMe._multicolorMode)
     , _foregroundColorMode(copyFromMe._foregroundColorMode)
@@ -100,6 +101,8 @@ State::State(const State &copyFromMe)
     , _undoStack(nullptr)
     , _bigCharWidget(nullptr)
 {
+    _undoStack = new QUndoStack;
+
     memcpy(_penColors, copyFromMe._penColors, sizeof(_penColors));
     memcpy(_charset, copyFromMe._charset, sizeof(_charset));
     memcpy(_tileColors, copyFromMe._tileColors, sizeof(_tileColors));
@@ -116,6 +119,7 @@ State::State()
 State::~State()
 {
     delete _undoStack;
+    free(_map);
 }
 
 void State::reset()
