@@ -65,7 +65,7 @@ State::State(const QString &filename, quint8 *charset, quint8 *tileColors, quint
         memcpy(_tileColors, tileColors, sizeof(_tileColors));
     else memset(_tileColors, 11, sizeof(_tileColors));
 
-    Q_ASSERT(_mapSize.width() * _mapSize.height() > 0 && "Invalid size");
+    Q_ASSERT(_mapSize.width() > 0 && _mapSize.height() > 0 && "Invalid size");
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
     if (map)
     {

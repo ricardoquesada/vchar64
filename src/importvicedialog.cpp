@@ -48,6 +48,7 @@ ImportVICEDialog::ImportVICEDialog(QWidget *parent)
     {
         _tileImages[i] = new QImage(QSize(8,8), QImage::Format_RGB888);
     }
+    updateTileImages();
 
     // needed for the shared _memoryRAM / _colorRAM
     ui->widgetCharset->setParentDialog(this);
@@ -56,6 +57,9 @@ ImportVICEDialog::ImportVICEDialog(QWidget *parent)
     auto lastDir = QSettings("RetroMoe","VChar64").value("dir/lastdir").toString();
     ui->lineEdit->setText(lastDir);
     updateWidgets();
+
+    ui->widgetCharset->update();
+    ui->widgetScreenRAM->update();
 }
 
 ImportVICEDialog::~ImportVICEDialog()
@@ -116,7 +120,7 @@ void ImportVICEDialog::on_spinBoxCharset_valueChanged(int address)
     memcpy(_tmpState->_charset, &_memoryRAM[address], sizeof(_tmpState->_charset));
     updateTileImages();
 
-    ui->widgetCharset->addressChanged(address);
+    ui->widgetCharset->update();
     ui->widgetScreenRAM->update();
 }
 
@@ -149,7 +153,7 @@ void ImportVICEDialog::on_spinBoxScreenRAM_valueChanged(int address)
 
     updateTileImages();
 
-    ui->widgetScreenRAM->addressChanged(address);
+    ui->widgetScreenRAM->update();
     ui->widgetCharset->update();
 }
 
@@ -199,15 +203,34 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
     QFile file(filepath);
 
     quint16 charsetAddress, screenRAMOAddress;
-    quint8 VICColors[3];
-    auto ret = StateImport::parseVICESnapshot(file, _memoryRAM, &charsetAddress, &screenRAMOAddress, _colorRAM, (quint8*)&VICColors);
+    quint8 VICRegisters[64];
+    auto ret = StateImport::parseVICESnapshot(file, _memoryRAM, &charsetAddress, &screenRAMOAddress, _colorRAM, (quint8*)&VICRegisters);
     if (ret >= 0) {
-        _tmpState->_penColors[0] = VICColors[0] & 0xf;
-        _tmpState->_penColors[1] = VICColors[1] & 0xf;
-        _tmpState->_penColors[2] = VICColors[2] & 0xf;
+        // colors d021, d022, d023
+        _tmpState->_penColors[0] = VICRegisters[0x21] & 0xf;
+        _tmpState->_penColors[1] = VICRegisters[0x22] & 0xf;
+        _tmpState->_penColors[2] = VICRegisters[0x23] & 0xf;
 
+        memset(_tmpState->_tileColors, 11, sizeof(_tmpState->_tileColors));
+
+        int oldCharset = ui->spinBoxCharset->value();
+        int oldScreenRAM = ui->spinBoxScreenRAM->value();
         ui->spinBoxCharset->setValue(charsetAddress);
         ui->spinBoxScreenRAM->setValue(screenRAMOAddress);
+
+        // d016 contains multicolor bit
+        bool isMC = (VICRegisters[0x16] >> 4) & 0x1;
+        ui->checkBoxMulticolor->setChecked(isMC);
+        _tmpState->_setMulticolorMode(isMC);
+
+        // force the update when the value is the same as the previous one
+        if (oldCharset == charsetAddress)
+            on_spinBoxCharset_valueChanged(charsetAddress);
+        if (oldScreenRAM == screenRAMOAddress)
+            on_spinBoxScreenRAM_valueChanged(screenRAMOAddress);
+
+        updateTileImages();
+
         ui->widgetCharset->update();
         ui->widgetScreenRAM->update();
     }
@@ -237,8 +260,8 @@ void ImportVICEDialog::on_checkBoxMulticolor_clicked(bool checked)
 {
     _tmpState->_setMulticolorMode(checked);
     updateTileImages();
-    ui->widgetCharset->multicolorToggled(checked);
-    ui->widgetScreenRAM->multicolorToggled(checked);
+    ui->widgetCharset->update();
+    ui->widgetScreenRAM->update();
 }
 
 void ImportVICEDialog::on_checkBoxGuessColors_clicked(bool checked)

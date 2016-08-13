@@ -24,15 +24,13 @@ limitations under the License.
 #include "state.h"
 #include "mainwindow.h"
 
-static const int PIXEL_SIZE = 2;
+static const float PIXEL_SIZE = 1.5625f;
 static const int COLUMNS = 16;
 static const int ROWS = 16;
 static const int OFFSET = 0;
 
 ImportVICECharsetWidget::ImportVICECharsetWidget(QWidget *parent)
     : QWidget(parent)
-    , _memoryOffset(0)
-    , _multicolor(false)
     , _parentDialog(nullptr)
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
@@ -67,16 +65,4 @@ void ImportVICECharsetWidget::paintEvent(QPaintEvent *event)
     }
 
     painter.end();
-}
-
-void ImportVICECharsetWidget::multicolorToggled(bool checked)
-{
-    _multicolor = checked;
-    update();
-}
-
-void ImportVICECharsetWidget::addressChanged(int offset)
-{
-    _memoryOffset = offset;
-    update();
 }

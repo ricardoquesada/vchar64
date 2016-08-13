@@ -33,8 +33,6 @@ static const int OFFSET = 0;
 
 ImportVICEScreenRAMWidget::ImportVICEScreenRAMWidget(QWidget *parent)
     : QWidget(parent)
-    , _memoryOffset(0)
-    , _multicolor(false)
     , _parentDialog(nullptr)
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
@@ -72,19 +70,4 @@ void ImportVICEScreenRAMWidget::paintEvent(QPaintEvent *event)
 
 
     painter.end();
-}
-
-//
-// public
-//
-void ImportVICEScreenRAMWidget::addressChanged(int address)
-{
-    _memoryOffset = address;
-    update();
-}
-
-void ImportVICEScreenRAMWidget::multicolorToggled(bool checked)
-{
-    _multicolor = checked;
-    update();
 }

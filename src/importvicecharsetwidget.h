@@ -28,14 +28,9 @@ class ImportVICECharsetWidget : public QWidget
 public:
     ImportVICECharsetWidget(QWidget *parent=nullptr);
     void setParentDialog(ImportVICEDialog* parentDialog) { _parentDialog = parentDialog; }
-    void multicolorToggled(bool checked);
-    void addressChanged(int offset);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-
-    int _memoryOffset;
-    bool _multicolor;
     ImportVICEDialog* _parentDialog;
 };
 

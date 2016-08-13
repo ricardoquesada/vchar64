@@ -67,10 +67,10 @@ public:
      * @param outCharsetAddress "out" address that will contain where the default charset is
      * @param outScreenRAMAddress "out" address that will contain where the default Screen RAM is
      * @param outColorRAMBuf "out" buffer that will contain the color RAM
-     * @param outVICColorsBuf "out" buffer that will contain the D020,D021,D022,D023 colors
+     * @param outVICRegistersBuf "out" buffer that will contain the VIC registers (d000-d03f)
      * @return
      */
-    static qint64 parseVICESnapshot(QFile& file, quint8* buffer64k, quint16 *outCharsetAddress, quint16 *outScreenRAMAddress, quint8 *outColorRAMBuf, quint8 *outVICColorsBuf);
+    static qint64 parseVICESnapshot(QFile& file, quint8* buffer64k, quint16 *outCharsetAddress, quint16 *outScreenRAMAddress, quint8 *outColorRAMBuf, quint8 *outVICRegistersBuf);
 
     //
     // From CharPad documentation

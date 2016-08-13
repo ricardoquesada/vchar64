@@ -341,7 +341,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
 }
 
 qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* outCharsetAddress,
-                                      quint16* outScreenRAMAddress, quint8* outColorRAMBuf, quint8* outVICColorsBuf)
+                                      quint16* outScreenRAMAddress, quint8* outColorRAMBuf, quint8* outVICRegistersBuf)
 {
     struct VICESnapshotHeader header;
     struct VICESnapshoptModule module;
@@ -455,8 +455,8 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
         // update color RAM
         memcpy(outColorRAMBuf, vic2.color_ram, sizeof(vic2.color_ram));
 
-        // update VIC colors: d021, d022, d023
-        memcpy(outVICColorsBuf, &vic2.registers[0x21], 3);
+        // update VIC registers
+        memcpy(outVICRegistersBuf, vic2.registers, sizeof(vic2.registers));
     }
     else
     {

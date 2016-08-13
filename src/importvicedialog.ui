@@ -151,28 +151,24 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <widget class="QCheckBox" name="checkBoxMulticolor">
-       <property name="text">
-        <string>Multicolor</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="checkBoxGuessColors">
-       <property name="text">
-        <string>Guess Tile Colors</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_6"/>
-     </item>
-    </layout>
+    <widget class="QCheckBox" name="checkBoxMulticolor">
+     <property name="text">
+      <string>Multicolor</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="checkBoxGuessColors">
+     <property name="text">
+      <string>Guess Tile Colors</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
