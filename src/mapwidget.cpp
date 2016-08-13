@@ -151,6 +151,10 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
+    auto state = MainWindow::getCurrentState();
+    if (!state)
+        return;
+
     auto pos = event->localPos();
 
     int x = (pos.x() - OFFSET) / _zoomLevel / _tileSize.width() / 8;
@@ -194,7 +198,6 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
                 _cursorPos = {x,y};
 
                 // update tileIndex
-                auto state = MainWindow::getCurrentState();
                 state->setTileIndex(state->getTileIndexFromMap(_cursorPos));
             }
 
@@ -281,6 +284,9 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
     event->accept();
 
     auto state = MainWindow::getCurrentState();
+    if (!state)
+        return;
+
     auto oldCursorPos = _cursorPos;
     auto oldSelecting = _selecting;
     auto oldSelectingSize = _selectingSize;
