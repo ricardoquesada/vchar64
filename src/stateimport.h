@@ -65,9 +65,12 @@ public:
      * @param file file to parse
      * @param buffer64k "out" buffer that will have the 64k RAM memory
      * @param outCharsetAddress "out" address that will contain where the default charset is
+     * @param outScreenRAMAddress "out" address that will contain where the default Screen RAM is
+     * @param outColorRAMBuf "out" buffer that will contain the color RAM
+     * @param outVICColorsBuf "out" buffer that will contain the D020,D021,D022,D023 colors
      * @return
      */
-    static qint64 parseVICESnapshot(QFile& file, quint8* buffer64k, quint16 *outCharsetAddress);
+    static qint64 parseVICESnapshot(QFile& file, quint8* buffer64k, quint16 *outCharsetAddress, quint16 *outScreenRAMAddress, quint8 *outColorRAMBuf, quint8 *outVICColorsBuf);
 
     //
     // From CharPad documentation

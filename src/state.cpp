@@ -84,6 +84,11 @@ State::State(const QString& filename)
 {
 }
 
+State::State()
+    : State("", nullptr, nullptr, nullptr, QSize(40,25))
+{
+}
+
 State::State(const State &copyFromMe)
     : QObject()
     , _totalChars(copyFromMe._totalChars)
@@ -109,11 +114,6 @@ State::State(const State &copyFromMe)
 
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
     memcpy(_map, copyFromMe._map, _mapSize.width() * _mapSize.height());
-}
-
-State::State()
-    : State("", nullptr, nullptr, nullptr, QSize(40,25))
-{
 }
 
 State::~State()
@@ -227,14 +227,6 @@ bool State::openFile(const QString& filename)
     }
 
     return true;
-}
-void State::importCharset(const quint8 *charset, int charsetSize)
-{
-    Q_ASSERT(charset);
-    Q_ASSERT(charsetSize <= CHAR_BUFFER_SIZE);
-
-    resetCharsetBuffer();
-    memcpy(_charset, charset, qMin(CHAR_BUFFER_SIZE, charsetSize));
 }
 
 static QString filenameFixSuffix(const QString& filename, State::ExportFeature suffix)

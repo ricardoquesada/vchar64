@@ -20,7 +20,9 @@ limitations under the License.
 #include <QFileDialog>
 #include <QSettings>
 #include <QDir>
+#include <QDebug>
 
+#include "utils.h"
 #include "state.h"
 #include "mainwindow.h"
 
@@ -31,6 +33,25 @@ ImportVICEDialog::ImportVICEDialog(QWidget *parent)
     , _filepath("")
 {
     ui->setupUi(this);
+
+    memset(_memoryRAM, 0, sizeof(_memoryRAM));
+    memset(_colorRAM, 0, sizeof(_colorRAM));
+
+    // comes with a default map of 40*25
+    _tmpState = new State();
+    _tmpState->_setForegroundColorMode(ui->checkBoxGuessColors->checkState() == Qt::CheckState::Checked ?
+                                           State::FOREGROUND_COLOR_PER_TILE :
+                                           State::FOREGROUND_COLOR_GLOBAL);
+
+    // default tiles
+    for (int i=0; i<256; ++i)
+    {
+        _tileImages[i] = new QImage(QSize(8,8), QImage::Format_RGB888);
+    }
+
+    // needed for the shared _memoryRAM / _colorRAM
+    ui->widgetCharset->setParentDialog(this);
+    ui->widgetScreenRAM->setParentDialog(this);
 
     auto lastDir = QSettings("RetroMoe","VChar64").value("dir/lastdir").toString();
     ui->lineEdit->setText(lastDir);
@@ -47,38 +68,89 @@ const QString& ImportVICEDialog::getFilepath() const
     return _filepath;
 }
 
+void ImportVICEDialog::updateTileImages()
+{
+    for (int tileIdx=0; tileIdx<256; ++tileIdx)
+    {
+        utilsDrawCharInImage(_tmpState, _tileImages[tileIdx], QPoint(0, 0), tileIdx);
+    }
+}
+
 //
 // slots
 //
 void ImportVICEDialog::on_pushButton_import_clicked()
 {
-    auto state = new State(_filepath);
-    state->setMulticolorMode(ui->checkBox->checkState() == Qt::Checked);
-
-    // FIXME: must be called after 'setMulticolorMode' since it reset the undo stack
-    state->importCharset(ui->widget->getBuffer() + ui->spinBox->value(), State::CHAR_BUFFER_SIZE);
-
-    MainWindow::getInstance()->createDocument(state);
+    _tmpState->_loadedFilename = _filepath;
+    MainWindow::getInstance()->createDocument(_tmpState);
     QFileInfo info(ui->lineEdit->text());
     QSettings("RetroMoe","VChar64").setValue("dir/lastdir", info.absolutePath());
 
+    // don't free _tmpState;
     accept();
 }
 
 void ImportVICEDialog::on_pushButton_cancel_clicked()
 {
+    // only free the tmpState if import is rejected
+    free(_tmpState);
     reject();
 }
 
-void ImportVICEDialog::on_spinBox_editingFinished()
+void ImportVICEDialog::on_spinBoxCharset_editingFinished()
 {
     // normalize number, in case it was edited manually
-    int oldvalue = ui->spinBox->value();
+    int oldvalue = ui->spinBoxCharset->value();
     int m = oldvalue / 2048;
     int newvalue = m * 2048;
 
     if (newvalue != oldvalue)
-        ui->spinBox->setValue(newvalue);
+        ui->spinBoxCharset->setValue(newvalue);
+
+    on_spinBoxCharset_valueChanged(newvalue);
+}
+
+void ImportVICEDialog::on_spinBoxCharset_valueChanged(int address)
+{
+    Q_ASSERT(address <= (65536-2048) && "invalid address");
+    memcpy(_tmpState->_charset, &_memoryRAM[address], sizeof(_tmpState->_charset));
+    updateTileImages();
+
+    ui->widgetCharset->addressChanged(address);
+    ui->widgetScreenRAM->update();
+}
+
+void ImportVICEDialog::on_spinBoxScreenRAM_editingFinished()
+{
+    // normalize number, in case it was edited manually
+    int oldvalue = ui->spinBoxScreenRAM->value();
+    int m = oldvalue / 1024;
+    int newvalue = m * 1024;
+
+    if (newvalue != oldvalue)
+        ui->spinBoxScreenRAM->setValue(newvalue);
+
+    on_spinBoxScreenRAM_valueChanged(newvalue);
+}
+
+void ImportVICEDialog::on_spinBoxScreenRAM_valueChanged(int address)
+{
+    Q_ASSERT(address <= (65536-1024) && "invalid address");
+
+    memcpy(_tmpState->_map, &_memoryRAM[address], 40*25);
+
+    for (int i=40*25-1; i>=0; --i)
+    {
+        quint8 tileColor = _colorRAM[i];
+        quint8 tileIdx = _tmpState->_map[i];
+
+        _tmpState->_tileColors[tileIdx] = tileColor;
+    }
+
+    updateTileImages();
+
+    ui->widgetScreenRAM->addressChanged(address);
+    ui->widgetCharset->update();
 }
 
 void ImportVICEDialog::on_pushButton_clicked()
@@ -126,12 +198,18 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
 {
     QFile file(filepath);
 
-    quint8 buffer[65536];
-    quint16 charsetOffset;
-    auto ret = StateImport::parseVICESnapshot(file, buffer, &charsetOffset);
+    quint16 charsetAddress, screenRAMOAddress;
+    quint8 VICColors[3];
+    auto ret = StateImport::parseVICESnapshot(file, _memoryRAM, &charsetAddress, &screenRAMOAddress, _colorRAM, (quint8*)&VICColors);
     if (ret >= 0) {
-        ui->widget->setBuffer(buffer);
-        ui->spinBox->setValue(charsetOffset);
+        _tmpState->_penColors[0] = VICColors[0] & 0xf;
+        _tmpState->_penColors[1] = VICColors[1] & 0xf;
+        _tmpState->_penColors[2] = VICColors[2] & 0xf;
+
+        ui->spinBoxCharset->setValue(charsetAddress);
+        ui->spinBoxScreenRAM->setValue(screenRAMOAddress);
+        ui->widgetCharset->update();
+        ui->widgetScreenRAM->update();
     }
     return (ret >= 0);
 }
@@ -140,8 +218,10 @@ void ImportVICEDialog::updateWidgets()
 {
     QWidget* widgets[] =
     {
-        ui->checkBox,
-        ui->spinBox,
+        ui->checkBoxMulticolor,
+        ui->checkBoxGuessColors,
+        ui->spinBoxCharset,
+        ui->spinBoxScreenRAM,
         ui->pushButton_import
     };
 
@@ -151,4 +231,35 @@ void ImportVICEDialog::updateWidgets()
     {
         widgets[i]->setEnabled(_validVICEFile);
     }
+}
+
+void ImportVICEDialog::on_checkBoxMulticolor_clicked(bool checked)
+{
+    _tmpState->_setMulticolorMode(checked);
+    updateTileImages();
+    ui->widgetCharset->multicolorToggled(checked);
+    ui->widgetScreenRAM->multicolorToggled(checked);
+}
+
+void ImportVICEDialog::on_checkBoxGuessColors_clicked(bool checked)
+{
+    _tmpState->_setForegroundColorMode(checked ? State::FOREGROUND_COLOR_PER_TILE : State::FOREGROUND_COLOR_GLOBAL);
+    if (checked) {
+        _tmpState->_penColors[0] = _VICColorsBackup[0];
+        _tmpState->_penColors[1] = _VICColorsBackup[1];
+        _tmpState->_penColors[2] = _VICColorsBackup[2];
+    } else {
+        _VICColorsBackup[0] = _tmpState->_penColors[0];
+        _VICColorsBackup[1] = _tmpState->_penColors[1];
+        _VICColorsBackup[2] = _tmpState->_penColors[2];
+
+        _tmpState->_penColors[0] = 1;
+        _tmpState->_penColors[1] = 5;
+        _tmpState->_penColors[2] = 7;
+        _tmpState->_penColors[3] = 11;
+    }
+
+    updateTileImages();
+    ui->widgetCharset->update();
+    ui->widgetScreenRAM->update();
 }

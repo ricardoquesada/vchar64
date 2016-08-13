@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015, 2016 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "importvicecharsetwidget.h"
+#include "importvicescreenramwidget.h"
 
 #include <QPainter>
 #include <QPaintEvent>
@@ -23,13 +23,15 @@ limitations under the License.
 #include "palette.h"
 #include "state.h"
 #include "mainwindow.h"
+#include "utils.h"
+#include "state.h"
 
-static const int PIXEL_SIZE = 2;
-static const int COLUMNS = 16;
-static const int ROWS = 16;
+static const int PIXEL_SIZE = 1;
+static const int COLUMNS = 40;
+static const int ROWS = 25;
 static const int OFFSET = 0;
 
-ImportVICECharsetWidget::ImportVICECharsetWidget(QWidget *parent)
+ImportVICEScreenRAMWidget::ImportVICEScreenRAMWidget(QWidget *parent)
     : QWidget(parent)
     , _memoryOffset(0)
     , _multicolor(false)
@@ -42,7 +44,7 @@ ImportVICECharsetWidget::ImportVICECharsetWidget(QWidget *parent)
 //
 // Overriden
 //
-void ImportVICECharsetWidget::paintEvent(QPaintEvent *event)
+void ImportVICEScreenRAMWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter;
 
@@ -57,26 +59,32 @@ void ImportVICECharsetWidget::paintEvent(QPaintEvent *event)
     painter.setBrush(QColor(0,0,0));
     painter.setPen(Qt::NoPen);
 
-    for (int x=0; x<COLUMNS; x++) {
-        for (int y=0; y<ROWS; y++) {
-
-            int tileIdx = x + y * COLUMNS;
+    State *state = _parentDialog->_tmpState;
+    for (int y=0; y<ROWS; y++)
+    {
+        for (int x=0; x<COLUMNS; ++x)
+        {
+            auto tileIdx = state->getTileIndexFromMap(QPoint(x,y));
             QRectF target(x * 8, y * 8, 8, 8);
             painter.drawImage(target, * _parentDialog->_tileImages[tileIdx], _parentDialog->_tileImages[tileIdx]->rect());
         }
     }
 
+
     painter.end();
 }
 
-void ImportVICECharsetWidget::multicolorToggled(bool checked)
+//
+// public
+//
+void ImportVICEScreenRAMWidget::addressChanged(int address)
 {
-    _multicolor = checked;
+    _memoryOffset = address;
     update();
 }
 
-void ImportVICECharsetWidget::addressChanged(int offset)
+void ImportVICEScreenRAMWidget::multicolorToggled(bool checked)
 {
-    _memoryOffset = offset;
+    _multicolor = checked;
     update();
 }

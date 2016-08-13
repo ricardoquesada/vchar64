@@ -36,6 +36,8 @@ class State : public QObject
 
     friend class BigCharWidget;
 
+    friend class ImportVICEDialog;
+
     // yep, all the Commands are friend of State
     // this is because State invokes the commands
     // and then the Commands calls the protected methods
@@ -186,13 +188,6 @@ public:
     bool exportAsm(const QString& filename, const ExportProperties &properties);
     // export is a defined keyword, so we use export_ instead
     bool export_();
-
-    /**
-     * @brief importCharset sets a new charset. emits fileLoaded();
-     * @param charset pointer to the charset
-     * @param charsetSize size of the charset
-     */
-    void importCharset(const quint8* charset, int charsetSize);
 
     /**
      * @brief emitNewState hackish way to notify that a new state has been created

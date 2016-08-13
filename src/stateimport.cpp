@@ -340,7 +340,8 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     return total;
 }
 
-qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* outCharsetAddress)
+qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* outCharsetAddress,
+                                      quint16* outScreenRAMAddress, quint8* outColorRAMBuf, quint8* outVICColorsBuf)
 {
     struct VICESnapshotHeader header;
     struct VICESnapshoptModule module;
@@ -381,7 +382,8 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     int c64memoffset = -1;
     int cia2offset = -1;
     int vic2offset = -1;
-    *outCharsetAddress = 0;     // in case we can't find the correct one
+    *outCharsetAddress = 0;         // in case we can't find the correct one
+    *outScreenRAMAddress = 0x400;   // in case we can't find the correct one
 
     while (1) {
         size = file.read((char*)&module, sizeof(module));
@@ -442,10 +444,19 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
             mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE VIC-II segment"));
             return -1;
         }
-        int charset_offset = (vic2.registers[0x18] & 0x0e) >> 1;   // $d018 & 0x7
+        int charset_offset = (vic2.registers[0x18] & 0x0e) >> 1;    // $d018 & 0x7
         charset_offset *= 2048;
-
         *outCharsetAddress = bank_addr + charset_offset;
+
+        int screenRAM_offset = vic2.registers[0x18] >> 4;           // 4-MSB bit of $d018
+        screenRAM_offset *= 1024;
+        *outScreenRAMAddress = bank_addr + screenRAM_offset;
+
+        // update color RAM
+        memcpy(outColorRAMBuf, vic2.color_ram, sizeof(vic2.color_ram));
+
+        // update VIC colors: d021, d022, d023
+        memcpy(outVICColorsBuf, &vic2.registers[0x21], 3);
     }
     else
     {

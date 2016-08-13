@@ -26,6 +26,9 @@ class State;
 
 class ImportVICEDialog : public QDialog
 {
+    friend class ImportVICECharsetWidget;
+    friend class ImportVICEScreenRAMWidget;
+
     Q_OBJECT
 
 public:
@@ -37,20 +40,40 @@ public:
 protected:
     bool validateVICEFile(const QString& filepath);
     void updateWidgets();
+    void updateTileImages();
 
 private slots:
     void on_pushButton_import_clicked();
 
     void on_pushButton_cancel_clicked();
 
-    void on_spinBox_editingFinished();
-
     void on_pushButton_clicked();
 
     void on_lineEdit_editingFinished();
+
+    void on_spinBoxCharset_editingFinished();
+
+    void on_spinBoxScreenRAM_editingFinished();
+
+    void on_spinBoxCharset_valueChanged(int address);
+
+    void on_spinBoxScreenRAM_valueChanged(int address);
+
+    void on_checkBoxMulticolor_clicked(bool checked);
+
+    void on_checkBoxGuessColors_clicked(bool checked);
 
 private:
     Ui::ImportVICEDialog *ui;
     bool _validVICEFile;
     QString _filepath;
+
+    quint8 _memoryRAM[64*1024];     // RAM: 64k
+    quint8 _colorRAM[1024];         // Color RAM: 1k
+    quint8 _VICColorsBackup[3];
+    State* _tmpState;
+
+    // To gain speed, each tile will be pre-renderer in a QImage
+    // a QImages will be renderer
+    QImage *_tileImages[256];
 };

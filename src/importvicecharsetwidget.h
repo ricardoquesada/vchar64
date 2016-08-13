@@ -19,21 +19,16 @@ limitations under the License.
 #include <QWidget>
 #include "state.h"
 
+class ImportVICEDialog;
+
 class ImportVICECharsetWidget : public QWidget
 {
     Q_OBJECT
 
 public:
     ImportVICECharsetWidget(QWidget *parent=nullptr);
-    /**
-     * @brief setBuffer copies a buffer of 64k which belongs to the C64 RAM
-     * @param buffer the buffer
-     */
-    void setBuffer(quint8* buffer);
-    quint8* getBuffer();
-
-public slots:
-    void multicolorToggled(bool toggled);
+    void setParentDialog(ImportVICEDialog* parentDialog) { _parentDialog = parentDialog; }
+    void multicolorToggled(bool checked);
     void addressChanged(int offset);
 
 protected:
@@ -41,7 +36,6 @@ protected:
 
     int _memoryOffset;
     bool _multicolor;
-    quint8 _buffer[65536];
-
+    ImportVICEDialog* _parentDialog;
 };
 

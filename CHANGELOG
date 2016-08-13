@@ -1,5 +1,6 @@
-0.1.1 (XX August 2016)
+0.2.0 (XX August 2016)
 * [NEW] Issue #17: Added File -> Clone Current Project
+* [NEW] Issue #13: Import VICE Snapshot supports importing maps as well
 * [BUGFIX] Issue #11: Doesn't crash when clicking radios on empty Koa file
 * [BUGFIX] Moves references to retro.moe/pungas.space from empty charset to about
 * [BUGFIX] Fix memory leak when destructing State

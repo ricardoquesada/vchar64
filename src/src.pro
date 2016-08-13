@@ -53,7 +53,8 @@ SOURCES += main.cpp\
     mappropertiesdialog.cpp \
     importkoalacharsetwidget.cpp \
     importkoalabitmapwidget.cpp \
-    importvicecharsetwidget.cpp
+    importvicecharsetwidget.cpp \
+    importvicescreenramwidget.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -83,7 +84,8 @@ HEADERS  += mainwindow.h \
     mappropertiesdialog.h \
     importkoalacharsetwidget.h \
     importkoalabitmapwidget.h \
-    importvicecharsetwidget.h
+    importvicecharsetwidget.h \
+    importvicescreenramwidget.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \
