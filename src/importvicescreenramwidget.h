@@ -11,12 +11,14 @@ class ImportVICEScreenRAMWidget : public QWidget
 public:
     explicit ImportVICEScreenRAMWidget(QWidget *parent = 0);
     void setParentDialog(ImportVICEDialog* parentDialog) { _parentDialog = parentDialog; }
+    void setDisplayGrid(bool enabled);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
 
     void updateTileImages();
     ImportVICEDialog* _parentDialog;    // weak ref
+    bool _displayGrid;
 };
 
 #endif // IMPORTVICESCREENRAMWIDGET_H

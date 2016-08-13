@@ -243,6 +243,7 @@ void ImportVICEDialog::updateWidgets()
     {
         ui->checkBoxMulticolor,
         ui->checkBoxGuessColors,
+        ui->checkBoxDisplayGrid,
         ui->spinBoxCharset,
         ui->spinBoxScreenRAM,
         ui->pushButton_import
@@ -285,4 +286,10 @@ void ImportVICEDialog::on_checkBoxGuessColors_clicked(bool checked)
     updateTileImages();
     ui->widgetCharset->update();
     ui->widgetScreenRAM->update();
+}
+
+void ImportVICEDialog::on_checkBoxDisplayGrid_clicked(bool checked)
+{
+    ui->widgetCharset->setDisplayGrid(checked);
+    ui->widgetScreenRAM->setDisplayGrid(checked);
 }

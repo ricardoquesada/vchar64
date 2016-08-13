@@ -63,6 +63,8 @@ private slots:
 
     void on_checkBoxGuessColors_clicked(bool checked);
 
+    void on_checkBoxDisplayGrid_clicked(bool checked);
+
 private:
     Ui::ImportVICEDialog *ui;
     bool _validVICEFile;

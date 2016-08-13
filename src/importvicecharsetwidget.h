@@ -28,9 +28,11 @@ class ImportVICECharsetWidget : public QWidget
 public:
     ImportVICECharsetWidget(QWidget *parent=nullptr);
     void setParentDialog(ImportVICEDialog* parentDialog) { _parentDialog = parentDialog; }
+    void setDisplayGrid(bool enabled);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
     ImportVICEDialog* _parentDialog;
+    bool _displayGrid;
 };
 

@@ -32,6 +32,7 @@ static const int OFFSET = 0;
 ImportVICECharsetWidget::ImportVICECharsetWidget(QWidget *parent)
     : QWidget(parent)
     , _parentDialog(nullptr)
+    , _displayGrid(false)
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
                  PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
@@ -64,5 +65,33 @@ void ImportVICECharsetWidget::paintEvent(QPaintEvent *event)
         }
     }
 
+    if (_displayGrid)
+    {
+        auto pen = painter.pen();
+        pen.setColor(QColor(0,128,0));
+        pen.setStyle(Qt::DashLine);
+        pen.setWidthF(1.0 / PIXEL_SIZE);
+        painter.setPen(pen);
+
+
+        for (int y=0; y <= ROWS; ++y)
+            painter.drawLine(QPointF(0 + OFFSET, y * 8 + OFFSET),
+                             QPointF(COLUMNS * 8 + OFFSET, y * 8 + OFFSET));
+
+        for (int x=0; x <= COLUMNS; ++x)
+            painter.drawLine(QPointF(x * 8 + OFFSET, OFFSET),
+                             QPointF(x * 8 + OFFSET, ROWS * 8 + OFFSET));
+    }
+
+
     painter.end();
+}
+
+void ImportVICECharsetWidget::setDisplayGrid(bool enabled)
+{
+    if (enabled != _displayGrid)
+    {
+        _displayGrid = enabled;
+        update();
+    }
 }
