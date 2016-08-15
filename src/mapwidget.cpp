@@ -126,13 +126,16 @@ void MapWidget::paintEvent(QPaintEvent *event)
     pen.setStyle(Qt::PenStyle::SolidLine);
 
     if (_selecting) {
+        int plusOneX = _selectingSize.width() < 0 ? 1 : 0;
+        int plusOneY = _selectingSize.height() < 0 ? 1 : 0;
+
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(149,195,244,64));
-        painter.drawRect(_cursorPos.x() * 8 * tw + OFFSET,
-                         _cursorPos.y() * 8 * th + OFFSET,
-                         _selectingSize.width() * tw * 8,
-                         _selectingSize.height() * th * 8);
+        painter.drawRect((_cursorPos.x() + plusOneX) * 8 * tw + OFFSET,
+                         (_cursorPos.y() + plusOneY) * 8 * th + OFFSET,
+                         (_selectingSize.width() - plusOneX) * tw * 8,
+                         (_selectingSize.height() - plusOneY) * th * 8);
     }
     else
     {
@@ -451,13 +454,13 @@ void MapWidget::getSelectionRange(State::CopyRange* copyRange) const
     if (_selectingSize.width() < 0)
     {
         fixed_origin.setX(_cursorPos.x() + _selectingSize.width());
-        fixed_size.setWidth(-_selectingSize.width());
+        fixed_size.setWidth(-_selectingSize.width() + 1);
     }
 
     if (_selectingSize.height() < 0)
     {
         fixed_origin.setY(_cursorPos.y() + _selectingSize.height());
-        fixed_size.setHeight(-_selectingSize.height());
+        fixed_size.setHeight(-_selectingSize.height() + 1);
     }
 
     // transform origin/size to offset, blockSize, ...

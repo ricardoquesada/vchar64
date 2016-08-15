@@ -263,13 +263,16 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
 
     if (_selecting)
     {
+        int plusOneX = _selectingSize.width() < 0 ? 1 : 0;
+        int plusOneY = _selectingSize.height() < 0 ? 1 : 0;
+
         pen.setColor({149,195,244,255});
         painter.setPen(pen);
         painter.setBrush(QColor(149,195,244,64));
-        painter.drawRect(_cursorPos.x() * 8 + OFFSET,
-                         _cursorPos.y() * 8 + OFFSET,
-                         _selectingSize.width() * 8,
-                         _selectingSize.height() * 8);
+        painter.drawRect((_cursorPos.x() + plusOneX) * 8 + OFFSET,
+                         (_cursorPos.y() + plusOneY) * 8 + OFFSET,
+                         (_selectingSize.width() - plusOneX) * 8,
+                         (_selectingSize.height() - plusOneY) * 8);
     }
     else
     {
@@ -381,13 +384,13 @@ void CharsetWidget::getSelectionRange(State::CopyRange* copyRange) const
     if (_selectingSize.width() < 0)
     {
         fixed_origin.setX(_cursorPos.x() + _selectingSize.width());
-        fixed_size.setWidth(-_selectingSize.width());
+        fixed_size.setWidth(-_selectingSize.width() + 1);
     }
 
     if (_selectingSize.height() < 0)
     {
         fixed_origin.setY(_cursorPos.y() + _selectingSize.height());
-        fixed_size.setHeight(-_selectingSize.height());
+        fixed_size.setHeight(-_selectingSize.height() + 1);
     }
 
 

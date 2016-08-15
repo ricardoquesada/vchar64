@@ -4,7 +4,8 @@
 * [BUGFIX] Issue #11: Doesn't crash when clicking radios on empty Koa file
 * [BUGFIX] Moves references to retro.moe/pungas.space from empty charset to about
 * [BUGFIX] Fix memory leak when destructing State
-* [BIGFIX] Fix crash when using the Map widget with no open documents
+* [BuGFIX] Fix crash when using the Map widget with no open documents
+* [BUGFIX] Issue #16 Map/Charset/Tileset: Backward selection works as expected
 
 0.1.0 (14 July 2016)
 * [NEW] Export: saves exported addresses in vcharproj file. Increased version to 3
