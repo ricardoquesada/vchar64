@@ -1,5 +1,7 @@
 0.2.0 (XX August 2016)
 * [NEW] Issue #17: Added File -> Clone Current Project
+* [NEW] Issue #14: When VChar64 is launched it will try to restore the
+        previous session
 * [NEW] Issue #13: Import VICE Snapshot supports importing maps as well
 * [BUGFIX] Issue #11: Doesn't crash when clicking radios on empty Koa file
 * [BUGFIX] Moves references to retro.moe/pungas.space from empty charset to about
@@ -29,17 +31,17 @@
 * [BUGFIX] Export Dialog: tab-order fixed
 * [BUGFIX] Copy/Paste: doesn't allow copy paste invalid buffers
 * [BUGFIX] Cut: works as expected when using "inverse" range
-			state->cut() no longer receives an offset since the offset
-			is taken from the range
+        state->cut() no longer receives an offset since the offset
+        is taken from the range
 * [BUGFIX] Cut: doesn't crash if cut is triggered when no window has focus
 * [BUGFIX] Map widget: selecting with keyboard for the first time works as
-	       expected
+        expected
 * [BUGFIX] Maps scrolls normal speed (even big maps)
 * [BUGFIX] TilesetWidget and CharsetWidget use zoomLevel to instead of
-           pixelSize for zooming. Faster and less memory(?)
+        pixelSize for zooming. Faster and less memory(?)
 * [BUGFIX] Resizing maps works as expected
 * [BUGFIX] Displays correct tile in map when tile is resized.
-           Doesn't crash on debug mode as well.
+        Doesn't crash on debug mode as well.
 
 
 0.0.12 (1 March 2016)
@@ -135,7 +137,7 @@
 
 * [BUGFIX] Clear Tile works as expected with interleaved tiles
 * [BUGFIX] Tile Index / Rotate Action udpated correctly after tile properties
-	are updated in undo / redo
+    are updated in undo / redo
 * [BUGFIX] Block-copy supported in Xlink
 * [BUGFIX] events are propagated to the dock windows when they are floating
 * [BUGFIX] Copy & Paste works as expected in interleaved mode

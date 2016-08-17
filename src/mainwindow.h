@@ -99,6 +99,7 @@ protected:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    bool _openFile(const QString& fileName);
     void saveSettings();
     void createActions();
     void createDefaults();
@@ -111,7 +112,10 @@ protected:
 
     void updateRecentFiles();
     void setRecentFile(const QString& fileName);
-    QStringList recentFiles() const;
+    QStringList getRecentFiles() const;
+
+    void setSessionFiles();
+    QStringList getSessionFiles() const;
 
     void activateRadioButtonIndex(int pen);
     void activatePalette(int paletteIndex);

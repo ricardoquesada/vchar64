@@ -226,6 +226,7 @@ void MainWindow::refresh()
 //
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    setSessionFiles();
     _ui->mdiArea->closeAllSubWindows();
     if (_ui->mdiArea->subWindowList().size() > 0)
     {
@@ -293,7 +294,18 @@ void MainWindow::saveSettings()
 
 void MainWindow::openDefaultDocument()
 {
-    on_actionC64DefaultUppercase_triggered();
+    bool success = false;
+    auto fileList = getSessionFiles();
+
+    qDebug() << fileList;
+
+    for (auto file: fileList)
+    {
+        success |= _openFile(file);
+    }
+
+    if (!success)
+        on_actionC64DefaultUppercase_triggered();
 }
 
 BigCharWidget* MainWindow::createDocument(State* state)
@@ -631,7 +643,7 @@ void MainWindow::updateMenus()
         actions[i]->setEnabled(withDocuments);
 }
 
-QStringList MainWindow::recentFiles() const
+QStringList MainWindow::getRecentFiles() const
 {
     QVariant v = _settings.value(QLatin1String("recentFiles/fileNames"));
     return v.toStringList();
@@ -639,7 +651,7 @@ QStringList MainWindow::recentFiles() const
 
 void MainWindow::updateRecentFiles()
 {
-    QStringList files = recentFiles();
+    QStringList files = getRecentFiles();
     const int numRecentFiles = qMin(files.size(), MAX_RECENT_FILES);
 
     for (int i = 0; i < numRecentFiles; ++i)
@@ -665,7 +677,7 @@ void MainWindow::setRecentFile(const QString& fileName)
     if (canonicalFilePath.isEmpty())
         return;
 
-    QStringList files = recentFiles();
+    QStringList files = getRecentFiles();
     files.removeAll(canonicalFilePath);
     files.prepend(canonicalFilePath);
     while (files.size() > MAX_RECENT_FILES)
@@ -674,6 +686,28 @@ void MainWindow::setRecentFile(const QString& fileName)
     _settings.setValue(QLatin1String("recentFiles/fileNames"), files);
     updateRecentFiles();
 }
+
+void MainWindow::setSessionFiles()
+{
+    QStringList fileList;
+    auto mdiList = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::StackingOrder);
+    for (auto item: mdiList) {
+        auto bigchar = static_cast<BigCharWidget*>(item->widget());
+        auto bigcharState = bigchar->getState();
+        fileList.append(bigcharState->getLoadedFilename());
+    }
+
+    qDebug() << fileList;
+
+    _settings.setValue(QLatin1String("sessionFiles/fileNames"), fileList);
+}
+
+QStringList MainWindow::getSessionFiles() const
+{
+    QVariant v = _settings.value(QLatin1String("sessionFiles/fileNames"));
+    return v.toStringList();
+}
+
 
 //
 // MARK - Slots / Events / Callbacks
@@ -698,6 +732,7 @@ void MainWindow::onCharIndexUpdated(int charIndex)
 
 void MainWindow::on_actionExit_triggered()
 {
+    setSessionFiles();
     _ui->mdiArea->closeAllSubWindows();
     if (_ui->mdiArea->subWindowList().size() == 0)
     {
@@ -914,9 +949,21 @@ bool MainWindow::openFile(const QString& path)
     QFileInfo info(path);
     _settings.setValue(QLatin1String("dir/lastdir"), info.absolutePath());
 
+    bool ret = _openFile(path);
+    if (!ret)
+    {
+        QMessageBox::warning(this, tr("Application"), tr("Error loading file: ") + path, QMessageBox::Ok);
+    }
+
+    return ret;
+}
+
+bool MainWindow::_openFile(const QString& path)
+{
+    QFileInfo info(path);
     bool ret = false;
     auto state = new State;
-    if ( (ret=state->openFile(path)))
+    if ((ret=state->openFile(path)))
     {
         createDocument(state);
         setRecentFile(path);
@@ -930,9 +977,7 @@ bool MainWindow::openFile(const QString& path)
     else
     {
         delete state;
-        QMessageBox::warning(this, tr("Application"), tr("Error loading file: ") + path, QMessageBox::Ok);
     }
-
     return ret;
 }
 
@@ -1287,7 +1332,7 @@ void MainWindow::onOpenRecentFileTriggered()
         auto path = action->data().toString();
         if (!openFile(path))
         {
-            QStringList files = recentFiles();
+            QStringList files = getRecentFiles();
             files.removeAll(path);
             _settings.setValue(QLatin1String("recentFiles/fileNames"), files);
             updateRecentFiles();
