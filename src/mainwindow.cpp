@@ -990,7 +990,6 @@ bool MainWindow::activateIfAlreadyOpen(const QString& fileName)
         qDebug() << bigcharState->getLoadedFilename();
         if (fileName.compare(bigcharState->getLoadedFilename()) == 0) {
             mdiSubWindow->setFocus();
-            mdiSubWindow->activateWindow();
             return true;
         }
     }
