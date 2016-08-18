@@ -100,6 +100,7 @@ protected:
     ~MainWindow();
 
     bool _openFile(const QString& fileName);
+    bool activateIfAlreadyOpen(const QString& fileName);
     void saveSettings();
     void createActions();
     void createDefaults();

@@ -297,8 +297,6 @@ void MainWindow::openDefaultDocument()
     bool success = false;
     auto fileList = getSessionFiles();
 
-    qDebug() << fileList;
-
     for (auto file: fileList)
     {
         success |= _openFile(file);
@@ -697,8 +695,6 @@ void MainWindow::setSessionFiles()
         fileList.append(bigcharState->getLoadedFilename());
     }
 
-    qDebug() << fileList;
-
     _settings.setValue(QLatin1String("sessionFiles/fileNames"), fileList);
 }
 
@@ -949,6 +945,9 @@ bool MainWindow::openFile(const QString& path)
     QFileInfo info(path);
     _settings.setValue(QLatin1String("dir/lastdir"), info.absolutePath());
 
+    if (activateIfAlreadyOpen(info.canonicalFilePath()))
+        return true;
+
     bool ret = _openFile(path);
     if (!ret)
     {
@@ -979,6 +978,23 @@ bool MainWindow::_openFile(const QString& path)
         delete state;
     }
     return ret;
+}
+
+bool MainWindow::activateIfAlreadyOpen(const QString& fileName)
+{
+    QStringList fileList;
+    auto mdiList = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::StackingOrder);
+    for (auto mdiSubWindow: mdiList) {
+        auto bigchar = static_cast<BigCharWidget*>(mdiSubWindow->widget());
+        auto bigcharState = bigchar->getState();
+        qDebug() << bigcharState->getLoadedFilename();
+        if (fileName.compare(bigcharState->getLoadedFilename()) == 0) {
+            mdiSubWindow->setFocus();
+            mdiSubWindow->activateWindow();
+            return true;
+        }
+    }
+    return false;
 }
 
 void MainWindow::on_actionOpen_triggered()
