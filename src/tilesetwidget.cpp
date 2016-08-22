@@ -21,6 +21,7 @@ limitations under the License.
 #include <QtMath>
 #include <QDebug>
 
+#include "preferences.h"
 #include "palette.h"
 #include "state.h"
 #include "mainwindow.h"
@@ -293,7 +294,7 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
     if (_displayGrid)
     {
         auto pen = painter.pen();
-        pen.setColor(QColor(0,128,0));
+        pen.setColor(Preferences::getInstance().getColorGrid());
         pen.setStyle(Qt::DashLine);
         pen.setWidthF(1.0 / _zoomLevel);
         painter.setPen(pen);

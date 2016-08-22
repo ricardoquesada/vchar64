@@ -20,6 +20,7 @@ limitations under the License.
 
 // paints a color:
 // either a fixed color `setColor()`, or the color from a pen `setPen()`
+// used in: Import Koala Dialog and Select Color Dialog
 class ColorRectWidget : public QWidget
 {
     Q_OBJECT

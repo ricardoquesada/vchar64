@@ -27,6 +27,7 @@ limitations under the License.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "utils.h"
+#include "preferences.h"
 
 static const int COLUMNS = 32;
 static const int ROWS = 8;
@@ -241,7 +242,7 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
     if (_displayGrid)
     {
         auto pen = painter.pen();
-        pen.setColor(QColor(0,128,0));
+        pen.setColor(Preferences::getInstance().getColorGrid());
         pen.setStyle(Qt::DashLine);
         pen.setWidthF(1.0 / _zoomLevel);
         painter.setPen(pen);

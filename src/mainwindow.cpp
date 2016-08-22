@@ -52,6 +52,7 @@ limitations under the License.
 #include "serverconnectdialog.h"
 #include "serverpreview.h"
 #include "mapwidget.h"
+#include "preferencesdialog.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 static const int STATE_VERSION = 11;
@@ -777,6 +778,12 @@ void MainWindow::on_actionC64DefaultLowercase_triggered()
     {
         delete state;
     }
+}
+
+void MainWindow::on_actionPreferences_triggered()
+{
+    PreferencesDialog dialog(this);
+    dialog.exec();
 }
 
 //

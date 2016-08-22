@@ -54,7 +54,9 @@ SOURCES += main.cpp\
     importkoalacharsetwidget.cpp \
     importkoalabitmapwidget.cpp \
     importvicecharsetwidget.cpp \
-    importvicescreenramwidget.cpp
+    importvicescreenramwidget.cpp \
+    preferencesdialog.cpp \
+    preferences.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -85,7 +87,9 @@ HEADERS  += mainwindow.h \
     importkoalacharsetwidget.h \
     importkoalabitmapwidget.h \
     importvicecharsetwidget.h \
-    importvicescreenramwidget.h
+    importvicescreenramwidget.h \
+    preferencesdialog.h \
+    preferences.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \
@@ -95,7 +99,8 @@ FORMS    += mainwindow.ui \
     serverconnectdialog.ui \
     importkoaladialog.ui \
     selectcolordialog.ui \
-    mappropertiesdialog.ui
+    mappropertiesdialog.ui \
+    preferencesdialog.ui
 
 INCLUDEPATH += src
 

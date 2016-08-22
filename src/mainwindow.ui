@@ -108,8 +108,10 @@
     </property>
     <addaction name="actionAbout"/>
     <addaction name="actionAboutQt"/>
+    <addaction name="actionPreferences"/>
     <addaction name="actionDocumentation"/>
     <addaction name="actionReportBug"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuTile">
     <property name="title">
@@ -1091,6 +1093,11 @@
   <action name="actionCloneCurrentProject">
    <property name="text">
     <string>Clone Current Project</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="text">
+    <string>Preferences</string>
    </property>
   </action>
  </widget>

@@ -213,6 +213,8 @@ private slots:
 
     void on_actionCloneCurrentProject_triggered();
 
+    void on_actionPreferences_triggered();
+
 private:
     QVector<QAction*> _recentFiles;
 
