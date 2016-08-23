@@ -110,6 +110,7 @@ protected:
     void setupTilesetDock();
     void setupMapDock();
     void closeState(State* state);
+    void checkForUpdates();
 
     void updateRecentFiles();
     void setRecentFile(const QString& fileName);

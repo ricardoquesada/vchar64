@@ -40,6 +40,7 @@ public:
 
     void setLastUpdateCheckDate(const QDateTime& date);
     QDateTime getLastUpdateCheckDate() const;
+    int getLastTimeUpdateCheck() const;
 
 private:
     Preferences();

@@ -73,3 +73,11 @@ QDateTime Preferences::getLastUpdateCheckDate() const
 {
     return QSettings().value(QLatin1String("Install/LastUpdateCheckDate"), QDateTime()).toDateTime();
 }
+
+int Preferences::getLastTimeUpdateCheck() const
+{
+    QDateTime now = QDateTime::currentDateTime();
+    QDateTime lastTime = getLastUpdateCheckDate();
+
+    return lastTime.daysTo(now);
+}

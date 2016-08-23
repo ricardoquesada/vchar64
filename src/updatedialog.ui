@@ -46,11 +46,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QPlainTextEdit" name="plainTextEditChanges">
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <widget class="QTextBrowser" name="textBrowserChanges"/>
    </item>
    <item>
     <spacer name="verticalSpacer">

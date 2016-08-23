@@ -128,6 +128,7 @@ void AutoUpdater::httpFinished()
         UpdateDialog dialog;
         dialog.setChanges(changes);
         dialog.setNewVersion(newVersion);
+        dialog.setUpdateURL(url);
         dialog.exec();
     }
 
@@ -136,9 +137,5 @@ void AutoUpdater::httpFinished()
 
 void AutoUpdater::httpReadyRead()
 {
-    // this slot gets called every time the QNetworkReply has new data.
-    // We read all of its new data and write it into the file.
-    // That way we use less RAM than when reading it at the finished()
-    // signal of the QNetworkReply
     _data.append(_reply->readAll());
 }

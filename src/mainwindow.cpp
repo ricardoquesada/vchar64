@@ -54,6 +54,7 @@ limitations under the License.
 #include "mapwidget.h"
 #include "preferencesdialog.h"
 #include "preferences.h"
+#include "autoupdater.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 static const int STATE_VERSION = 11;
@@ -90,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent)
     setupTilesetDock();
     setupMapDock();
     setupStatusBar();
+    checkForUpdates();
 }
 
 MainWindow::~MainWindow()
@@ -1641,4 +1643,13 @@ bool MainWindow::bufferFromClipboard(State::CopyRange **out_range, quint8** out_
     *out_buffer = (quint8*) data;
 
     return true;
+}
+
+void MainWindow::checkForUpdates()
+{
+    auto &prefs = Preferences::getInstance();
+    // check for updates only for more than 7 days passed since last check
+    if (prefs.getCheckUpdates() && prefs.getLastTimeUpdateCheck() >= 7) {
+        AutoUpdater::getInstance().checkUpdate();
+    }
 }
