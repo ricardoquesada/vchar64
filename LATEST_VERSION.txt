@@ -1,7 +1,9 @@
 # Used by Auto Updater
 # Update it anytime a new stable version is released, but not before!
+# after "changes:" is met, no more tags can be added
 stable_version: 0.2.0
 stable_url: https://github.com/ricardoquesada/vchar64/releases/tag/0.2.0
+changes:
 <ul>
 <li>[NEW] Issue #17: Added File -> Clone Current Project</li>
 <li>[NEW] Issue #14: When VChar64 is launched it will try to restore the previous session</li>

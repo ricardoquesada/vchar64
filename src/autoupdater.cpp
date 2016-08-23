@@ -103,6 +103,7 @@ void AutoUpdater::httpFinished()
     QString newVersion("");
     QString url("");
     QString changes("");
+    bool appendChanges = false;
 
     auto list = _data.split("\n", QString::SkipEmptyParts);
     for(const auto str: list) {
@@ -112,7 +113,9 @@ void AutoUpdater::httpFinished()
                 newVersion = str.mid(sizeof("stable_version:")-1).trimmed();
             } else if (str.startsWith("stable_url:")) {
                 url = str.mid(sizeof("stable_url:")-1).trimmed();
-            } else {
+            } else if (str.startsWith("changes:")) {
+                appendChanges = true;
+            } else if (appendChanges) {
                 changes.append(str.trimmed());
             }
         }
