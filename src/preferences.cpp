@@ -41,6 +41,25 @@ void Preferences::setColorGrid(const QColor& color)
 
 QColor Preferences::getColorGrid() const
 {
-    QColor color = QSettings().value(QLatin1String("colorGrid"), QColor(0,128,0)).value<QColor>();
-    return color;
+    return QSettings().value(QLatin1String("colorGrid"), QColor(0,128,0)).value<QColor>();
+}
+
+void Preferences::setSaveSession(bool enableIt)
+{
+    QSettings().setValue(QLatin1String("saveSession"), enableIt);
+}
+
+bool Preferences::getSaveSession() const
+{
+    return QSettings().value(QLatin1String("saveSession"), true).toBool();
+}
+
+void Preferences::setCheckUpdates(bool enableIt)
+{
+    QSettings().setValue(QLatin1String("checkUpdates"), enableIt);
+}
+
+bool Preferences::getCheckUpdates() const
+{
+    return QSettings().value(QLatin1String("checkUpdates"), true).toBool();
 }

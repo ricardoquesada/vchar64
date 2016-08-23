@@ -28,12 +28,13 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->setupUi(this);
 
     connect(ui->toolButtonSelectColor, &QToolButton::clicked, this, &PreferencesDialog::onSelectColor);
-    connect(ui->pushButtonCheckNow, &QPushButton::clicked, this, &PreferencesDialog::onCheckUpdates);
+    connect(ui->pushButtonCheckNow, &QPushButton::clicked, this, &PreferencesDialog::onUpdateNow);
+    connect(ui->checkBoxStartupFiles, &QCheckBox::toggled, this, &PreferencesDialog::onStartUpFiles);
+    connect(ui->checkBoxAutoCheck, &QCheckBox::toggled, this, &PreferencesDialog::onAutoCheckUpdates);
 
-    _origStyleSheet = ui->toolButtonSelectColor->styleSheet();
-
-    QColor color = Preferences::getInstance().getColorGrid();
-    setGridColor(color);
+    setGridColor(Preferences::getInstance().getColorGrid());
+    ui->checkBoxStartupFiles->setChecked(Preferences::getInstance().getSaveSession());
+    ui->checkBoxAutoCheck->setChecked(Preferences::getInstance().getCheckUpdates());
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -60,6 +61,17 @@ void PreferencesDialog::onSelectColor()
         setGridColor(color);
 }
 
-void PreferencesDialog::onCheckUpdates()
+void PreferencesDialog::onStartUpFiles(bool checked)
 {
+    Preferences::getInstance().setSaveSession(checked);
+}
+
+void PreferencesDialog::onAutoCheckUpdates(bool checked)
+{
+    Preferences::getInstance().setCheckUpdates(checked);
+}
+
+void PreferencesDialog::onUpdateNow()
+{
+    // check for update
 }

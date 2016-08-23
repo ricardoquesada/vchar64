@@ -53,6 +53,7 @@ limitations under the License.
 #include "serverpreview.h"
 #include "mapwidget.h"
 #include "preferencesdialog.h"
+#include "preferences.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 static const int STATE_VERSION = 11;
@@ -296,11 +297,15 @@ void MainWindow::saveSettings()
 void MainWindow::openDefaultDocument()
 {
     bool success = false;
-    auto fileList = getSessionFiles();
 
-    for (auto file: fileList)
+    if (Preferences::getInstance().getSaveSession())
     {
-        success |= _openFile(file);
+        auto fileList = getSessionFiles();
+
+        for (auto file: fileList)
+        {
+            success |= _openFile(file);
+        }
     }
 
     if (!success)

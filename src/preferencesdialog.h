@@ -32,15 +32,15 @@ public:
     ~PreferencesDialog();
 
 private slots:
-    void onCheckUpdates();
     void onSelectColor();
+    void onStartUpFiles(bool checked);
+    void onAutoCheckUpdates(bool checked);
+    void onUpdateNow();
 
 private:
     void setGridColor(const QColor& color);
 
     Ui::PreferencesDialog *ui;
-
-    QString _origStyleSheet;
 };
 
 #endif // PREFERENCESDIALOG_H

@@ -31,6 +31,12 @@ public:
     void setColorGrid(const QColor& color);
     QColor getColorGrid() const;
 
+    void setSaveSession(bool enableIt);
+    bool getSaveSession() const;
+
+    void setCheckUpdates(bool enableIt);
+    bool getCheckUpdates() const;
+
 private:
     Preferences();
     ~Preferences();
