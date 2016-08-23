@@ -2,12 +2,14 @@
 # Update it anytime a new stable version is released, but not before!
 stable_version: 0.2.0
 stable_url: https://github.com/ricardoquesada/vchar64/releases/tag/0.2.0
-* [NEW] Issue #17: Added File -> Clone Current Project
-* [NEW] Issue #14: When VChar64 is launched it will try to restore the previous session
-* [NEW] Issue #13: Import VICE Snapshot supports importing maps as well
-* [BUGFIX] Issue #11: Doesn't crash when clicking radios on empty Koa file
-* [BUGFIX] Opening an already-open file will activate that window instead of opening a duplicate file
-* [BUGFIX] Moves references to retro.moe/pungas.space from empty charset to about
-* [BUGFIX] Fix memory leak when destructing State
-* [BUGFIX] Fix crash when using the Map widget with no open documents
-* [BUGFIX] Issue #16 Map/Charset/Tileset: Backward selection works as expected
+<ul>
+<li>[NEW] Issue #17: Added File -> Clone Current Project</li>
+<li>[NEW] Issue #14: When VChar64 is launched it will try to restore the previous session</li>
+<li>[NEW] Issue #13: Import VICE Snapshot supports importing maps as well</li>
+<li>[BUGFIX] Issue #11: Doesn't crash when clicking radios on empty Koa file</li>
+<li>[BUGFIX] Opening an already-open file will activate that window instead of opening a duplicate file</li>
+<li>[BUGFIX] Moves references to retro.moe/pungas.space from empty charset to about</li>
+<li>[BUGFIX] Fix memory leak when destructing State</li>
+<li>[BUGFIX] Fix crash when using the Map widget with no open documents</li>
+<li>[BUGFIX] Issue #16 Map/Charset/Tileset: Backward selection works as expected</li>
+</ul>

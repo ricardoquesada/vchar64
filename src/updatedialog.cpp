@@ -22,7 +22,7 @@ void UpdateDialog::setNewVersion(const QString &newVersion)
 
 void UpdateDialog::setChanges(const QString &changes)
 {
-    ui->plainTextEditChanges->appendPlainText(changes);
+    ui->plainTextEditChanges->appendHtml(changes);
 }
 
 void UpdateDialog::on_pushButtonDownload_clicked()

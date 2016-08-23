@@ -56,6 +56,7 @@ void AutoUpdater::checkUpdate()
 
 void AutoUpdater::startRequest(const QUrl &requestedUrl)
 {
+    _qnam.clearAccessCache();
     _reply = _qnam.get(QNetworkRequest(requestedUrl));
     connect(_reply, &QNetworkReply::finished, this, &AutoUpdater::httpFinished);
     connect(_reply, &QIODevice::readyRead, this, &AutoUpdater::httpReadyRead);
@@ -111,9 +112,8 @@ void AutoUpdater::httpFinished()
                 newVersion = str.mid(sizeof("stable_version:")-1).trimmed();
             } else if (str.startsWith("stable_url:")) {
                 url = str.mid(sizeof("stable_url:")-1).trimmed();
-            } else if (str.startsWith("* ")) {
-                changes.append(str.mid(sizeof("* ")-1).trimmed());
-                changes.append("\n");
+            } else {
+                changes.append(str.trimmed());
             }
         }
     }
