@@ -17,9 +17,9 @@ win32 {
     DESTDIR = ../bin
 }
 TEMPLATE = app
-VERSION = 0.2.0
+VERSION = 0.1.99
 GIT_VERSION = $$system(git describe --abbrev=4 --dirty --always --tags)
-DEFINES += GIT_VERSION=\\\"$$GIT_VERSION\\\"
+DEFINES += GIT_VERSION=\\\"$$GIT_VERSION\\\" VERSION=\\\"$$VERSION\\\"
 
 CONFIG += c++11
 CONFIG += debug_and_release
@@ -57,7 +57,8 @@ SOURCES += main.cpp\
     importvicescreenramwidget.cpp \
     preferencesdialog.cpp \
     preferences.cpp \
-    autoupdater.cpp
+    autoupdater.cpp \
+    updatedialog.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -91,7 +92,8 @@ HEADERS  += mainwindow.h \
     importvicescreenramwidget.h \
     preferencesdialog.h \
     preferences.h \
-    autoupdater.h
+    autoupdater.h \
+    updatedialog.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \
@@ -102,7 +104,8 @@ FORMS    += mainwindow.ui \
     importkoaladialog.ui \
     selectcolordialog.ui \
     mappropertiesdialog.ui \
-    preferencesdialog.ui
+    preferencesdialog.ui \
+    updatedialog.ui
 
 INCLUDEPATH += src
 

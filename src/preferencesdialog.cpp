@@ -33,10 +33,14 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     connect(ui->pushButtonCheckNow, &QPushButton::clicked, this, &PreferencesDialog::onUpdateNow);
     connect(ui->checkBoxStartupFiles, &QCheckBox::toggled, this, &PreferencesDialog::onStartUpFiles);
     connect(ui->checkBoxAutoCheck, &QCheckBox::toggled, this, &PreferencesDialog::onAutoCheckUpdates);
+    auto& updateInstance = AutoUpdater::getInstance();
+    connect(&updateInstance, &AutoUpdater::updateCheckFinished, this, &PreferencesDialog::onUpdateCheckFinished);
 
     setGridColor(Preferences::getInstance().getGridColor());
     ui->checkBoxStartupFiles->setChecked(Preferences::getInstance().getOpenLastFiles());
     ui->checkBoxAutoCheck->setChecked(Preferences::getInstance().getCheckUpdates());
+
+    onUpdateCheckFinished();
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -76,4 +80,10 @@ void PreferencesDialog::onAutoCheckUpdates(bool checked)
 void PreferencesDialog::onUpdateNow()
 {
     AutoUpdater::getInstance().checkUpdate();
+}
+
+void PreferencesDialog::onUpdateCheckFinished()
+{
+    QDateTime lastCheck = Preferences::getInstance().getLastUpdateCheckDate();
+    ui->labelLastCheck->setText(tr("Last check: %1").arg(lastCheck.toString("ddd MMMM d yyyy - hh:mm:ss ap")));
 }

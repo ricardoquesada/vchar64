@@ -17,6 +17,7 @@ limitations under the License.
 #pragma once
 
 #include <QObject>
+#include <QDateTime>
 
 class Preferences: public QObject
 {
@@ -36,6 +37,9 @@ public:
 
     void setCheckUpdates(bool enableIt);
     bool getCheckUpdates() const;
+
+    void setLastUpdateCheckDate(const QDateTime& date);
+    QDateTime getLastUpdateCheckDate() const;
 
 private:
     Preferences();

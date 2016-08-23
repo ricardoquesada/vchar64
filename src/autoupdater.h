@@ -19,6 +19,7 @@ limitations under the License.
 #include <QObject>
 #include <QUrl>
 #include <QNetworkAccessManager>
+#include <QDateTime>
 
 class AutoUpdater: public QObject
 {
@@ -32,6 +33,10 @@ public:
 
     void checkUpdate();
     void cancelDownload();
+    QDateTime getLastUpdateCheckDate();
+
+signals:
+    void updateCheckFinished();
 
 private slots:
     void httpFinished();
@@ -47,4 +52,7 @@ private:
     QNetworkAccessManager _qnam;
     QNetworkReply *_reply;
     bool _httpRequestAborted;
+    bool _inProgress;
+
+    QString _data;
 };

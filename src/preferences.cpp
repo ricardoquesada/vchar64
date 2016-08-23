@@ -63,3 +63,13 @@ bool Preferences::getCheckUpdates() const
 {
     return QSettings().value(QLatin1String("Install/CheckForUpdates"), true).toBool();
 }
+
+void Preferences::setLastUpdateCheckDate(const QDateTime& date)
+{
+    QSettings().setValue(QLatin1String("Install/LastUpdateCheckDate"), date);
+}
+
+QDateTime Preferences::getLastUpdateCheckDate() const
+{
+    return QSettings().value(QLatin1String("Install/LastUpdateCheckDate"), QDateTime()).toDateTime();
+}

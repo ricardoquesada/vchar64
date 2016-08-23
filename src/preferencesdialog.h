@@ -36,6 +36,7 @@ private slots:
     void onStartUpFiles(bool checked);
     void onAutoCheckUpdates(bool checked);
     void onUpdateNow();
+    void onUpdateCheckFinished();
 
 private:
     void setGridColor(const QColor& color);

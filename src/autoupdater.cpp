@@ -18,6 +18,11 @@ limitations under the License.
 
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QRegExp>
+#include <QVersionNumber>
+
+#include "preferences.h"
+#include "updatedialog.h"
 
 AutoUpdater& AutoUpdater::getInstance()
 {
@@ -28,10 +33,10 @@ AutoUpdater& AutoUpdater::getInstance()
 AutoUpdater::AutoUpdater()
     :_reply(nullptr)
     ,_httpRequestAborted(false)
+    ,_inProgress(false)
 {
     _url = QUrl::fromUserInput("https://raw.githubusercontent.com/ricardoquesada/vchar64/master/LATEST_VERSION.txt");
     Q_ASSERT(_url.isValid() && "Invalid URL");
-
 }
 
 AutoUpdater::~AutoUpdater()
@@ -40,6 +45,11 @@ AutoUpdater::~AutoUpdater()
 
 void AutoUpdater::checkUpdate()
 {
+    if (_inProgress)
+        return;
+
+    _data = "";
+    _inProgress = true;
     _httpRequestAborted = false;
     startRequest(_url);
 }
@@ -63,6 +73,8 @@ void AutoUpdater::cancelDownload()
 
 void AutoUpdater::httpFinished()
 {
+    _inProgress = false;
+
     if (_httpRequestAborted) {
         _reply->deleteLater();
         _reply = Q_NULLPTR;
@@ -86,6 +98,40 @@ void AutoUpdater::httpFinished()
         startRequest(redirectedUrl);
         return;
     }
+
+    QString newVersion("");
+    QString url("");
+    QString changes("");
+
+    auto list = _data.split("\n", QString::SkipEmptyParts);
+    for(const auto str: list) {
+        // not a comment?
+        if (!str.startsWith("#")) {
+            if (str.startsWith("stable_version:")) {
+                newVersion = str.mid(sizeof("stable_version:")-1).trimmed();
+            } else if (str.startsWith("stable_url:")) {
+                url = str.mid(sizeof("stable_url:")-1).trimmed();
+            } else if (str.startsWith("* ")) {
+                changes.append(str.mid(sizeof("* ")-1).trimmed());
+                changes.append("\n");
+            }
+        }
+    }
+
+    QDateTime currentTime = QDateTime::currentDateTime();
+    Preferences::getInstance().setLastUpdateCheckDate(currentTime);
+
+    QVersionNumber newVersionNumber = QVersionNumber::fromString(newVersion);
+    QVersionNumber curVersionNumber = QVersionNumber::fromString(VERSION);
+
+    if (newVersionNumber > curVersionNumber) {
+        UpdateDialog dialog;
+        dialog.setChanges(changes);
+        dialog.setNewVersion(newVersion);
+        dialog.exec();
+    }
+
+    emit updateCheckFinished();
 }
 
 void AutoUpdater::httpReadyRead()
@@ -94,5 +140,5 @@ void AutoUpdater::httpReadyRead()
     // We read all of its new data and write it into the file.
     // That way we use less RAM than when reading it at the finished()
     // signal of the QNetworkReply
-    qDebug() << _reply->readAll();
+    _data.append(_reply->readAll());
 }
