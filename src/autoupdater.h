@@ -17,27 +17,34 @@ limitations under the License.
 #pragma once
 
 #include <QObject>
+#include <QUrl>
+#include <QNetworkAccessManager>
 
-class Preferences: public QObject
+class AutoUpdater: public QObject
 {
     Q_OBJECT
-
 public:
-    static Preferences& getInstance();
 
-    Preferences(Preferences const&)     = delete;
-    void operator=(Preferences const&)  = delete;
+    static AutoUpdater& getInstance();
 
-    void setGridColor(const QColor& color);
-    QColor getGridColor() const;
+    AutoUpdater(AutoUpdater const&)     = delete;
+    void operator=(AutoUpdater const&)  = delete;
 
-    void setOpenLastFiles(bool enableIt);
-    bool getOpenLastFiles() const;
+    void checkUpdate();
+    void cancelDownload();
 
-    void setCheckUpdates(bool enableIt);
-    bool getCheckUpdates() const;
+private slots:
+    void httpFinished();
+    void httpReadyRead();
 
 private:
-    Preferences();
-    ~Preferences();
+    AutoUpdater();
+    ~AutoUpdater();
+
+    void startRequest(const QUrl &requestedUrl);
+
+    QUrl _url;
+    QNetworkAccessManager _qnam;
+    QNetworkReply *_reply;
+    bool _httpRequestAborted;
 };

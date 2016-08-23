@@ -242,7 +242,7 @@ void CharsetWidget::paintEvent(QPaintEvent *event)
     if (_displayGrid)
     {
         auto pen = painter.pen();
-        pen.setColor(Preferences::getInstance().getColorGrid());
+        pen.setColor(Preferences::getInstance().getGridColor());
         pen.setStyle(Qt::DashLine);
         pen.setWidthF(1.0 / _zoomLevel);
         painter.setPen(pen);

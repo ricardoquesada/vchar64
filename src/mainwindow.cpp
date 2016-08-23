@@ -298,7 +298,7 @@ void MainWindow::openDefaultDocument()
 {
     bool success = false;
 
-    if (Preferences::getInstance().getSaveSession())
+    if (Preferences::getInstance().getOpenLastFiles())
     {
         auto fileList = getSessionFiles();
 

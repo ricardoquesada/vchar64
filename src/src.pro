@@ -56,7 +56,8 @@ SOURCES += main.cpp\
     importvicecharsetwidget.cpp \
     importvicescreenramwidget.cpp \
     preferencesdialog.cpp \
-    preferences.cpp
+    preferences.cpp \
+    autoupdater.cpp
 
 HEADERS  += mainwindow.h \
     state.h \
@@ -89,7 +90,8 @@ HEADERS  += mainwindow.h \
     importvicecharsetwidget.h \
     importvicescreenramwidget.h \
     preferencesdialog.h \
-    preferences.h
+    preferences.h \
+    autoupdater.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \

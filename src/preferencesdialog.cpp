@@ -32,8 +32,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     connect(ui->checkBoxStartupFiles, &QCheckBox::toggled, this, &PreferencesDialog::onStartUpFiles);
     connect(ui->checkBoxAutoCheck, &QCheckBox::toggled, this, &PreferencesDialog::onAutoCheckUpdates);
 
-    setGridColor(Preferences::getInstance().getColorGrid());
-    ui->checkBoxStartupFiles->setChecked(Preferences::getInstance().getSaveSession());
+    setGridColor(Preferences::getInstance().getGridColor());
+    ui->checkBoxStartupFiles->setChecked(Preferences::getInstance().getOpenLastFiles());
     ui->checkBoxAutoCheck->setChecked(Preferences::getInstance().getCheckUpdates());
 }
 
@@ -50,7 +50,7 @@ void PreferencesDialog::setGridColor(const QColor &color)
     px.fill(color);
     ui->toolButtonSelectColor->setIcon(px);
 
-    Preferences::getInstance().setColorGrid(color);
+    Preferences::getInstance().setGridColor(color);
 }
 
 // slots
@@ -63,7 +63,7 @@ void PreferencesDialog::onSelectColor()
 
 void PreferencesDialog::onStartUpFiles(bool checked)
 {
-    Preferences::getInstance().setSaveSession(checked);
+    Preferences::getInstance().setOpenLastFiles(checked);
 }
 
 void PreferencesDialog::onAutoCheckUpdates(bool checked)

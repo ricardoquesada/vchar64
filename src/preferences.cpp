@@ -33,33 +33,33 @@ Preferences::~Preferences()
 {
 }
 
-void Preferences::setColorGrid(const QColor& color)
+void Preferences::setGridColor(const QColor& color)
 {
     QVariant variantColor = color;
-    QSettings().setValue(QLatin1String("colorGrid"), variantColor);
+    QSettings().setValue(QLatin1String("UI/gridColor"), variantColor);
 }
 
-QColor Preferences::getColorGrid() const
+QColor Preferences::getGridColor() const
 {
-    return QSettings().value(QLatin1String("colorGrid"), QColor(0,128,0)).value<QColor>();
+    return QSettings().value(QLatin1String("UI/gridColor"), QColor(0,128,0)).value<QColor>();
 }
 
-void Preferences::setSaveSession(bool enableIt)
+void Preferences::setOpenLastFiles(bool enableIt)
 {
-    QSettings().setValue(QLatin1String("saveSession"), enableIt);
+    QSettings().setValue(QLatin1String("Startup/OpenLastFiles"), enableIt);
 }
 
-bool Preferences::getSaveSession() const
+bool Preferences::getOpenLastFiles() const
 {
-    return QSettings().value(QLatin1String("saveSession"), true).toBool();
+    return QSettings().value(QLatin1String("Startup/OpenLastFiles"), true).toBool();
 }
 
 void Preferences::setCheckUpdates(bool enableIt)
 {
-    QSettings().setValue(QLatin1String("checkUpdates"), enableIt);
+    QSettings().setValue(QLatin1String("Install/CheckForUpdates"), enableIt);
 }
 
 bool Preferences::getCheckUpdates() const
 {
-    return QSettings().value(QLatin1String("checkUpdates"), true).toBool();
+    return QSettings().value(QLatin1String("Install/CheckForUpdates"), true).toBool();
 }

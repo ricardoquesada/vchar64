@@ -90,8 +90,11 @@
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="QLabel" name="labelLastCheck">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
-           <string>TextLabel</string>
+           <string>Last Checked:</string>
           </property>
          </widget>
         </item>
