@@ -18,7 +18,9 @@ limitations under the License.
 #include "ui_preferencesdialog.h"
 
 #include <QColorDialog>
+
 #include "preferences.h"
+#include "autoupdater.h"
 
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
@@ -73,5 +75,5 @@ void PreferencesDialog::onAutoCheckUpdates(bool checked)
 
 void PreferencesDialog::onUpdateNow()
 {
-    // check for update
+    AutoUpdater::getInstance().checkUpdate();
 }

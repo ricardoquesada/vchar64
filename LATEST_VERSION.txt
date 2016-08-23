@@ -1,1 +1,2 @@
-0.2.0
+stable_version:0.2.0
+stable_url:https://github.com/ricardoquesada/vchar64/releases/tag/0.2.0
