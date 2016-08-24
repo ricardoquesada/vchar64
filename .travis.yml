@@ -23,7 +23,7 @@ before_install:
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5      ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link qt5 --force ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -qy qt${QT}base cppcheck; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -qy qt${QT}base qt${QT}tools cppcheck; fi
   - qmake -version
 
 before_script:
