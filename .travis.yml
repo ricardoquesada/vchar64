@@ -8,13 +8,12 @@ matrix:
     include:
         - os: linux
           compiler: gcc
+          env: PPA=beineri/opt-qt57-trusty QT=57
         - os: linux
           compiler: clang
-          env: QMAKESPEC=linux-clang
+          env: QMAKESPEC=linux-clang PPA=beineri/opt-qt57-trusty QT=57
         - os: osx
 
-env:
-  - QT=57 BREW=ex PPA=beineri/opt-qt57-trusty
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update           ; fi
@@ -24,9 +23,11 @@ before_install:
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5      ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link qt5 --force ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -qy qt5-default qttools5-dev-tools cppcheck; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -qy qt${QT}base cppcheck; fi
   - qmake -version
 
+before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then source /opt/qt${QT}/bin/qt${QT}-env.sh; fi
 
 script:
   - qmake
