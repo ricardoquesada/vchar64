@@ -20,13 +20,13 @@ limitations under the License.
 #include <string>
 
 #include <QFileDialog>
-#include <QSettings>
 #include <QDebug>
 #include <QMouseEvent>
 
 #include "mainwindow.h"
 #include "palette.h"
 #include "selectcolordialog.h"
+#include "preferences.h"
 
 static const char* _hex ="0123456789ABCDEF";
 static quint8 dehexify(char h)
@@ -45,7 +45,7 @@ ImportKoalaDialog::ImportKoalaDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
-    auto lastDir = QSettings("RetroMoe","VChar64").value("dir/lastdir").toString();
+    auto lastDir = Preferences::getInstance().getLastUsedDirectory();
     ui->lineEdit->setText(lastDir);
 
     connect(ui->widgetKoala, &ImportKoalaBitmapWidget::selectedRegionUpdated, this, &ImportKoalaDialog::onSelectedRegionUpdated);
@@ -700,7 +700,7 @@ void ImportKoalaDialog::on_pushButtonImport_clicked()
 {
     // update last used dir
     QFileInfo info(ui->lineEdit->text());
-    QSettings("RetroMoe","VChar64").setValue("dir/lastdir", info.absolutePath());
+    Preferences::getInstance().setLastUsedDirectory(info.absolutePath());
 
     auto state = new State(info.filePath(), ui->widgetCharset->_charset, ui->widgetCharset->_colorRAMForChars, ui->widgetCharset->_screenRAM, QSize(40,25));
 

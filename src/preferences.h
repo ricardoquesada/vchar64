@@ -18,6 +18,7 @@ limitations under the License.
 
 #include <QObject>
 #include <QDateTime>
+#include <QSettings>
 
 class Preferences: public QObject
 {
@@ -42,7 +43,37 @@ public:
     QDateTime getLastUpdateCheckDate() const;
     int getLastTimeUpdateCheck() const;
 
+    void setMainWindowDefaultGeometry(const QByteArray &geometry);
+    QByteArray getMainWindowDefaultGeometry() const;
+    void setMainWindowDefaultState(const QByteArray &state);
+    QByteArray getMainWindowDefaultState() const;
+
+    void setMainWindowGeometry(const QByteArray &geometry);
+    QByteArray getMainWindowGeometry() const;
+    void setMainWindowState(const QByteArray &state);
+    QByteArray getMainWindowState() const;
+
+    void setPalette(int palette);
+    int getPalette() const;
+
+    void setRecentFiles(const QStringList& filenames);
+    QStringList getRecentFiles() const;
+
+    void setSessionFiles(const QStringList& filenames);
+    QStringList getSessionFiles() const;
+
+    void setLastUsedDirectory(const QString& path);
+    QString getLastUsedDirectory() const;
+
+    void setLastUsedOpenFilter(const QString& filter);
+    QString getLastUsedOpenFilter() const;
+
+    void setServerIPAddress(const QString& ipaddress);
+    QString getServerIPAddress() const;
+
 private:
     Preferences();
     ~Preferences();
+
+    QSettings _settings;
 };

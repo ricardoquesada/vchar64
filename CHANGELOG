@@ -10,6 +10,7 @@
 * [BUGFIX] Moves references to retro.moe/pungas.space from empty charset to about
 * [BUGFIX] Fix memory leak when destructing State
 * [BUGFIX] Fix crash when using the Map widget with no open documents
+* [BUGFIX] Settings code unified in Preferences code. OpenLastDir settings bug fixed
 
 0.1.0 (14 July 2016)
 * [NEW] Export: saves exported addresses in vcharproj file. Increased version to 3

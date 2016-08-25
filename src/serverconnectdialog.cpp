@@ -19,8 +19,8 @@ limitations under the License.
 
 #include <QRegExp>
 #include <QRegExpValidator>
-#include <QSettings>
 
+#include "preferences.h"
 
 ServerConnectDialog::ServerConnectDialog(QWidget *parent) :
     QDialog(parent),
@@ -32,7 +32,7 @@ ServerConnectDialog::ServerConnectDialog(QWidget *parent) :
     auto validator = new QRegExpValidator(regexp, this);
     ui->lineEdit->setValidator(validator);
 
-    auto ipaddress = QSettings("RetroMoe","VChar64").value("server/ipaddress", "10.0.1.64").toString();
+    auto ipaddress = Preferences::getInstance().getServerIPAddress();
     ui->lineEdit->setText(ipaddress);
 }
 
@@ -43,7 +43,7 @@ QString ServerConnectDialog::getIPAddress() const
 
 ServerConnectDialog::~ServerConnectDialog()
 {
-    QSettings("RetroMoe","VChar64").setValue("server/ipaddress", ui->lineEdit->text());
+    Preferences::getInstance().setServerIPAddress(ui->lineEdit->text());
     delete ui;
 }
 

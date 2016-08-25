@@ -18,7 +18,6 @@ limitations under the License.
 
 #include <QMainWindow>
 #include <QString>
-#include <QSettings>
 #include <QVector>
 
 #include "state.h"
@@ -114,10 +113,8 @@ protected:
 
     void updateRecentFiles();
     void setRecentFile(const QString& fileName);
-    QStringList getRecentFiles() const;
 
     void setSessionFiles();
-    QStringList getSessionFiles() const;
 
     void activateRadioButtonIndex(int pen);
     void activatePalette(int paletteIndex);
@@ -224,8 +221,6 @@ private:
     QLabel* _labelTileIdx;
     QLabel* _labelSelectedColor;
     QUndoView* _undoView;
-
-    QSettings _settings;
 
     // FIXME: Should be moved to the "map dock" once it is implemented
     QSpinBox* _spinBoxMapX;

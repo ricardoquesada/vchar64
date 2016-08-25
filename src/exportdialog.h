@@ -17,7 +17,6 @@ limitations under the License.
 #pragma once
 
 #include <QDialog>
-#include <QSettings>
 
 namespace Ui {
 class ExportDialog;
@@ -51,7 +50,6 @@ private:
     void updateButtons();
 
     Ui::ExportDialog *ui;
-    QSettings _settings;
     State* _state;      // weak ref
     int _checkBox_clicked;
 };

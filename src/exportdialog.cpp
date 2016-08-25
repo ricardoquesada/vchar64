@@ -18,25 +18,23 @@ limitations under the License.
 #include "ui_exportdialog.h"
 
 #include <QFileDialog>
-#include <QSettings>
-#include <QDir>
 #include <QDebug>
 #include <QFileInfo>
 #include <QStatusBar>
 
 #include "mainwindow.h"
 #include "state.h"
+#include "preferences.h"
 
 ExportDialog::ExportDialog(State* state, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::ExportDialog)
-    , _settings()
     , _state(state)
     , _checkBox_clicked(State::EXPORT_FEATURE_CHARSET)
 {
     ui->setupUi(this);
 
-    auto lastDir = _settings.value(QLatin1String("dir/lastdir"), QDir::homePath()).toString();
+    auto lastDir = Preferences::getInstance().getLastUsedDirectory();
 
     // set correct extension
     auto exportProperties = _state->getExportProperties();
@@ -163,7 +161,7 @@ void ExportDialog::accept()
     if (ok) {
         QFileInfo info(filename);
         auto dir = info.absolutePath();
-        _settings.setValue(QLatin1String("dir/lastdir"), dir);
+        Preferences::getInstance().setLastUsedDirectory(dir);
         mainWindow->statusBar()->showMessage(tr("File exported to %1").arg(_state->getExportedFilename()), 2000);
     }
     else

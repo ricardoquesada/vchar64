@@ -18,13 +18,12 @@ limitations under the License.
 #include "ui_importvicedialog.h"
 
 #include <QFileDialog>
-#include <QSettings>
-#include <QDir>
 #include <QDebug>
 
 #include "utils.h"
 #include "state.h"
 #include "mainwindow.h"
+#include "preferences.h"
 
 ImportVICEDialog::ImportVICEDialog(QWidget *parent)
     : QDialog(parent)
@@ -54,7 +53,7 @@ ImportVICEDialog::ImportVICEDialog(QWidget *parent)
     ui->widgetCharset->setParentDialog(this);
     ui->widgetScreenRAM->setParentDialog(this);
 
-    auto lastDir = QSettings("RetroMoe","VChar64").value("dir/lastdir").toString();
+    auto lastDir = Preferences::getInstance().getLastUsedDirectory();
     ui->lineEdit->setText(lastDir);
     updateWidgets();
 
@@ -88,7 +87,7 @@ void ImportVICEDialog::on_pushButton_import_clicked()
     _tmpState->_loadedFilename = _filepath;
     MainWindow::getInstance()->createDocument(_tmpState);
     QFileInfo info(ui->lineEdit->text());
-    QSettings("RetroMoe","VChar64").setValue("dir/lastdir", info.absolutePath());
+    Preferences::getInstance().setLastUsedDirectory(info.absolutePath());
 
     // don't free _tmpState;
     accept();

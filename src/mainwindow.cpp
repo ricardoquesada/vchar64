@@ -78,7 +78,6 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
     , _undoView(nullptr)
-    , _settings("RetroMoe","VChar64")
 {
     setUnifiedTitleAndToolBarOnMac(true);
 
@@ -273,11 +272,12 @@ void MainWindow::readSettings()
 {
     // before restoring settings, save the current layout
     // needed for "reset layout"
-    _settings.setValue(QLatin1String("MainWindow/defaultGeometry"), saveGeometry());
-    _settings.setValue(QLatin1String("MainWindow/defaultWindowState"), saveState(STATE_VERSION));
+    auto& preferences = Preferences::getInstance();
+    preferences.setMainWindowDefaultGeometry(saveGeometry());
+    preferences.setMainWindowDefaultState(saveState(STATE_VERSION));
 
-    auto geom = _settings.value(QLatin1String("MainWindow/geometry")).toByteArray();
-    auto state = _settings.value(QLatin1String("MainWindow/windowState")).toByteArray();
+    auto geom = preferences.getMainWindowGeometry();
+    auto state = preferences.getMainWindowState();
 
     restoreState(state, STATE_VERSION);
     restoreGeometry(geom);
@@ -289,15 +289,16 @@ void MainWindow::readSettings()
         _ui->actionPalette_3,
         _ui->actionPalette_4,
     };
-    int index = _settings.value(QLatin1String("palette")).toInt();
+    int index = preferences.getPalette();
     actions[index]->trigger();
 }
 
 void MainWindow::saveSettings()
 {
-    _settings.setValue(QLatin1String("MainWindow/geometry"), saveGeometry());
-    _settings.setValue(QLatin1String("MainWindow/windowState"), saveState(STATE_VERSION));
-    _settings.setValue(QLatin1String("palette"), Palette::getActivePalette());
+    auto& preferences = Preferences::getInstance();
+    preferences.setMainWindowGeometry(saveGeometry());
+    preferences.setMainWindowState(saveState(STATE_VERSION));
+    preferences.setPalette(Palette::getActivePalette());
 }
 
 void MainWindow::openDefaultDocument()
@@ -306,7 +307,7 @@ void MainWindow::openDefaultDocument()
 
     if (Preferences::getInstance().getOpenLastFiles())
     {
-        auto fileList = getSessionFiles();
+        auto fileList = Preferences::getInstance().getSessionFiles();
 
         for (auto file: fileList)
         {
@@ -653,15 +654,9 @@ void MainWindow::updateMenus()
         actions[i]->setEnabled(withDocuments);
 }
 
-QStringList MainWindow::getRecentFiles() const
-{
-    QVariant v = _settings.value(QLatin1String("recentFiles/fileNames"));
-    return v.toStringList();
-}
-
 void MainWindow::updateRecentFiles()
 {
-    QStringList files = getRecentFiles();
+    QStringList files = Preferences::getInstance().getRecentFiles();
     const int numRecentFiles = qMin(files.size(), MAX_RECENT_FILES);
 
     for (int i = 0; i < numRecentFiles; ++i)
@@ -687,35 +682,37 @@ void MainWindow::setRecentFile(const QString& fileName)
     if (canonicalFilePath.isEmpty())
         return;
 
-    QStringList files = getRecentFiles();
+    auto& preferences = Preferences::getInstance();
+    QStringList files = preferences.getRecentFiles();
     files.removeAll(canonicalFilePath);
     files.prepend(canonicalFilePath);
     while (files.size() > MAX_RECENT_FILES)
         files.removeLast();
 
-    _settings.setValue(QLatin1String("recentFiles/fileNames"), files);
+    preferences.setRecentFiles(files);
     updateRecentFiles();
 }
 
 void MainWindow::setSessionFiles()
 {
     QStringList fileList;
+    const QStringList suffixList = {QString("vsf"), QString("koa"), QString("kla")};
     auto mdiList = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::StackingOrder);
     for (auto item: mdiList) {
         auto bigchar = static_cast<BigCharWidget*>(item->widget());
         auto bigcharState = bigchar->getState();
-        fileList.append(bigcharState->getLoadedFilename());
+        auto filename = bigcharState->getLoadedFilename();
+        // FIXME: Imported files are using getLoadedFilename(). Instead, they should use
+        // getImportedFilename(), and the LoadedFilename should be empty.
+        // skip .koa, kla, and .vsf files, otherwise VChar64 will try to "open" them instead
+        // of "import" them
+        auto fileSuffix = QFileInfo(filename).suffix();
+        if (!suffixList.contains(fileSuffix))
+            fileList.append(filename);
     }
 
-    _settings.setValue(QLatin1String("sessionFiles/fileNames"), fileList);
+    Preferences::getInstance().setSessionFiles(fileList);
 }
-
-QStringList MainWindow::getSessionFiles() const
-{
-    QVariant v = _settings.value(QLatin1String("sessionFiles/fileNames"));
-    return v.toStringList();
-}
-
 
 //
 // MARK - Slots / Events / Callbacks
@@ -960,7 +957,7 @@ void MainWindow::on_actionPalette_4_triggered()
 bool MainWindow::openFile(const QString& path)
 {
     QFileInfo info(path);
-    _settings.setValue(QLatin1String("dir/lastdir"), info.absolutePath());
+    Preferences::getInstance().setLastUsedDirectory(info.absolutePath());
 
     if (activateIfAlreadyOpen(info.canonicalFilePath()))
         return true;
@@ -1015,10 +1012,11 @@ bool MainWindow::activateIfAlreadyOpen(const QString& fileName)
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString filter = _settings.value(QLatin1String("dir/lastUsedOpenFilter"), tr("All supported files")).toString();
+    auto& preferences = Preferences::getInstance();
+    QString filter = preferences.getLastUsedOpenFilter();
     auto fn = QFileDialog::getOpenFileName(this,
                                            tr("Select File"),
-                                           _settings.value(QLatin1String("dir/lastdir")).toString(),
+                                           preferences.getLastUsedDirectory(),
                                            tr(
                                                "All files (*);;" \
                                                "All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;" \
@@ -1032,7 +1030,7 @@ void MainWindow::on_actionOpen_triggered()
                                            );
 
     if (fn.length()> 0) {
-        _settings.setValue(QLatin1String("dir/lastUsedOpenFilter"), filter);
+        preferences.setLastUsedOpenFilter(filter);
         openFile(fn);
     }
 }
@@ -1089,7 +1087,7 @@ bool MainWindow::on_actionSaveAs_triggered()
     }
     else
     {
-        fn = _settings.value(QLatin1String("dir/lastdir")).toString() + "/untitled.vchar64proj";
+        fn = Preferences::getInstance().getLastUsedDirectory() + "/untitled.vchar64proj";
     }
     auto filename = QFileDialog::getSaveFileName(this, tr("Save Project"),
                                              fn,
@@ -1352,7 +1350,7 @@ void MainWindow::on_actionAboutQt_triggered()
 
 void MainWindow::on_actionClearRecentFiles_triggered()
 {
-    _settings.setValue(QLatin1String("recentFiles/fileNames"), QStringList());
+    Preferences::getInstance().setRecentFiles(QStringList());
     updateRecentFiles();
 }
 
@@ -1364,9 +1362,10 @@ void MainWindow::onOpenRecentFileTriggered()
         auto path = action->data().toString();
         if (!openFile(path))
         {
-            QStringList files = getRecentFiles();
+            auto& preferences = Preferences::getInstance();
+            QStringList files = preferences.getRecentFiles();
             files.removeAll(path);
-            _settings.setValue(QLatin1String("recentFiles/fileNames"), files);
+            preferences.setRecentFiles(files);
             updateRecentFiles();
         }
     }
@@ -1482,8 +1481,9 @@ void MainWindow::on_actionPrevious_Tile_triggered()
 
 void MainWindow::on_actionReset_Layout_triggered()
 {
-    auto geom = _settings.value(QLatin1String("MainWindow/defaultGeometry")).toByteArray();
-    auto state = _settings.value(QLatin1String("MainWindow/defaultWindowState")).toByteArray();
+    auto& preferences = Preferences::getInstance();
+    auto geom = preferences.getMainWindowDefaultGeometry();
+    auto state = preferences.getMainWindowDefaultState();
     restoreState(state, STATE_VERSION);
     restoreGeometry(geom);
 
