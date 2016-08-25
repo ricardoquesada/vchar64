@@ -33,6 +33,7 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 * Two Live Preview modes:
     * [TCP/IP server](https://github.com/ricardoquesada/vchar64/blob/master/server/README.md) support. [Demo Video](https://www.youtube.com/watch?v=yNCK_wZbo40)
     * [xlink](http://henning-bekel.de/xlink/) support. [Demo Video](https://www.youtube.com/watch?v=ZaSR_mxRfmo)
+* Keyboard shortcuts for almost all actions
 
 ## Roadmap
 
@@ -49,22 +50,32 @@ In no particular order:
 
 ## How to compile it
 
-* Clone the repo:
+### Install Qt
+
+* Download [Qt Creator Community Edition 5.6](http://www.qt.io/download/) or newer (doesn't work with older versions)
+
+### Command Line
 
 ```
 $ git clone https://github.com/ricardoquesada/vchar64.git
+$ cd vchar64
+$ mkdir build
+$ cd build
+$ qmake ..
+$ make
 ```
 
-* Download [Qt Creator Community Edition 5.3](http://www.qt.io/download/) or newer (might work on older versions but not tested)
+### Using Qt Creator
+
 * Open `vchar64.pro` file with Qt Creator
 * Configure the project for "Desktop"
 * Build & Run
 
 ## Supported platforms
 
-* Linux (tested on Ubuntu 14.10)
-* Mac (tested on v10.10)
-* Windows (tested on Windows XP, 8.1 and 10)
+* Linux (tested on Ubuntu 16.04)
+* Mac (tested on v10.11)
+* Windows (tested on Windows XP and 10)
 
 ## Download binaries
 
