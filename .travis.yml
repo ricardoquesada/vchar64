@@ -13,7 +13,7 @@ matrix:
           compiler: clang
           env: QMAKESPEC=linux-clang PPA=beineri/opt-qt57-trusty QT=57
           dist: trusty
-        - os: osx
+#        - os: osx
 
 
 before_install:
