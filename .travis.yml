@@ -36,7 +36,7 @@ script:
   - make
 
 after_script:
-  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then cppcheck --enable=all -q -Isrc/ `git ls-files src/\*.cpp` ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cppcheck --enable=all -q -Isrc/ `git ls-files src/\*.cpp` ; fi
 
 notifications:
   webhooks:

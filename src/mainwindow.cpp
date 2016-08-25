@@ -169,6 +169,8 @@ void MainWindow::onMulticolorModeToggled(bool newvalue)
     bool enableradios = state->shouldBeDisplayedInMulticolor2(state->getTileIndex());
     _ui->radioButton_multicolor1->setEnabled(enableradios);
     _ui->radioButton_multicolor2->setEnabled(enableradios);
+    _ui->actionMulti_Color_1->setEnabled(enableradios);
+    _ui->actionMulti_Color_2->setEnabled(enableradios);
 
     // Update statusBar
     onColorPropertiesUpdated(state->getSelectedPen());
@@ -204,6 +206,8 @@ void MainWindow::onColorPropertiesUpdated(int pen)
         // update multicolor
         _ui->radioButton_multicolor1->setEnabled(multicolorEnabled);
         _ui->radioButton_multicolor2->setEnabled(multicolorEnabled);
+        _ui->actionMulti_Color_1->setEnabled(multicolorEnabled);
+        _ui->actionMulti_Color_2->setEnabled(multicolorEnabled);
     }
 }
 
@@ -807,7 +811,6 @@ void MainWindow::on_checkBox_multicolor_toggled(bool checked)
     {
         _ui->radioButton_multicolor1->setEnabled(checked);
         _ui->radioButton_multicolor2->setEnabled(checked);
-
         _ui->actionMulti_Color_1->setEnabled(checked);
         _ui->actionMulti_Color_2->setEnabled(checked);
 
