@@ -52,7 +52,7 @@
      <x>0</x>
      <y>0</y>
      <width>566</width>
-     <height>22</height>
+     <height>17</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -101,6 +101,7 @@
     <addaction name="actionCopy"/>
     <addaction name="actionPaste"/>
     <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -108,7 +109,6 @@
     </property>
     <addaction name="actionAbout"/>
     <addaction name="actionAboutQt"/>
-    <addaction name="actionPreferences"/>
     <addaction name="actionDocumentation"/>
     <addaction name="actionReportBug"/>
     <addaction name="separator"/>
@@ -227,7 +227,7 @@
           <x>0</x>
           <y>0</y>
           <width>563</width>
-          <height>77</height>
+          <height>49</height>
          </rect>
         </property>
         <property name="focusPolicy">
@@ -421,8 +421,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>77</width>
-          <height>198</height>
+          <width>49</width>
+          <height>222</height>
          </rect>
         </property>
         <property name="focusPolicy">
@@ -465,8 +465,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>77</width>
-          <height>198</height>
+          <width>49</width>
+          <height>222</height>
          </rect>
         </property>
         <property name="focusPolicy">
