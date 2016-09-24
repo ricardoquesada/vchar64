@@ -388,7 +388,7 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../src/importvicedialog.cpp" line="161"/>
         <source>VICE snapshot files</source>
-        <translation>Archivos de snapshots VICE</translation>
+        <translation type="unfinished">Archivos snapshots de VICE</translation>
     </message>
     <message>
         <location filename="../src/importvicedialog.cpp" line="163"/>
