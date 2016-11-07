@@ -7,9 +7,9 @@
 	<key>CFBundleExecutable</key>
 	<string>VChar64</string>
 	<key>CFBundleGetInfoString</key>
-	<string>VChar64, Copyright 2015 Ricardo Quesada</string>
+	<string>VChar64, Copyright 2016 Ricardo Quesada</string>
 	<key>CFBundleIconFile</key>
-    <string>vchar64-icon-mac</string>
+	<string>vchar64-icon-mac</string>
 	<key>CFBundleIdentifier</key>
 	<string>moe.retro.VChar64</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -17,13 +17,13 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.0.8</string>
+	<string>0.3.0</string>
 	<key>CFBundleVersion</key>
-	<string>0.0.8</string>
+	<string>0.3.0</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright 2015 Ricardo Quesada</string>
+	<string>Copyright 2016 Ricardo Quesada</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>CFBundleDocumentTypes</key>
@@ -32,7 +32,7 @@
 			<key>CFBundleTypeName</key>
 			<string>VChar64</string>
 			<key>CFBundleTypeIconFile</key>
-            <string>vchar64-icon-mac</string>
+			<string>vchar64-icon-mac</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleTypeExtensions</key>
