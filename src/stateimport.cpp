@@ -344,11 +344,14 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
                                       quint16* outScreenRAMAddress, quint8* outColorRAMBuf, quint8* outVICRegistersBuf)
 {
     struct VICESnapshotHeader header;
+    struct VICESnapshotVersion version;
     struct VICESnapshoptModule module;
     struct VICESnapshoptC64Mem c64mem;
 
-    static const char VICE_MAGIC[] = "VICE Snapshot File\032";
+    static const char VICE_HEADER_MAGIC[] = "VICE Snapshot File\032";
+    static const char VICE_VERSION_MAGIC[] = "VICE Version\032";
     static const char VICE_C64MEM[] = "C64MEM";
+    static const char VICE_C128MEM[] = "C128MEM";
     static const char VICE_VICII[] = "VIC-II";
     static const char VICE_CIA2[] = "CIA2";
 
@@ -365,6 +368,10 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     }
 
     file.seek(0);
+
+    //
+    // parse snapshot header
+    //
     size = file.read((char*)&header, sizeof(header));
     if (size != sizeof(header))
     {
@@ -372,12 +379,46 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
         return -1;
     }
 
-    if (memcmp(header.id, VICE_MAGIC, sizeof(header.id)) != 0)
+    if (memcmp(header.id, VICE_HEADER_MAGIC, sizeof(header.id)) != 0)
     {
         mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE header Id"));
         return -1;
     }
 
+    qDebug() << "Snapshot version:" << int(header.major) << "." << int(header.minor) << ". Machine: " << QString(header.machine);
+
+    //
+    // parse snapshot vice version (optional).
+    //
+
+    // since it is option, save current file pos. if it fails to read the optional
+    // header, restore the file pos
+    auto currentPos = file.pos();
+    size = file.read((char*)&version, sizeof(version));
+    if (size != sizeof(version))
+    {
+        mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE header too small"));
+        return -1;
+    }
+
+    if (memcmp(version.id, VICE_VERSION_MAGIC, sizeof(version.id)) == 0)
+    {
+        qDebug() << "VICE version:" << int(version.viceversion[0])
+                << int(version.viceversion[1])
+                << int(version.viceversion[2])
+                << int(version.viceversion[3])
+                << "SVN Rev:"
+                << version.vice_svn_rev;
+    }
+    else
+    {
+        // rewind
+        file.seek(currentPos);
+    }
+
+    //
+    // start parsing the modules
+    //
     int offset = file.pos();
     int c64memoffset = -1;
     int cia2offset = -1;
@@ -394,6 +435,11 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
 
         /* C64MEM */
         if (c64memoffset == -1 && memcmp(module.moduleName, VICE_C64MEM, sizeof(VICE_C64MEM)) == 0)
+        {
+            c64memoffset = file.pos();
+        }
+        /* C128MEM. Treat C128MEM as a C64MEM */
+        if (c64memoffset == -1 && memcmp(module.moduleName, VICE_C128MEM, sizeof(VICE_C128MEM)) == 0)
         {
             c64memoffset = file.pos();
         }

@@ -347,12 +347,20 @@ public:
 #pragma pack(1)
     struct VICESnapshotHeader
     {
-        char id[19];                // "VICE Snapshot File"
+        char id[19];                // "VICE Snapshot File\032"
         char major;
         char minor;
         char machine[16];           // "C64" or "C128" or...
     };
     static_assert (sizeof(VICESnapshotHeader) == 37, "Size is not correct");
+
+    struct VICESnapshotVersion
+    {
+        char id[13];                // "VICE Version\032"
+        char viceversion[4];        // VICE number
+        quint32 vice_svn_rev;       // SVN revision, or 0
+    };
+    static_assert (sizeof(VICESnapshotVersion) == 21, "Size is not correct");
 
     struct VICESnapshoptModule
     {

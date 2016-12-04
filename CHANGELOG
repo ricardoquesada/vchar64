@@ -1,3 +1,8 @@
+0.2.1 (XX December 2016)
+
+* [FIX] Supports for new VICE snapshot format
+* [FIX] Supports C128MEM VICE snapshot segment (only first 64k)
+
 0.2.0 (26 August 2016)
 * [NEW] Issue #13: Import VICE Snapshot supports importing maps as well
 * [NEW] Issue #14: Possibility to restore the last open files at launch. Enabled by default
