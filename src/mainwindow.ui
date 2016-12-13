@@ -52,7 +52,7 @@
      <x>0</x>
      <y>0</y>
      <width>566</width>
-     <height>17</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -170,6 +170,7 @@
      <addaction name="actionPalette_2"/>
      <addaction name="actionPalette_3"/>
      <addaction name="actionPalette_4"/>
+     <addaction name="actionPalette_5"/>
     </widget>
     <addaction name="menuPalette"/>
     <addaction name="separator"/>
@@ -227,7 +228,7 @@
           <x>0</x>
           <y>0</y>
           <width>563</width>
-          <height>49</height>
+          <height>77</height>
          </rect>
         </property>
         <property name="focusPolicy">
@@ -421,8 +422,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>49</width>
-          <height>222</height>
+          <width>77</width>
+          <height>198</height>
          </rect>
         </property>
         <property name="focusPolicy">
@@ -465,8 +466,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>49</width>
-          <height>222</height>
+          <width>77</width>
+          <height>198</height>
          </rect>
         </property>
         <property name="focusPolicy">
@@ -1098,6 +1099,14 @@
   <action name="actionPreferences">
    <property name="text">
     <string>Preferences</string>
+   </property>
+  </action>
+  <action name="actionPalette_5">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Colodore</string>
    </property>
   </action>
  </widget>

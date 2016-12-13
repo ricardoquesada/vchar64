@@ -213,6 +213,8 @@ private slots:
 
     void on_actionPreferences_triggered();
 
+    void on_actionPalette_5_triggered();
+
 private:
     QVector<QAction*> _recentFiles;
 

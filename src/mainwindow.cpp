@@ -908,11 +908,12 @@ void MainWindow::activatePalette(int paletteIndex)
         _ui->actionPalette_2,
         _ui->actionPalette_3,
         _ui->actionPalette_4,
+        _ui->actionPalette_5
     };
 
     Palette::setActivePalette(paletteIndex);
 
-    for (int i=0; i<5; i++)
+    for (int i=0; i<6; i++)
         actions[i]->setChecked(i==paletteIndex);
 
     // FIXME: there should be an event to propage the palette changes...
@@ -950,6 +951,12 @@ void MainWindow::on_actionPalette_4_triggered()
 {
     activatePalette(4);
 }
+
+void MainWindow::on_actionPalette_5_triggered()
+{
+    activatePalette(5);
+}
+
 
 //
 // MARK - File IO callbacks + helper functions

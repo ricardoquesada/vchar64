@@ -1,7 +1,8 @@
 0.2.1 (XX December 2016)
-
-* [FIX] Supports for new VICE snapshot format
-* [FIX] Supports C128MEM VICE snapshot segment (only first 64k)
+* [NEW] Palette: Added Colodore palette using 50% / 100% / %50 values
+* [NEW] VICE Snapshot: Added support for new VICE v3 snapshot format
+* [NEW] VICE Snapshot: Added support for C128MEM VICE snapshot segment (only first 64k)
+* [FIX] Auto-detect new version: Does not use HTTPS. Only HTTP. Less requirements
 
 0.2.0 (26 August 2016)
 * [NEW] Issue #13: Import VICE Snapshot supports importing maps as well
@@ -77,7 +78,7 @@
         It has Rect Select, Flood Fill, Paint tools. Plus Clear and Grid
         It has Zoom and an scroll area.
         'Export' supports exporting the map data
-* [NEW] Added "global foreground / one per tile" mode 
+* [NEW] Added "global foreground / one per tile" mode
         'Export' supports exporting the "tile colors"
 * [NEW] Export: Added "assembler" export format
 * [NEW] Import CharPad: Added support for tile colors and map
