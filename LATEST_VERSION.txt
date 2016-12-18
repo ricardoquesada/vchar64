@@ -1,0 +1,12 @@
+# Used by Auto Updater
+# Update it anytime a new stable version is released, but not before!
+# after "changes:" is met, no more tags can be added
+stable_version: 0.2.1
+stable_url: https://github.com/ricardoquesada/vchar64/releases/tag/0.2.1
+changes:
+<ul>
+<li>[NEW] VICE Snapshot: Added support for new VICE v3 snapshot header format</li>
+<li>[NEW] VICE Snapshot: Added support for C128MEM VICE snapshot segment (only first 64k)</li>
+<li>[NEW] Palette: Added Colodore palette using 50% brightness, 100% contrast, 50% color values</li>
+<li>[FIX] Auto-detect new version: Does not use HTTPS. Only HTTP. Less requirements</li>
+</ul>
