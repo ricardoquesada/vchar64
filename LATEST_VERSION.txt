@@ -1,20 +1,12 @@
 # Used by Auto Updater
 # Update it anytime a new stable version is released, but not before!
 # after "changes:" is met, no more tags can be added
-stable_version: 0.2.0
-stable_url: https://github.com/ricardoquesada/vchar64/releases/tag/0.2.0
+stable_version: 0.2.1
+stable_url: https://github.com/ricardoquesada/vchar64/releases/tag/0.2.1
 changes:
 <ul>
-<li>[NEW] Issue #13: Import VICE Snapshot supports importing maps as well</li>
-<li>[NEW] Issue #14: Possibility to restore the last open files at launch. Enabled by default</li>
-<li>[NEW] Issue #17: Added "File -> Clone Current Project"</li>
-<li>[NEW] Auto Update: Check if there is a new version every 7 days. Enabled by default</li>
-<li>[BUGFIX] Issue #11: Doesn't crash when clicking radios on empty Koa file</li>
-<li>[BUGFIX] Issue #15: Menu->Colors->Multicolor are enabled/disabled as expected</li>
-<li>[BUGFIX] Issue #16: Map/Charset/Tileset: Backward selection works as expected</li>
-<li>[BUGFIX] Opening an already-open file will activate that window instead of opening a duplicate tab</li>
-<li>[BUGFIX] Moves references to retro.moe/pungas.space from empty charset to About dialog</li>
-<li>[BUGFIX] Fix memory leak when deleting a State instance</li>
-<li>[BUGFIX] Fix crash when using the Map widget with no open documents</li>
-<li>[BUGFIX] Settings code unified in Preferences code. OpenLastDir settings bug fixed</li>
+<li>[NEW] VICE Snapshot: Added support for new VICE v3 snapshot header format</li>
+<li>[NEW] VICE Snapshot: Added support for C128MEM VICE snapshot segment (only first 64k)</li>
+<li>[NEW] Palette: Added Colodore palette using 50% brightness, 100% contrast, 50% color values</li>
+<li>[FIX] Auto-detect new version: Does not use HTTPS. Only HTTP. Less requirements</li>
 </ul>

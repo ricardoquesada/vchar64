@@ -35,7 +35,7 @@ AutoUpdater::AutoUpdater()
     ,_httpRequestAborted(false)
     ,_inProgress(false)
 {
-    _url = QUrl::fromUserInput("http://raw.githubusercontent.com/ricardoquesada/vchar64/master/LATEST_VERSION.txt");
+    _url = QUrl::fromUserInput("http://ricardoquesada.github.io/vchar64/LATEST_VERSION.txt");
     Q_ASSERT(_url.isValid() && "Invalid URL");
 }
 

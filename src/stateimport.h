@@ -379,6 +379,12 @@ public:
         quint8 ram[65536];          // 64k RAM dump
     };
 
+    struct VICESnapshoptC128Mem
+    {
+        quint8 mmu[11];             // MMU info
+        quint8 ram[4*65536];        // 256k RAM dump
+    };
+
     struct VICESnapshoptCIA2
     {
         quint8 ora;                 // Output register A

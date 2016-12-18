@@ -347,6 +347,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     struct VICESnapshotVersion version;
     struct VICESnapshoptModule module;
     struct VICESnapshoptC64Mem c64mem;
+    struct VICESnapshoptC128Mem c128mem;
 
     static const char VICE_HEADER_MAGIC[] = "VICE Snapshot File\032";
     static const char VICE_VERSION_MAGIC[] = "VICE Version\032";
@@ -421,6 +422,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     //
     int offset = file.pos();
     int c64memoffset = -1;
+    int c128memoffset = -1;
     int cia2offset = -1;
     int vic2offset = -1;
     *outCharsetAddress = 0;         // in case we can't find the correct one
@@ -439,9 +441,9 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
             c64memoffset = file.pos();
         }
         /* C128MEM. Treat C128MEM as a C64MEM */
-        if (c64memoffset == -1 && memcmp(module.moduleName, VICE_C128MEM, sizeof(VICE_C128MEM)) == 0)
+        if (c128memoffset == -1 && memcmp(module.moduleName, VICE_C128MEM, sizeof(VICE_C128MEM)) == 0)
         {
-            c64memoffset = file.pos();
+            c128memoffset = file.pos();
         }
         /* CIA2 */
         else if (cia2offset == -1 && memcmp(module.moduleName, VICE_CIA2, sizeof(VICE_CIA2)) == 0)
@@ -459,17 +461,35 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
             break;
     }
 
-    if (c64memoffset != -1 && cia2offset != -1 && vic2offset != -1)
+    if ((c64memoffset != -1 || c128memoffset != -1) && cia2offset != -1 && vic2offset != -1)
     {
-        // copy 64k memory
-        file.seek(c64memoffset);
-        size = file.read((char*)&c64mem, sizeof(c64mem));
-        if (size != sizeof(c64mem))
+        // copy 64k memory...
+        // ...from c64
+        if (c64memoffset != -1)
         {
-            mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE C64MEM segment"));
-            return -1;
+            file.seek(c64memoffset);
+            size = file.read((char*)&c64mem, sizeof(c64mem));
+            if (size != sizeof(c64mem))
+            {
+                mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE C64MEM segment"));
+                return -1;
+            }
+            memcpy(buffer64k, c64mem.ram, sizeof(c64mem.ram));
         }
-        memcpy(buffer64k, c64mem.ram, sizeof(c64mem.ram));
+        // ...or from c128
+        else if (c128memoffset != -1)
+        {
+            file.seek(c128memoffset);
+            size = file.read((char*)&c128mem, sizeof(c128mem));
+            if (size != sizeof(c128mem))
+            {
+                mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE C128MEM segment"));
+                return -1;
+            }
+            // FIXME: copy only first 64k
+            memcpy(buffer64k, c128mem.ram, 65536);
+        }
+
 
         // find default charset
         file.seek(cia2offset);
@@ -506,7 +526,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     }
     else
     {
-        mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE C64MEM segment not found"));
+        mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE C64MEM/C128MEM segment not found"));
         return -1;
     }
 

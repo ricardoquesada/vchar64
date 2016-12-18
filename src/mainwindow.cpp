@@ -1336,12 +1336,12 @@ void MainWindow::on_actionRedo_triggered()
 //
 void MainWindow::on_actionReportBug_triggered()
 {
-    QDesktopServices::openUrl(QUrl("https://github.com/ricardoquesada/vchar64/issues"));
+    QDesktopServices::openUrl(QUrl("http://github.com/ricardoquesada/vchar64/issues"));
 }
 
 void MainWindow::on_actionDocumentation_triggered()
 {
-    QDesktopServices::openUrl(QUrl("https://github.com/ricardoquesada/vchar64/wiki/Documentation"));
+    QDesktopServices::openUrl(QUrl("http://github.com/ricardoquesada/vchar64/wiki/Documentation"));
 }
 
 void MainWindow::on_actionAbout_triggered()
