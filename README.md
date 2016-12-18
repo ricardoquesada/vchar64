@@ -79,8 +79,8 @@ $ make
 
 ## Download binaries
 
-* [vchar64-v0.2.0 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.2.0/vchar64-0.2.0.win32.zip)
-* [vchar64-v0.2.0 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.2.0/vchar64-0.2.0.mac.dmg)
+* [vchar64-v0.2.1 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.2.1/vchar64-0.2.1.win32.zip)
+* [vchar64-v0.2.1 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.2.1/vchar64-0.2.1.mac.dmg)
 
 ## License
 
