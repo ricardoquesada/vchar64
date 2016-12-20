@@ -288,6 +288,7 @@ void MainWindow::readSettings()
         _ui->actionPalette_2,
         _ui->actionPalette_3,
         _ui->actionPalette_4,
+        _ui->actionPalette_5,
     };
     int index = preferences.getPalette();
     actions[index]->trigger();
