@@ -1,3 +1,8 @@
+0.2.2 (18 December 2016)
+
+* [FIX] Issue #22: Better error reporting when open invalid files
+* [FIX]: Doesn't crash when at launch time when Colodore palette is selected
+
 0.2.1 (18 December 2016)
 * [NEW] VICE Snapshot: Added support for new VICE v3 snapshot header format
 * [NEW] VICE Snapshot: Added support for C128MEM VICE snapshot segment (only first 64k)

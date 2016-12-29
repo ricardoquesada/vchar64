@@ -973,7 +973,9 @@ bool MainWindow::openFile(const QString& path)
     bool ret = _openFile(path);
     if (!ret)
     {
-        QMessageBox::warning(this, tr("Application"), tr("Error loading file: ") + path, QMessageBox::Ok);
+        QMessageBox::warning(this,
+                             tr("Application"), tr("Error loading '") + info.fileName() + "'\n" + statusBar()->currentMessage(),
+                             QMessageBox::Ok);
     }
 
     return ret;

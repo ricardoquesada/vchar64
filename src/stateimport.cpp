@@ -70,7 +70,7 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
     // only expanded files are supported
     if (!v4header->expanded)
     {
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Error: CTM is not expanded"));
+        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("CTM is not expanded"));
         qDebug() << "CTM is not expanded. Cannot load it";
         return -1;
     }
@@ -158,7 +158,7 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
     // flags that we don't want: flags & 0b11 = 0b01
     if ((v5header->flags & 0b00000011) == 0b00000001)
     {
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Error: CTM is not expanded"));
+        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("CTM is not expanded"));
         qDebug() << "CTM is not expanded. Cannot load it";
         return -1;
     }
@@ -231,7 +231,7 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
     auto size = file.size();
     if ((std::size_t)size<sizeof(header))
     {
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Error: CTM file too small"));
+        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("CTM file too small"));
         qDebug() << "Error. File size too small to be CTM (" << size << ").";
         return -1;
     }
@@ -243,7 +243,7 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
     // check header
     if (header.id[0] != 'C' || header.id[1] != 'T' || header.id[2] != 'M')
     {
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Error: invalid CTM file"));
+        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Invalid CTM file"));
         qDebug() << "Not a valid CTM file";
         return -1;
     }
@@ -255,7 +255,7 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
         return loadCTM5(state, file, &header);
     }
 
-    MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Error: CTM version not supported"));
+    MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("CTM version not supported"));
     qDebug() << "Invalid CTM version: " << header.version;
     return -1;
 }
@@ -266,7 +266,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     auto size = file.size();
     if ((std::size_t)size<sizeof(header))
     {
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Error: Invalid VChar file"));
+        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Invalid VChar file"));
         qDebug() << "Error. File size too small to be VChar64 (" << size << ").";
         return -1;
     }
@@ -278,14 +278,14 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     // check header
     if (header.id[0] != 'V' || header.id[1] != 'C' || header.id[2] != 'h' || header.id[3] != 'a' || header.id[4] != 'r')
     {
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Error: Invalid VChar file"));
+        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Invalid VChar file"));
         qDebug() << "Not a valid VChar64 file";
         return -1;
     }
 
     if (header.version > 3)
     {
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Error: VChar version not supported"));
+        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("VChar version not supported"));
         qDebug() << "VChar version not supported";
         return -1;
     }
