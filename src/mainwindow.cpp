@@ -1613,13 +1613,13 @@ State* MainWindow::getState() const
 State::CopyRange MainWindow::bufferToClipboard(State* state) const
 {
     State::CopyRange copyRange;
-    if (_ui->charsetWidget->hasFocus())
+    if (_ui->charsetWidget->hasFocus()) {
         _ui->charsetWidget->getSelectionRange(&copyRange);
-    else if (_ui->tilesetWidget->hasFocus())
+    } else if (_ui->tilesetWidget->hasFocus()) {
         _ui->tilesetWidget->getSelectionRange(&copyRange);
-    else if (_ui->mapWidget->hasFocus())
+    } else if (_ui->mapWidget->hasFocus()) {
         _ui->mapWidget->getSelectionRange(&copyRange);
-    else {
+    } else {
         copyRange.offset = -1;
         return copyRange;
     }

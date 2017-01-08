@@ -491,6 +491,9 @@ void TilesetWidget::getSelectionRange(State::CopyRange* copyRange) const
 
     copyRange->type = State::CopyRange::TILES;
     copyRange->tileProperties = tileProperties;
+
+    // unused
+    copyRange->bufferSize = QSize(0,0);
 }
 
 void TilesetWidget::enableGrid(bool enabled)

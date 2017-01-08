@@ -474,6 +474,8 @@ void MapWidget::getSelectionRange(State::CopyRange* copyRange) const
     copyRange->type = State::CopyRange::MAP;
     copyRange->tileProperties.size = {-1, -1};
     copyRange->tileProperties.interleaved = -1;
+
+    copyRange->bufferSize = _mapSize;
 }
 
 int MapWidget::getCursorPos() const

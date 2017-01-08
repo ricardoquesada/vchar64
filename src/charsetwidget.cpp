@@ -405,6 +405,9 @@ void CharsetWidget::getSelectionRange(State::CopyRange* copyRange) const
     copyRange->type = State::CopyRange::CHARS;
     copyRange->tileProperties.size = {-1, -1};
     copyRange->tileProperties.interleaved = -1;
+
+    // unused
+    copyRange->bufferSize = QSize(0,0);
 }
 
 int CharsetWidget::getCursorPos() const

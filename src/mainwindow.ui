@@ -749,6 +749,9 @@
    <property name="text">
     <string>C64 Default Uppercase Charset</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+N</string>
+   </property>
   </action>
   <action name="actionTilesProperties">
    <property name="text">
@@ -772,6 +775,9 @@
    </property>
    <property name="toolTip">
     <string>C64 Default Lowercase Charset</string>
+   </property>
+   <property name="shortcut">
+    <string>Meta+Ctrl+N</string>
    </property>
   </action>
   <action name="actionUndo">

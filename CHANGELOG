@@ -1,6 +1,10 @@
-0.2.2 (31 December 2016)
+0.2.2 (8 January 2017)
+* [NEW] Keyboard Shortcuts:
+		Shift + Command + N: New Uppercase charset
+		Shift + Control + N: New Lowercase charset
 * [FIX] Fix crash when launching app + Colodore palette selected
 * [FIX] Issue #22: Better error reporting when open invalid files
+* [FIX] Copy & Paste Map of different sizes works as expected
 
 
 0.2.1 (18 December 2016)

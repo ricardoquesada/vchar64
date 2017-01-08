@@ -133,7 +133,7 @@ public:
             MAP
         };
 
-        /** @brief offset in chars or tiles */
+        /** @brief offset in chars or tiles in the buffer */
         int offset;
         /** @brief blockSize in chars or tiles */
         int blockSize;
@@ -145,6 +145,8 @@ public:
         BufferType type;
         /** tileProperties, only needed when type==TILES. */
         TileProperties tileProperties;
+        /** size of the buffer appended */
+        QSize bufferSize;
     };
 
     /**
