@@ -1,3 +1,6 @@
+0.2.3 (XX January 2017)
+* [FIX] Issue #23: Copy & paste work again on Tiles/Chars
+
 0.2.2 (8 January 2017)
 * [NEW] Keyboard Shortcuts:
 		Shift + Command + N: New Uppercase charset

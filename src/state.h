@@ -146,7 +146,7 @@ public:
         /** tileProperties, only needed when type==TILES. */
         TileProperties tileProperties;
         /** size of the buffer appended */
-        QSize bufferSize;
+        int bufferSize;
     };
 
     /**

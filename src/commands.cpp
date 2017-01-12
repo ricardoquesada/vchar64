@@ -107,11 +107,11 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
     else /* MAP */
     {
         sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
-        _copyBuffer = (quint8*)malloc(copyRange.bufferSize.width() * copyRange.bufferSize.height());
         _origBuffer = (quint8*)malloc(sizeToCopy);
+        _copyBuffer = (quint8*)malloc(copyRange.bufferSize);
     }
 
-    memcpy(_copyBuffer, buffer, copyRange.bufferSize.width() * copyRange.bufferSize.height());
+    memcpy(_copyBuffer, buffer, copyRange.bufferSize);
 
     static const QString types[] = {
         QObject::tr("Chars"),
