@@ -177,25 +177,28 @@ bool State::openFile(const QString& filename)
     };
     int filetype = FILETYPE_RAW;
 
-
     QFileInfo info(file);
-    if (info.suffix() == "vchar64proj")
+    QString suffix = info.suffix().toLower();
+
+    if (suffix == "vchar64proj")
     {
         length = StateImport::loadVChar64(this, file);
         filetype = FILETYPE_VCHAR64;
     }
-    else if ((info.suffix() == "64c") || (info.suffix() == "prg"))
+    else if ((suffix == "64c") || (suffix == "prg"))
     {
         length = StateImport::loadPRG(this, file, &loadedAddress);
         filetype = FILETYPE_PRG;
     }
-    else if(info.suffix() == "ctm")
+    else if(suffix == "ctm")
     {
         length = StateImport::loadCTM(this, file);
         filetype = FILETYPE_CTM;
     }
     else
     {
+        if (suffix != "bin")
+            qDebug() << "Unkwnow file extension: " << suffix << ". Treating it as binary.";
         length = StateImport::loadRaw(this, file);
         filetype = FILETYPE_RAW;
     }
