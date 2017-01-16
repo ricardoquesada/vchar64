@@ -50,7 +50,13 @@ int main(int argc, char *argv[])
     // name code
     app.setOrganizationDomain(QLatin1String("retro.moe"));
     app.setApplicationName(QLatin1String("VChar64"));
-    app.setApplicationVersion(QLatin1String(GIT_VERSION));
+
+    // if compiled from .tar.gz, GIT_VERSION will be empty
+    // FIXME: this should be evaluated as a preprocessor macro
+    if (GIT_VERSION && strlen(GIT_VERSION) != 0)
+        app.setApplicationVersion(QLatin1String(GIT_VERSION));
+    else
+        app.setApplicationVersion(QLatin1String(VERSION));
 
     app.setApplicationDisplayName(QLatin1String("VChar64"));
 

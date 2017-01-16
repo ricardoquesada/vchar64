@@ -1,9 +1,10 @@
-0.2.3 (XX January 2017)
+0.2.3 (16 January 2017)
+* [FIX] Issue #25: Version appears in About dialog when compiled from .tar.gz
 * [FIX] Issue #23: Copy & paste work again on Tiles/Chars
 * [FIX] Issue #24: Uppercase extensions are supported (eg: .PRG is treated as .prg)
 
 0.2.2 (8 January 2017)
-* [NEW] Keyboard Shortcuts:
+* [NEW] Issue #18: Keyboard Shortcuts:
 		Shift + Command + N: New Uppercase charset
 		Shift + Control + N: New Lowercase charset
 * [FIX] Fix crash when launching app + Colodore palette selected
