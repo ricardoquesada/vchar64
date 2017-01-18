@@ -1,8 +1,8 @@
 0.2.3 (18 January 2017)
 * [FIX] Issue #26: URL links in About Dialog work as expected
 * [FIX] Issue #25: Version appears in About dialog when compiled from .tar.gz
-* [FIX] Issue #23: Copy & paste work again on Tiles/Chars
 * [FIX] Issue #24: Uppercase extensions are supported (eg: .PRG is treated as .prg)
+* [FIX] Issue #23: Copy & paste work again on Tiles/Chars
 
 0.2.2 (8 January 2017)
 * [NEW] Issue #18: Keyboard Shortcuts:
