@@ -1639,7 +1639,7 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
 
     mimeData->setData("vchar64/range", array);
 
-    Q_ASSERT(array.length() == copyRange.bufferSize + sizeof(copyRange) && "Error while copying buffer");
+    Q_ASSERT(array.length() == copyRange.bufferSize + (int)sizeof(copyRange) && "Error while copying buffer");
 
     clipboard->setMimeData(mimeData);
 
