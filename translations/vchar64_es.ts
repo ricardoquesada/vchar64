@@ -1812,27 +1812,27 @@ Do you want to save your changes?</source>
 <context>
     <name>State</name>
     <message>
-        <location filename="../src/state.cpp" line="285"/>
+        <location filename="../src/state.cpp" line="288"/>
         <source>Export: Ok</source>
         <translation>Exportar: Ok</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="288"/>
+        <location filename="../src/state.cpp" line="291"/>
         <source>Export: Error</source>
         <translation>Exportar: Error</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="405"/>
+        <location filename="../src/state.cpp" line="408"/>
         <source>Save: Ok</source>
         <translation>Guardar: Ok</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="407"/>
+        <location filename="../src/state.cpp" line="410"/>
         <source>Save: Error</source>
         <translation>Guardar: Error</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="966"/>
+        <location filename="../src/state.cpp" line="969"/>
         <source>Error. Tile size different than src</source>
         <translation>Error. Mosaico de tamaño distinto</translation>
     </message>
