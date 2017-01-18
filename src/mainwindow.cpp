@@ -1274,9 +1274,16 @@ void MainWindow::on_actionPaste_triggered()
 {
     auto state = getState();
 
-    quint8* buffer;
-    State::CopyRange *range;
-    if (bufferFromClipboard(&range, &buffer))
+    QByteArray bytearray = bufferFromClipboard();
+    if (bytearray.length() <= 0) {
+        qDebug() << "Invalid clipboard buffer";
+        return;
+    }
+    auto data = bytearray.data();
+    State::CopyRange* range = (State::CopyRange*) data;
+    data += sizeof(State::CopyRange);
+    quint8* buffer = (quint8*) data;
+
     {
         // sanity check #1
         // only paste it if the destination is compatible with the source
@@ -1646,18 +1653,11 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
     return copyRange;
 }
 
-bool MainWindow::bufferFromClipboard(State::CopyRange **out_range, quint8** out_buffer) const
+QByteArray MainWindow::bufferFromClipboard() const
 {
     QClipboard* clipboard = QApplication::clipboard();
     const QMimeData* mimeData = clipboard->mimeData();
-    QByteArray bytearray = mimeData->data("vchar64/range");
-
-    auto data = bytearray.data();
-    *out_range = (State::CopyRange*) data;
-    data += sizeof(State::CopyRange);
-    *out_buffer = (quint8*) data;
-
-    return true;
+    return mimeData->data("vchar64/range");
 }
 
 void MainWindow::checkForUpdates()

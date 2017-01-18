@@ -127,7 +127,7 @@ protected:
     State* getState() const;
 
     State::CopyRange bufferToClipboard(State* state) const;
-    bool bufferFromClipboard(State::CopyRange **out_range, quint8 **out_buffer) const;
+    QByteArray bufferFromClipboard() const;
 
 private slots:
 
