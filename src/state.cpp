@@ -694,10 +694,11 @@ void State::_setMapSize(const QSize& mapSize)
     {
         const int newSizeInBytes = mapSize.width() * mapSize.height();
         quint8* newMap = (quint8*) malloc(newSizeInBytes);
+        Q_ASSERT(newMap && "No memory");
+
         for (int i=0; i<newSizeInBytes; ++i)
             newMap[i] = _tileIndex;
 
-        Q_ASSERT(newMap && "No memory");
 
         for (int row=0; row<mapSize.height(); ++row)
         {
@@ -984,8 +985,10 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
             int srcidx = (tileSrcIdx + i + srcskip) * interleavedFactorSrc;
             int dstidx = (tileDstIdx + i + dstskip) * interleavedFactorDst;
 
-            // copy colors
-            _tileColors[tileDstIdx + i + dstskip] = colorsBuffer[tileSrcIdx + i + srcskip];
+            int colorIdx = tileDstIdx + i + dstskip;
+            // avoid overflow
+            if (colorIdx < 256)
+                _tileColors[colorIdx] = colorsBuffer[tileSrcIdx + i + srcskip];
 
             // when interleaved, break the copy to prevent ugly artifacts
             if (_tileProperties.interleaved != 1 && dstidx >= (256 / tileSize))
