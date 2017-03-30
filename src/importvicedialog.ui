@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>544</width>
-    <height>287</height>
+    <height>339</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -168,7 +168,7 @@
    <item>
     <widget class="QCheckBox" name="checkBoxGuessColors">
      <property name="text">
-      <string>Guess Tile Colors</string>
+      <string>Guess Charset Colors</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -179,6 +179,13 @@
     <widget class="QCheckBox" name="checkBoxDisplayGrid">
      <property name="text">
       <string>Display Grid</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="checkBoxInvalidAddresses">
+     <property name="text">
+      <string>Allow Invalid VIC addresses</string>
      </property>
     </widget>
    </item>

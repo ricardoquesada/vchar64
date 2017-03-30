@@ -9,7 +9,7 @@
         <translation>Acerca</translation>
     </message>
     <message>
-        <location filename="../src/aboutdialog.ui" line="38"/>
+        <location filename="../src/aboutdialog.ui" line="42"/>
         <source>OK</source>
         <translation></translation>
     </message>
@@ -363,12 +363,16 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../src/importvicedialog.ui" line="164"/>
         <source>Multicolor</source>
-        <translation></translation>
+        <translation>Multicolor</translation>
     </message>
     <message>
         <location filename="../src/importvicedialog.ui" line="171"/>
+        <source>Guess Charset Colors</source>
+        <translation>Inferir colores de los caracteres</translation>
+    </message>
+    <message>
         <source>Guess Tile Colors</source>
-        <translation>Inferir colores de los mosaicos</translation>
+        <translation type="vanished">Inferir colores de los mosaicos</translation>
     </message>
     <message>
         <location filename="../src/importvicedialog.ui" line="181"/>
@@ -376,27 +380,32 @@ Do you want to save your changes?</source>
         <translation>Mostrar Grilla</translation>
     </message>
     <message>
-        <location filename="../src/importvicedialog.ui" line="219"/>
+        <location filename="../src/importvicedialog.ui" line="188"/>
+        <source>Allow Invalid VIC addresses</source>
+        <translation>Permitir direcciones inválidas del VIC</translation>
+    </message>
+    <message>
+        <location filename="../src/importvicedialog.ui" line="226"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../src/importvicedialog.ui" line="226"/>
+        <location filename="../src/importvicedialog.ui" line="233"/>
         <source>Import</source>
         <translation>Importar</translation>
     </message>
     <message>
-        <location filename="../src/importvicedialog.cpp" line="161"/>
+        <location filename="../src/importvicedialog.cpp" line="173"/>
         <source>VICE snapshot files</source>
         <translation>Archivos snapshots de VICE</translation>
     </message>
     <message>
-        <location filename="../src/importvicedialog.cpp" line="163"/>
+        <location filename="../src/importvicedialog.cpp" line="175"/>
         <source>Select VICE Snapshot File</source>
         <translation>Seleccionar Snapshot de VICE</translation>
     </message>
     <message>
-        <location filename="../src/importvicedialog.cpp" line="165"/>
+        <location filename="../src/importvicedialog.cpp" line="177"/>
         <source>All files (*);;VICE snapshot files (*.vsf);;</source>
         <translation>Todos los archivos (*);;Archivos de snapshots VICE (*.vsf);;</translation>
     </message>
@@ -1225,7 +1234,7 @@ Do you want to save your changes?</source>
         <translation type="vanished">Todos los archivos soportados</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1468"/>
+        <location filename="../src/mainwindow.cpp" line="1475"/>
         <source>Could not connect to remote server</source>
         <translation>No se pudo conectar al servidor</translation>
     </message>
@@ -1238,7 +1247,7 @@ Do you want to save your changes?</source>
         <location filename="../src/mainwindow.cpp" line="1121"/>
         <location filename="../src/mainwindow.cpp" line="1144"/>
         <location filename="../src/mainwindow.cpp" line="1166"/>
-        <location filename="../src/mainwindow.cpp" line="1304"/>
+        <location filename="../src/mainwindow.cpp" line="1311"/>
         <source>Application</source>
         <translation>Aplicación</translation>
     </message>
@@ -1322,12 +1331,12 @@ Do you want to save your changes?</source>
         <translation>Error al exportar el archivo:</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1305"/>
+        <location filename="../src/mainwindow.cpp" line="1312"/>
         <source>Could not paste tiles when their sizes are different. Change the tile properties to {%1, %2}</source>
         <translation>No se pudo pegar. Cambie las propiedades del mosaico a {%1, %2}</translation>
     </message>
     <message>
-        <location filename="../src/mainwindow.cpp" line="1448"/>
+        <location filename="../src/mainwindow.cpp" line="1455"/>
         <source>Could not connect to remote C64</source>
         <translation>No se pudo conectar a la C64</translation>
     </message>
@@ -1572,120 +1581,120 @@ Do you want to save your changes?</source>
         <translation>Limpiar mosaico #%1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="117"/>
-        <location filename="../src/commands.cpp" line="193"/>
+        <location filename="../src/commands.cpp" line="119"/>
+        <location filename="../src/commands.cpp" line="195"/>
         <source>Chars</source>
         <translation>Caracteres</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="118"/>
-        <location filename="../src/commands.cpp" line="194"/>
+        <location filename="../src/commands.cpp" line="120"/>
+        <location filename="../src/commands.cpp" line="196"/>
         <source>Tiles</source>
         <translation>Mosaicos</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="119"/>
-        <location filename="../src/commands.cpp" line="195"/>
+        <location filename="../src/commands.cpp" line="121"/>
+        <location filename="../src/commands.cpp" line="197"/>
         <source>Map</source>
         <translation>Mapa</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="122"/>
+        <location filename="../src/commands.cpp" line="124"/>
         <source>Paste %1</source>
         <translation>Pegar %1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="198"/>
+        <location filename="../src/commands.cpp" line="200"/>
         <source>Cut %1</source>
         <translation>Cortar %1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="243"/>
+        <location filename="../src/commands.cpp" line="245"/>
         <source>Flip Tile Horizontally #%1</source>
         <translation>Dar vuelta horizontalmente #%1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="264"/>
+        <location filename="../src/commands.cpp" line="266"/>
         <source>Flip Tile Vertically #%1</source>
         <translation>Dar vuelta verticalmente #%1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="285"/>
+        <location filename="../src/commands.cpp" line="287"/>
         <source>Rotate Tile #%1</source>
         <translation>Rotar #%1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="308"/>
+        <location filename="../src/commands.cpp" line="310"/>
         <source>Invert Tile #%1</source>
         <translation>Invertir #%1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="329"/>
+        <location filename="../src/commands.cpp" line="331"/>
         <source>Shift Tile Left #%1</source>
         <translation>Mover la izquierda #%1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="350"/>
+        <location filename="../src/commands.cpp" line="352"/>
         <source>Shift Tile Right #%1</source>
         <translation>Mover a la derecha #%1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="371"/>
+        <location filename="../src/commands.cpp" line="373"/>
         <source>Shift Tile Up #%1</source>
         <translation>Mover arriba #%1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="392"/>
+        <location filename="../src/commands.cpp" line="394"/>
         <source>Shift Tile Down #%1</source>
         <translation>Mover abajo #%1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="413"/>
+        <location filename="../src/commands.cpp" line="415"/>
         <source>Tile Properties %1x%2 - %3</source>
         <translation>Propiedad de mosaicos %1x%2 - %3</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="439"/>
+        <location filename="../src/commands.cpp" line="441"/>
         <source>Export Properties</source>
         <translation>Exportar propiedades</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="462"/>
+        <location filename="../src/commands.cpp" line="464"/>
         <source>Multicolor enabled</source>
         <translation>Multicolor habilitado</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="464"/>
+        <location filename="../src/commands.cpp" line="466"/>
         <source>Multicolor disabled</source>
         <translation>Multicolor desabilitado</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="487"/>
+        <location filename="../src/commands.cpp" line="489"/>
         <source>Color[%1] = %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="512"/>
+        <location filename="../src/commands.cpp" line="514"/>
         <source>Foreground Mode = %1</source>
         <translation>Modo color primer plano = %1</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="542"/>
+        <location filename="../src/commands.cpp" line="544"/>
         <source>Map Size %1x%2</source>
         <translation>Tamaño de mapa %1x%2</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="571"/>
+        <location filename="../src/commands.cpp" line="573"/>
         <source>Map Fill</source>
         <translation>LLenar mapa</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="602"/>
+        <location filename="../src/commands.cpp" line="604"/>
         <source>Map Clear</source>
         <translation>Limpiar mapa</translation>
     </message>
     <message>
-        <location filename="../src/commands.cpp" line="636"/>
+        <location filename="../src/commands.cpp" line="638"/>
         <source>Paint Map #%1</source>
         <translation>Pintar mapa #%1</translation>
     </message>
@@ -1792,7 +1801,7 @@ Do you want to save your changes?</source>
         <translation>Error: Segmento VICE VIC-II inválido</translation>
     </message>
     <message>
-        <location filename="../src/stateimport.cpp" line="529"/>
+        <location filename="../src/stateimport.cpp" line="537"/>
         <source>Error: VICE C64MEM/C128MEM segment not found</source>
         <translation>Error: Segement C64MEM/C128MEM no encontrado</translation>
     </message>
@@ -1832,7 +1841,7 @@ Do you want to save your changes?</source>
         <translation>Guardar: Error</translation>
     </message>
     <message>
-        <location filename="../src/state.cpp" line="969"/>
+        <location filename="../src/state.cpp" line="970"/>
         <source>Error. Tile size different than src</source>
         <translation>Error. Mosaico de tamaño distinto</translation>
     </message>

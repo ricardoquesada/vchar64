@@ -510,13 +510,21 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
             mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE VIC-II segment"));
             return -1;
         }
-        int charset_offset = (vic2.registers[0x18] & 0x0e) >> 1;    // $d018 & 0x7
-        charset_offset *= 2048;
-        *outCharsetAddress = bank_addr + charset_offset;
 
-        int screenRAM_offset = vic2.registers[0x18] >> 4;           // 4-MSB bit of $d018
-        screenRAM_offset *= 1024;
-        *outScreenRAMAddress = bank_addr + screenRAM_offset;
+        static const char seuck_signature[] = "PRESS FIRE TO COMMENCE SUPADEATH";
+
+        if (memcmp(seuck_signature, &buffer64k[0x3fdc], sizeof(seuck_signature)-1) == 0) {
+            *outCharsetAddress = 0xf800;
+            *outScreenRAMAddress = 0xec00;
+        } else {
+            int charset_offset = (vic2.registers[0x18] & 0x0e) >> 1;    // $d018 & 0x7
+            charset_offset *= 2048;
+            *outCharsetAddress = bank_addr + charset_offset;
+
+            int screenRAM_offset = vic2.registers[0x18] >> 4;           // 4-MSB bit of $d018
+            screenRAM_offset *= 1024;
+            *outScreenRAMAddress = bank_addr + screenRAM_offset;
+        }
 
         // update color RAM
         memcpy(outColorRAMBuf, vic2.color_ram, sizeof(vic2.color_ram));

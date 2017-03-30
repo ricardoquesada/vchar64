@@ -30,6 +30,7 @@ ImportVICEDialog::ImportVICEDialog(QWidget *parent)
     , ui(new Ui::ImportVICEDialog)
     , _validVICEFile(false)
     , _filepath("")
+    , _supportInvalidVICAddresses(false)
 {
     ui->setupUi(this);
 
@@ -102,13 +103,18 @@ void ImportVICEDialog::on_pushButton_cancel_clicked()
 
 void ImportVICEDialog::on_spinBoxCharset_editingFinished()
 {
-    // normalize number, in case it was edited manually
+    int newvalue = 0;
     int oldvalue = ui->spinBoxCharset->value();
-    int m = oldvalue / 2048;
-    int newvalue = m * 2048;
+    if (_supportInvalidVICAddresses) {
+        newvalue = qMin(oldvalue, 0xf800);  // no bigger than 0xf800 to prevent buffer overflow issues
+    } else {
+        // normalize number, in case it was edited manually
+        int m = oldvalue / 2048;
+        newvalue = m * 2048;
 
-    if (newvalue != oldvalue)
-        ui->spinBoxCharset->setValue(newvalue);
+        if (newvalue != oldvalue)
+            ui->spinBoxCharset->setValue(newvalue);
+    }
 
     on_spinBoxCharset_valueChanged(newvalue);
 }
@@ -125,13 +131,19 @@ void ImportVICEDialog::on_spinBoxCharset_valueChanged(int address)
 
 void ImportVICEDialog::on_spinBoxScreenRAM_editingFinished()
 {
-    // normalize number, in case it was edited manually
+    int newvalue = 0;
     int oldvalue = ui->spinBoxScreenRAM->value();
-    int m = oldvalue / 1024;
-    int newvalue = m * 1024;
+    if (_supportInvalidVICAddresses) {
+          // no bigger than 0xfc00 to prevent buffer overflow issues
+        newvalue = qMin(oldvalue, 0xfc00);
+    } else {
+        // normalize number, in case it was edited manually
+        int m = oldvalue / 1024;
+        int newvalue = m * 1024;
 
-    if (newvalue != oldvalue)
-        ui->spinBoxScreenRAM->setValue(newvalue);
+        if (newvalue != oldvalue)
+            ui->spinBoxScreenRAM->setValue(newvalue);
+    }
 
     on_spinBoxScreenRAM_valueChanged(newvalue);
 }
@@ -291,4 +303,16 @@ void ImportVICEDialog::on_checkBoxDisplayGrid_clicked(bool checked)
 {
     ui->widgetCharset->setDisplayGrid(checked);
     ui->widgetScreenRAM->setDisplayGrid(checked);
+}
+
+void ImportVICEDialog::on_checkBoxInvalidAddresses_clicked(bool checked)
+{
+    if (_supportInvalidVICAddresses != checked) {
+        _supportInvalidVICAddresses = checked;
+
+        if (!_supportInvalidVICAddresses) {
+            on_spinBoxCharset_editingFinished();
+            on_spinBoxScreenRAM_editingFinished();
+        }
+    }
 }

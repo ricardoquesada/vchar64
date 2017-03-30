@@ -65,6 +65,8 @@ private slots:
 
     void on_checkBoxDisplayGrid_clicked(bool checked);
 
+    void on_checkBoxInvalidAddresses_clicked(bool checked);
+
 private:
     Ui::ImportVICEDialog *ui;
     bool _validVICEFile;
@@ -78,4 +80,7 @@ private:
     // To gain speed, each tile will be pre-renderer in a QImage
     // a QImages will be renderer
     QImage *_tileImages[256];
+
+    bool _supportInvalidVICAddresses;
+
 };

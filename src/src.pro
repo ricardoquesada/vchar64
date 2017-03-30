@@ -17,7 +17,7 @@ win32 {
     DESTDIR = ../bin
 }
 TEMPLATE = app
-VERSION = 0.2.3
+VERSION = 0.2.4
 GIT_VERSION = $$system(git describe --abbrev=4 --dirty --always --tags)
 DEFINES += GIT_VERSION=\\\"$$GIT_VERSION\\\" VERSION=\\\"$$VERSION\\\"
 

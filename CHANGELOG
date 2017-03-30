@@ -1,4 +1,6 @@
-0.2.4 (XX February 2017)
+0.2.4 (29 March 2017)
+* [NEW] Import VICE: Autodetects SEUCK games
+* [NEW] Import VICE: Allows invalid VIC addresses
 * [FIX] Issue #27: Memory corruption when doing copy & paste
 
 0.2.3 (18 January 2017)
