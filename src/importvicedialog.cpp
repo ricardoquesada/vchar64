@@ -139,7 +139,7 @@ void ImportVICEDialog::on_spinBoxScreenRAM_editingFinished()
     } else {
         // normalize number, in case it was edited manually
         int m = oldvalue / 1024;
-        int newvalue = m * 1024;
+        newvalue = m * 1024;
 
         if (newvalue != oldvalue)
             ui->spinBoxScreenRAM->setValue(newvalue);
@@ -255,6 +255,7 @@ void ImportVICEDialog::updateWidgets()
         ui->checkBoxMulticolor,
         ui->checkBoxGuessColors,
         ui->checkBoxDisplayGrid,
+        ui->checkBoxInvalidAddresses,
         ui->spinBoxCharset,
         ui->spinBoxScreenRAM,
         ui->pushButton_import
