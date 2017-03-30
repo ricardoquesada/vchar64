@@ -7,11 +7,11 @@ matrix:
     include:
         - os: linux
           compiler: gcc
-          env: PPA=beineri/opt-qt57-trusty QT=57
+          env: PPA=beineri/opt-qt571-trusty QT=57
           dist: trusty
         - os: linux
           compiler: clang
-          env: QMAKESPEC=linux-clang PPA=beineri/opt-qt57-trusty QT=57
+          env: QMAKESPEC=linux-clang PPA=beineri/opt-qt571-trusty QT=57
           dist: trusty
 #        - os: osx
 
