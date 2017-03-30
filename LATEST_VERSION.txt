@@ -1,12 +1,11 @@
 # Used by Auto Updater
 # Update it anytime a new stable version is released, but not before!
 # after "changes:" is met, no more tags can be added
-stable_version: 0.2.3
-stable_url: https://github.com/ricardoquesada/vchar64/releases/tag/0.2.3
+stable_version: 0.2.4
+stable_url: https://github.com/ricardoquesada/vchar64/releases/tag/0.2.4
 changes:
 <ul>
-<li>[FIX] Issue #26: URL links in About Dialog work as expected</li>
-<li>[FIX] Issue #25: Version appears in About dialog when compiled from .tar.gz</li>
-<li>[FIX] Issue #24: Uppercase extensions are supported (eg: .PRG is treated as .prg)</li>
-<li>[FIX] Issue #23: Copy & paste work again on Tiles/Chars</li>
+<li>[NEW] Issue #29: VICE Snapshot: Autodetects SEUCK games</li>
+<li>[NEW] Issue #28: VICE Snapshot: Allows invalid VIC addresses</li>
+<li>[FIX] Issue #27: Memory corruption when doing copy & paste</li>
 </ul>
