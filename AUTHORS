@@ -9,6 +9,8 @@ Contributors:
 Henning Bekel (http://henning-bekel.de):
     - Added xlink support
 
+Canseco:
+    - OpenPandora maintainer
 
 Additional:
  - Used [Tiled](http://mapeditor.org) and [QtCreator](https://github.com/qtproject/qt-creator) source code to learn how to code an editor in Qt
