@@ -213,7 +213,7 @@ bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int h
 
         for (int i=0; i<totalMasks; ++i)
         {
-            if (mask && (1<<i))
+            if (mask && (1<<i) != 0)
             {
                 int xdiff = masks[i][0];
                 int ydiff = masks[i][1];
