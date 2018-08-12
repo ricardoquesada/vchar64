@@ -61,10 +61,10 @@ private slots:
     void on_radioButtonPalette_clicked();
     void on_radioButtonNeighbor_clicked();
 
-    void on_checkBoxGrid_clicked();
+    void on_checkBoxGrid_clicked(bool checked);
 
     // browse directories
-    void on_pushButton_clicked();
+    void on_pushButtonBrowse_clicked();
     void on_lineEdit_editingFinished();
 
     void on_pushButtonImport_clicked();

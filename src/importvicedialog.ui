@@ -37,7 +37,7 @@
        <widget class="QLineEdit" name="lineEdit"/>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="pushButtonBrowse">
         <property name="text">
          <string>Browse...</string>
         </property>
@@ -221,14 +221,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_cancel">
+      <widget class="QPushButton" name="pushButtonCancel">
        <property name="text">
         <string>Cancel</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_import">
+      <widget class="QPushButton" name="pushButtonImport">
        <property name="text">
         <string>Import</string>
        </property>
@@ -257,15 +257,15 @@
  </customwidgets>
  <tabstops>
   <tabstop>lineEdit</tabstop>
-  <tabstop>pushButton</tabstop>
+  <tabstop>pushButtonBrowse</tabstop>
   <tabstop>spinBoxCharset</tabstop>
   <tabstop>spinBoxScreenRAM</tabstop>
   <tabstop>checkBoxMulticolor</tabstop>
   <tabstop>checkBoxGuessColors</tabstop>
   <tabstop>checkBoxDisplayGrid</tabstop>
   <tabstop>checkBoxInvalidAddresses</tabstop>
-  <tabstop>pushButton_cancel</tabstop>
-  <tabstop>pushButton_import</tabstop>
+  <tabstop>pushButtonCancel</tabstop>
+  <tabstop>pushButtonImport</tabstop>
  </tabstops>
  <resources/>
  <connections/>

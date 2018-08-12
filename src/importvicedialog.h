@@ -43,11 +43,11 @@ protected:
     void updateTileImages();
 
 private slots:
-    void on_pushButton_import_clicked();
+    void on_pushButtonImport_clicked();
 
-    void on_pushButton_cancel_clicked();
+    void on_pushButtonCancel_clicked();
 
-    void on_pushButton_clicked();
+    void on_pushButtonBrowse_clicked();
 
     void on_lineEdit_editingFinished();
 

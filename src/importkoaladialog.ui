@@ -34,7 +34,7 @@
        <widget class="QLineEdit" name="lineEdit"/>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="pushButtonBrowse">
         <property name="text">
          <string>Browse...</string>
         </property>
@@ -365,7 +365,7 @@
  </customwidgets>
  <tabstops>
   <tabstop>lineEdit</tabstop>
-  <tabstop>pushButton</tabstop>
+  <tabstop>pushButtonBrowse</tabstop>
   <tabstop>checkBoxGrid</tabstop>
   <tabstop>radioD02xMostUsed</tabstop>
   <tabstop>radioD02xMostUsedHi</tabstop>

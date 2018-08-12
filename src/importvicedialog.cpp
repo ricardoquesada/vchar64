@@ -83,7 +83,7 @@ void ImportVICEDialog::updateTileImages()
 //
 // slots
 //
-void ImportVICEDialog::on_pushButton_import_clicked()
+void ImportVICEDialog::on_pushButtonImport_clicked()
 {
     _tmpState->_loadedFilename = _filepath;
     MainWindow::getInstance()->createDocument(_tmpState);
@@ -94,7 +94,7 @@ void ImportVICEDialog::on_pushButton_import_clicked()
     accept();
 }
 
-void ImportVICEDialog::on_pushButton_cancel_clicked()
+void ImportVICEDialog::on_pushButtonCancel_clicked()
 {
     // only free the tmpState if import is rejected
     free(_tmpState);
@@ -168,7 +168,7 @@ void ImportVICEDialog::on_spinBoxScreenRAM_valueChanged(int address)
     ui->widgetCharset->update();
 }
 
-void ImportVICEDialog::on_pushButton_clicked()
+void ImportVICEDialog::on_pushButtonBrowse_clicked()
 {
     auto filter = tr("VICE snapshot files");
     auto fn = QFileDialog::getOpenFileName(this,
@@ -258,7 +258,7 @@ void ImportVICEDialog::updateWidgets()
         ui->checkBoxInvalidAddresses,
         ui->spinBoxCharset,
         ui->spinBoxScreenRAM,
-        ui->pushButton_import
+        ui->pushButtonImport
     };
 
     const int COUNT = sizeof(widgets) / sizeof(widgets[0]);
@@ -289,10 +289,10 @@ void ImportVICEDialog::on_checkBoxGuessColors_clicked(bool checked)
         _VICColorsBackup[1] = _tmpState->_penColors[1];
         _VICColorsBackup[2] = _tmpState->_penColors[2];
 
-        _tmpState->_penColors[0] = 1;
-        _tmpState->_penColors[1] = 5;
-        _tmpState->_penColors[2] = 7;
-        _tmpState->_penColors[3] = 11;
+        _tmpState->_penColors[0] = 1;               // white
+        _tmpState->_penColors[1] = 5;               // green
+        _tmpState->_penColors[2] = 7;               // yellow
+        _tmpState->_penColors[3] = 11;              // dark grey
     }
 
     updateTileImages();

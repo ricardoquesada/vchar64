@@ -62,7 +62,7 @@ const QString& ImportKoalaDialog::getFilepath() const
     return _filepath;
 }
 
-void ImportKoalaDialog::on_pushButton_clicked()
+void ImportKoalaDialog::on_pushButtonBrowse_clicked()
 {
     auto filter = tr("Koala files");
     auto fn = QFileDialog::getOpenFileName(this,
@@ -689,9 +689,8 @@ void ImportKoalaDialog::onSelectedRegionUpdated(const QRect& region)
     updateWidgets();
 }
 
-void ImportKoalaDialog::on_checkBoxGrid_clicked()
+void ImportKoalaDialog::on_checkBoxGrid_clicked(bool checked)
 {
-    auto checked = ui->checkBoxGrid->isChecked();
     ui->widgetCharset->enableGrid(checked);
     ui->widgetKoala->enableGrid(checked);
 }
