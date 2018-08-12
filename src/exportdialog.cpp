@@ -174,8 +174,11 @@ void ExportDialog::accept()
     QDialog::accept();
 }
 
-void ExportDialog::on_radioButton_raw_clicked()
+void ExportDialog::on_radioButton_raw_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     auto filename = ui->editFilename->text();
 
     QFileInfo finfo(filename);
@@ -186,8 +189,11 @@ void ExportDialog::on_radioButton_raw_clicked()
     ui->editFilename->setText(filename);
 }
 
-void ExportDialog::on_radioButton_asm_clicked()
+void ExportDialog::on_radioButton_asm_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     auto filename = ui->editFilename->text();
 
     QFileInfo finfo(filename);
@@ -198,8 +204,11 @@ void ExportDialog::on_radioButton_asm_clicked()
     ui->editFilename->setText(filename);
 }
 
-void ExportDialog::on_radioButton_prg_clicked()
+void ExportDialog::on_radioButton_prg_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     auto filename = ui->editFilename->text();
 
     QFileInfo finfo(filename);

@@ -158,10 +158,10 @@ private slots:
     void on_actionTilesProperties_triggered();
     void on_actionUndo_triggered();
     void on_actionRedo_triggered();
-    void on_radioButton_background_clicked();
-    void on_radioButton_foreground_clicked();
-    void on_radioButton_multicolor1_clicked();
-    void on_radioButton_multicolor2_clicked();
+    void on_radioButton_background_toggled(bool checked);
+    void on_radioButton_foreground_toggled(bool checked);
+    void on_radioButton_multicolor1_toggled(bool checked);
+    void on_radioButton_multicolor2_toggled(bool checked);
     void on_actionBackground_triggered();
     void on_actionForeground_triggered();
     void on_actionMulti_Color_1_triggered();
@@ -185,8 +185,8 @@ private slots:
 
     void on_actionImportKoalaImage_triggered();
 
-    void on_radioButton_charColorGlobal_clicked();
-    void on_radioButton_charColorPerChar_clicked();
+    void on_radioButton_charColorGlobal_toggled(bool checked);
+    void on_radioButton_charColorPerChar_toggled(bool checked);
 
 
     void on_actionMap_Properties_triggered();

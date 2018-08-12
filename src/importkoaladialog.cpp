@@ -639,44 +639,67 @@ bool ImportKoalaDialog::convert()
     return true;
 }
 
-void ImportKoalaDialog::on_radioForegroundMostUsed_clicked()
+void ImportKoalaDialog::on_radioForegroundMostUsed_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     convert();
 }
 
-void ImportKoalaDialog::on_radioForegroundMostUsedLow_clicked()
+void ImportKoalaDialog::on_radioForegroundMostUsedLow_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     convert();
 }
 
 
-void ImportKoalaDialog::on_radioD02xManual_clicked()
+void ImportKoalaDialog::on_radioD02xManual_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     convert();
 }
 
-void ImportKoalaDialog::on_radioD02xMostUsed_clicked()
+void ImportKoalaDialog::on_radioD02xMostUsed_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     convert();
 }
 
-void ImportKoalaDialog::on_radioD02xMostUsedHi_clicked()
+void ImportKoalaDialog::on_radioD02xMostUsedHi_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     convert();
 }
 
-void ImportKoalaDialog::on_radioButtonNeighbor_clicked()
+void ImportKoalaDialog::on_radioButtonNeighbor_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     convert();
 }
 
-void ImportKoalaDialog::on_radioButtonLuminance_clicked()
+void ImportKoalaDialog::on_radioButtonLuminance_toggled(bool checked)
 {
-   convert();
+    if (!checked)
+        return;
+    convert();
 }
 
-void ImportKoalaDialog::on_radioButtonPalette_clicked()
+void ImportKoalaDialog::on_radioButtonPalette_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     convert();
 }
 

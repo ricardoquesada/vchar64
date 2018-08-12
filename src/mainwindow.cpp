@@ -847,23 +847,35 @@ void MainWindow::activateRadioButtonIndex(int pen)
     }
 }
 
-void MainWindow::on_radioButton_background_clicked()
+void MainWindow::on_radioButton_background_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     activateRadioButtonIndex(State::PEN_BACKGROUND);
 }
 
-void MainWindow::on_radioButton_foreground_clicked()
+void MainWindow::on_radioButton_foreground_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     activateRadioButtonIndex(State::PEN_FOREGROUND);
 }
 
-void MainWindow::on_radioButton_multicolor1_clicked()
+void MainWindow::on_radioButton_multicolor1_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     activateRadioButtonIndex(State::PEN_MULTICOLOR1);
 }
 
-void MainWindow::on_radioButton_multicolor2_clicked()
+void MainWindow::on_radioButton_multicolor2_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     activateRadioButtonIndex(State::PEN_MULTICOLOR2);
 }
 
@@ -887,15 +899,21 @@ void MainWindow::on_actionMulti_Color_2_triggered()
     activateRadioButtonIndex(State::PEN_MULTICOLOR2);
 }
 
-void MainWindow::on_radioButton_charColorGlobal_clicked()
+void MainWindow::on_radioButton_charColorGlobal_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     auto state = getState();
     if (state)
         state->setForegroundColorMode(State::FOREGROUND_COLOR_GLOBAL);
 }
 
-void MainWindow::on_radioButton_charColorPerChar_clicked()
+void MainWindow::on_radioButton_charColorPerChar_toggled(bool checked)
 {
+    if (!checked)
+        return;
+
     auto state = getState();
     if (state)
         state->setForegroundColorMode(State::FOREGROUND_COLOR_PER_TILE);

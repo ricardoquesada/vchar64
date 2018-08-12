@@ -52,14 +52,14 @@ protected:
     void updateWidgets();
 
 private slots:
-    void on_radioD02xManual_clicked();
-    void on_radioD02xMostUsed_clicked();
-    void on_radioD02xMostUsedHi_clicked();
-    void on_radioForegroundMostUsed_clicked();
-    void on_radioForegroundMostUsedLow_clicked();
-    void on_radioButtonLuminance_clicked();
-    void on_radioButtonPalette_clicked();
-    void on_radioButtonNeighbor_clicked();
+    void on_radioD02xManual_toggled(bool checked);
+    void on_radioD02xMostUsed_toggled(bool checked);
+    void on_radioD02xMostUsedHi_toggled(bool checked);
+    void on_radioForegroundMostUsed_toggled(bool checked);
+    void on_radioForegroundMostUsedLow_toggled(bool checked);
+    void on_radioButtonLuminance_toggled(bool checked);
+    void on_radioButtonPalette_toggled(bool checked);
+    void on_radioButtonNeighbor_toggled(bool checked);
 
     void on_checkBoxGrid_clicked(bool checked);
 
