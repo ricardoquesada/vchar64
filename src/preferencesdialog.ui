@@ -148,6 +148,12 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>checkBoxStartupFiles</tabstop>
+  <tabstop>toolButtonSelectColor</tabstop>
+  <tabstop>checkBoxAutoCheck</tabstop>
+  <tabstop>pushButtonCheckNow</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

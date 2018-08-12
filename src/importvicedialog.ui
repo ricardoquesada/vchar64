@@ -258,6 +258,12 @@
  <tabstops>
   <tabstop>lineEdit</tabstop>
   <tabstop>pushButton</tabstop>
+  <tabstop>spinBoxCharset</tabstop>
+  <tabstop>spinBoxScreenRAM</tabstop>
+  <tabstop>checkBoxMulticolor</tabstop>
+  <tabstop>checkBoxGuessColors</tabstop>
+  <tabstop>checkBoxDisplayGrid</tabstop>
+  <tabstop>checkBoxInvalidAddresses</tabstop>
   <tabstop>pushButton_cancel</tabstop>
   <tabstop>pushButton_import</tabstop>
  </tabstops>

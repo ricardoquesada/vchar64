@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>676</width>
-    <height>516</height>
+    <height>540</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -363,6 +363,22 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>lineEdit</tabstop>
+  <tabstop>pushButton</tabstop>
+  <tabstop>checkBoxGrid</tabstop>
+  <tabstop>radioD02xMostUsed</tabstop>
+  <tabstop>radioD02xMostUsedHi</tabstop>
+  <tabstop>radioD02xManual</tabstop>
+  <tabstop>radioForegroundMostUsed</tabstop>
+  <tabstop>radioForegroundMostUsedLow</tabstop>
+  <tabstop>radioButtonLuminance</tabstop>
+  <tabstop>radioButtonPalette</tabstop>
+  <tabstop>radioButtonNeighbor</tabstop>
+  <tabstop>lineEditUnique</tabstop>
+  <tabstop>pushButtonCancel</tabstop>
+  <tabstop>pushButtonImport</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
