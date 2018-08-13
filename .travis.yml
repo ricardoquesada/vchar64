@@ -1,7 +1,6 @@
 language: cpp
 sudo: required
-services:
-  - docker
+python: 3.6
 
 matrix:
     include:
@@ -14,17 +13,16 @@ matrix:
           env: QMAKESPEC=linux-clang PPA=beineri/opt-qt571-trusty QT=57
           dist: trusty
         - os: osx
-
+            before_install: brew update
+            install:
+              - brew install qbs
+              - brew install qt5@5.5
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update           ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository -y ppa:$PPA ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qy ; fi
 
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew tap homebrew/versions ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5      ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link qt5 --force ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -qy qt${QT}base qt${QT}tools cppcheck; fi
   - qmake -version
 
