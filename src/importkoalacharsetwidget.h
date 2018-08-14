@@ -30,7 +30,7 @@ public:
 
     void paintEvent(QPaintEvent *event);
     void populateScreenAndColorRAM(const std::vector<std::pair<int,int>>& coords, quint8 screenRAM, quint8 colorRAM);
-    void setCharset(int charIndex, quint8* chardef);
+    void setCharset(int charIndex, const quint8* chardef);
     void enableGrid(bool enabled);
 
     void clean();

@@ -66,7 +66,7 @@ void ImportKoalaCharsetWidget::populateScreenAndColorRAM(const std::vector<std::
     _colorRAMForChars[screenRAM] = colorRAM;
 }
 
-void ImportKoalaCharsetWidget::setCharset(int charIndex, quint8* chardef)
+void ImportKoalaCharsetWidget::setCharset(int charIndex, const quint8* chardef)
 {
     for (int i=0; i<8; i++)
     {

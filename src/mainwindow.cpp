@@ -1469,7 +1469,7 @@ void MainWindow::on_actionXlinkConnection_triggered()
         preview->disconnect();
     else
         if(!preview->connect()) {
-            QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote C64"), 0, this);
+            QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote C64"), nullptr, this);
             msgBox.exec();
         }
 }
@@ -1489,7 +1489,7 @@ void MainWindow::on_actionServerConnection_triggered()
             auto ipaddress = dialog.getIPAddress();
             if (!preview->connect(ipaddress))
             {
-                QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote server"), 0, this);
+                QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote server"), nullptr, this);
                 msgBox.exec();
             }
         }
@@ -1615,12 +1615,12 @@ BigCharWidget* MainWindow::getBigcharWidget() const
     if (!mdisubview)
     {
         auto list = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::ActivationHistoryOrder);
-        if (list.size() > 0)
+        if (!list.empty())
             mdisubview = list.last();
         else
             return nullptr;
     }
-    auto bigchar = static_cast<BigCharWidget*>(mdisubview->widget());
+    auto bigchar = qobject_cast<BigCharWidget*>(mdisubview->widget());
 
     Q_ASSERT(bigchar && "bigchar not found");
     return bigchar;
@@ -1679,7 +1679,7 @@ QByteArray MainWindow::bufferFromClipboard() const
 
 void MainWindow::checkForUpdates()
 {
-    auto &prefs = Preferences::getInstance();
+    auto& prefs = Preferences::getInstance();
     // check for updates only for more than 7 days passed since last check
     if (prefs.getCheckUpdates() && prefs.getLastTimeUpdateCheck() >= 7) {
         AutoUpdater::getInstance().checkUpdate();

@@ -646,8 +646,8 @@ void PaintMapCommand::redo()
     }
     memcpy(_oldMap, _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
 
-    for (int i = 0; i < _points.size(); ++i) {
-        _state->_mapPaint(_points.at(i), _tileIdx);
+    for (auto _point : _points) {
+        _state->_mapPaint(_point, _tileIdx);
     }
 }
 

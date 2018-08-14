@@ -54,8 +54,8 @@ MapWidget::MapWidget(QWidget *parent)
 
     setMouseTracking(true);
 
-    for (int i=0;i < 256; ++i)
-        _tileImages[i] = nullptr;
+    for (auto& _tileImage : _tileImages)
+        _tileImage = nullptr;
 }
 
 //

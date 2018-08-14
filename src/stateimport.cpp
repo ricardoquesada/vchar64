@@ -251,7 +251,7 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
     // check version
     if (header.version == 4) {
         return loadCTM4(state, file, (struct CTMHeader4*)&header);
-    } else if (header.version == 5) {
+    } if (header.version == 5) {
         return loadCTM5(state, file, &header);
     }
 
@@ -428,7 +428,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     *outCharsetAddress = 0;         // in case we can't find the correct one
     *outScreenRAMAddress = 0x400;   // in case we can't find the correct one
 
-    while (1) {
+    while (true) {
         size = file.read((char*)&module, sizeof(module));
         if (size != sizeof(module))
             break;

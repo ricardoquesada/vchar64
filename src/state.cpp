@@ -16,8 +16,9 @@ limitations under the License.
 
 #include "state.h"
 
-#include <string.h>
+#include <cstring>
 
+#include <utility>
 #include <vector>
 #include <algorithm>
 #include <cstdio>
@@ -38,7 +39,7 @@ limitations under the License.
 const int State::CHAR_BUFFER_SIZE;
 
 // target constructor
-State::State(const QString &filename, quint8 *charset, quint8 *tileColors, quint8 *map, const QSize& mapSize)
+State::State(const QString& filename, quint8 *charset, quint8 *tileColors, quint8 *map, const QSize& mapSize)
     : _totalChars(0)
     , _mapSize(mapSize)
     , _multicolorMode(false)
@@ -239,7 +240,6 @@ static QString filenameFixSuffix(const QString& filename, State::ExportFeature s
         "-map",
         "-colors"
     };
-    const int MAX_DESC = sizeof(validDescriptions) / sizeof(validDescriptions[0]);
 
     QFileInfo info(filename);
 
@@ -248,11 +248,11 @@ static QString filenameFixSuffix(const QString& filename, State::ExportFeature s
     auto name = info.baseName();
 
     // remove possible suffix
-    for (int i=0; i<MAX_DESC; i++)
+    for (const auto& validDescription : validDescriptions)
     {
-        if (name.endsWith(validDescriptions[i]))
+        if (name.endsWith(validDescription))
         {
-            name = name.left(name.length() - validDescriptions[i].length());
+            name = name.left(name.length() - validDescription.length());
             break;
         }
     }

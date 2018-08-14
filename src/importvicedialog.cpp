@@ -44,9 +44,9 @@ ImportVICEDialog::ImportVICEDialog(QWidget *parent)
                                            State::FOREGROUND_COLOR_GLOBAL);
 
     // default tiles
-    for (int i=0; i<256; ++i)
+    for (auto& _tileImage : _tileImages)
     {
-        _tileImages[i] = new QImage(QSize(8,8), QImage::Format_RGB888);
+        _tileImage = new QImage(QSize(8,8), QImage::Format_RGB888);
     }
     updateTileImages();
 
@@ -261,11 +261,9 @@ void ImportVICEDialog::updateWidgets()
         ui->pushButtonImport
     };
 
-    const int COUNT = sizeof(widgets) / sizeof(widgets[0]);
-
-    for (int i=0; i<COUNT; i++)
+    for (auto& widget : widgets)
     {
-        widgets[i]->setEnabled(_validVICEFile);
+        widget->setEnabled(_validVICEFile);
     }
 }
 

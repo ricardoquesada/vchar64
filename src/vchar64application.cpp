@@ -12,7 +12,7 @@ bool VChar64Application::event(QEvent *event)
         switch (event->type())
         {
         case QEvent::FileOpen:
-            emit fileOpenRequest(static_cast<QFileOpenEvent*>(event)->file());
+            emit fileOpenRequest(dynamic_cast<QFileOpenEvent*>(event)->file());
             return true;
         default:
             return QApplication::event(event);

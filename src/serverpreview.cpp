@@ -22,7 +22,7 @@ limitations under the License.
 #include <QTcpSocket>
 #include <QtEndian>
 
-#include <string.h>
+#include <cstring>
 
 #include "serverprotocol.h"
 #include "mainwindow.h"
@@ -49,8 +49,7 @@ ServerPreview::ServerPreview()
 }
 
 ServerPreview::~ServerPreview()
-{
-}
+= default;
 
 bool ServerPreview::isConnected()
 {
@@ -538,7 +537,7 @@ void ServerPreview::protoPoke(quint16 addr, quint8 value)
     sendOrQueueData((char*)data, sizeof(*data));
 }
 
-void ServerPreview::protoPeek(quint16 addr, quint8* value)
+void ServerPreview::protoPeek(quint16 addr, const quint8* value)
 {
     Q_UNUSED(addr);
     Q_UNUSED(value);

@@ -35,8 +35,7 @@ ColorRectWidget::ColorRectWidget(QWidget *parent)
 }
 
 ColorRectWidget::~ColorRectWidget()
-{
-}
+= default;
 
 
 void ColorRectWidget::setPen(int pen)

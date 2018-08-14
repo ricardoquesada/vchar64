@@ -33,8 +33,7 @@ Preferences::Preferences()
 }
 
 Preferences::~Preferences()
-{
-}
+= default;
 
 void Preferences::setGridColor(const QColor& color)
 {

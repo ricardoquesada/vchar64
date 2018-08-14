@@ -40,8 +40,7 @@ AutoUpdater::AutoUpdater()
 }
 
 AutoUpdater::~AutoUpdater()
-{
-}
+= default;
 
 void AutoUpdater::checkUpdate()
 {

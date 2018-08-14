@@ -251,11 +251,11 @@ void ImportKoalaBitmapWidget::resetColors()
     // reset state
     _colorsUsed.clear();
     for (int i=0; i<16; i++)
-        _colorsUsed.push_back(std::make_pair(0,i));
+        _colorsUsed.emplace_back(0,i);
     _uniqueCells.clear();
 
-    for (int i=0; i<3; i++)
-        _d02xColors[i] = -1;
+    for (unsigned char & _d02xColor : _d02xColors)
+        _d02xColor = -1;
 }
 
 void ImportKoalaBitmapWidget::findUniqueCells()
@@ -288,7 +288,7 @@ void ImportKoalaBitmapWidget::findUniqueCells()
             if (_uniqueCells.find(skey) == _uniqueCells.end())
             {
                 std::vector<std::pair<int,int>> v;
-                v.push_back(std::make_pair(x,y));
+                v.emplace_back(x,y);
                 _uniqueCells[skey] = v;
             }
             else
@@ -369,16 +369,16 @@ void ImportKoalaBitmapWidget::reportResults()
     int validUniqueCells = 0;
     int invalidUniqueCells = 0;
 
-    for (auto it=_uniqueCells.begin(); it!=_uniqueCells.end(); ++it)
+    for (auto& _uniqueCell : _uniqueCells)
     {
         bool keyIsValid = true;
-        auto key = it->first;
+        auto key = _uniqueCell.first;
         // key is 4 * 32 bytes long. Each element of
         // the key, is a pixel
-        for (int i=0; i<(int)key.size(); i++)
+        for (char i : key)
         {
             // convert Hex to int
-            char c = key[i] - '0';
+            char c = i - '0';
             if (c > 9)
                 c -= 7;         // 'A' - '9'
 
@@ -400,13 +400,13 @@ void ImportKoalaBitmapWidget::reportResults()
         if (keyIsValid)
         {
             // it->second is the vector<pair<int,int>>
-            validCells += (int)it->second.size();
+            validCells += (int)_uniqueCell.second.size();
             validUniqueCells++;
         }
         else
         {
             // it->second is the vector<pair<int,int>>
-            invalidCells += (int)it->second.size();
+            invalidCells += (int)_uniqueCell.second.size();
             invalidUniqueCells++;
         }
     }

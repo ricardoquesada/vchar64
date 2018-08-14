@@ -159,7 +159,7 @@ bool XlinkPreview::updateScreen(const QString& filename)
         return false;
 
     char *screen = (char*) calloc(1000, sizeof(char));
-    if(screen == NULL) return false;
+    if(screen == nullptr) return false;
 
     int size = file.read(screen, 1000);
     file.close();

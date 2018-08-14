@@ -261,9 +261,8 @@ void ImportKoalaDialog::normalizeWithNeighborStrategy(char* key, int hiColorRAM)
         0x08,       // 000-0_1-000: r
         0x02,       // 000-0_0-010: b
     };
-    const int totalMasks = sizeof(masks) / sizeof(masks[0]);
 
-    for (int maskIndex=0; maskIndex<totalMasks; maskIndex++)
+    for (unsigned char mask : masks)
     {
         bool keyChanged = false;
         do {
@@ -271,7 +270,7 @@ void ImportKoalaDialog::normalizeWithNeighborStrategy(char* key, int hiColorRAM)
             for (int y=0; y<8; ++y)
             {
                 for (int x=0; x<4; ++x)
-                    keyChanged |= tryChangeKey(x, y, key, masks[maskIndex], hiColorRAM);
+                    keyChanged |= tryChangeKey(x, y, key, mask, hiColorRAM);
             }
         } while(keyChanged);
     }
@@ -346,15 +345,14 @@ int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vec
         {cycle4, cycle4Max},
         {cycle5, cycle5Max},
     };
-    const int cyclesMax = sizeof(cycles) / sizeof(cycles[0]);
 
-    for (int i=0; i<cyclesMax; ++i)
+    for (auto& cycle : cycles)
     {
         // find indexColor;
         int idx = -1;
-        for (int j=0; j<cycles[i].arrayLength; j++)
+        for (int j=0; j<cycle.arrayLength; j++)
         {
-            if (cycles[i].array[j] == colorIndex) {
+            if (cycle.array[j] == colorIndex) {
                 idx = j;
                 break;
             }
@@ -362,9 +360,9 @@ int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vec
         // calculate distances
         if (idx != -1)
         {
-            for (int j=0; j<cycles[i].arrayLength; j++)
+            for (int j=0; j<cycle.arrayLength; j++)
             {
-                int tmpColor = cycles[i].array[j];
+                int tmpColor = cycle.array[j];
                 if (std::find(std::begin(colorsToFind), std::end(colorsToFind), tmpColor) != std::end(colorsToFind))
                 {
                     usedColors[tmpColor].first += std::max(0, 9 - abs(idx-j));
@@ -453,7 +451,7 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
             else if (colorIndex == ui->widgetKoala->_d02xColors[2])
                 bits |= (2 << (6-(x*2)));
             else
-                invalidCoords.push_back(std::make_pair(x,y));
+                invalidCoords.emplace_back(x,y);
             usedColors[colorIndex].first++;
         }
         outKey[y] = bits;
@@ -469,13 +467,13 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
     // no colorRAM detected? That means that all colors are d020, d021, d022
     if (_colorRAM == -1)
     {
-        Q_ASSERT(invalidCoords.size()==0 && "error in heuristic");
+        Q_ASSERT(invalidCoords.empty() && "error in heuristic");
         // pick a random color for RAMcolor... like black
         _colorRAM = 0;
     }
 
 
-    if (invalidCoords.size() > 0)
+    if (!invalidCoords.empty())
     {
         char copyKey[8*4 + 1];
         memcpy(copyKey, key.c_str(), sizeof(copyKey));
@@ -765,11 +763,9 @@ void ImportKoalaDialog::updateWidgets()
         ui->widgetD023,
     };
 
-    const int COUNT = sizeof(widgets) / sizeof(widgets[0]);
-
-    for (int i=0; i<COUNT; i++)
+    for (auto& widget : widgets)
     {
-        widgets[i]->setEnabled(_koaLoaded);
+        widget->setEnabled(_koaLoaded);
     }
 
     ui->pushButtonImport->setEnabled(_validKoalaFile);
@@ -783,20 +779,20 @@ void ImportKoalaDialog::mousePressEvent(QMouseEvent* event)
         ui->widgetD023
     };
 
-    for (int i=0; i<3; i++)
+    for (auto& widget : widgets)
     {
-        auto localPos = widgets[i]->mapFromParent(event->pos());
-        if (widgets[i]->isEnabled() && widgets[i]->rect().contains(localPos))
+        auto localPos = widget->mapFromParent(event->pos());
+        if (widget->isEnabled() && widget->rect().contains(localPos))
         {
             // will also trigger convert
             ui->radioD02xManual->setChecked(true);
 
-            auto currentColor = widgets[i]->getColorIndex();
+            auto currentColor = widget->getColorIndex();
             SelectColorDialog diag(this);
             diag.setCurrentColor(currentColor);
 
             connect(&diag, &SelectColorDialog::colorSelected, [&](int colorIndex){
-                widgets[i]->setColorIndex(colorIndex);
+                widget->setColorIndex(colorIndex);
                 convert();
             });
 
@@ -804,14 +800,14 @@ void ImportKoalaDialog::mousePressEvent(QMouseEvent* event)
             {
                 // FIXME: most probably this is not needed since the signal colorSelected
                 // will change it...
-                widgets[i]->setColorIndex(diag.getSelectedColor());
+                widget->setColorIndex(diag.getSelectedColor());
                 convert();
             }
             else
             {
                 // restore original color, since the color can be changed
                 // within the colorSelected signal
-                widgets[i]->setColorIndex(currentColor);
+                widget->setColorIndex(currentColor);
                 convert();
             }
             event->accept();

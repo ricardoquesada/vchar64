@@ -66,7 +66,7 @@ protected:
 
     // Proto: generic
     void protoPoke(quint16 addr, quint8 value);
-    void protoPeek(quint16 addr, quint8* value);
+    void protoPeek(quint16 addr, const quint8* value);
     void protoFill(quint16 addr, quint8 value, quint16 count);
     // don't call it directly. It is used internally for syncing purposes
     void protoPing(quint8 pingValue);
