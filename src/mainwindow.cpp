@@ -129,7 +129,7 @@ void MainWindow::documentWasModified()
     auto list = _ui->mdiArea->subWindowList();
     for (auto l: list)
     {
-        modified |= static_cast<BigCharWidget*>(l->widget())->getState()->isModified();
+        modified |= qobject_cast<BigCharWidget*>(l->widget())->getState()->isModified();
     }
     setWindowModified(modified);
 
@@ -235,7 +235,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     setSessionFiles();
     _ui->mdiArea->closeAllSubWindows();
-    if (_ui->mdiArea->subWindowList().size() > 0)
+    if (!_ui->mdiArea->subWindowList().empty())
     {
         event->ignore();
     }
@@ -310,7 +310,7 @@ void MainWindow::openDefaultDocument()
     {
         auto fileList = Preferences::getInstance().getSessionFiles();
 
-        for (auto file: fileList)
+        for (const auto& file: fileList)
         {
             success |= _openFile(file);
         }
@@ -546,12 +546,12 @@ void MainWindow::setupMapDock()
     _spinBoxMapX = new QSpinBox(this);
     _spinBoxMapY = new QSpinBox(this);
     QSpinBox* spins[] = {_spinBoxMapX, _spinBoxMapY};
-    for (int i=0; i<2; i++)
+    for (auto& spin: spins)
     {
-        spins[i]->setMinimum(1);
-        spins[i]->setMaximum(4096);
-        toolbar->addWidget(spins[i]);
-        spins[i]->setKeyboardTracking(false);
+        spin->setMinimum(1);
+        spin->setMaximum(4096);
+        toolbar->addWidget(spin);
+        spin->setKeyboardTracking(false);
     }
     connect(_spinBoxMapX, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxMapSizeX_valueChanged);
     connect(_spinBoxMapY, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxMapSizeY_valueChanged);
@@ -621,7 +621,7 @@ void MainWindow::setupStatusBar()
 
 void MainWindow::updateMenus()
 {
-    bool withDocuments = (_ui->mdiArea->subWindowList().size() > 0);
+    bool withDocuments = !_ui->mdiArea->subWindowList().empty();
 
     _ui->dockWidget_colors->setEnabled(withDocuments);
     _ui->dockWidget_charset->setEnabled(withDocuments);
@@ -650,9 +650,8 @@ void MainWindow::updateMenus()
         _ui->actionPaste,
         _ui->actionCut
     };
-    const int TOTAL_ACTIONS = sizeof(actions)/sizeof(actions[0]);
-    for (int i=0; i<TOTAL_ACTIONS; i++)
-        actions[i]->setEnabled(withDocuments);
+    for (auto& action: actions)
+        action->setEnabled(withDocuments);
 }
 
 void MainWindow::updateRecentFiles()
@@ -700,7 +699,7 @@ void MainWindow::setSessionFiles()
     const QStringList suffixList = {QString("vsf"), QString("koa"), QString("kla")};
     auto mdiList = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::StackingOrder);
     for (auto item: mdiList) {
-        auto bigchar = static_cast<BigCharWidget*>(item->widget());
+        auto bigchar = qobject_cast<BigCharWidget*>(item->widget());
         auto bigcharState = bigchar->getState();
         auto filename = bigcharState->getLoadedFilename();
         // FIXME: Imported files are using getLoadedFilename(). Instead, they should use
@@ -740,7 +739,7 @@ void MainWindow::on_actionExit_triggered()
 {
     setSessionFiles();
     _ui->mdiArea->closeAllSubWindows();
-    if (_ui->mdiArea->subWindowList().size() == 0)
+    if (_ui->mdiArea->subWindowList().empty())
     {
         saveSettings();
         QApplication::exit();
@@ -1027,7 +1026,7 @@ bool MainWindow::activateIfAlreadyOpen(const QString& fileName)
     QStringList fileList;
     auto mdiList = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::StackingOrder);
     for (auto mdiSubWindow: mdiList) {
-        auto bigchar = static_cast<BigCharWidget*>(mdiSubWindow->widget());
+        auto bigchar = qobject_cast<BigCharWidget*>(mdiSubWindow->widget());
         auto bigcharState = bigchar->getState();
         qDebug() << bigcharState->getLoadedFilename();
         if (fileName.compare(bigcharState->getLoadedFilename()) == 0) {
@@ -1391,7 +1390,7 @@ void MainWindow::on_actionClearRecentFiles_triggered()
 
 void MainWindow::onOpenRecentFileTriggered()
 {
-    QAction *action = qobject_cast<QAction *>(sender());
+    auto action = qobject_cast<QAction*>(sender());
     if (action)
     {
         auto path = action->data().toString();

@@ -156,7 +156,7 @@ void ExportDialog::accept()
         ok = _state->exportAsm(filename, properties);
     }
 
-    auto mainWindow = static_cast<MainWindow*>(parent());
+    auto mainWindow = qobject_cast<MainWindow*>(parent());
 
     if (ok) {
         QFileInfo info(filename);

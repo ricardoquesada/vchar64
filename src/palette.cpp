@@ -169,7 +169,7 @@ const QColor& Palette::getColorForPen(State* state, int pen)
 
     // default colors are used when no state is present.
     // Import from VICE might use it if no tabs are open
-    int defaultColors[] = {1,5,7,11};
+    const int defaultColors[] = {1,5,7,11};
     int colorIndex = defaultColors[pen];
 
     // state could be nill if no States (documents) are open
