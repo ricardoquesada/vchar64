@@ -1484,7 +1484,7 @@ void State::clearUndoStack()
 //
 State::Char State::getCharFromTile(int tileIndex, int x, int y) const
 {
-    Char ret;
+    Char ret{};
     int charIndex = getCharIndexFromTileIndex(tileIndex);
 
     for (int i=0; i<8; i++) {

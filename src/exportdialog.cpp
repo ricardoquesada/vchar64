@@ -34,11 +34,11 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
 {
     ui->setupUi(this);
 
-    auto lastDir = Preferences::getInstance().getLastUsedDirectory();
+    const auto lastDir = Preferences::getInstance().getLastUsedDirectory();
 
     // set correct extension
-    auto exportProperties = _state->getExportProperties();
-    int format = exportProperties.format;
+    const auto exportProperties = _state->getExportProperties();
+    const int format = exportProperties.format;
 
     auto fn = _state->getExportedFilename();
     if (fn.length() == 0) {
@@ -156,7 +156,7 @@ void ExportDialog::accept()
         ok = _state->exportAsm(filename, properties);
     }
 
-    MainWindow *mainWindow = static_cast<MainWindow*>(parent());
+    auto mainWindow = static_cast<MainWindow*>(parent());
 
     if (ok) {
         QFileInfo info(filename);

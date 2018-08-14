@@ -106,7 +106,7 @@ void AutoUpdater::httpFinished()
     bool appendChanges = false;
 
     auto list = _data.split("\n", QString::SkipEmptyParts);
-    for(const auto str: list) {
+    for(const auto& str: list) {
         // not a comment?
         if (!str.startsWith("#")) {
             if (str.startsWith("stable_version:")) {

@@ -85,12 +85,12 @@ void BigCharWidget::cyclePixel(int x, int y)
 {
     int pen = _state->tileGetPen(_tileIndex, QPoint(x, y));
 
-    int nextPenMC[] = {State::PEN_FOREGROUND,
+    const int nextPenMC[] = {State::PEN_FOREGROUND,
                        State::PEN_MULTICOLOR2,
                        State::PEN_BACKGROUND,
                        State::PEN_MULTICOLOR1};
 
-    int nextPenHR[] = {State::PEN_FOREGROUND,
+    const int nextPenHR[] = {State::PEN_FOREGROUND,
                        State::PEN_BACKGROUND};
 
     if (_state->shouldBeDisplayedInMulticolor2(_tileIndex))
@@ -349,7 +349,7 @@ bool BigCharWidget::maybeSave()
                      QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         if (ret == QMessageBox::Save)
             return MainWindow::getInstance()->on_actionSave_triggered();
-        else if (ret == QMessageBox::Cancel)
+        if (ret == QMessageBox::Cancel)
             return false;
     }
     return true;

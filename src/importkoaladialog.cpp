@@ -582,11 +582,11 @@ bool ImportKoalaDialog::convert()
         Q_ASSERT(colorRAM<16 && "Invalid colorRAM");
 
         // chardef + colorRAM == unique Char
-        std::string key("");
-        for (int i=0; i<8; ++i)
+        std::string key;
+        for (unsigned char i: chardef)
         {
-            key += _hex[chardef[i] >> 4];
-            key += _hex[chardef[i] & 0x0f];
+            key += _hex[i >> 4];
+            key += _hex[i & 0x0f];
         }
         key += _hex[colorRAM];
 
