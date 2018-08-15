@@ -219,7 +219,7 @@ void ExportDialog::on_radioButton_prg_toggled(bool checked)
     ui->editFilename->setText(filename);
 }
 
-void ExportDialog::on_checkBox_charset_clicked(bool checked)
+void ExportDialog::on_checkBox_charset_toggled(bool checked)
 {
     if (checked)
         _checkBox_clicked |= State::EXPORT_FEATURE_CHARSET;
@@ -228,7 +228,7 @@ void ExportDialog::on_checkBox_charset_clicked(bool checked)
     updateButtons();
 }
 
-void ExportDialog::on_checkBox_map_clicked(bool checked)
+void ExportDialog::on_checkBox_map_toggled(bool checked)
 {
     if (checked)
         _checkBox_clicked |= State::EXPORT_FEATURE_MAP;
@@ -237,7 +237,7 @@ void ExportDialog::on_checkBox_map_clicked(bool checked)
     updateButtons();
 }
 
-void ExportDialog::on_checkBox_tileColors_clicked(bool checked)
+void ExportDialog::on_checkBox_tileColors_toggled(bool checked)
 {
     if (checked)
         _checkBox_clicked |= State::EXPORT_FEATURE_COLORS;

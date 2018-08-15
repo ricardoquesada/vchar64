@@ -267,7 +267,7 @@ void ImportVICEDialog::updateWidgets()
     }
 }
 
-void ImportVICEDialog::on_checkBoxMulticolor_clicked(bool checked)
+void ImportVICEDialog::on_checkBoxMulticolor_toggled(bool checked)
 {
     _tmpState->_setMulticolorMode(checked);
     updateTileImages();
@@ -275,7 +275,7 @@ void ImportVICEDialog::on_checkBoxMulticolor_clicked(bool checked)
     ui->widgetScreenRAM->update();
 }
 
-void ImportVICEDialog::on_checkBoxGuessColors_clicked(bool checked)
+void ImportVICEDialog::on_checkBoxGuessColors_toggled(bool checked)
 {
     _tmpState->_setForegroundColorMode(checked ? State::FOREGROUND_COLOR_PER_TILE : State::FOREGROUND_COLOR_GLOBAL);
     if (checked) {
@@ -298,13 +298,13 @@ void ImportVICEDialog::on_checkBoxGuessColors_clicked(bool checked)
     ui->widgetScreenRAM->update();
 }
 
-void ImportVICEDialog::on_checkBoxDisplayGrid_clicked(bool checked)
+void ImportVICEDialog::on_checkBoxDisplayGrid_toggled(bool checked)
 {
     ui->widgetCharset->setDisplayGrid(checked);
     ui->widgetScreenRAM->setDisplayGrid(checked);
 }
 
-void ImportVICEDialog::on_checkBoxInvalidAddresses_clicked(bool checked)
+void ImportVICEDialog::on_checkBoxInvalidAddresses_toggled(bool checked)
 {
     if (_supportInvalidVICAddresses != checked) {
         _supportInvalidVICAddresses = checked;

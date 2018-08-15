@@ -61,7 +61,7 @@ private slots:
     void on_radioButtonPalette_toggled(bool checked);
     void on_radioButtonNeighbor_toggled(bool checked);
 
-    void on_checkBoxGrid_clicked(bool checked);
+    void on_checkBoxGrid_toggled(bool checked);
 
     // browse directories
     void on_pushButtonBrowse_clicked();

@@ -710,7 +710,7 @@ void ImportKoalaDialog::onSelectedRegionUpdated(const QRect& region)
     updateWidgets();
 }
 
-void ImportKoalaDialog::on_checkBoxGrid_clicked(bool checked)
+void ImportKoalaDialog::on_checkBoxGrid_toggled(bool checked)
 {
     ui->widgetCharset->enableGrid(checked);
     ui->widgetKoala->enableGrid(checked);

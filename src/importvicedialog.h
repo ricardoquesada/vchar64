@@ -59,13 +59,13 @@ private slots:
 
     void on_spinBoxScreenRAM_valueChanged(int address);
 
-    void on_checkBoxMulticolor_clicked(bool checked);
+    void on_checkBoxMulticolor_toggled(bool checked);
 
-    void on_checkBoxGuessColors_clicked(bool checked);
+    void on_checkBoxGuessColors_toggled(bool checked);
 
-    void on_checkBoxDisplayGrid_clicked(bool checked);
+    void on_checkBoxDisplayGrid_toggled(bool checked);
 
-    void on_checkBoxInvalidAddresses_clicked(bool checked);
+    void on_checkBoxInvalidAddresses_toggled(bool checked);
 
 private:
     Ui::ImportVICEDialog *ui;
