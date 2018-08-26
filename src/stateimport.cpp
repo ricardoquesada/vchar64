@@ -276,7 +276,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
         return -1;
 
     // check header
-    if (header.id[0] != 'V' || header.id[1] != 'C' || header.id[2] != 'h' || header.id[3] != 'a' || header.id[4] != 'r')
+    if (memcmp(header.id, "VChar", 5) != 0)
     {
         MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Invalid VChar file"));
         qDebug() << "Not a valid VChar64 file";
