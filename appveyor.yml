@@ -1,7 +1,3 @@
-version: 1.0.{build}
-
-image: Visual Studio 2015
-
 environment:
   matrix:
     - QTDIR: C:\Qt\5.9.5\mingw53_32
