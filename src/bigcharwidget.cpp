@@ -105,11 +105,11 @@ void BigCharWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
-    auto pos = event->localPos();
+    const auto pos = event->localPos();
 
-    int x = pos.x() / _pixelSize.width();
-    int y = pos.y() / _pixelSize.height();
-    if( x>=8*_tileProperties.size.width() || y>=8*_tileProperties.size.height())
+    const int x = pos.x() / _pixelSize.width();
+    const int y = pos.y() / _pixelSize.height();
+    if (x >= 8 * _tileProperties.size.width() || y >= 8 * _tileProperties.size.height())
         return;
 
     _cursorPos = {x,y};
@@ -128,7 +128,7 @@ void BigCharWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
 
-    auto pos = event->localPos();
+    const auto pos = event->localPos();
 
     int x = pos.x() / _pixelSize.width();
     int y = pos.y() / _pixelSize.height();
@@ -175,16 +175,16 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
 
     switch (event->key()) {
     case Qt::Key_Left:
-        _cursorPos += {-increment_x,0};
+        _cursorPos += {-increment_x, 0};
         break;
     case Qt::Key_Right:
-        _cursorPos += {+increment_x,0};
+        _cursorPos += {+increment_x, 0};
         break;
     case Qt::Key_Down:
-        _cursorPos += {0,+1};
+        _cursorPos += {0, +1};
         break;
     case Qt::Key_Up:
-        _cursorPos += {0,-1};
+        _cursorPos += {0, -1};
         break;
     case Qt::Key_1:
         paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_BACKGROUND);

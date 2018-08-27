@@ -37,7 +37,7 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     for (int i=0;i<4;i++)
         header.colors[i] = state->_penColors[i];
 
-    short chars = state->CHAR_BUFFER_SIZE / 8;
+    short chars = State::CHAR_BUFFER_SIZE / 8;
 
     chars = qToLittleEndian(chars);
     header.num_chars = chars;

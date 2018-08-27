@@ -91,8 +91,7 @@ State::State()
 }
 
 State::State(const State &copyFromMe)
-    : QObject()
-    , _totalChars(copyFromMe._totalChars)
+    : _totalChars(copyFromMe._totalChars)
     , _mapSize(copyFromMe._mapSize)
     , _multicolorMode(copyFromMe._multicolorMode)
     , _foregroundColorMode(copyFromMe._foregroundColorMode)
