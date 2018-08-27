@@ -15,7 +15,7 @@ environment:
 configuration: Release
 
 install:
-  - set PATH=%PATH%;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
+  - set PATH=%PATH%;%QTDIR%\bin;%MINGW%\bin
 
 build_script:
   - FOR /F "tokens=*" %%i in ('git describe') do SET COMMITNOW=%%i
