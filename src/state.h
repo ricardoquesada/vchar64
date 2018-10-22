@@ -160,13 +160,19 @@ public:
     State(const QString& filename, quint8* charset, quint8* tileColors, quint8* map, const QSize &mapSize);
     /* delegating constructors */
     State(const QString& filename);
-    State(const State& copyFromMe);
     State();
 
     /**
      * @brief ~State destructor
      */
     virtual ~State();
+
+    /**
+     * @brief Copy the state from orig to self.
+     * CopyConstructor doesn't work since QObject doesn't have a public one.
+     * @param state the original state to copy from
+     */
+    void copyState(const State& state);
 
     /**
      * @brief reset resets the charsets. emits fileLoaded();

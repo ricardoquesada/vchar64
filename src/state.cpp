@@ -41,6 +41,8 @@ const int State::CHAR_BUFFER_SIZE;
 // target constructor
 State::State(const QString& filename, quint8 *charset, quint8 *tileColors, quint8 *map, const QSize& mapSize)
     : _totalChars(0)
+    , _charset{0}
+    , _tileColors{0}
     , _mapSize(mapSize)
     , _multicolorMode(false)
     , _foregroundColorMode(FOREGROUND_COLOR_GLOBAL)
@@ -90,28 +92,25 @@ State::State()
 {
 }
 
-State::State(const State &copyFromMe)
-    : _totalChars(copyFromMe._totalChars)
-    , _mapSize(copyFromMe._mapSize)
-    , _multicolorMode(copyFromMe._multicolorMode)
-    , _foregroundColorMode(copyFromMe._foregroundColorMode)
-    , _selectedPen(copyFromMe._selectedPen)
-    , _tileProperties(copyFromMe._tileProperties)
-    , _charIndex(copyFromMe._charIndex)
-    , _tileIndex(copyFromMe._tileIndex)
-    , _loadedFilename("")
-    , _savedFilename("")
-    , _exportedFilename("")
-    , _exportProperties(copyFromMe._exportProperties)
-    , _undoStack(nullptr)
-    , _bigCharWidget(nullptr)
+void State::copyState(const State &copyFromMe)
 {
-    _undoStack = new QUndoStack;
+    _totalChars = copyFromMe._totalChars;
+    _mapSize = copyFromMe._mapSize;
+    _multicolorMode = copyFromMe._multicolorMode;
+    _foregroundColorMode = copyFromMe._foregroundColorMode;
+    _selectedPen = copyFromMe._selectedPen;
+    _tileProperties = copyFromMe._tileProperties;
+    _charIndex = copyFromMe._charIndex;
+    _tileIndex = copyFromMe._tileIndex;
+    _exportProperties = copyFromMe._exportProperties;
 
     memcpy(_penColors, copyFromMe._penColors, sizeof(_penColors));
     memcpy(_charset, copyFromMe._charset, sizeof(_charset));
     memcpy(_tileColors, copyFromMe._tileColors, sizeof(_tileColors));
 
+    if (_map) {
+        free(_map);
+    }
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
     memcpy(_map, copyFromMe._map, _mapSize.width() * _mapSize.height());
 }
@@ -552,7 +551,7 @@ void State::setSelectedPen(int pen)
     if (pen != _selectedPen)
     {
         _selectedPen = pen;
-        emit selectedPenChaged(pen);
+       emit selectedPenChaged(pen);
     }
 }
 
@@ -1197,8 +1196,7 @@ void State::_tileRotate(int tileIndex)
     for (int y=0; y<_tileProperties.size.height(); y++) {
         for (int x=0; x<_tileProperties.size.width(); x++) {
 
-            Char tmpchr;
-            memset(tmpchr._char8, 0, sizeof(tmpchr));
+            Char tmpchr{0};
 
             for (int i=0; i<8; i++) {
                 for (int j=0; j<8; j++) {
