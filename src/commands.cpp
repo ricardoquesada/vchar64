@@ -25,13 +25,12 @@ PaintTileCommand::PaintTileCommand(State *state, int tileIndex, const QPoint& po
     , _state(state)
     , _tileIndex(tileIndex)
     , _pen(pen)
+    , _buffer{}
     , _mergeable(mergeable)
 {
     Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
 
     _points.append(position);
-    memset(_buffer, 0, sizeof(_buffer));
-
     setText(QObject::tr("Paint Tile #%1").arg(_tileIndex));
 }
 
@@ -71,8 +70,8 @@ ClearTileCommand::ClearTileCommand(State *state, int tileIndex, QUndoCommand *pa
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
+    , _buffer{}
 {
-    memset(_buffer, 0, sizeof(_buffer));
     setText(QObject::tr("Clear Tile #%1").arg(_tileIndex));
 }
 
