@@ -17,13 +17,13 @@ limitations under the License.
 #include "importvicedialog.h"
 #include "ui_importvicedialog.h"
 
-#include <QFileDialog>
 #include <QDebug>
+#include <QFileDialog>
 
-#include "utils.h"
-#include "state.h"
 #include "mainwindow.h"
 #include "preferences.h"
+#include "state.h"
+#include "utils.h"
 
 ImportVICEDialog::ImportVICEDialog(QWidget *parent)
     : QDialog(parent)

@@ -18,17 +18,17 @@ limitations under the License.
 
 #include <functional>
 
-#include <QPainter>
-#include <QPaintEvent>
-#include <QFile>
 #include <QDebug>
+#include <QFile>
 #include <QGuiApplication>
 #include <QImage>
+#include <QPaintEvent>
+#include <QPainter>
 
-#include "preferences.h"
-#include "palette.h"
-#include "state.h"
 #include "mainwindow.h"
+#include "palette.h"
+#include "preferences.h"
+#include "state.h"
 #include "utils.h"
 
 static const int ZOOM_LEVEL = 2;

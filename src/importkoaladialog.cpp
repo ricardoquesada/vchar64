@@ -19,14 +19,14 @@ limitations under the License.
 
 #include <string>
 
-#include <QFileDialog>
 #include <QDebug>
+#include <QFileDialog>
 #include <QMouseEvent>
 
 #include "mainwindow.h"
 #include "palette.h"
-#include "selectcolordialog.h"
 #include "preferences.h"
+#include "selectcolordialog.h"
 
 static const char* _hex ="0123456789ABCDEF";
 static quint8 dehexify(char h)

@@ -19,8 +19,8 @@ limitations under the License.
 
 #include <QColorDialog>
 
-#include "preferences.h"
 #include "autoupdater.h"
+#include "preferences.h"
 
 
 PreferencesDialog::PreferencesDialog(QWidget *parent) :

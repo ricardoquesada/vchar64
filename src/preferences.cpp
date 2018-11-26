@@ -17,8 +17,8 @@ limitations under the License.
 #include "preferences.h"
 
 #include <QColor>
-#include <QDir>
 #include <QDebug>
+#include <QDir>
 
 Preferences& Preferences::getInstance()
 {

@@ -17,8 +17,8 @@ limitations under the License.
 #include "updatedialog.h"
 #include "ui_updatedialog.h"
 
-#include <QDesktopServices>
 #include <QDebug>
+#include <QDesktopServices>
 
 UpdateDialog::UpdateDialog(QWidget *parent) :
     QDialog(parent),

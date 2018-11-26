@@ -16,15 +16,15 @@ limitations under the License.
 
 #include "importvicescreenramwidget.h"
 
-#include <QPainter>
 #include <QPaintEvent>
+#include <QPainter>
 
 #include "importvicedialog.h"
+#include "mainwindow.h"
 #include "palette.h"
 #include "state.h"
-#include "mainwindow.h"
-#include "utils.h"
 #include "state.h"
+#include "utils.h"
 
 static const int PIXEL_SIZE = 1;
 static const int COLUMNS = 40;

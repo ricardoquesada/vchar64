@@ -16,25 +16,24 @@ limitations under the License.
 
 #include "state.h"
 
-#include <cstring>
-
-#include <utility>
-#include <vector>
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
+#include <utility>
+#include <vector>
 
+#include <QApplication>
+#include <QDebug>
 #include <QFile>
 #include <QFileInfo>
-#include <QDebug>
-#include <QtGlobal>
 #include <QTime>
-#include <QApplication>
+#include <QtGlobal>
 
-#include "mainwindow.h"
-#include "stateimport.h"
-#include "stateexport.h"
 #include "commands.h"
+#include "mainwindow.h"
 #include "palette.h"
+#include "stateexport.h"
+#include "stateimport.h"
 
 const int State::CHAR_BUFFER_SIZE;
 
@@ -42,7 +41,7 @@ const int State::CHAR_BUFFER_SIZE;
 State::State(const QString& filename, quint8 *charset, quint8 *tileColors, quint8 *map, const QSize& mapSize)
     : _totalChars(0)
     , _charset{0}
-    , _tileColors{0}
+    , _tileColors{11}
     , _mapSize(mapSize)
     , _multicolorMode(false)
     , _foregroundColorMode(FOREGROUND_COLOR_GLOBAL)
@@ -62,11 +61,9 @@ State::State(const QString& filename, quint8 *charset, quint8 *tileColors, quint
 
     if (charset)
         memcpy(_charset, charset, sizeof(_charset));
-    else memset(_charset, 0, sizeof(_charset));
 
     if (tileColors)
         memcpy(_tileColors, tileColors, sizeof(_tileColors));
-    else memset(_tileColors, 11, sizeof(_tileColors));
 
     Q_ASSERT(_mapSize.width() > 0 && _mapSize.height() > 0 && "Invalid size");
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());

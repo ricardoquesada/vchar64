@@ -16,14 +16,14 @@ limitations under the License.
 
 #include "utils.h"
 
+#include <QDebug>
 #include <QPainter>
 #include <QPoint>
 #include <QSize>
-#include <QDebug>
 #include <QtCore/qmath.h>
 
-#include "state.h"
 #include "palette.h"
+#include "state.h"
 
 void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixelSize, const QPoint& offset, const QPoint& orig, int charIdx)
 {

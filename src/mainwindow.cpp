@@ -17,44 +17,44 @@ limitations under the License.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QFileDialog>
-#include <QFileInfo>
-#include <QDir>
-#include <QMessageBox>
+#include <QApplication>
+#include <QClipboard>
+#include <QCloseEvent>
+#include <QComboBox>
 #include <QDebug>
 #include <QDesktopServices>
-#include <QCloseEvent>
-#include <QUndoView>
-#include <QErrorMessage>
-#include <QLabel>
 #include <QDesktopWidget>
-#include <QMdiSubWindow>
+#include <QDir>
+#include <QErrorMessage>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QGuiApplication>
-#include <QWindow>
-#include <QClipboard>
+#include <QLabel>
+#include <QMdiSubWindow>
+#include <QMessageBox>
 #include <QMimeData>
-#include <QApplication>
 #include <QToolBar>
 #include <QToolButton>
-#include <QComboBox>
+#include <QUndoView>
+#include <QWindow>
 
-#include "state.h"
-#include "xlinkpreview.h"
 #include "aboutdialog.h"
-#include "exportdialog.h"
-#include "tilepropertiesdialog.h"
-#include "mappropertiesdialog.h"
+#include "autoupdater.h"
 #include "bigcharwidget.h"
-#include "palette.h"
-#include "importvicedialog.h"
-#include "importkoaladialog.h"
+#include "exportdialog.h"
 #include "fileutils.h"
+#include "importkoaladialog.h"
+#include "importvicedialog.h"
+#include "mappropertiesdialog.h"
+#include "mapwidget.h"
+#include "palette.h"
+#include "preferences.h"
+#include "preferencesdialog.h"
 #include "serverconnectdialog.h"
 #include "serverpreview.h"
-#include "mapwidget.h"
-#include "preferencesdialog.h"
-#include "preferences.h"
-#include "autoupdater.h"
+#include "state.h"
+#include "tilepropertiesdialog.h"
+#include "xlinkpreview.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
 static const int STATE_VERSION = 11;
@@ -323,10 +323,6 @@ void MainWindow::openDefaultDocument()
 BigCharWidget* MainWindow::createDocument(State* state)
 {
     auto bigcharWidget = new BigCharWidget(state, this);
-    auto subwindow = _ui->mdiArea->addSubWindow(bigcharWidget, Qt::Widget);
-    _ui->mdiArea->setActiveSubWindow(subwindow);
-    subwindow->showMaximized();
-    subwindow->layout()->setContentsMargins(2, 2, 2, 2);
 
     auto xlinkpreview = XlinkPreview::getInstance();
     connect(state, &State::fileLoaded, xlinkpreview, &XlinkPreview::fileLoaded);
@@ -389,10 +385,14 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state->getUndoStack(), &QUndoStack::indexChanged, this, &MainWindow::documentWasModified);
     connect(state->getUndoStack(), &QUndoStack::cleanChanged, this, &MainWindow::documentWasModified);
 
-    // HACK:
-    state->emitNewState();
-
     state->clearUndoStack();
+
+    // After connecting all slots, add subwindow and activate it.
+    // No need to call "state->emitNewState();" since the MdiArea will trigger it.
+    auto subwindow = _ui->mdiArea->addSubWindow(bigcharWidget, Qt::Widget);
+    subwindow->showMaximized();
+    subwindow->layout()->setContentsMargins(2, 2, 2, 2);
+    _ui->mdiArea->setActiveSubWindow(subwindow);
 
     return bigcharWidget;
 }
@@ -1294,7 +1294,7 @@ void MainWindow::on_actionPaste_triggered()
 
     QByteArray bytearray = bufferFromClipboard();
     if (bytearray.length() <= 0) {
-        qDebug() << "Invalid clipboard buffer";
+        qWarning() << "Invalid clipboard buffer";
         return;
     }
     auto data = bytearray.data();

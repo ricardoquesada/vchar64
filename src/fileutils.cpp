@@ -16,8 +16,8 @@ limitations under the License.
 
 #include "fileutils.h"
 
-#include <QFileInfo>
 #include <QDir>
+#include <QFileInfo>
 
 QString FileUtils::getShortNativePath(const QString& filename)
 {

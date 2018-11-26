@@ -18,14 +18,14 @@ limitations under the License.
 
 #include <functional>
 
-#include <QPainter>
-#include <QPaintEvent>
-#include <QFile>
 #include <QDebug>
+#include <QFile>
+#include <QPaintEvent>
+#include <QPainter>
 
+#include "mainwindow.h"
 #include "palette.h"
 #include "state.h"
-#include "mainwindow.h"
 
 static const int PIXEL_SIZE = 1;
 static const int COLUMNS = 40;

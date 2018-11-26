@@ -16,17 +16,17 @@ limitations under the License.
 
 #include "tilesetwidget.h"
 
-#include <QPainter>
-#include <QPaintEvent>
-#include <QtMath>
 #include <QDebug>
+#include <QPaintEvent>
+#include <QPainter>
+#include <QtMath>
 
-#include "preferences.h"
-#include "palette.h"
-#include "state.h"
 #include "mainwindow.h"
-#include "utils.h"
+#include "palette.h"
+#include "preferences.h"
+#include "state.h"
 #include "ui_mainwindow.h"
+#include "utils.h"
 
 static const int COLUMNS = 32;
 static const int ROWS = 8;
@@ -68,10 +68,10 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
     if (event->button() == Qt::LeftButton)
     {
 
-        auto pos = event->localPos();
-        auto tileProperties = state->getTileProperties();
-        int tw = tileProperties.size.width();
-        int th = tileProperties.size.height();
+        const auto pos = event->localPos();
+        const auto tileProperties = state->getTileProperties();
+        const int tw = tileProperties.size.width();
+        const int th = tileProperties.size.height();
 
         int x = (pos.x() / _zoomLevel - OFFSET) / 8 / tw;
         int y = (pos.y() /_zoomLevel - OFFSET) / 8 / th;
@@ -81,7 +81,7 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
         x = qBound(0, x, _tileColumns - 1);
         y = qBound(0, y, _tileRows - 1);
 
-        int tileIndex = x + y * (_columns / tw);
+        const int tileIndex = x + y * (_columns / tw);
 
         // quick sanity check
         if (! (tileIndex >= 0 && tileIndex < _maxTiles))

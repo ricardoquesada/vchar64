@@ -16,13 +16,13 @@ limitations under the License.
 
 #include "importvicecharsetwidget.h"
 
-#include <QPainter>
 #include <QPaintEvent>
+#include <QPainter>
 
 #include "importvicedialog.h"
+#include "mainwindow.h"
 #include "palette.h"
 #include "state.h"
-#include "mainwindow.h"
 
 static const float PIXEL_SIZE = 1.5625f;
 static const int COLUMNS = 16;

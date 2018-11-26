@@ -17,15 +17,16 @@ limitations under the License.
 #include "palettewidget.h"
 
 #include <algorithm>
-#include <QPainter>
-#include <QPaintEvent>
+
 #include <QColor>
 #include <QDebug>
+#include <QPaintEvent>
+#include <QPainter>
 
+#include "mainwindow.h"
+#include "palette.h"
 #include "palette.h"
 #include "state.h"
-#include "palette.h"
-#include "mainwindow.h"
 
 static const int PIXEL_SIZE_X = 24;
 static const int PIXEL_SIZE_Y = 16;

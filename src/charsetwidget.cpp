@@ -16,18 +16,19 @@ limitations under the License.
 
 #include "charsetwidget.h"
 
-#include <QPainter>
-#include <QPaintEvent>
+#include <QDebug>
 #include <QMdiSubWindow>
+#include <QPaintEvent>
+#include <QPainter>
 #include <QPointF>
 
 #include "bigcharwidget.h"
-#include "palette.h"
-#include "state.h"
 #include "mainwindow.h"
+#include "palette.h"
+#include "preferences.h"
+#include "state.h"
 #include "ui_mainwindow.h"
 #include "utils.h"
-#include "preferences.h"
 
 static const int COLUMNS = 32;
 static const int ROWS = 8;

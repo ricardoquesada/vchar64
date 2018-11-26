@@ -95,8 +95,8 @@ public slots:
     void refresh();
 
 protected:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow() override;
 
     bool _openFile(const QString& fileName);
     bool activateIfAlreadyOpen(const QString& fileName);

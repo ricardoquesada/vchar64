@@ -16,13 +16,13 @@ limitations under the License.
 
 #include "colorrectwidget.h"
 
-#include <QPainter>
 #include <QPaintEvent>
+#include <QPainter>
 
-#include "state.h"
-#include "palette.h"
 #include "mainwindow.h"
+#include "palette.h"
 #include "selectcolordialog.h"
+#include "state.h"
 
 ColorRectWidget::ColorRectWidget(QWidget *parent)
     : QWidget(parent)

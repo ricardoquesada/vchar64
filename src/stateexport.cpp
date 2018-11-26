@@ -16,15 +16,15 @@ limitations under the License.
 
 #include "stateexport.h"
 
-#include <QtEndian>
-#include <QByteArray>
-#include <QTextStream>
-#include <QDebug>
 #include <QApplication>
+#include <QByteArray>
+#include <QDebug>
+#include <QTextStream>
+#include <QtEndian>
 
 
-#include "stateimport.h"
 #include "state.h"
+#include "stateimport.h"
 
 qint64 StateExport::saveVChar64(State* state, QFile& file)
 {

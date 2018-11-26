@@ -17,15 +17,16 @@ limitations under the License.
 #include "bigcharwidget.h"
 
 #include <algorithm>
-#include <QPainter>
-#include <QPaintEvent>
-#include <QMessageBox>
-#include <QDebug>
 
-#include "state.h"
+#include <QDebug>
+#include <QMessageBox>
+#include <QPaintEvent>
+#include <QPainter>
+
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 #include "palette.h"
+#include "state.h"
+#include "ui_mainwindow.h"
 #include "utils.h"
 
 BigCharWidget::BigCharWidget(State* state, QWidget *parent)

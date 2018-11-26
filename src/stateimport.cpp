@@ -18,11 +18,12 @@ limitations under the License.
 
 #include <algorithm>
 #include <cstdlib>
+
 #include <QDebug>
 #include <QtEndian>
 
-#include "state.h"
 #include "mainwindow.h"
+#include "state.h"
 
 qint64 StateImport::loadRaw(State* state, QFile& file)
 {

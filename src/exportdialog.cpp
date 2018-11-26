@@ -17,14 +17,14 @@ limitations under the License.
 #include "exportdialog.h"
 #include "ui_exportdialog.h"
 
-#include <QFileDialog>
 #include <QDebug>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QStatusBar>
 
 #include "mainwindow.h"
-#include "state.h"
 #include "preferences.h"
+#include "state.h"
 
 ExportDialog::ExportDialog(State* state, QWidget *parent)
     : QDialog(parent)

@@ -17,15 +17,15 @@ limitations under the License.
 
 #include "serverpreview.h"
 
+#include <cstring>
+
 #include <QFile>
 #include <QFileInfo>
 #include <QTcpSocket>
 #include <QtEndian>
 
-#include <cstring>
-
-#include "serverprotocol.h"
 #include "mainwindow.h"
+#include "serverprotocol.h"
 
 static ServerPreview *__instance = nullptr;
 
