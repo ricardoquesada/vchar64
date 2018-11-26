@@ -25,86 +25,89 @@ CONFIG += c++11
 CONFIG += debug_and_release
 
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    state.cpp \
+SOURCES += \
     aboutdialog.cpp \
-    stateimport.cpp \
-    stateexport.cpp \
-    exportdialog.cpp \
-    tilepropertiesdialog.cpp \
-    commands.cpp \
-    palette.cpp \
+    autoupdater.cpp \
     bigcharwidget.cpp \
     charsetwidget.cpp \
     colorrectwidget.cpp \
-    palettewidget.cpp \
-    xlinkpreview.cpp \
-    tilesetwidget.cpp \
-    vchar64application.cpp \
-    importvicedialog.cpp \
+    commands.cpp \
+    exportdialog.cpp \
     fileutils.cpp \
-    serverpreview.cpp \
-    serverconnectdialog.cpp \
-    importkoaladialog.cpp \
-    selectcolordialog.cpp \
-    mapwidget.cpp \
-    utils.cpp \
-    mappropertiesdialog.cpp \
-    importkoalacharsetwidget.cpp \
     importkoalabitmapwidget.cpp \
+    importkoalacharsetwidget.cpp \
+    importkoaladialog.cpp \
     importvicecharsetwidget.cpp \
+    importvicedialog.cpp \
     importvicescreenramwidget.cpp \
-    preferencesdialog.cpp \
+    main.cpp\
+    mainwindow.cpp \
+    mappropertiesdialog.cpp \
+    mapwidget.cpp \
+    palette.cpp \
+    palettewidget.cpp \
     preferences.cpp \
-    autoupdater.cpp \
-    updatedialog.cpp
+    preferencesdialog.cpp \
+    selectcolordialog.cpp \
+    serverconnectdialog.cpp \
+    serverpreview.cpp \
+    state.cpp \
+    stateexport.cpp \
+    stateimport.cpp \
+    tilepropertiesdialog.cpp \
+    tilesetwidget.cpp \
+    updatedialog.cpp \
+    utils.cpp \
+    vchar64application.cpp \
+    xlinkpreview.cpp
 
-HEADERS  += mainwindow.h \
-    state.h \
+HEADERS  += \
     aboutdialog.h \
-    stateimport.h \
-    stateexport.h \
-    exportdialog.h \
-    tilepropertiesdialog.h \
-    commands.h \
-    palette.h \
+    autoupdater.h \
     bigcharwidget.h \
     charsetwidget.h \
     colorrectwidget.h \
-    palettewidget.h \
-    xlinkpreview.h \
-    tilesetwidget.h \
-    vchar64application.h \
-    importvicedialog.h \
+    commands.h \
+    exportdialog.h \
     fileutils.h \
-    serverpreview.h \
-    serverconnectdialog.h \
-    serverprotocol.h \
-    importkoaladialog.h \
-    selectcolordialog.h \
-    mapwidget.h \
-    utils.h \
-    mappropertiesdialog.h \
-    importkoalacharsetwidget.h \
     importkoalabitmapwidget.h \
+    importkoalacharsetwidget.h \
+    importkoaladialog.h \
     importvicecharsetwidget.h \
+    importvicedialog.h \
     importvicescreenramwidget.h \
-    preferencesdialog.h \
+    mainwindow.h \
+    mappropertiesdialog.h \
+    mapwidget.h \
+    palette.h \
+    palettewidget.h \
     preferences.h \
-    autoupdater.h \
-    updatedialog.h
+    preferencesdialog.h \
+    selectcolordialog.h \
+    serverconnectdialog.h \
+    serverpreview.h \
+    serverprotocol.h \
+    state.h \
+    stateexport.h \
+    stateimport.h \
+    tilepropertiesdialog.h \
+    tilesetwidget.h \
+    updatedialog.h \
+    utils.h \
+    vchar64application.h \
+    xlinkpreview.h
 
-FORMS    += mainwindow.ui \
+FORMS    += \
     aboutdialog.ui \
     exportdialog.ui \
-    tilepropertiesdialog.ui \
-    importvicedialog.ui \
-    serverconnectdialog.ui \
     importkoaladialog.ui \
-    selectcolordialog.ui \
+    importvicedialog.ui \
+    mainwindow.ui \
     mappropertiesdialog.ui \
     preferencesdialog.ui \
+    selectcolordialog.ui \
+    serverconnectdialog.ui \
+    tilepropertiesdialog.ui \
     updatedialog.ui
 
 INCLUDEPATH += src
