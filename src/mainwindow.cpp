@@ -33,6 +33,7 @@ limitations under the License.
 #include <QMdiSubWindow>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QScreen>
 #include <QToolBar>
 #include <QToolButton>
 #include <QUndoView>
@@ -154,7 +155,7 @@ void MainWindow::onTilePropertiesUpdated()
 
 void MainWindow::onMulticolorModeToggled(bool newvalue)
 {
-    Q_UNUSED(newvalue);
+    Q_UNUSED(newvalue)
     // make sure the "multicolor" checkbox is in the correct state.
     // this is needed for the "undo" / "redos"...
     auto state = getState();
@@ -399,7 +400,7 @@ BigCharWidget* MainWindow::createDocument(State* state)
 
 void MainWindow::closeState(State* state)
 {
-    Q_UNUSED(state);
+    Q_UNUSED(state)
 
     // What to do?
 }
@@ -1298,9 +1299,9 @@ void MainWindow::on_actionPaste_triggered()
         return;
     }
     auto data = bytearray.data();
-    State::CopyRange* range = (State::CopyRange*) data;
+    State::CopyRange* range = reinterpret_cast<State::CopyRange*>(data);
     data += sizeof(State::CopyRange);
-    quint8* buffer = (quint8*) data;
+    quint8* buffer = reinterpret_cast<quint8*>(data);
 
     {
         // sanity check #1
@@ -1522,14 +1523,13 @@ void MainWindow::on_actionReset_Layout_triggered()
     restoreState(state, STATE_VERSION);
     restoreGeometry(geom);
 
-//    // center it
+    // center it
     setGeometry(
         QStyle::alignedRect(
             Qt::LeftToRight,
             Qt::AlignCenter,
             size(),
-            qApp->desktop()->availableGeometry()
-        )
+            QGuiApplication::primaryScreen()->geometry())
     );
 }
 
