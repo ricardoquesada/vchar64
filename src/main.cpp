@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+#include <QDebug>
 #include <QLibraryInfo>
 #include <QTranslator>
 
@@ -81,7 +82,17 @@ int main(int argc, char *argv[])
 
     QObject::connect(&app, &VChar64Application::fileOpenRequest, mainWin, &MainWindow::openFile);
 
-    mainWin->openDefaultDocument();
+    bool loadFromArgv = false;
+    if (argc == 2) {
+        if (QFile::exists(argv[1]))
+                loadFromArgv =true;
+        else
+            qDebug() << "Invalid VChar project file: " << argv[1];
+    }
+    if (loadFromArgv)
+        mainWin->openFile(argv[1]);
+    else
+        mainWin->openDefaultDocument();
 
     return app.exec();
 }
