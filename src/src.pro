@@ -145,9 +145,10 @@ DISTFILES += \
 RESOURCES += \
     resources.qrc
 
-!win32 {
-    QMAKE_CXXFLAGS += -Werror
-}
+# see bug: https://github.com/ricardoquesada/vchar64/issues/61
+#!win32 {
+#    QMAKE_CXXFLAGS += -Werror
+#}
 
 win32 {
     RC_FILE = res/vchar64.rc
