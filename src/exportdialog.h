@@ -41,6 +41,8 @@ private slots:
 
     void on_radioButton_prg_toggled(bool checked);
 
+    void on_radioButton_c_toggled(bool checked);
+
     void on_checkBox_charset_toggled(bool checked);
     void on_checkBox_map_toggled(bool checked);
     void on_checkBox_tileColors_toggled(bool checked);

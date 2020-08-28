@@ -368,6 +368,32 @@ bool State::exportAsm(const QString& filename, const ExportProperties &propertie
     return ret;
 }
 
+
+bool State::exportC(const QString& filename, const ExportProperties &properties)
+{
+    bool ret = true;
+    if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
+        ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
+                                     _charset, sizeof(_charset), "charset") > 0);
+
+    if (ret && (properties.features & EXPORT_FEATURE_MAP))
+        ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_MAP ),
+                                     _map, _mapSize.width() * _mapSize.height(), "map") > 0);
+
+    if (ret && (properties.features & EXPORT_FEATURE_COLORS))
+        ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
+                                     _tileColors, sizeof(_tileColors), "colors") > 0);
+
+    if (ret)
+    {
+        _exportedFilename = filename;
+        auto copy = properties;
+        copy.format = EXPORT_FORMAT_ASM;
+        setExportProperties(copy);
+    }
+    return ret;
+}
+
 bool State::saveProject(const QString& filename)
 {
     bool ret = false;

@@ -104,7 +104,8 @@ public:
     enum ExportFormat {
         EXPORT_FORMAT_RAW,
         EXPORT_FORMAT_PRG,
-        EXPORT_FORMAT_ASM
+        EXPORT_FORMAT_ASM,
+        EXPORT_FORMAT_C
     };
 
     union Char {
@@ -194,6 +195,7 @@ public:
     bool exportRaw(const QString& filename, const ExportProperties &properties);
     bool exportPRG(const QString& filename, const ExportProperties &properties);
     bool exportAsm(const QString& filename, const ExportProperties &properties);
+    bool exportC(const QString& filename, const ExportProperties &properties);
     // export is a defined keyword, so we use export_ instead
     bool export_();
 

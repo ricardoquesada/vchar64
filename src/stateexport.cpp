@@ -149,14 +149,52 @@ qint64 StateExport::saveAsm(const QString& filename, const void* buffer, int buf
             out.setFieldWidth(2);
             out.setPadChar('0');
             out.setFieldAlignment(QTextStream::AlignRight);
-            out << hex << (unsigned int)charBuffer[i];
+            out << Qt::hex << (unsigned int)charBuffer[i];
             out.setFieldWidth(0);
         }
-        out << "\t; " << dec << i-j << "\n";
+        out << "\t; " << Qt::dec << i-j << "\n";
     }
     out << label.toUpper() << "_COUNT = " << bufferSize << "\n";
 
     qDebug() << "File exported as ASM successfully: " << file.fileName();
+    out.flush();
+    return out.pos();
+}
+
+
+qint64 StateExport::saveC(const QString& filename, const void* buffer, int bufferSize, const QString& label)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+        return -1;
+
+    const unsigned char* charBuffer = (const unsigned char*) buffer;
+
+    QTextStream out(&file);
+    out << "// Exported using VChar64 v" << QApplication::applicationVersion() << "\n";
+    out << "// Total bytes: " << bufferSize << "\n";
+    out << "const char " << label << "[][16] = {\n";
+    for (int i=0; i<bufferSize;)
+    {
+        out << "\t{ ";
+        int j=0;
+        for (j=0; j<16 && i<bufferSize ; ++j, ++i)
+        {
+            if (j != 0)
+                out << ", ";
+            out << "0x";
+            out.setFieldWidth(2);
+            out.setPadChar('0');
+            out.setFieldAlignment(QTextStream::AlignRight);
+            out << Qt::hex << (unsigned int)charBuffer[i];
+            out.setFieldWidth(0);
+        }
+        out << " }" << ( i < bufferSize - 1 ? "," : " ") << " // " << Qt::dec << i-j << "\n";
+    }
+    out << "};\n";
+    out << "#define " << label.toUpper() << "_COUNT " << bufferSize << "\n";
+
+    qDebug() << "File exported as C successfully: " << file.fileName();
     out.flush();
     return out.pos();
 }

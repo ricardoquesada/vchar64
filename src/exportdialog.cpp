@@ -82,7 +82,8 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
     QRadioButton* radios[] = {
         ui->radioButton_raw,
         ui->radioButton_prg,
-        ui->radioButton_asm
+        ui->radioButton_asm,
+        ui->radioButton_c
     };
     radios[format]->setChecked(true);
 
@@ -113,6 +114,8 @@ void ExportDialog::on_pushBrowse_clicked()
         filterIdx = 1;
     else if (ui->radioButton_prg->isChecked())
         filterIdx = 2;
+    else if (ui->radioButton_c->isChecked())
+        filterIdx = 3;
 
     auto filename = QFileDialog::getSaveFileName(this,
                                                  tr("Select filename"),
@@ -154,6 +157,10 @@ void ExportDialog::accept()
     else if (ui->radioButton_asm->isChecked())
     {
         ok = _state->exportAsm(filename, properties);
+    }
+    else if (ui->radioButton_c->isChecked())
+    {
+        ok = _state->exportC(filename, properties);
     }
 
     auto mainWindow = qobject_cast<MainWindow*>(parent());
@@ -201,6 +208,21 @@ void ExportDialog::on_radioButton_asm_toggled(bool checked)
 
     filename.chop(extension.length()+1);
     filename += ".s";
+    ui->editFilename->setText(filename);
+}
+
+void ExportDialog::on_radioButton_c_toggled(bool checked)
+{
+    if (!checked)
+        return;
+
+    auto filename = ui->editFilename->text();
+
+    QFileInfo finfo(filename);
+    auto extension = finfo.suffix();
+
+    filename.chop(extension.length()+1);
+    filename += ".c";
     ui->editFilename->setText(filename);
 }
 
