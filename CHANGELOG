@@ -1,5 +1,6 @@
 0.2.5
 * [NEW] Possibility to load file from command line
+* [NEW] Export: support for C language export
 
 0.2.4 (30 March 2017)
 * [NEW] Issue #29: VICE Snapshot: Autodetects SEUCK games
