@@ -1,6 +1,0 @@
-CONTIKI_PROJECT = vchar64d
-all: $(CONTIKI_PROJECT)
-APPS = program-handler
-CONTIKI_WITH_IPV4 = 1
-include $(CONTIKI)/Makefile.include
-CFLAGS += -I../src
