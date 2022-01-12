@@ -26,8 +26,10 @@ limitations under the License.
 #include <QDebug>
 #include <QFile>
 #include <QFileInfo>
+#include <QRandomGenerator>
 #include <QTime>
 #include <QtGlobal>
+
 
 #include "commands.h"
 #include "mainwindow.h"
@@ -1550,8 +1552,8 @@ void State::setupDefaultMap()
         {hello128, sizeof(hello128)-1}
     };
 
-    qsrand(QTime::currentTime().msec());
-    int helloidx = qrand() % 2;
+    QRandomGenerator prng(QTime::currentTime().msec());
+    int helloidx = prng.generate() % 2;
     // ASCII to PETSCII screen codes
     for (int i=0; i<hellos[helloidx].helloSize; ++i)
         _map[i] = hellos[helloidx].hello[i] & ~0x40;

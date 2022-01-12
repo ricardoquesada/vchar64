@@ -23,7 +23,6 @@ limitations under the License.
 #include <QComboBox>
 #include <QDebug>
 #include <QDesktopServices>
-#include <QDesktopWidget>
 #include <QDir>
 #include <QErrorMessage>
 #include <QFileDialog>
@@ -1471,7 +1470,7 @@ void MainWindow::on_actionXlinkConnection_triggered()
         preview->disconnect();
     else
         if(!preview->connect()) {
-            QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote C64"), nullptr, this);
+            QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote C64"), QMessageBox::Ok, this);
             msgBox.exec();
         }
 }
@@ -1491,7 +1490,7 @@ void MainWindow::on_actionServerConnection_triggered()
             auto ipaddress = dialog.getIPAddress();
             if (!preview->connect(ipaddress))
             {
-                QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote server"), nullptr, this);
+                QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote server"), QMessageBox::Ok, this);
                 msgBox.exec();
             }
         }

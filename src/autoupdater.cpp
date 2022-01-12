@@ -18,7 +18,6 @@ limitations under the License.
 
 #include <QNetworkReply>
 #include <QNetworkRequest>
-#include <QRegExp>
 #include <QVersionNumber>
 
 #include "preferences.h"
@@ -104,7 +103,7 @@ void AutoUpdater::httpFinished()
     QString changes("");
     bool appendChanges = false;
 
-    auto list = _data.split("\n", QString::SkipEmptyParts);
+    auto list = _data.split("\n", Qt::SkipEmptyParts);
     for(const auto& str: list) {
         // not a comment?
         if (!str.startsWith("#")) {

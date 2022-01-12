@@ -17,8 +17,11 @@ limitations under the License.
 #include "preferences.h"
 
 #include <QColor>
+#include <QDateTime>
 #include <QDebug>
 #include <QDir>
+#include <QTime>
+
 
 Preferences& Preferences::getInstance()
 {
@@ -73,7 +76,7 @@ void Preferences::setLastUpdateCheckDate(const QDateTime& date)
 
 QDateTime Preferences::getLastUpdateCheckDate() const
 {
-    return _settings.value(QLatin1String("Install/LastUpdateCheckDate"), QDateTime(QDate(2015,1,1))).toDateTime();
+    return _settings.value(QLatin1String("Install/LastUpdateCheckDate"), QDateTime(QDate(2015,1,1), QTime(0,0))).toDateTime();
 }
 
 int Preferences::getLastTimeUpdateCheck() const

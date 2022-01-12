@@ -17,8 +17,8 @@ limitations under the License.
 #include "serverconnectdialog.h"
 #include "ui_serverconnectdialog.h"
 
-#include <QRegExp>
-#include <QRegExpValidator>
+#include <QRegularExpression>
+#include <QRegularExpressionValidator>
 
 #include "preferences.h"
 
@@ -28,8 +28,8 @@ ServerConnectDialog::ServerConnectDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    auto regexp = QRegExp ("^[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]$");
-    auto validator = new QRegExpValidator(regexp, this);
+    auto regexp = QRegularExpression ("^[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]$");
+    auto validator = new QRegularExpressionValidator(regexp, this);
     ui->lineEdit->setValidator(validator);
 
     auto ipaddress = Preferences::getInstance().getServerIPAddress();
