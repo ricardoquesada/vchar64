@@ -74,7 +74,7 @@ State* MainWindow::getCurrentState()
     return getInstance()->getState();
 }
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
     , _undoView(nullptr)
@@ -121,21 +121,18 @@ void MainWindow::serverDisconnected()
     _ui->actionServerConnection->setText(tr("Connect"));
 }
 
-
 void MainWindow::documentWasModified()
 {
     // global flag
     bool modified = false;
     auto list = _ui->mdiArea->subWindowList();
-    for (auto l: list)
-    {
+    for (auto l : list) {
         modified |= qobject_cast<BigCharWidget*>(l->widget())->getState()->isModified();
     }
     setWindowModified(modified);
 
     auto state = getState();
-    if (state)
-    {
+    if (state) {
         _ui->actionUndo->setEnabled(state->getUndoStack()->canUndo());
         _ui->actionRedo->setEnabled(state->getUndoStack()->canRedo());
     }
@@ -146,7 +143,7 @@ void MainWindow::onTilePropertiesUpdated()
     // update max tile index
     auto state = getState();
     QSize s = state->getTileProperties().size;
-    _ui->spinBox_tileIndex->setMaximum((256 / (s.width()*s.height()))-1);
+    _ui->spinBox_tileIndex->setMaximum((256 / (s.width() * s.height())) - 1);
 
     // rotate only enable if witdh==height
     _ui->actionRotate->setEnabled(s.width() == s.height());
@@ -182,8 +179,7 @@ void MainWindow::onColorPropertiesUpdated(int pen)
 
     // udpate the status bar
     auto state = getState();
-    if (state)
-    {
+    if (state) {
         int tileIndex = state->getTileIndex();
         int color = state->getColorForPen(pen, tileIndex);
 
@@ -192,15 +188,15 @@ void MainWindow::onColorPropertiesUpdated(int pen)
         if (multicolorEnabled && pen == State::PEN_FOREGROUND)
             color = color % 8;
         _labelSelectedColor->setText(QString("Color: %1 (%2)")
-                                     .arg(Palette::color_names[color])
-                                     .arg(number));
-
+                                         .arg(Palette::color_names[color])
+                                         .arg(number));
 
         // update radio foreground mode
         auto foregroundColorMode = state->getForegroundColorMode();
         if (foregroundColorMode == State::FOREGROUND_COLOR_PER_TILE)
             _ui->radioButton_charColorPerChar->setChecked(true);
-        else _ui->radioButton_charColorGlobal->setChecked(true);
+        else
+            _ui->radioButton_charColorGlobal->setChecked(true);
 
         // update multicolor
         _ui->radioButton_multicolor1->setEnabled(multicolorEnabled);
@@ -231,16 +227,13 @@ void MainWindow::refresh()
 //
 //
 //
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent* event)
 {
     setSessionFiles();
     _ui->mdiArea->closeAllSubWindows();
-    if (!_ui->mdiArea->subWindowList().empty())
-    {
+    if (!_ui->mdiArea->subWindowList().empty()) {
         event->ignore();
-    }
-    else
-    {
+    } else {
         event->accept();
         saveSettings();
     }
@@ -306,12 +299,10 @@ void MainWindow::openDefaultDocument()
 {
     bool success = false;
 
-    if (Preferences::getInstance().getOpenLastFiles())
-    {
+    if (Preferences::getInstance().getOpenLastFiles()) {
         auto fileList = Preferences::getInstance().getSessionFiles();
 
-        for (const auto& file: fileList)
-        {
+        for (const auto& file : fileList) {
             success |= _openFile(file);
         }
     }
@@ -381,7 +372,6 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::charIndexUpdated, _ui->charsetWidget, &CharsetWidget::onCharIndexUpdated);
     connect(state, &State::tileIndexUpdated, _ui->spinBox_tileIndex, &QSpinBox::setValue);
 
-
     connect(state->getUndoStack(), &QUndoStack::indexChanged, this, &MainWindow::documentWasModified);
     connect(state->getUndoStack(), &QUndoStack::cleanChanged, this, &MainWindow::documentWasModified);
 
@@ -407,18 +397,16 @@ void MainWindow::closeState(State* state)
 void MainWindow::createActions()
 {
     // Add recent file actions to the recent files menu
-    for (int i=0; i<MAX_RECENT_FILES; ++i)
-    {
-         auto action = new QAction(this);
-         _ui->menuRecentFiles->insertAction(_ui->actionClearRecentFiles, action);
-         action->setVisible(false);
-         connect(action, &QAction::triggered, this, &MainWindow::onOpenRecentFileTriggered);
+    for (int i = 0; i < MAX_RECENT_FILES; ++i) {
+        auto action = new QAction(this);
+        _ui->menuRecentFiles->insertAction(_ui->actionClearRecentFiles, action);
+        action->setVisible(false);
+        connect(action, &QAction::triggered, this, &MainWindow::onOpenRecentFileTriggered);
 
-         _recentFiles.append(action);
+        _recentFiles.append(action);
     }
     _ui->menuRecentFiles->insertSeparator(_ui->actionClearRecentFiles);
     updateRecentFiles();
-
 
     // FIXME should be on a different method
     _ui->colorRectWidget_0->setPen(State::PEN_BACKGROUND);
@@ -439,8 +427,7 @@ void MainWindow::createActions()
 
     connect(_ui->spinBox_tileIndex, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxValueChanged);
 
-
-//
+    //
     _ui->menuView->insertAction(_ui->actionReset_Layout, _ui->dockWidget_charset->toggleViewAction());
     _ui->menuView->insertAction(_ui->actionReset_Layout, _ui->dockWidget_tileset->toggleViewAction());
     _ui->menuView->insertAction(_ui->actionReset_Layout, _ui->dockWidget_map->toggleViewAction());
@@ -450,8 +437,8 @@ void MainWindow::createActions()
     _ui->mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     _ui->mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
-     if(xlinkPreview->isConnected()) {
-          xlinkConnected();
+    if (xlinkPreview->isConnected()) {
+        xlinkConnected();
     }
 }
 
@@ -468,7 +455,7 @@ void MainWindow::createDefaults()
 void MainWindow::setupCharsetDock()
 {
     auto toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(16,16));
+    toolbar->setIconSize(QSize(16, 16));
     _ui->verticalLayout_charset->addWidget(toolbar);
 
     toolbar->addAction(_ui->actionToggle_CharsetGrid);
@@ -476,7 +463,7 @@ void MainWindow::setupCharsetDock()
     toolbar->addSeparator();
 
     QWidget* empty = new QWidget();
-    empty->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    empty->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     toolbar->addWidget(empty);
 
     _comboBoxCharsetZoom = new QComboBox(this);
@@ -491,19 +478,17 @@ void MainWindow::setupCharsetDock()
     _comboBoxCharsetZoom->setCurrentIndex(4); // 100%
     toolbar->addWidget(_comboBoxCharsetZoom);
 
-    connect(_comboBoxCharsetZoom, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
-        [&](int index)
-        {
+    connect(_comboBoxCharsetZoom, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+        [&](int index) {
             auto variant = _comboBoxCharsetZoom->itemData(index);
             _ui->charsetWidget->setZoomLevel(variant.toInt());
-        }
-    );
+        });
 }
 
 void MainWindow::setupTilesetDock()
 {
     auto toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(16,16));
+    toolbar->setIconSize(QSize(16, 16));
     _ui->verticalLayout_tileset->addWidget(toolbar);
 
     toolbar->addAction(_ui->actionToggle_TilesetGrid);
@@ -511,7 +496,7 @@ void MainWindow::setupTilesetDock()
     toolbar->addSeparator();
 
     QWidget* empty = new QWidget();
-    empty->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    empty->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     toolbar->addWidget(empty);
 
     _comboBoxTilesetZoom = new QComboBox(this);
@@ -526,28 +511,25 @@ void MainWindow::setupTilesetDock()
     _comboBoxTilesetZoom->setCurrentIndex(4); // 100%
     toolbar->addWidget(_comboBoxTilesetZoom);
 
-    connect(_comboBoxTilesetZoom, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
-        [&](int index)
-        {
+    connect(_comboBoxTilesetZoom, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+        [&](int index) {
             auto variant = _comboBoxTilesetZoom->itemData(index);
             _ui->tilesetWidget->setZoomLevel(variant.toInt());
-        }
-    );
+        });
 }
 
 void MainWindow::setupMapDock()
 {
     auto toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(16,16));
+    toolbar->setIconSize(QSize(16, 16));
     _ui->verticalLayout_map->addWidget(toolbar);
 
     auto label = new QLabel(tr("Map Size"), this);
     toolbar->addWidget(label);
     _spinBoxMapX = new QSpinBox(this);
     _spinBoxMapY = new QSpinBox(this);
-    QSpinBox* spins[] = {_spinBoxMapX, _spinBoxMapY};
-    for (auto& spin: spins)
-    {
+    QSpinBox* spins[] = { _spinBoxMapX, _spinBoxMapY };
+    for (auto& spin : spins) {
         spin->setMinimum(1);
         spin->setMaximum(4096);
         toolbar->addWidget(spin);
@@ -555,7 +537,6 @@ void MainWindow::setupMapDock()
     }
     connect(_spinBoxMapX, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxMapSizeX_valueChanged);
     connect(_spinBoxMapY, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::onSpinBoxMapSizeY_valueChanged);
-
 
     toolbar->addSeparator();
 
@@ -575,7 +556,7 @@ void MainWindow::setupMapDock()
     toolbar->addSeparator();
 
     QWidget* empty = new QWidget();
-    empty->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    empty->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     toolbar->addWidget(empty);
 
     _comboBoxMapZoom = new QComboBox(this);
@@ -590,14 +571,11 @@ void MainWindow::setupMapDock()
     _comboBoxMapZoom->setCurrentIndex(4); // 100%
     toolbar->addWidget(_comboBoxMapZoom);
 
-
-    connect(_comboBoxMapZoom, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
-        [&](int index)
-        {
+    connect(_comboBoxMapZoom, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+        [&](int index) {
             auto variant = _comboBoxMapZoom->itemData(index);
             _ui->mapWidget->setZoomLevel(variant.toInt());
-        }
-    );
+        });
 }
 
 void MainWindow::setupStatusBar()
@@ -606,11 +584,11 @@ void MainWindow::setupStatusBar()
     statusBar()->addPermanentWidget(_labelSelectedColor);
 
     _labelCharIdx = new QLabel(tr("Char: 000"), this);
-//    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
+    //    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
     statusBar()->addPermanentWidget(_labelCharIdx);
 
     _labelTileIdx = new QLabel(tr("Tile: 000"), this);
-//    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
+    //    _labelCharIdx->setFrameStyle(QFrame::Panel | QFrame::Plain);
     statusBar()->addPermanentWidget(_labelTileIdx);
 
     // display correct selected color
@@ -636,8 +614,7 @@ void MainWindow::updateMenus()
     _spinBoxMapX->setEnabled(withDocuments);
     _spinBoxMapY->setEnabled(withDocuments);
 
-    QAction* actions[] =
-    {
+    QAction* actions[] = {
         _ui->actionExport,
         _ui->actionExportAs,
         _ui->actionSave,
@@ -650,7 +627,7 @@ void MainWindow::updateMenus()
         _ui->actionPaste,
         _ui->actionCut
     };
-    for (auto& action: actions)
+    for (auto& action : actions)
         action->setEnabled(withDocuments);
 }
 
@@ -659,16 +636,14 @@ void MainWindow::updateRecentFiles()
     QStringList files = Preferences::getInstance().getRecentFiles();
     const int numRecentFiles = qMin(files.size(), MAX_RECENT_FILES);
 
-    for (int i = 0; i < numRecentFiles; ++i)
-    {
+    for (int i = 0; i < numRecentFiles; ++i) {
         _recentFiles[i]->setText(FileUtils::getShortNativePath(files[i]));
         _recentFiles[i]->setData(files[i]);
         _recentFiles[i]->setVisible(true);
         // enable only if the file exists
         _recentFiles[i]->setEnabled(QFileInfo::exists(files[i]));
     }
-    for (int j=numRecentFiles; j<MAX_RECENT_FILES; ++j)
-    {
+    for (int j = numRecentFiles; j < MAX_RECENT_FILES; ++j) {
         _recentFiles[j]->setVisible(false);
     }
     _ui->menuRecentFiles->setEnabled(numRecentFiles > 0);
@@ -696,9 +671,9 @@ void MainWindow::setRecentFile(const QString& fileName)
 void MainWindow::setSessionFiles()
 {
     QStringList fileList;
-    const QVector<QString> suffixList = {QString("vsf"), QString("koa"), QString("kla")};
+    const QVector<QString> suffixList = { QString("vsf"), QString("koa"), QString("kla") };
     auto mdiList = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::StackingOrder);
-    for (auto item: mdiList) {
+    for (auto item : mdiList) {
         auto bigchar = qobject_cast<BigCharWidget*>(item->widget());
         auto bigcharState = bigchar->getState();
         auto filename = bigcharState->getLoadedFilename();
@@ -727,20 +702,19 @@ void MainWindow::onCharIndexUpdated(int charIndex)
     auto state = getState();
 
     _labelCharIdx->setText(tr("Char: %1")
-                           .arg(charIndex, 3, 10, QLatin1Char(' ')));
+                               .arg(charIndex, 3, 10, QLatin1Char(' ')));
 
     int tileIndex = state->getTileIndexFromCharIndex(charIndex);
 
     _labelTileIdx->setText(tr("Tile: %1")
-                           .arg(tileIndex, 3, 10, QLatin1Char(' ')));
+                               .arg(tileIndex, 3, 10, QLatin1Char(' ')));
 }
 
 void MainWindow::on_actionExit_triggered()
 {
     setSessionFiles();
     _ui->mdiArea->closeAllSubWindows();
-    if (_ui->mdiArea->subWindowList().empty())
-    {
+    if (_ui->mdiArea->subWindowList().empty()) {
         saveSettings();
         QApplication::exit();
     }
@@ -759,15 +733,12 @@ void MainWindow::on_actionEmptyProject_triggered()
 void MainWindow::on_actionC64DefaultUppercase_triggered()
 {
     auto state = new State;
-    if (state->openFile(":/res/c64-chargen-uppercase.bin"))
-    {
+    if (state->openFile(":/res/c64-chargen-uppercase.bin")) {
         createDocument(state);
         setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowTitle(tr("(untitled)"));
-    }
-    else
-    {
+    } else {
         delete state;
     }
 }
@@ -775,15 +746,12 @@ void MainWindow::on_actionC64DefaultUppercase_triggered()
 void MainWindow::on_actionC64DefaultLowercase_triggered()
 {
     auto state = new State;
-    if (state->openFile(":/res/c64-chargen-lowercase.bin"))
-    {
+    if (state->openFile(":/res/c64-chargen-lowercase.bin")) {
         createDocument(state);
         setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(tr("(untitled)"));
         _ui->mdiArea->currentSubWindow()->setWindowTitle(tr("(untitled)"));
-    }
-    else
-    {
+    } else {
         delete state;
     }
 }
@@ -803,9 +771,8 @@ void MainWindow::on_checkBox_multicolor_toggled(bool checked)
     // the multicolor checkbox might change, and it will generate
     // this event.
     // And we don't want to create a new Command if the state is the same
-    State *state = getState();
-    if (state && checked != state->isMulticolorMode())
-    {
+    State* state = getState();
+    if (state && checked != state->isMulticolorMode()) {
         _ui->radioButton_multicolor1->setEnabled(checked);
         _ui->radioButton_multicolor2->setEnabled(checked);
         _ui->actionMulti_Color_1->setEnabled(checked);
@@ -819,10 +786,9 @@ void MainWindow::on_checkBox_multicolor_toggled(bool checked)
 
 void MainWindow::activateRadioButtonIndex(int pen)
 {
-    State *state = getState();
+    State* state = getState();
 
-    if (state)
-    {
+    if (state) {
         state->setSelectedPen(pen);
 
         QAction* actions[] = {
@@ -839,8 +805,8 @@ void MainWindow::activateRadioButtonIndex(int pen)
             _ui->radioButton_foreground
         };
 
-        for (int i=0; i<4; i++)
-            actions[i]->setChecked(i==pen);
+        for (int i = 0; i < 4; i++)
+            actions[i]->setChecked(i == pen);
 
         radios[pen]->setChecked(true);
     }
@@ -931,8 +897,8 @@ void MainWindow::activatePalette(int paletteIndex)
 
     Palette::setActivePalette(paletteIndex);
 
-    for (int i=0; i<6; i++)
-        actions[i]->setChecked(i==paletteIndex);
+    for (int i = 0; i < 6; i++)
+        actions[i]->setChecked(i == paletteIndex);
 
     // FIXME: there should be an event to propage the palette changes...
     // in the meantime, do it manually
@@ -975,7 +941,6 @@ void MainWindow::on_actionPalette_5_triggered()
     activatePalette(5);
 }
 
-
 //
 // MARK - File IO callbacks + helper functions
 //
@@ -988,11 +953,10 @@ bool MainWindow::openFile(const QString& path)
         return true;
 
     bool ret = _openFile(path);
-    if (!ret)
-    {
+    if (!ret) {
         QMessageBox::warning(this,
-                             tr("Application"), tr("Error loading '") + info.fileName() + "'\n" + statusBar()->currentMessage(),
-                             QMessageBox::Ok);
+            tr("Application"), tr("Error loading '") + info.fileName() + "'\n" + statusBar()->currentMessage(),
+            QMessageBox::Ok);
     }
 
     return ret;
@@ -1003,8 +967,7 @@ bool MainWindow::_openFile(const QString& path)
     QFileInfo info(path);
     bool ret = false;
     auto state = new State;
-    if ((ret=state->openFile(path)))
-    {
+    if ((ret = state->openFile(path))) {
         createDocument(state);
         setRecentFile(path);
 
@@ -1013,9 +976,7 @@ bool MainWindow::_openFile(const QString& path)
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(info.filePath());
         _ui->mdiArea->currentSubWindow()->setWindowTitle(info.baseName());
         setWindowFilePath(info.filePath());
-    }
-    else
-    {
+    } else {
         delete state;
     }
     return ret;
@@ -1024,7 +985,7 @@ bool MainWindow::_openFile(const QString& path)
 bool MainWindow::activateIfAlreadyOpen(const QString& fileName)
 {
     auto mdiList = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::StackingOrder);
-    for (auto mdiSubWindow: mdiList) {
+    for (auto mdiSubWindow : mdiList) {
         auto bigchar = qobject_cast<BigCharWidget*>(mdiSubWindow->widget());
         auto bigcharState = bigchar->getState();
         qDebug() << bigcharState->getLoadedFilename();
@@ -1041,21 +1002,20 @@ void MainWindow::on_actionOpen_triggered()
     auto& preferences = Preferences::getInstance();
     QString filter = preferences.getLastUsedOpenFilter();
     auto fn = QFileDialog::getOpenFileName(this,
-                                           tr("Select File"),
-                                           preferences.getLastUsedDirectory(),
-                                           tr(
-                                               "All files (*);;" \
-                                               "All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;" \
-                                               "VChar64 Project (*.vchar64proj);;" \
-                                               "Raw (*.raw *.bin);;" \
-                                               "PRG (*.prg *.64c);;" \
-                                               "CharPad (*.ctm);;"
-                                           ),
-                                           &filter
-                                           /*,QFileDialog::DontUseNativeDialog*/
-                                           );
+        tr("Select File"),
+        preferences.getLastUsedDirectory(),
+        tr(
+            "All files (*);;"
+            "All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;"
+            "VChar64 Project (*.vchar64proj);;"
+            "Raw (*.raw *.bin);;"
+            "PRG (*.prg *.64c);;"
+            "CharPad (*.ctm);;"),
+        &filter
+        /*,QFileDialog::DontUseNativeDialog*/
+    );
 
-    if (fn.length()> 0) {
+    if (fn.length() > 0) {
         preferences.setLastUsedOpenFilter(filter);
         openFile(fn);
     }
@@ -1077,8 +1037,7 @@ void MainWindow::on_actionCloneCurrentProject_triggered()
 void MainWindow::on_actionImportVICESnapshot_triggered()
 {
     ImportVICEDialog dialog(this);
-    if (dialog.exec())
-    {
+    if (dialog.exec()) {
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(dialog.getFilepath());
         _ui->mdiArea->currentSubWindow()->setWindowTitle(QFileInfo(dialog.getFilepath()).baseName());
         setWindowFilePath(dialog.getFilepath());
@@ -1088,8 +1047,7 @@ void MainWindow::on_actionImportVICESnapshot_triggered()
 void MainWindow::on_actionImportKoalaImage_triggered()
 {
     ImportKoalaDialog dialog(this);
-    if (dialog.exec())
-    {
+    if (dialog.exec()) {
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(dialog.getFilepath());
         _ui->mdiArea->currentSubWindow()->setWindowTitle(QFileInfo(dialog.getFilepath()).baseName());
         setWindowFilePath(dialog.getFilepath());
@@ -1104,27 +1062,22 @@ bool MainWindow::on_actionSaveAs_triggered()
     auto fn = state->getSavedFilename();
     if (fn.length() == 0)
         fn = state->getLoadedFilename();
-    if (fn.length() != 0)
-    {
+    if (fn.length() != 0) {
         QFileInfo fileInfo(fn);
         auto suffix = fileInfo.suffix();
         if (suffix != "vchar64proj") {
             fn = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName() + ".vchar64proj";
         }
-    }
-    else
-    {
+    } else {
         fn = Preferences::getInstance().getLastUsedDirectory() + "/untitled.vchar64proj";
     }
     auto filename = QFileDialog::getSaveFileName(this, tr("Save Project"),
-                                             fn,
-                                             tr("VChar64 project(*.vchar64proj)"));
+        fn,
+        tr("VChar64 project(*.vchar64proj)"));
 
-    if (filename.length() > 0)
-    {
+    if (filename.length() > 0) {
         auto state = getState();
-        if ((ret=state->saveProject(filename)))
-        {
+        if ((ret = state->saveProject(filename))) {
             QFileInfo fi(filename);
             setWindowFilePath(fi.filePath());
             _ui->mdiArea->currentSubWindow()->setWindowFilePath(fi.filePath());
@@ -1132,12 +1085,10 @@ bool MainWindow::on_actionSaveAs_triggered()
 
             // add it to recent files
             setRecentFile(filename);
+        } else {
+            QMessageBox::warning(this,
+                tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
         }
-        else
-        {
-            QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
-        }
-
     }
 
     return ret;
@@ -1148,21 +1099,16 @@ bool MainWindow::on_actionSave_triggered()
     bool ret;
     auto state = getState();
     auto filename = state->getSavedFilename();
-    if (filename.length() > 0)
-    {
+    if (filename.length() > 0) {
         ret = state->saveProject(filename);
-        if (ret)
-        {
+        if (ret) {
             statusBar()->showMessage(tr("File saved to %1").arg(state->getSavedFilename()), 2000);
-        }
-        else
-        {
+        } else {
             statusBar()->showMessage(tr("Error saving file"), 2000);
-            QMessageBox::warning(this, tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
+            QMessageBox::warning(this,
+                tr("Application"), tr("Error saving project file: ") + filename, QMessageBox::Ok);
         }
-    }
-    else
-    {
+    } else {
         ret = on_actionSaveAs_triggered();
     }
 
@@ -1173,14 +1119,12 @@ void MainWindow::on_actionExport_triggered()
 {
     auto state = getState();
     auto exportedFilename = state->getExportedFilename();
-    if (exportedFilename.length()==0)
-    {
+    if (exportedFilename.length() == 0) {
         on_actionExportAs_triggered();
-    }
-    else
-    {
+    } else {
         if (!state->export_())
-            QMessageBox::warning(this, tr("Application"), tr("Error exporting file: ") + exportedFilename, QMessageBox::Ok);
+            QMessageBox::warning(this,
+                tr("Application"), tr("Error exporting file: ") + exportedFilename, QMessageBox::Ok);
     }
 }
 
@@ -1308,36 +1252,31 @@ void MainWindow::on_actionPaste_triggered()
         // src: CHARS  dst: Charset / Tileset
         // src: TILES  dst: Charset / Tileset
         // src: MAP    dst: Map
-        if (!
-                (((range->type == State::CopyRange::CHARS || range->type == State::CopyRange::TILES) &&
-                (_ui->charsetWidget->hasFocus() || _ui->tilesetWidget->hasFocus()))
-                ||
-                (range->type == State::CopyRange::MAP && _ui->mapWidget->hasFocus())
-                ))
-        {
+        if (!(((range->type == State::CopyRange::CHARS || range->type == State::CopyRange::TILES)
+                  && (_ui->charsetWidget->hasFocus() || _ui->tilesetWidget->hasFocus()))
+                || (range->type == State::CopyRange::MAP && _ui->mapWidget->hasFocus()))) {
             QApplication::beep();
             return;
         }
 
         // Sanity check #2
         // when copying tiles, make sure that they have the same size
-        if (range->type == State::CopyRange::TILES && state->getTileProperties().size != range->tileProperties.size)
-        {
+        if (range->type == State::CopyRange::TILES && state->getTileProperties().size != range->tileProperties.size) {
             QApplication::beep();
             QMessageBox msgBox(QMessageBox::Warning,
-                               tr("Application"),
-                               tr("Could not paste tiles when their sizes are different. Change the tile properties to {%1, %2}")
-                                .arg(range->tileProperties.size.width())
-                                .arg(range->tileProperties.size.height()),
-                               QMessageBox::Ok,
-                               this);
+                tr("Application"),
+                tr("Could not paste tiles when their sizes are different. Change the tile properties to {%1, %2}")
+                    .arg(range->tileProperties.size.width())
+                    .arg(range->tileProperties.size.height()),
+                QMessageBox::Ok,
+                this);
             msgBox.exec();
             return;
         }
 
         int cursorPos = (range->type == State::CopyRange::CHARS || range->type == State::CopyRange::TILES)
-                    ? _ui->charsetWidget->getCursorPos()
-                    : _ui->mapWidget->getCursorPos();
+            ? _ui->charsetWidget->getCursorPos()
+            : _ui->mapWidget->getCursorPos();
 
         state->paste(cursorPos, *range, buffer);
     }
@@ -1363,12 +1302,14 @@ void MainWindow::on_actionRedo_triggered()
 //
 void MainWindow::on_actionReportBug_triggered()
 {
-    QDesktopServices::openUrl(QUrl("http://github.com/ricardoquesada/vchar64/issues"));
+    QDesktopServices::openUrl(
+        QUrl("http://github.com/ricardoquesada/vchar64/issues"));
 }
 
 void MainWindow::on_actionDocumentation_triggered()
 {
-    QDesktopServices::openUrl(QUrl("http://github.com/ricardoquesada/vchar64/wiki/Documentation"));
+    QDesktopServices::openUrl(
+        QUrl("http://github.com/ricardoquesada/vchar64/wiki/Documentation"));
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -1391,11 +1332,9 @@ void MainWindow::on_actionClearRecentFiles_triggered()
 void MainWindow::onOpenRecentFileTriggered()
 {
     auto action = qobject_cast<QAction*>(sender());
-    if (action)
-    {
+    if (action) {
         auto path = action->data().toString();
-        if (!openFile(path))
-        {
+        if (!openFile(path)) {
             auto& preferences = Preferences::getInstance();
             QStringList files = preferences.getRecentFiles();
             files.removeAll(path);
@@ -1420,8 +1359,7 @@ void MainWindow::on_actionMap_Properties_triggered()
 void MainWindow::onSpinBoxMapSizeX_valueChanged(int newValue)
 {
     auto state = getState();
-    if (state)
-    {
+    if (state) {
         // FIXME: onMapSizeUpdated() calls setValue()
         // and setValue() triggers this callback, but it is possible
         // that no value was changed. So in order to avoid
@@ -1437,8 +1375,7 @@ void MainWindow::onSpinBoxMapSizeX_valueChanged(int newValue)
 void MainWindow::onSpinBoxMapSizeY_valueChanged(int newValue)
 {
     auto state = getState();
-    if (state)
-    {
+    if (state) {
         // FIXME: onMapSizeUpdated() calls setValue()
         // and setValue() triggers this callback, but it is possible
         // that no value was changed. So in order to avoid
@@ -1454,8 +1391,7 @@ void MainWindow::onSpinBoxMapSizeY_valueChanged(int newValue)
 void MainWindow::onMapSizeUpdated()
 {
     auto state = getState();
-    if (state)
-    {
+    if (state) {
         auto mapSize = state->getMapSize();
         _spinBoxMapX->setValue(mapSize.width());
         _spinBoxMapY->setValue(mapSize.height());
@@ -1465,37 +1401,32 @@ void MainWindow::onMapSizeUpdated()
 void MainWindow::on_actionXlinkConnection_triggered()
 {
     auto preview = XlinkPreview::getInstance();
-    if(preview->isConnected())
+    if (preview->isConnected())
         preview->disconnect();
-    else
-        if(!preview->connect()) {
-            QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote C64"), QMessageBox::Ok, this);
-            msgBox.exec();
-        }
+    else if (!preview->connect()) {
+        QMessageBox msgBox(QMessageBox::Warning,
+            "", tr("Could not connect to remote C64"), QMessageBox::Ok, this);
+        msgBox.exec();
+    }
 }
 
 void MainWindow::on_actionServerConnection_triggered()
 {
     auto preview = ServerPreview::getInstance();
-    if (preview->isConnected())
-    {
+    if (preview->isConnected()) {
         preview->disconnect();
-    }
-    else
-    {
+    } else {
         ServerConnectDialog dialog(this);
-        if (dialog.exec())
-        {
+        if (dialog.exec()) {
             auto ipaddress = dialog.getIPAddress();
-            if (!preview->connect(ipaddress))
-            {
-                QMessageBox msgBox(QMessageBox::Warning, "", tr("Could not connect to remote server"), QMessageBox::Ok, this);
+            if (!preview->connect(ipaddress)) {
+                QMessageBox msgBox(QMessageBox::Warning,
+                    "", tr("Could not connect to remote server"), QMessageBox::Ok, this);
                 msgBox.exec();
             }
         }
     }
 }
-
 
 void MainWindow::on_actionNext_Tile_triggered()
 {
@@ -1527,15 +1458,13 @@ void MainWindow::on_actionReset_Layout_triggered()
             Qt::LeftToRight,
             Qt::AlignCenter,
             size(),
-            QGuiApplication::primaryScreen()->geometry())
-    );
+            QGuiApplication::primaryScreen()->geometry()));
 }
 
 void MainWindow::onSubWindowActivated(QMdiSubWindow* subwindow)
 {
     // subwindow can be nullptr when closing the app
-    if (subwindow)
-    {
+    if (subwindow) {
         auto title = subwindow->windowFilePath();
         setWindowFilePath(title);
 
@@ -1549,8 +1478,7 @@ void MainWindow::onSubWindowActivated(QMdiSubWindow* subwindow)
 void MainWindow::onSpinBoxValueChanged(int tileIndex)
 {
     auto state = getState();
-    if (state)
-    {
+    if (state) {
         state->setTileIndex(tileIndex);
     }
 }
@@ -1559,8 +1487,7 @@ void MainWindow::onSpinBoxValueChanged(int tileIndex)
 void MainWindow::on_actionClear_Map_triggered()
 {
     auto state = getState();
-    if (state)
-    {
+    if (state) {
         state->mapClear(state->getTileIndex());
     }
 }
@@ -1611,8 +1538,7 @@ void MainWindow::on_actionToggle_TilesetGrid_triggered()
 BigCharWidget* MainWindow::getBigcharWidget() const
 {
     auto mdisubview = _ui->mdiArea->currentSubWindow();
-    if (!mdisubview)
-    {
+    if (!mdisubview) {
         auto list = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::ActivationHistoryOrder);
         if (!list.empty())
             mdisubview = list.last();
@@ -1650,12 +1576,10 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
     auto clipboard = QApplication::clipboard();
     auto mimeData = new QMimeData;
     QByteArray array((char*)&copyRange, sizeof(copyRange));
-    if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES)
-    {
+    if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
         array.append((const char*)state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
         array.append((const char*)state->getTileColors(), State::TILE_COLORS_BUFFER_SIZE);
-    }
-    else /* MAP */
+    } else /* MAP */
     {
         array.append((const char*)state->getMapBuffer(), state->getMapSize().width() * state->getMapSize().height());
     }

@@ -19,7 +19,7 @@ limitations under the License.
 
 #include <QMouseEvent>
 
-SelectColorDialog::SelectColorDialog(QWidget *parent)
+SelectColorDialog::SelectColorDialog(QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::SelectColorDialog)
     , _selectedColor(-1)
@@ -45,11 +45,11 @@ SelectColorDialog::SelectColorDialog(QWidget *parent)
 
     const int TOTAL_WIDGETS = sizeof(_widgets) / sizeof(_widgets[0]);
 
-    for (int i=0; i<TOTAL_WIDGETS; ++i)
+    for (int i = 0; i < TOTAL_WIDGETS; ++i)
         _widgets[i]->setColorIndex(i);
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &SelectColorDialog::accept);
-    connect(ui->buttonBox, &QDialogButtonBox::rejected, this,  &SelectColorDialog::reject);
+    connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &SelectColorDialog::reject);
 }
 
 int SelectColorDialog::getSelectedColor() const
@@ -59,8 +59,7 @@ int SelectColorDialog::getSelectedColor() const
 
 void SelectColorDialog::setCurrentColor(int colorIndex)
 {
-    if (_selectedColor != colorIndex)
-    {
+    if (_selectedColor != colorIndex) {
         if (_selectedColor != -1)
             _widgets[_selectedColor]->setSelected(false);
 
@@ -78,11 +77,9 @@ SelectColorDialog::~SelectColorDialog()
 
 void SelectColorDialog::mousePressEvent(QMouseEvent* event)
 {
-    for (int i=0; i<16; i++)
-    {
+    for (int i = 0; i < 16; i++) {
         auto localPos = _widgets[i]->mapFromParent(event->pos());
-        if (_widgets[i]->rect().contains(localPos))
-        {
+        if (_widgets[i]->rect().contains(localPos)) {
             setCurrentColor(i);
             event->accept();
             return;

@@ -16,19 +16,18 @@ limitations under the License.
 
 #pragma once
 
-#include <QObject>
 #include <QDateTime>
+#include <QObject>
 #include <QSettings>
 
-class Preferences: public QObject
-{
+class Preferences : public QObject {
     Q_OBJECT
 
 public:
     static Preferences& getInstance();
 
-    Preferences(Preferences const&)     = delete;
-    void operator=(Preferences const&)  = delete;
+    Preferences(Preferences const&) = delete;
+    void operator=(Preferences const&) = delete;
 
     void setGridColor(const QColor& color);
     QColor getGridColor() const;
@@ -43,14 +42,14 @@ public:
     QDateTime getLastUpdateCheckDate() const;
     int getLastTimeUpdateCheck() const;
 
-    void setMainWindowDefaultGeometry(const QByteArray &geometry);
+    void setMainWindowDefaultGeometry(const QByteArray& geometry);
     QByteArray getMainWindowDefaultGeometry() const;
-    void setMainWindowDefaultState(const QByteArray &state);
+    void setMainWindowDefaultState(const QByteArray& state);
     QByteArray getMainWindowDefaultState() const;
 
-    void setMainWindowGeometry(const QByteArray &geometry);
+    void setMainWindowGeometry(const QByteArray& geometry);
     QByteArray getMainWindowGeometry() const;
-    void setMainWindowState(const QByteArray &state);
+    void setMainWindowState(const QByteArray& state);
     QByteArray getMainWindowState() const;
 
     void setPalette(int palette);

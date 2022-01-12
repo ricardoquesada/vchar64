@@ -25,8 +25,7 @@ QT_BEGIN_NAMESPACE
 class QTcpSocket;
 QT_END_NAMESPACE
 
-class ServerPreview : public QObject
-{
+class ServerPreview : public QObject {
     Q_OBJECT
 
 public:
@@ -73,8 +72,8 @@ protected:
 
     // Proto: chars related
     void protoSetByte(quint16 addr, quint8 value);
-    void protoSetChar(int charIdx, const quint8 *charBuf);
-    void protoSetChars(int charIdx, const quint8 *charBuf, int totalChars);
+    void protoSetChar(int charIdx, const quint8* charBuf);
+    void protoSetChars(int charIdx, const quint8* charBuf, int totalChars);
 
     void sendOrQueueData(char* buffer, int bufferSize);
     void sendData(char* buffer, int bufferSize);
@@ -92,16 +91,15 @@ protected:
     void updateTiles();
     void updateColorProperties();
 
-    class ServerCommand
-    {
+    class ServerCommand {
     public:
         explicit ServerCommand(char* data, int dataSize)
             : _data(data)
             , _dataSize(dataSize)
-        {}
+        {
+        }
         char* _data;
         int _dataSize;
-
     };
 
     QTcpSocket* _socket;

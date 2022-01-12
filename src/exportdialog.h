@@ -24,12 +24,11 @@ class ExportDialog;
 
 class State;
 
-class ExportDialog : public QDialog
-{
+class ExportDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ExportDialog(State *state, QWidget *parent = nullptr);
+    explicit ExportDialog(State* state, QWidget* parent = nullptr);
     ~ExportDialog() Q_DECL_OVERRIDE;
 
 private slots:
@@ -51,7 +50,7 @@ private:
     void accept() Q_DECL_OVERRIDE;
     void updateButtons();
 
-    Ui::ExportDialog *ui;
-    State* _state;      // weak ref
+    Ui::ExportDialog* ui;
+    State* _state; // weak ref
     int _checkBox_clicked;
 };

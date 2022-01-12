@@ -18,17 +18,15 @@ limitations under the License.
 
 #include <QWidget>
 
-
-class PaletteWidget : public QWidget
-{
+class PaletteWidget : public QWidget {
     Q_OBJECT
 
 public:
-    PaletteWidget(QWidget *parent);
+    PaletteWidget(QWidget* parent);
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
     QSize sizeHint() const Q_DECL_OVERRIDE;

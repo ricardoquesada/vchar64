@@ -24,7 +24,7 @@ limitations under the License.
 #ifndef __CC65__
 #pragma pack(push)
 #pragma pack(1)
-#endif  /* __CC65__ */
+#endif /* __CC65__ */
 
 #define VCHAR64_SERVER_LISTEN_PORT 6464
 
@@ -32,8 +32,7 @@ limitations under the License.
 // before "syncing"
 #define VCHAR64_SERVER_BUFFER_SIZE 1400
 
-struct vchar64d_proto_header
-{
+struct vchar64d_proto_header {
     uint8_t type;
 };
 enum {
@@ -53,57 +52,49 @@ enum {
     TYPE_BYEBYE
 };
 
-struct vchar64d_proto_poke
-{
+struct vchar64d_proto_poke {
     uint16_t addr;
     uint8_t value;
 };
 
-struct vchar64d_proto_set_mem
-{
+struct vchar64d_proto_set_mem {
     uint16_t addr;
     uint16_t count;
     uint8_t* data;
 };
 
-struct vchar64d_proto_fill
-{
+struct vchar64d_proto_fill {
     uint16_t addr;
     uint8_t value;
     uint16_t count;
 };
 
 // one byte of the char
-struct vchar64d_proto_set_byte
-{
+struct vchar64d_proto_set_byte {
     uint16_t idx;
     uint8_t byte;
 };
 
 // 1 char: 8 bytes
-struct vchar64d_proto_set_char
-{
+struct vchar64d_proto_set_char {
     uint8_t idx;
     uint8_t chardata[8];
 };
 
 // multiple chars: multiple 8 bytes
-struct vchar64d_proto_set_chars
-{
+struct vchar64d_proto_set_chars {
     uint8_t idx;
     uint8_t count;
     uint8_t* charsdata;
 };
 
 // a synced ping
-struct vchar64d_proto_ping
-{
+struct vchar64d_proto_ping {
     uint8_t something;
 };
 
 #define PROTO_VERSION 0x00
-struct vchar64d_proto_hello
-{
+struct vchar64d_proto_hello {
     uint8_t version;
 };
 
@@ -112,4 +103,3 @@ struct vchar64d_proto_hello
 #endif /* __CC65__ */
 
 #endif // SERVERPROTOCOL_H
-

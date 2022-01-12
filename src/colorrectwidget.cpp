@@ -24,21 +24,21 @@ limitations under the License.
 #include "selectcolordialog.h"
 #include "state.h"
 
-ColorRectWidget::ColorRectWidget(QWidget *parent)
+ColorRectWidget::ColorRectWidget(QWidget* parent)
     : QWidget(parent)
     , _mode(SHOW_PEN_MODE)
     , _pen(0)
     , _colorIndex(-1)
     , _selected(false)
 {
-    setMinimumSize(60,10);
+    setMinimumSize(60, 10);
 }
 
 ColorRectWidget::~ColorRectWidget() = default;
 
 void ColorRectWidget::setPen(int pen)
 {
-    Q_ASSERT(pen>=0 && pen<State::PEN_MAX && "Invalid colorIndex");
+    Q_ASSERT(pen >= 0 && pen < State::PEN_MAX && "Invalid colorIndex");
     if (_pen != pen) {
         _pen = pen;
         _mode = SHOW_PEN_MODE;
@@ -53,9 +53,8 @@ int ColorRectWidget::getPen() const
 
 void ColorRectWidget::setColorIndex(int colorIndex)
 {
-    Q_ASSERT(colorIndex>=0 && colorIndex<16 && "Invalid color");
-    if (_colorIndex != colorIndex)
-    {
+    Q_ASSERT(colorIndex >= 0 && colorIndex < 16 && "Invalid color");
+    if (_colorIndex != colorIndex) {
         _colorIndex = colorIndex;
         _mode = SHOW_COLORINDEX_MODE;
         update();
@@ -69,14 +68,13 @@ int ColorRectWidget::getColorIndex() const
 
 void ColorRectWidget::setSelected(bool selected)
 {
-    if (_selected != selected)
-    {
+    if (_selected != selected) {
         _selected = selected;
         update();
     }
 }
 
-void ColorRectWidget::paintEvent(QPaintEvent *event)
+void ColorRectWidget::paintEvent(QPaintEvent* event)
 {
     QPainter painter;
     painter.begin(this);
@@ -86,17 +84,15 @@ void ColorRectWidget::paintEvent(QPaintEvent *event)
     else /* SHOW_COLORINDEX_MODE */
         painter.fillRect(event->rect(), Palette::getColor(_colorIndex));
 
-    if (_selected)
-    {
+    if (_selected) {
         QPen pen;
         pen.setColor(Qt::red);
         pen.setWidth(3);
         pen.setStyle(Qt::PenStyle::SolidLine);
         painter.setPen(pen);
 
-        painter.drawRect(0, 0, width()-1, height()-1);
+        painter.drawRect(0, 0, width() - 1, height() - 1);
     }
 
     painter.end();
 }
-

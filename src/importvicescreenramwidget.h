@@ -5,19 +5,18 @@
 
 class ImportVICEDialog;
 
-class ImportVICEScreenRAMWidget : public QWidget
-{
+class ImportVICEScreenRAMWidget : public QWidget {
     Q_OBJECT
 public:
-    explicit ImportVICEScreenRAMWidget(QWidget *parent = nullptr);
+    explicit ImportVICEScreenRAMWidget(QWidget* parent = nullptr);
     void setParentDialog(ImportVICEDialog* parentDialog) { _parentDialog = parentDialog; }
     void setDisplayGrid(bool enabled);
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
 
     void updateTileImages();
-    ImportVICEDialog* _parentDialog;    // weak ref
+    ImportVICEDialog* _parentDialog; // weak ref
     bool _displayGrid;
 };
 

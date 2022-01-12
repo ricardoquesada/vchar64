@@ -17,12 +17,11 @@ limitations under the License.
 #pragma once
 #include <QApplication>
 
-class VChar64Application : public QApplication
-{
+class VChar64Application : public QApplication {
     Q_OBJECT
 
 public:
-    explicit VChar64Application(int &argc, char **argv);
+    explicit VChar64Application(int& argc, char** argv);
 
 protected:
     bool event(QEvent* event) Q_DECL_OVERRIDE;

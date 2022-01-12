@@ -20,15 +20,15 @@ limitations under the License.
 #include "commands.h"
 
 // Paint Tile
-PaintTileCommand::PaintTileCommand(State *state, int tileIndex, const QPoint& position, int pen, bool mergeable, QUndoCommand *parent)
+PaintTileCommand::PaintTileCommand(State* state, int tileIndex, const QPoint& position, int pen, bool mergeable, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
     , _pen(pen)
-    , _buffer{}
+    , _buffer {}
     , _mergeable(mergeable)
 {
-    Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
+    Q_ASSERT(position.x() < State::MAX_TILE_WIDTH * 8 && position.y() < State::MAX_TILE_HEIGHT * 8 && "Invalid position");
 
     _points.append(position);
     setText(QObject::tr("Paint Tile #%1").arg(_tileIndex));
@@ -43,7 +43,7 @@ void PaintTileCommand::redo()
 {
     _state->copyTileFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
 
-    for (auto point: _points) {
+    for (auto point : _points) {
         _state->_tileSetPen(_tileIndex, point, _pen);
     }
 }
@@ -63,14 +63,13 @@ bool PaintTileCommand::mergeWith(const QUndoCommand* other)
     return true;
 }
 
-
 // ClearTileCommand
 
-ClearTileCommand::ClearTileCommand(State *state, int tileIndex, QUndoCommand *parent)
+ClearTileCommand::ClearTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
-    , _buffer{}
+    , _buffer {}
 {
     setText(QObject::tr("Clear Tile #%1").arg(_tileIndex));
 }
@@ -88,7 +87,7 @@ void ClearTileCommand::redo()
 
 // PasteCommand
 
-PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& copyRange, const quint8* buffer, QUndoCommand *parent)
+PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& copyRange, const quint8* buffer, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _charIndex(charIndex)
@@ -98,15 +97,13 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
 {
 
     int sizeToCopy = -1;
-    if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES)
-    {
+    if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
         sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
         Q_ASSERT(copyRange.bufferSize == sizeToCopy && "Invalid bufferSize");
 
         _copyBuffer = (quint8*)malloc(sizeToCopy);
         _origBuffer = (quint8*)malloc(sizeToCopy);
-    }
-    else /* MAP */
+    } else /* MAP */
     {
         sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
         _origBuffer = (quint8*)malloc(sizeToCopy);
@@ -121,8 +118,7 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
         QObject::tr("Map")
     };
 
-    setText(QObject::tr("Paste %1").
-            arg(types[_copyRange.type]));
+    setText(QObject::tr("Paste %1").arg(types[_copyRange.type]));
 }
 
 PasteCommand::~PasteCommand()
@@ -146,12 +142,10 @@ void PasteCommand::undo()
 
 void PasteCommand::redo()
 {
-    if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES)
-    {
+    if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES) {
         memcpy(_origBuffer, _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
         memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileColors(), State::TILE_COLORS_BUFFER_SIZE);
-    }
-    else /* MAP */
+    } else /* MAP */
     {
         memcpy(_origBuffer, _state->getMapBuffer(), _state->getMapSize().width() * _state->getMapSize().height());
     }
@@ -160,7 +154,7 @@ void PasteCommand::redo()
 
 // CutCommand
 
-CutCommand::CutCommand(State *state, const State::CopyRange& copyRange, QUndoCommand *parent)
+CutCommand::CutCommand(State* state, const State::CopyRange& copyRange, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _zeroBuffer(nullptr)
@@ -168,15 +162,13 @@ CutCommand::CutCommand(State *state, const State::CopyRange& copyRange, QUndoCom
     , _copyRange(copyRange)
 {
     int sizeToCopy = -1;
-    if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES)
-    {
+    if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
         sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
         _zeroBuffer = (quint8*)malloc(sizeToCopy);
         _origBuffer = (quint8*)malloc(sizeToCopy);
 
         memset(_zeroBuffer, 0, sizeToCopy);
-    }
-    else /* MAP */
+    } else /* MAP */
     {
         sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
         _zeroBuffer = (quint8*)malloc(sizeToCopy);
@@ -197,9 +189,7 @@ CutCommand::CutCommand(State *state, const State::CopyRange& copyRange, QUndoCom
         QObject::tr("Map")
     };
 
-    setText(QObject::tr("Cut %1").
-            arg(types[_copyRange.type]));
-
+    setText(QObject::tr("Cut %1").arg(types[_copyRange.type]));
 }
 
 CutCommand::~CutCommand()
@@ -223,12 +213,10 @@ void CutCommand::undo()
 
 void CutCommand::redo()
 {
-    if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES)
-    {
+    if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES) {
         memcpy(_origBuffer, _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
         memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileColors(), State::TILE_COLORS_BUFFER_SIZE);
-    }
-    else /* MAP */
+    } else /* MAP */
     {
         memcpy(_origBuffer, _state->getMapBuffer(), _state->getMapSize().width() * _state->getMapSize().height());
     }
@@ -236,7 +224,7 @@ void CutCommand::redo()
 }
 // FlipTileHCommand
 
-FlipTileHCommand::FlipTileHCommand(State *state, int tileIndex, QUndoCommand *parent)
+FlipTileHCommand::FlipTileHCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
@@ -256,7 +244,7 @@ void FlipTileHCommand::redo()
 
 // FlipTileVCommand
 
-FlipTileVCommand::FlipTileVCommand(State *state, int tileIndex, QUndoCommand *parent)
+FlipTileVCommand::FlipTileVCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
@@ -276,7 +264,7 @@ void FlipTileVCommand::redo()
 
 // RotateTileCommand
 
-RotateTileCommand::RotateTileCommand(State *state, int tileIndex, QUndoCommand *parent)
+RotateTileCommand::RotateTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
@@ -298,7 +286,7 @@ void RotateTileCommand::redo()
 
 // InvertTile
 
-InvertTileCommand::InvertTileCommand(State *state, int tileIndex, QUndoCommand *parent)
+InvertTileCommand::InvertTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
@@ -318,7 +306,7 @@ void InvertTileCommand::redo()
 
 // Shift left
 
-ShiftLeftTileCommand::ShiftLeftTileCommand(State *state, int tileIndex, QUndoCommand *parent)
+ShiftLeftTileCommand::ShiftLeftTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
@@ -338,7 +326,7 @@ void ShiftLeftTileCommand::redo()
 
 // Shift Right
 
-ShiftRightTileCommand::ShiftRightTileCommand(State *state, int tileIndex, QUndoCommand *parent)
+ShiftRightTileCommand::ShiftRightTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
@@ -358,7 +346,7 @@ void ShiftRightTileCommand::redo()
 
 // Shift Up
 
-ShiftUpTileCommand::ShiftUpTileCommand(State *state, int tileIndex, QUndoCommand *parent)
+ShiftUpTileCommand::ShiftUpTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
@@ -378,7 +366,7 @@ void ShiftUpTileCommand::redo()
 
 // Shift Down
 
-ShiftDownTileCommand::ShiftDownTileCommand(State *state, int tileIndex, QUndoCommand *parent)
+ShiftDownTileCommand::ShiftDownTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
@@ -398,16 +386,15 @@ void ShiftDownTileCommand::redo()
 
 // SetTilePropertiesCommand
 
-SetTilePropertiesCommand::SetTilePropertiesCommand(State *state, const State::TileProperties& properties, QUndoCommand *parent)
+SetTilePropertiesCommand::SetTilePropertiesCommand(State* state, const State::TileProperties& properties, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _new(properties)
 {
     setText(QObject::tr("Tile Properties %1x%2 - %3")
-            .arg(properties.size.width())
-            .arg(properties.size.height())
-            .arg(properties.interleaved)
-            );
+                .arg(properties.size.width())
+                .arg(properties.size.height())
+                .arg(properties.interleaved));
 }
 
 void SetTilePropertiesCommand::undo()
@@ -423,7 +410,7 @@ void SetTilePropertiesCommand::redo()
 
 // SetExportPropertiesCommand
 
-SetExportPropertiesCommand::SetExportPropertiesCommand(State *state, const State::ExportProperties& properties, QUndoCommand *parent)
+SetExportPropertiesCommand::SetExportPropertiesCommand(State* state, const State::ExportProperties& properties, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _new(properties)
@@ -444,7 +431,7 @@ void SetExportPropertiesCommand::redo()
 
 // SetMulticolorModeCommand
 
-SetMulticolorModeCommand::SetMulticolorModeCommand(State *state, bool multicolorEnabled, QUndoCommand *parent)
+SetMulticolorModeCommand::SetMulticolorModeCommand(State* state, bool multicolorEnabled, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _new(multicolorEnabled)
@@ -468,7 +455,7 @@ void SetMulticolorModeCommand::redo()
 
 // SetColorCommand
 
-SetColorCommand::SetColorCommand(State *state, int color, int pen, int tileIdx, QUndoCommand *parent)
+SetColorCommand::SetColorCommand(State* state, int color, int pen, int tileIdx, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _pen(pen)
@@ -476,10 +463,8 @@ SetColorCommand::SetColorCommand(State *state, int color, int pen, int tileIdx, 
     , _tileIdx(tileIdx)
 {
     setText(QObject::tr("Color[%1] = %2")
-            .arg(pen)
-            .arg(color)
-            );
-
+                .arg(pen)
+                .arg(color));
 }
 
 void SetColorCommand::undo()
@@ -495,14 +480,13 @@ void SetColorCommand::redo()
 
 // SetForegroundColorMode
 
-SetForegroundColorMode::SetForegroundColorMode(State *state, State::ForegroundColorMode mode, QUndoCommand *parent)
+SetForegroundColorMode::SetForegroundColorMode(State* state, State::ForegroundColorMode mode, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _mode(mode)
 {
     setText(QObject::tr("Foreground Mode = %1")
-            .arg(mode)
-            );
+                .arg(mode));
 }
 
 void SetForegroundColorMode::undo()
@@ -518,21 +502,20 @@ void SetForegroundColorMode::redo()
 
 // SetMapSizeCommand
 
-SetMapSizeCommand::SetMapSizeCommand(State *state, const QSize& mapSize, QUndoCommand *parent)
+SetMapSizeCommand::SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _new(mapSize)
 {
     _old = _state->getMapSize();
-    _oldMap = (quint8*) malloc(_old.width() * _old.height());
+    _oldMap = (quint8*)malloc(_old.width() * _old.height());
     Q_ASSERT(_oldMap && "No more memory");
 
     memcpy(_oldMap, _state->_map, _old.width() * _old.height());
 
     setText(QObject::tr("Map Size %1x%2")
-            .arg(mapSize.width())
-            .arg(mapSize.height())
-            );
+                .arg(mapSize.width())
+                .arg(mapSize.height()));
 }
 SetMapSizeCommand::~SetMapSizeCommand()
 {
@@ -551,7 +534,7 @@ void SetMapSizeCommand::redo()
 }
 
 // FillMapCommand
-FillMapCommand::FillMapCommand(State *state, const QPoint& coord, int tileIdx, QUndoCommand *parent)
+FillMapCommand::FillMapCommand(State* state, const QPoint& coord, int tileIdx, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _coord(coord)
@@ -573,8 +556,7 @@ void FillMapCommand::undo()
 
 void FillMapCommand::redo()
 {
-    if (!_oldMap)
-    {
+    if (!_oldMap) {
         _mapSize = _state->getMapSize();
         _oldMap = (quint8*)malloc(_mapSize.width() * _mapSize.height());
         memcpy(_oldMap, _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
@@ -583,7 +565,7 @@ void FillMapCommand::redo()
 }
 
 // ClearMapCommand
-ClearMapCommand::ClearMapCommand(State *state, int tileIdx, QUndoCommand *parent)
+ClearMapCommand::ClearMapCommand(State* state, int tileIdx, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIdx(tileIdx)
@@ -604,8 +586,7 @@ void ClearMapCommand::undo()
 
 void ClearMapCommand::redo()
 {
-    if (!_oldMap)
-    {
+    if (!_oldMap) {
         _mapSize = _state->getMapSize();
         _oldMap = (quint8*)malloc(_mapSize.width() * _mapSize.height());
         memcpy(_oldMap, _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
@@ -614,7 +595,7 @@ void ClearMapCommand::redo()
 }
 
 // PaintMapCommand
-PaintMapCommand::PaintMapCommand(State *state, const QPoint& position, int tileIdx, bool mergeable, QUndoCommand *parent)
+PaintMapCommand::PaintMapCommand(State* state, const QPoint& position, int tileIdx, bool mergeable, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIdx(tileIdx)
@@ -638,8 +619,7 @@ void PaintMapCommand::undo()
 
 void PaintMapCommand::redo()
 {
-    if (!_oldMap)
-    {
+    if (!_oldMap) {
         _mapSize = _state->getMapSize();
         _oldMap = (quint8*)malloc(_mapSize.width() * _mapSize.height());
     }

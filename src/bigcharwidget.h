@@ -16,12 +16,12 @@ limitations under the License.
 
 #pragma once
 
-#include <QWidget>
 #include <QPoint>
 #include <QSize>
+#include <QWidget>
 
-#include <stdint.h>
 #include "state.h"
+#include <stdint.h>
 
 /**
  * @brief The BigCharWidget class
@@ -29,12 +29,11 @@ limitations under the License.
  * object, which could be seen as the Document object.
  * `BigCharWidget` could be seen a the "view" of the `State`.
  */
-class BigCharWidget : public QWidget
-{
+class BigCharWidget : public QWidget {
     Q_OBJECT
 
 public:
-    BigCharWidget(State *state, QWidget *parent=nullptr);
+    BigCharWidget(State* state, QWidget* parent = nullptr);
     virtual ~BigCharWidget() Q_DECL_OVERRIDE;
 
     int getTileIndex() const;
@@ -51,17 +50,17 @@ public slots:
     void onFileLoaded();
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
-    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
+    void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
+    void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
 
     void paintCursor(QPainter& painter);
-    void paintSeparators(QPainter &painter);
-    void paintFocus(QPainter &painter);
+    void paintSeparators(QPainter& painter);
+    void paintFocus(QPainter& painter);
 
     bool maybeSave();
 
@@ -73,9 +72,8 @@ protected:
     QPoint _cursorPos;
 
     State::TileProperties _tileProperties;
-    State* _state;              // strong ref
+    State* _state; // strong ref
 
     QSize _pixelSize;
     bool _commandMergeable;
-
 };

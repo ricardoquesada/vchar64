@@ -38,11 +38,10 @@ class MainWindow;
 class BigCharWidget;
 class State;
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
-    static constexpr int MAX_RECENT_FILES=20;
+    static constexpr int MAX_RECENT_FILES = 20;
 
 public:
     /**
@@ -57,7 +56,8 @@ public:
      */
     static State* getCurrentState();
 
-    Ui::MainWindow* getUi() const {
+    Ui::MainWindow* getUi() const
+    {
         return _ui;
     }
 
@@ -95,7 +95,7 @@ public slots:
     void refresh();
 
 protected:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget* parent = nullptr);
     virtual ~MainWindow() Q_DECL_OVERRIDE;
 
     bool _openFile(const QString& fileName);
@@ -121,7 +121,7 @@ protected:
 
     void updateMenus();
 
-    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+    void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
 
     BigCharWidget* getBigcharWidget() const;
     State* getState() const;
@@ -188,7 +188,6 @@ private slots:
     void on_radioButton_charColorGlobal_toggled(bool checked);
     void on_radioButton_charColorPerChar_toggled(bool checked);
 
-
     void on_actionMap_Properties_triggered();
 
     void onSpinBoxMapSizeX_valueChanged(int newValue);
@@ -234,5 +233,4 @@ private:
 
     // FIXME: Should be moved to the "charset dock" once it is implemented
     QComboBox* _comboBoxTilesetZoom;
-
 };

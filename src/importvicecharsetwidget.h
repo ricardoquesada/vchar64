@@ -16,23 +16,21 @@ limitations under the License.
 
 #pragma once
 
-#include <QWidget>
 #include "state.h"
+#include <QWidget>
 
 class ImportVICEDialog;
 
-class ImportVICECharsetWidget : public QWidget
-{
+class ImportVICECharsetWidget : public QWidget {
     Q_OBJECT
 
 public:
-    ImportVICECharsetWidget(QWidget *parent=nullptr);
+    ImportVICECharsetWidget(QWidget* parent = nullptr);
     void setParentDialog(ImportVICEDialog* parentDialog) { _parentDialog = parentDialog; }
     void setDisplayGrid(bool enabled);
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
     ImportVICEDialog* _parentDialog;
     bool _displayGrid;
 };
-

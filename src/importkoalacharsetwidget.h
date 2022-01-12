@@ -19,18 +19,17 @@ limitations under the License.
 #include <QWidget>
 
 // draws a screen (40x25) with a charset, screen ram, color ram and multicolors
-class ImportKoalaCharsetWidget : public QWidget
-{
+class ImportKoalaCharsetWidget : public QWidget {
     Q_OBJECT
 
     friend class ImportKoalaDialog;
 
 public:
-    explicit ImportKoalaCharsetWidget(QWidget *parent = nullptr);
+    explicit ImportKoalaCharsetWidget(QWidget* parent = nullptr);
 
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
 
-    void populateScreenAndColorRAM(const std::vector<std::pair<int,int>>& coords, quint8 screenRAM, quint8 colorRAM);
+    void populateScreenAndColorRAM(const std::vector<std::pair<int, int>>& coords, quint8 screenRAM, quint8 colorRAM);
     void setCharset(int charIndex, const quint8* chardef);
     void enableGrid(bool enabled);
 
@@ -42,8 +41,8 @@ public slots:
 
 private:
     quint8 _colorRAMForChars[256];
-    quint8 _screenRAM[40*25];
+    quint8 _screenRAM[40 * 25];
     quint8 _d02x[3];
-    quint8 _charset[256*8];
+    quint8 _charset[256 * 8];
     bool _displayGrid;
 };

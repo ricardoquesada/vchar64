@@ -33,22 +33,22 @@ static const int ROWS = 8;
 static const int OFFSET = 2;
 static const int ZOOM_LEVEL = 2;
 
-TilesetWidget::TilesetWidget(QWidget *parent)
+TilesetWidget::TilesetWidget(QWidget* parent)
     : QWidget(parent)
-    , _cursorPos({0,0})
+    , _cursorPos({ 0, 0 })
     , _selecting(false)
-    , _selectingSize({0,0})
+    , _selectingSize({ 0, 0 })
     , _columns(COLUMNS)
     , _tileColumns(COLUMNS)
     , _rows(ROWS)
     , _tileRows(ROWS)
     , _maxTiles(256)
-    , _sizeHint({0,0})
+    , _sizeHint({ 0, 0 })
     , _zoomLevel(ZOOM_LEVEL)
     , _displayGrid(false)
 {
-    _sizeHint = {(_columns * 8 + OFFSET) * ZOOM_LEVEL + 1,
-                 (_rows * 8 + OFFSET) * ZOOM_LEVEL + 1};
+    _sizeHint = { (_columns * 8 + OFFSET) * ZOOM_LEVEL + 1,
+        (_rows * 8 + OFFSET) * ZOOM_LEVEL + 1 };
     setMinimumSize(_sizeHint);
 
     setMouseTracking(true);
@@ -57,7 +57,7 @@ TilesetWidget::TilesetWidget(QWidget *parent)
 //
 // overrides
 //
-void TilesetWidget::mousePressEvent(QMouseEvent * event)
+void TilesetWidget::mousePressEvent(QMouseEvent* event)
 {
     event->accept();
 
@@ -65,8 +65,7 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
     if (!state)
         return;
 
-    if (event->button() == Qt::LeftButton)
-    {
+    if (event->button() == Qt::LeftButton) {
 
         const auto pos = event->position();
         const auto tileProperties = state->getTileProperties();
@@ -74,8 +73,7 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
         const int th = tileProperties.size.height();
 
         int x = int((pos.x() / _zoomLevel - OFFSET)) / 8 / tw;
-        int y = int((pos.y() /_zoomLevel - OFFSET)) / 8 / th;
-
+        int y = int((pos.y() / _zoomLevel - OFFSET)) / 8 / th;
 
         // sanity check
         x = qBound(0, x, _tileColumns - 1);
@@ -84,11 +82,10 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
         const int tileIndex = x + y * (_columns / tw);
 
         // quick sanity check
-        if (! (tileIndex >= 0 && tileIndex < _maxTiles))
+        if (!(tileIndex >= 0 && tileIndex < _maxTiles))
             return;
 
-        if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier)
-        {
+        if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier) {
             // Click + Shift == select mode
             _selecting = true;
 
@@ -97,8 +94,8 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
             if (y >= _cursorPos.y())
                 y++;
 
-            _selectingSize = {x - _cursorPos.x(),
-                              y - _cursorPos.y()};
+            _selectingSize = { x - _cursorPos.x(),
+                y - _cursorPos.y() };
 
             // sanity check
             _selectingSize = {
@@ -106,16 +103,13 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
                 qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows - _cursorPos.y())
             };
             update();
-        }
-        else
-        {
+        } else {
             // different and valid tileIndex?
-            if (_cursorPos.x() != x || _cursorPos.y() != y)
-            {
+            if (_cursorPos.x() != x || _cursorPos.y() != y) {
                 _selecting = false;
-                _selectingSize = {1,1};
+                _selectingSize = { 1, 1 };
 
-                _cursorPos = {x,y};
+                _cursorPos = { x, y };
                 state->setTileIndex(tileIndex);
                 update();
             }
@@ -123,7 +117,7 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
     }
 }
 
-void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
+void TilesetWidget::mouseMoveEvent(QMouseEvent* event)
 {
     event->accept();
 
@@ -134,20 +128,17 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
     int th = tileProperties.size.height();
 
     int x = int((pos.x() / _zoomLevel - OFFSET)) / 8 / tw;
-    int y = int((pos.y() /_zoomLevel - OFFSET)) / 8 / th;
+    int y = int((pos.y() / _zoomLevel - OFFSET)) / 8 / th;
 
-    x = qBound(0, x, _tileColumns-1);
-    y = qBound(0, y, _tileRows-1);
+    x = qBound(0, x, _tileColumns - 1);
+    y = qBound(0, y, _tileRows - 1);
 
-    if (event->buttons() == Qt::NoButton)
-    {
+    if (event->buttons() == Qt::NoButton) {
         MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
-    }
-    else if (event->buttons() == Qt::LeftButton)
-    {
+    } else if (event->buttons() == Qt::LeftButton) {
         // sanity check
         int tileIndex = x + y * (_columns / tw);
-        if (! (tileIndex >= 0 && tileIndex < _maxTiles))
+        if (!(tileIndex >= 0 && tileIndex < _maxTiles))
             return;
 
         if (x >= _cursorPos.x())
@@ -155,13 +146,13 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
         if (y >= _cursorPos.y())
             y++;
 
-        _selectingSize = {x - _cursorPos.x(),
-                          y - _cursorPos.y()};
+        _selectingSize = { x - _cursorPos.x(),
+            y - _cursorPos.y() };
 
         // sanity check
         _selectingSize = {
-            qBound(-_cursorPos.x(), _selectingSize.width(), _tileColumns-_cursorPos.x()),
-            qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows-_cursorPos.y())
+            qBound(-_cursorPos.x(), _selectingSize.width(), _tileColumns - _cursorPos.x()),
+            qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows - _cursorPos.y())
         };
 
         _selecting = true;
@@ -170,7 +161,7 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
     }
 }
 
-void TilesetWidget::keyPressEvent(QKeyEvent *event)
+void TilesetWidget::keyPressEvent(QKeyEvent* event)
 {
     event->accept();
 
@@ -182,16 +173,16 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
 
     switch (event->key()) {
     case Qt::Key_Left:
-        point = {-1,0};
+        point = { -1, 0 };
         break;
     case Qt::Key_Right:
-        point = {+1,0};
+        point = { +1, 0 };
         break;
     case Qt::Key_Down:
-        point = {0,+1};
+        point = { 0, +1 };
         break;
     case Qt::Key_Up:
-        point = {0,-1};
+        point = { 0, -1 };
         break;
     default:
         QWidget::keyPressEvent(event);
@@ -202,13 +193,10 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
 
     // disabling selecting?
     if (_selecting && !selecting) {
-        _selectingSize = {1,1};
-    }
-    else
-    {
-        if (selecting)
-        {
-            _selectingSize += {point.x(), point.y()};
+        _selectingSize = { 1, 1 };
+    } else {
+        if (selecting) {
+            _selectingSize += { point.x(), point.y() };
 
             if (_selectingSize.width() == 0)
                 _selectingSize.setWidth(_selectingSize.width() + 1 * point.x());
@@ -216,25 +204,22 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
                 _selectingSize.setHeight(_selectingSize.height() + 1 * point.y());
 
             _selectingSize = {
-                qBound(-_cursorPos.x(), _selectingSize.width(), _tileColumns-_cursorPos.x()),
-                qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows-_cursorPos.y())
+                qBound(-_cursorPos.x(), _selectingSize.width(), _tileColumns - _cursorPos.x()),
+                qBound(-_cursorPos.y(), _selectingSize.height(), _tileRows - _cursorPos.y())
             };
-        }
-        else
-        {
+        } else {
             auto pos = _cursorPos + point;
-            pos = {qBound(0, pos.x(), _tileColumns-1),
-                   qBound(0, pos.y(), _tileRows-1)};
+            pos = { qBound(0, pos.x(), _tileColumns - 1),
+                qBound(0, pos.y(), _tileRows - 1) };
 
-            int tileIdx =  pos.y() * _tileColumns + pos.x();
-            if (pos != _cursorPos && tileIdx >=0 && tileIdx < _maxTiles)
-            {
+            int tileIdx = pos.y() * _tileColumns + pos.x();
+            if (pos != _cursorPos && tileIdx >= 0 && tileIdx < _maxTiles) {
                 _cursorPos = pos;
                 state->setTileIndex(tileIdx);
 
                 MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2")
-                                                                  .arg(_cursorPos.x())
-                                                                  .arg(_cursorPos.y()));
+                                                                      .arg(_cursorPos.x())
+                                                                      .arg(_cursorPos.y()));
             }
         }
     }
@@ -243,7 +228,7 @@ void TilesetWidget::keyPressEvent(QKeyEvent *event)
     update();
 }
 
-void TilesetWidget::paintEvent(QPaintEvent *event)
+void TilesetWidget::paintEvent(QPaintEvent* event)
 {
     auto state = MainWindow::getCurrentState();
 
@@ -257,31 +242,27 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
     painter.scale(_zoomLevel, _zoomLevel);
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
-    painter.setBrush(QColor(0,0,0));
+    painter.setBrush(QColor(0, 0, 0));
     painter.setPen(Qt::NoPen);
 
     QPen pen;
-    pen.setColor({149,195,244,255});
-    pen.setWidthF((hasFocus() ? 3 : 1) / _zoomLevel );
+    pen.setColor({ 149, 195, 244, 255 });
+    pen.setWidthF((hasFocus() ? 3 : 1) / _zoomLevel);
     pen.setStyle(Qt::PenStyle::SolidLine);
 
     auto tileProperties = state->getTileProperties();
     int tw = tileProperties.size.width();
     int th = tileProperties.size.height();
 
-    int max_tiles = 256 / (tw*th);
+    int max_tiles = 256 / (tw * th);
 
-    for (int i=0; i<max_tiles;i++)
-    {
-        int charIdx = tileProperties.interleaved == 1 ?
-                                                    i * tw * th :
-                                                    i;
+    for (int i = 0; i < max_tiles; i++) {
+        int charIdx = tileProperties.interleaved == 1 ? i * tw * th : i;
 
         int w = (i * tw) % _columns;
         int h = th * ((i * tw) / _columns);
 
-        for (int char_idx=0; char_idx < (tw * th); char_idx++)
-        {
+        for (int char_idx = 0; char_idx < (tw * th); char_idx++) {
             int local_w = w + char_idx % tw;
             int local_h = h + char_idx / tw;
 
@@ -291,21 +272,20 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
         }
     }
 
-    if (_displayGrid)
-    {
+    if (_displayGrid) {
         auto pen = painter.pen();
         pen.setColor(Preferences::getInstance().getGridColor());
         pen.setStyle(Qt::DashLine);
         pen.setWidthF(1.0 / _zoomLevel);
         painter.setPen(pen);
 
-        for (int y=0; y <= _tileRows; ++y)
+        for (int y = 0; y <= _tileRows; ++y)
             painter.drawLine(QPointF(0 + OFFSET, y * 8 * th + OFFSET),
-                             QPointF(_tileColumns * 8 * tw + OFFSET, y * 8 * th + OFFSET));
+                QPointF(_tileColumns * 8 * tw + OFFSET, y * 8 * th + OFFSET));
 
-        for (int x=0; x <= _tileColumns; ++x)
+        for (int x = 0; x <= _tileColumns; ++x)
             painter.drawLine(QPointF(x * 8 * tw + OFFSET, OFFSET),
-                             QPointF(x * 8 * tw + OFFSET, _tileRows * 8 * th + OFFSET));
+                QPointF(x * 8 * tw + OFFSET, _tileRows * 8 * th + OFFSET));
     }
 
     painter.setPen(Qt::NoPen);
@@ -332,54 +312,50 @@ void TilesetWidget::paintSelectedTile(QPainter& painter)
 
     QPen pen;
     pen.setWidthF(2 / _zoomLevel);
-    pen.setColor({149,195,244,255});
+    pen.setColor({ 149, 195, 244, 255 });
     pen.setStyle(Qt::PenStyle::SolidLine);
 
-    if (_selecting)
-    {
+    if (_selecting) {
         int plusOneX = _selectingSize.width() < 0 ? 1 : 0;
         int plusOneY = _selectingSize.height() < 0 ? 1 : 0;
 
         painter.setPen(pen);
-        painter.setBrush(QColor(149,195,244,64));
+        painter.setBrush(QColor(149, 195, 244, 64));
         painter.drawRect((_cursorPos.x() + plusOneX) * 8 * tw + OFFSET,
-                         (_cursorPos.y() + plusOneY) * 8 * th + OFFSET,
-                         (_selectingSize.width() - plusOneX) * 8 * tw,
-                         (_selectingSize.height() - plusOneY) * 8 * th);
-    }
-    else
-    {
+            (_cursorPos.y() + plusOneY) * 8 * th + OFFSET,
+            (_selectingSize.width() - plusOneX) * 8 * tw,
+            (_selectingSize.height() - plusOneY) * 8 * th);
+    } else {
         painter.setPen(pen);
-        painter.setBrush(QColor(128,0,0,0));
+        painter.setBrush(QColor(128, 0, 0, 0));
         painter.drawRect(_cursorPos.x() * 8 * tw + OFFSET,
-                         _cursorPos.y() * 8 * th + OFFSET,
-                         8 * tw,
-                         8 * th);
+            _cursorPos.y() * 8 * th + OFFSET,
+            8 * tw,
+            8 * th);
     }
 }
 
-void TilesetWidget::paintFocus(QPainter &painter)
+void TilesetWidget::paintFocus(QPainter& painter)
 {
-    if (hasFocus())
-    {
+    if (hasFocus()) {
         QPen pen;
-        pen.setColor({149,195,244,255});
+        pen.setColor({ 149, 195, 244, 255 });
         pen.setWidthF(3 / _zoomLevel);
         pen.setStyle(Qt::PenStyle::SolidLine);
 
         painter.setPen(pen);
 
         // vertical lines
-        painter.drawLine(OFFSET-1, OFFSET-1,
-                         OFFSET-1, _rows * 8 + OFFSET);
-        painter.drawLine(_columns * 8 + OFFSET, OFFSET-1,
-                         _columns * 8 + OFFSET, _rows * 8 + OFFSET);
+        painter.drawLine(OFFSET - 1, OFFSET - 1,
+            OFFSET - 1, _rows * 8 + OFFSET);
+        painter.drawLine(_columns * 8 + OFFSET, OFFSET - 1,
+            _columns * 8 + OFFSET, _rows * 8 + OFFSET);
 
         // horizontal lines
-        painter.drawLine(OFFSET-1, OFFSET-1,
-                         _columns * 8 + 1, OFFSET-1);
-        painter.drawLine(OFFSET-1, _rows * 8 + OFFSET,
-                         _columns * 8 + OFFSET, _rows * 8 + OFFSET);
+        painter.drawLine(OFFSET - 1, OFFSET - 1,
+            _columns * 8 + 1, OFFSET - 1);
+        painter.drawLine(OFFSET - 1, _rows * 8 + OFFSET,
+            _columns * 8 + OFFSET, _rows * 8 + OFFSET);
     }
 }
 
@@ -389,17 +365,15 @@ void TilesetWidget::paintFocus(QPainter &painter)
 void TilesetWidget::onTileIndexUpdated(int selectedTileIndex)
 {
     // if the tileIndex is updated, cancel selection
-    if (_selecting)
-    {
+    if (_selecting) {
         _selecting = false;
-        _selectingSize = {1,1};
+        _selectingSize = { 1, 1 };
     }
 
     int x = selectedTileIndex % _tileColumns;
     int y = selectedTileIndex / _tileColumns;
-    if (_cursorPos.x() != x || _cursorPos.y() != y)
-    {
-        _cursorPos = {x, y};
+    if (_cursorPos.x() != x || _cursorPos.y() != y) {
+        _cursorPos = { x, y };
         update();
     }
 }
@@ -418,7 +392,7 @@ void TilesetWidget::onTilePropertiesUpdated()
     _maxTiles = 256 / (properties.size.width() * properties.size.height());
 
     _sizeHint = QSize(_zoomLevel * _columns * 8 + OFFSET * 2,
-                 _zoomLevel * _rows * 8 + OFFSET * 2);
+        _zoomLevel * _rows * 8 + OFFSET * 2);
 
     setMinimumSize(_sizeHint);
     update();
@@ -471,14 +445,12 @@ void TilesetWidget::getSelectionRange(State::CopyRange* copyRange) const
     QPoint fixed_origin = _cursorPos;
     QSize fixed_size = _selectingSize;
 
-    if (_selectingSize.width() < 0)
-    {
+    if (_selectingSize.width() < 0) {
         fixed_origin.setX(_cursorPos.x() + _selectingSize.width());
         fixed_size.setWidth(-_selectingSize.width() + 1);
     }
 
-    if (_selectingSize.height() < 0)
-    {
+    if (_selectingSize.height() < 0) {
         fixed_origin.setY(_cursorPos.y() + _selectingSize.height());
         fixed_size.setHeight(-_selectingSize.height() + 1);
     }
@@ -497,8 +469,7 @@ void TilesetWidget::getSelectionRange(State::CopyRange* copyRange) const
 
 void TilesetWidget::enableGrid(bool enabled)
 {
-    if (_displayGrid != enabled)
-    {
+    if (_displayGrid != enabled) {
         _displayGrid = enabled;
         update();
     }
@@ -509,7 +480,7 @@ void TilesetWidget::setZoomLevel(int zoomLevel)
     _zoomLevel = zoomLevel * ZOOM_LEVEL / 100.0;
 
     _sizeHint = QSize((COLUMNS * 8 + OFFSET) * _zoomLevel + 1,
-                      (ROWS * 8 + OFFSET) * _zoomLevel + 1);
+        (ROWS * 8 + OFFSET) * _zoomLevel + 1);
 
     setMinimumSize(_sizeHint);
     update();

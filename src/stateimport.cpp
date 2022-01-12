@@ -28,10 +28,11 @@ limitations under the License.
 qint64 StateImport::loadRaw(State* state, QFile& file)
 {
     auto size = file.size() - file.pos();
-    if (size % 8 !=0)
-    {
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Warning: file is not multiple of 8. Characters might be incomplete"));
-        qDebug() << "File size not multiple of 8 (" << size << "). Characters might be incomplete";
+    if (size % 8 != 0) {
+        MainWindow::getInstance()->showMessageOnStatusBar(
+            QObject::tr("Warning: file is not multiple of 8. Characters might be incomplete"));
+        qDebug()
+            << "File size not multiple of 8 (" << size << "). Characters might be incomplete";
     }
 
     int toRead = std::min((int)size, State::CHAR_BUFFER_SIZE);
@@ -46,11 +47,12 @@ qint64 StateImport::loadRaw(State* state, QFile& file)
     return total;
 }
 
-qint64 StateImport::loadPRG(State *state, QFile& file, quint16* outAddress)
+qint64 StateImport::loadPRG(State* state, QFile& file, quint16* outAddress)
 {
     auto size = file.size();
     if (size < 10) { // 2 + 8 (at least one char)
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Error: File size too small"));
+        MainWindow::getInstance()->showMessageOnStatusBar(
+            QObject::tr("Error: File size too small"));
         qDebug() << "Error: File Size too small.";
         return -1;
     }
@@ -66,12 +68,12 @@ qint64 StateImport::loadPRG(State *state, QFile& file, quint16* outAddress)
     return StateImport::loadRaw(state, file);
 }
 
-qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4header)
+qint64 StateImport::loadCTM4(State* state, QFile& file, struct CTMHeader4* v4header)
 {
     // only expanded files are supported
-    if (!v4header->expanded)
-    {
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("CTM is not expanded"));
+    if (!v4header->expanded) {
+        MainWindow::getInstance()->showMessageOnStatusBar(
+            QObject::tr("CTM is not expanded"));
         qDebug() << "CTM is not expanded. Cannot load it";
         return -1;
     }
@@ -91,7 +93,7 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
 
     auto total = file.read((char*)state->_charset, toRead);
 
-    for (int i=0; i<4; i++)
+    for (int i = 0; i < 4; i++)
         state->_setColorForPen(i, v4header->colors[i], -1);
 
     state->_setMulticolorMode(v4header->vic_res);
@@ -105,11 +107,10 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
     // cell data is not present when not expanded...
 
     // if color_mode is per_char, convert it to per_tile
-    state->_setForegroundColorMode((State::ForegroundColorMode)!!v4header->color_mode);
+    state->_setForegroundColorMode((State::ForegroundColorMode) !!v4header->color_mode);
     state->_setMapSize(map_size);
 
-    if (v4header->color_mode == 0)
-    {
+    if (v4header->color_mode == 0) {
         /* global */
 
         /* skip char attribs */
@@ -119,9 +120,7 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
         file.seek(file.pos() + num_tiles * v4header->tile_width * v4header->tile_height);
 
         /* no tile attribs */
-    }
-    else if (v4header->color_mode == 1)
-    {
+    } else if (v4header->color_mode == 1) {
         /* tile attribs */
 
         /* skip char attribs */
@@ -132,9 +131,7 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
 
         /* read tile attribs */
         total += file.read((char*)state->_tileColors, num_tiles);
-    }
-    else if (v4header->color_mode == 2)
-    {
+    } else if (v4header->color_mode == 2) {
         /* char attribs */
 
         /* skip char attribs */
@@ -153,20 +150,21 @@ qint64 StateImport::loadCTM4(State *state, QFile& file, struct CTMHeader4* v4hea
     return total;
 }
 
-qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5header)
+qint64 StateImport::loadCTM5(State* state, QFile& file, struct CTMHeader5* v5header)
 {
     // Must be expanded, or tile system disabled:
     // flags that we don't want: flags & 0b11 = 0b01
-    if ((v5header->flags & 0b00000011) == 0b00000001)
-    {
-        MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("CTM is not expanded"));
+    if ((v5header->flags & 0b00000011) == 0b00000001) {
+        MainWindow::getInstance()->showMessageOnStatusBar(
+            QObject::tr("CTM is not expanded"));
         qDebug() << "CTM is not expanded. Cannot load it";
         return -1;
     }
 
     int num_chars = qFromLittleEndian(v5header->num_chars) + 1;
     int num_tiles = qFromLittleEndian(v5header->num_tiles) + 1;
-    QSize map_size = QSize(qFromLittleEndian(v5header->map_width), qFromLittleEndian(v5header->map_height));
+    QSize map_size = QSize(qFromLittleEndian(v5header->map_width),
+        qFromLittleEndian(v5header->map_height));
     int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
 
     // clean previous memory in case not all the chars are loaded
@@ -174,7 +172,7 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
 
     auto total = file.read((char*)state->_charset, toRead);
 
-    for (int i=0; i<4; i++)
+    for (int i = 0; i < 4; i++)
         state->_setColorForPen(i, v5header->colors[i], -1);
 
     state->_setMulticolorMode(v5header->flags & 0b00000100);
@@ -182,42 +180,36 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
     State::TileProperties tp;
     tp.interleaved = 1;
     // some files reports size == 0. Bug in CTMv5?
-    tp.size.setWidth(qMax((int)v5header->tile_width,1));
-    tp.size.setHeight(qMax((int)v5header->tile_height,1));
+    tp.size.setWidth(qMax((int)v5header->tile_width, 1));
+    tp.size.setHeight(qMax((int)v5header->tile_height, 1));
     state->_setTileProperties(tp);
 
-
     // if color_mode is per_char, convert it to per_tile
-    state->_setForegroundColorMode((State::ForegroundColorMode)!!v5header->color_mode);
+    state->_setForegroundColorMode((State::ForegroundColorMode) !!v5header->color_mode);
     state->_setMapSize(map_size);
 
     // color_mode == PER CHAR ?
-    if (v5header->color_mode == 2)
-    {
+    if (v5header->color_mode == 2) {
         // place char attribs in tile colors
         file.read((char*)state->_tileColors, num_chars);
         // clean the upper nibble
-        for (int i=0; i<num_chars; ++i)
+        for (int i = 0; i < num_chars; ++i)
             state->_tileColors[i] &= 0x0f;
-    }
-    else
-    {
+    } else {
         file.seek(file.pos() + num_chars);
 
         if (v5header->color_mode == 1)
             file.read((char*)state->_tileColors, num_tiles);
         /* else, don't read in global mode */
-
     }
 
     // since it is expanded, there are no tile_data
 
     int mapInBytes = map_size.width() * map_size.height();
-    quint16* tmpBuffer = (quint16*) malloc(mapInBytes * 2);
+    quint16* tmpBuffer = (quint16*)malloc(mapInBytes * 2);
     // read map
     file.read((char*)tmpBuffer, mapInBytes * 2);
-    for (int i=0; i<mapInBytes; i++)
-    {
+    for (int i = 0; i < mapInBytes; i++) {
         // FIXME: what happens with tiles bigger than 255?
         state->_map[i] = tmpBuffer[i] & 0xff;
     }
@@ -226,24 +218,22 @@ qint64 StateImport::loadCTM5(State *state, QFile& file, struct CTMHeader5* v5hea
     return total;
 }
 
-qint64 StateImport::loadCTM(State *state, QFile& file)
+qint64 StateImport::loadCTM(State* state, QFile& file)
 {
     struct CTMHeader5 header;
     auto size = file.size();
-    if ((std::size_t)size<sizeof(header))
-    {
+    if ((std::size_t)size < sizeof(header)) {
         MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("CTM file too small"));
         qDebug() << "Error. File size too small to be CTM (" << size << ").";
         return -1;
     }
 
     size = file.read((char*)&header, sizeof(header));
-    if ((std::size_t)size<sizeof(header))
+    if ((std::size_t)size < sizeof(header))
         return -1;
 
     // check header
-    if (header.id[0] != 'C' || header.id[1] != 'T' || header.id[2] != 'M')
-    {
+    if (header.id[0] != 'C' || header.id[1] != 'T' || header.id[2] != 'M') {
         MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Invalid CTM file"));
         qDebug() << "Not a valid CTM file";
         return -1;
@@ -252,7 +242,8 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
     // check version
     if (header.version == 4) {
         return loadCTM4(state, file, (struct CTMHeader4*)&header);
-    } if (header.version == 5) {
+    }
+    if (header.version == 5) {
         return loadCTM5(state, file, &header);
     }
 
@@ -261,31 +252,28 @@ qint64 StateImport::loadCTM(State *state, QFile& file)
     return -1;
 }
 
-qint64 StateImport::loadVChar64(State *state, QFile& file)
+qint64 StateImport::loadVChar64(State* state, QFile& file)
 {
     struct VChar64Header header;
     auto size = file.size();
-    if ((std::size_t)size<sizeof(header))
-    {
+    if ((std::size_t)size < sizeof(header)) {
         MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Invalid VChar file"));
         qDebug() << "Error. File size too small to be VChar64 (" << size << ").";
         return -1;
     }
 
     size = file.read((char*)&header, sizeof(header));
-    if ((std::size_t)size<sizeof(header))
+    if ((std::size_t)size < sizeof(header))
         return -1;
 
     // check header
-    if (memcmp(header.id, "VChar", 5) != 0)
-    {
+    if (memcmp(header.id, "VChar", 5) != 0) {
         MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("Invalid VChar file"));
         qDebug() << "Not a valid VChar64 file";
         return -1;
     }
 
-    if (header.version > 3)
-    {
+    if (header.version > 3) {
         MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("VChar version not supported"));
         qDebug() << "VChar version not supported";
         return -1;
@@ -301,18 +289,17 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
 
     auto total = file.read((char*)state->_charset, toRead);
 
-    for (int i=0; i<4; i++)
+    for (int i = 0; i < 4; i++)
         state->_setColorForPen(i, header.colors[i], -1);
 
     state->_setMulticolorMode(header.vic_res);
     State::TileProperties properties;
-    properties.size = {header.tile_width, header.tile_height};
+    properties.size = { header.tile_width, header.tile_height };
     properties.interleaved = header.char_interleaved;
     state->_setTileProperties(properties);
 
     // version 2 and 3 only
-    if (header.version == 2 || header.version == 3)
-    {
+    if (header.version == 2 || header.version == 3) {
         int color_mode = header.color_mode;
         state->_setForegroundColorMode((State::ForegroundColorMode)color_mode);
 
@@ -325,8 +312,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
     }
 
     // version 3 only
-    if (header.version == 3)
-    {
+    if (header.version == 3) {
         quint16 charset_addr = qFromLittleEndian(header.address_charset);
         quint16 map_addr = qFromLittleEndian(header.address_map);
         quint16 color_addr = qFromLittleEndian(header.address_attribs);
@@ -342,7 +328,7 @@ qint64 StateImport::loadVChar64(State *state, QFile& file)
 }
 
 qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* outCharsetAddress,
-                                      quint16* outScreenRAMAddress, quint8* outColorRAMBuf, quint8* outVICRegistersBuf)
+    quint16* outScreenRAMAddress, quint8* outColorRAMBuf, quint8* outVICRegistersBuf)
 {
     struct VICESnapshotHeader header;
     struct VICESnapshotVersion version;
@@ -363,8 +349,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
         file.open(QIODevice::ReadOnly);
 
     auto size = file.size();
-    if (size < (qint64)sizeof(VICESnapshotHeader))
-    {
+    if (size < (qint64)sizeof(VICESnapshotHeader)) {
         mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE file too small"));
         return -1;
     }
@@ -375,14 +360,12 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     // parse snapshot header
     //
     size = file.read((char*)&header, sizeof(header));
-    if (size != sizeof(header))
-    {
+    if (size != sizeof(header)) {
         mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE header too small"));
         return -1;
     }
 
-    if (memcmp(header.id, VICE_HEADER_MAGIC, sizeof(header.id)) != 0)
-    {
+    if (memcmp(header.id, VICE_HEADER_MAGIC, sizeof(header.id)) != 0) {
         mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE header Id"));
         return -1;
     }
@@ -397,23 +380,19 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     // header, restore the file pos
     auto currentPos = file.pos();
     size = file.read((char*)&version, sizeof(version));
-    if (size != sizeof(version))
-    {
+    if (size != sizeof(version)) {
         mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE header too small"));
         return -1;
     }
 
-    if (memcmp(version.id, VICE_VERSION_MAGIC, sizeof(version.id)) == 0)
-    {
+    if (memcmp(version.id, VICE_VERSION_MAGIC, sizeof(version.id)) == 0) {
         qDebug() << "VICE version:" << int(version.viceversion[0])
-                << int(version.viceversion[1])
-                << int(version.viceversion[2])
-                << int(version.viceversion[3])
-                << "SVN Rev:"
-                << version.vice_svn_rev;
-    }
-    else
-    {
+                 << int(version.viceversion[1])
+                 << int(version.viceversion[2])
+                 << int(version.viceversion[3])
+                 << "SVN Rev:"
+                 << version.vice_svn_rev;
+    } else {
         // rewind
         file.seek(currentPos);
     }
@@ -426,8 +405,8 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     int c128memoffset = -1;
     int cia2offset = -1;
     int vic2offset = -1;
-    *outCharsetAddress = 0;         // in case we can't find the correct one
-    *outScreenRAMAddress = 0x400;   // in case we can't find the correct one
+    *outCharsetAddress = 0; // in case we can't find the correct one
+    *outScreenRAMAddress = 0x400; // in case we can't find the correct one
 
     while (true) {
         size = file.read((char*)&module, sizeof(module));
@@ -437,23 +416,19 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
         qDebug() << "VICE segment: " << module.moduleName;
 
         /* C64MEM */
-        if (c64memoffset == -1 && memcmp(module.moduleName, VICE_C64MEM, sizeof(VICE_C64MEM)) == 0)
-        {
+        if (c64memoffset == -1 && memcmp(module.moduleName, VICE_C64MEM, sizeof(VICE_C64MEM)) == 0) {
             c64memoffset = file.pos();
         }
         /* C128MEM. Treat C128MEM as a C64MEM */
-        if (c128memoffset == -1 && memcmp(module.moduleName, VICE_C128MEM, sizeof(VICE_C128MEM)) == 0)
-        {
+        if (c128memoffset == -1 && memcmp(module.moduleName, VICE_C128MEM, sizeof(VICE_C128MEM)) == 0) {
             c128memoffset = file.pos();
         }
         /* CIA2 */
-        else if (cia2offset == -1 && memcmp(module.moduleName, VICE_CIA2, sizeof(VICE_CIA2)) == 0)
-        {
+        else if (cia2offset == -1 && memcmp(module.moduleName, VICE_CIA2, sizeof(VICE_CIA2)) == 0) {
             cia2offset = file.pos();
         }
         /* VICII */
-        else if (vic2offset == -1 && memcmp(module.moduleName, VICE_VICII, sizeof(VICE_VICII)) == 0)
-        {
+        else if (vic2offset == -1 && memcmp(module.moduleName, VICE_VICII, sizeof(VICE_VICII)) == 0) {
             vic2offset = file.pos();
         }
 
@@ -462,28 +437,23 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
             break;
     }
 
-    if ((c64memoffset != -1 || c128memoffset != -1) && cia2offset != -1 && vic2offset != -1)
-    {
+    if ((c64memoffset != -1 || c128memoffset != -1) && cia2offset != -1 && vic2offset != -1) {
         // copy 64k memory...
         // ...from c64
-        if (c64memoffset != -1)
-        {
+        if (c64memoffset != -1) {
             file.seek(c64memoffset);
             size = file.read((char*)&c64mem, sizeof(c64mem));
-            if (size != sizeof(c64mem))
-            {
+            if (size != sizeof(c64mem)) {
                 mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE C64MEM segment"));
                 return -1;
             }
             memcpy(buffer64k, c64mem.ram, sizeof(c64mem.ram));
         }
         // ...or from c128
-        else if (c128memoffset != -1)
-        {
+        else if (c128memoffset != -1) {
             file.seek(c128memoffset);
             size = file.read((char*)&c128mem, sizeof(c128mem));
-            if (size != sizeof(c128mem))
-            {
+            if (size != sizeof(c128mem)) {
                 mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE C128MEM segment"));
                 return -1;
             }
@@ -491,38 +461,35 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
             memcpy(buffer64k, c128mem.ram, 65536);
         }
 
-
         // find default charset
         file.seek(cia2offset);
         struct VICESnapshoptCIA2 cia2;
         size = file.read((char*)&cia2, sizeof(cia2));
-        if (size != sizeof(cia2))
-        {
+        if (size != sizeof(cia2)) {
             mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE CIA2 segment"));
             return -1;
         }
-        int bank_addr = (3 - (cia2.ora & 0x03)) * 16384;    // $dd00
+        int bank_addr = (3 - (cia2.ora & 0x03)) * 16384; // $dd00
 
         file.seek(vic2offset);
         struct VICESnapshoptVICII vic2;
         size = file.read((char*)&vic2, sizeof(vic2));
-        if (size != sizeof(vic2))
-        {
+        if (size != sizeof(vic2)) {
             mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE VIC-II segment"));
             return -1;
         }
 
         static const char seuck_signature[] = "PRESS FIRE TO COMMENCE SUPADEATH";
 
-        if (memcmp(seuck_signature, &buffer64k[0x3fdc], sizeof(seuck_signature)-1) == 0) {
+        if (memcmp(seuck_signature, &buffer64k[0x3fdc], sizeof(seuck_signature) - 1) == 0) {
             *outCharsetAddress = 0xf800;
             *outScreenRAMAddress = 0xec00;
         } else {
-            int charset_offset = (vic2.registers[0x18] & 0x0e) >> 1;    // $d018 & 0x7
+            int charset_offset = (vic2.registers[0x18] & 0x0e) >> 1; // $d018 & 0x7
             charset_offset *= 2048;
             *outCharsetAddress = bank_addr + charset_offset;
 
-            int screenRAM_offset = vic2.registers[0x18] >> 4;           // 4-MSB bit of $d018
+            int screenRAM_offset = vic2.registers[0x18] >> 4; // 4-MSB bit of $d018
             screenRAM_offset *= 1024;
             *outScreenRAMAddress = bank_addr + screenRAM_offset;
         }
@@ -532,9 +499,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
 
         // update VIC registers
         memcpy(outVICRegistersBuf, vic2.registers, sizeof(vic2.registers));
-    }
-    else
-    {
+    } else {
         mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE C64MEM/C128MEM segment not found"));
         return -1;
     }

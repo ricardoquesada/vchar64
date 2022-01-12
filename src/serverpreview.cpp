@@ -27,7 +27,7 @@ limitations under the License.
 #include "mainwindow.h"
 #include "serverprotocol.h"
 
-static ServerPreview *__instance = nullptr;
+static ServerPreview* __instance = nullptr;
 
 ServerPreview* ServerPreview::getInstance()
 {
@@ -45,18 +45,18 @@ ServerPreview::ServerPreview()
 {
     // default is 1x1, 1: server must display it by itself
     _prevTileProperties.interleaved = 1;
-    _prevTileProperties.size = {1, 1};
+    _prevTileProperties.size = { 1, 1 };
 }
 
 ServerPreview::~ServerPreview()
-= default;
+    = default;
 
 bool ServerPreview::isConnected()
 {
     return (_socket && _socket->state() == QTcpSocket::ConnectedState);
 }
 
-bool ServerPreview::connect(const QString &ipaddress)
+bool ServerPreview::connect(const QString& ipaddress)
 {
     _socket = new QTcpSocket(this);
 
@@ -68,8 +68,7 @@ bool ServerPreview::connect(const QString &ipaddress)
     _socket->connectToHost(ipaddress, VCHAR64_SERVER_LISTEN_PORT);
 
     // we need to wait...
-    if(!_socket->waitForConnected(3000))
-    {
+    if (!_socket->waitForConnected(3000)) {
         qDebug() << "Error: " << _socket->errorString();
         return false;
     }
@@ -99,30 +98,25 @@ void ServerPreview::onReadyRead()
 #pragma pack(pop)
 
     // read pong or peek
-    while (_socket->bytesAvailable() < (qint64) sizeof(data))
-    {
-        if (!_socket->waitForReadyRead(2000))
-        {
+    while (_socket->bytesAvailable() < (qint64)sizeof(data)) {
+        if (!_socket->waitForReadyRead(2000)) {
             qDebug() << "Error waiting";
             return;
         }
     }
 
     auto r = _socket->read((char*)&data, sizeof(data));
-    if (r<0)
-    {
+    if (r < 0) {
         qDebug() << "Error reading";
         return;
     }
 
-    if (data.header.type == TYPE_PONG && data.payload.something == 0)
-    {
+    if (data.header.type == TYPE_PONG && data.payload.something == 0) {
         _bytesSent = 0;
         _alreadyQueued = false;
         _readOnlyQueue = true;
         auto it = _commands.begin();
-        while (it != _commands.end())
-        {
+        while (it != _commands.end()) {
             auto command = *it;
             sendOrQueueData(command->_data, command->_dataSize);
             it = _commands.erase(it);
@@ -131,13 +125,12 @@ void ServerPreview::onReadyRead()
         _readOnlyQueue = false;
 
         // not supported in Qt 5.3 (needed for Travis)
-//        _commands.append(_tmpCommands);
-        for (const auto& tmpCommand: _tmpCommands)
+        //        _commands.append(_tmpCommands);
+        for (const auto& tmpCommand : _tmpCommands)
             _commands.append(tmpCommand);
 
         _tmpCommands.clear();
-    }
-    else
+    } else
         qDebug() << "Error in ping";
 }
 
@@ -147,7 +140,7 @@ void ServerPreview::onConnected()
 
     updateCharset();
     updateColorProperties();
-    updateTiles();    
+    updateTiles();
 }
 
 void ServerPreview::onDisconnected()
@@ -159,8 +152,8 @@ void ServerPreview::onDisconnected()
 void ServerPreview::updateBackgroundColor()
 {
     auto state = MainWindow::getCurrentState();
-    protoPoke(0xd020, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
-    protoPoke(0xd021, (uchar) state->getColorForPen(State::PEN_BACKGROUND));
+    protoPoke(0xd020, (uchar)state->getColorForPen(State::PEN_BACKGROUND));
+    protoPoke(0xd021, (uchar)state->getColorForPen(State::PEN_BACKGROUND));
 }
 
 void ServerPreview::updateForegroundColorForCharset()
@@ -174,10 +167,10 @@ void ServerPreview::updateForegroundColorForCharset()
     auto tileColors = state->getTileColors();
 
     int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
-    char* data = (char*) malloc(size);
+    char* data = (char*)malloc(size);
 
-    header = (struct vchar64d_proto_header*) data;
-    payload = (struct vchar64d_proto_set_mem*) (data + sizeof(*header));
+    header = (struct vchar64d_proto_header*)data;
+    payload = (struct vchar64d_proto_set_mem*)(data + sizeof(*header));
     quint8* chars = (quint8*)&payload->data;
 
     header->type = TYPE_SET_MEM;
@@ -187,10 +180,8 @@ void ServerPreview::updateForegroundColorForCharset()
     // clean the screen memory since "fill" won't fill everything
     memset(chars, 0x08, CHARS_TO_COPY);
 
-    for (int y=0; y<8; ++y)
-    {
-        for (int x=0; x<32; ++x)
-        {
+    for (int y = 0; y < 8; ++y) {
+        for (int x = 0; x < 32; ++x) {
             chars[y * 40 + x] = tileColors[state->getTileIndexFromCharIndex(y * 32 + x)];
         }
     }
@@ -210,10 +201,10 @@ void ServerPreview::updateForegroundColorForTileset()
     auto currentTileProperties = state->getTileProperties();
 
     int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
-    char* data = (char*) malloc(size);
+    char* data = (char*)malloc(size);
 
-    header = (struct vchar64d_proto_header*) data;
-    payload = (struct vchar64d_proto_set_mem*) (data + sizeof(*header));
+    header = (struct vchar64d_proto_header*)data;
+    payload = (struct vchar64d_proto_set_mem*)(data + sizeof(*header));
     quint8* chars = (quint8*)&payload->data;
 
     header->type = TYPE_SET_MEM;
@@ -227,22 +218,17 @@ void ServerPreview::updateForegroundColorForTileset()
     int tw = currentTileProperties.size.width();
     int th = currentTileProperties.size.height();
 
-    int max_tiles = 256 / (tw*th);
+    int max_tiles = 256 / (tw * th);
 
     // 32 columns
     int columns = (32 / currentTileProperties.size.width()) * currentTileProperties.size.width();
 
-
-    for (int i=0; i<max_tiles;i++)
-    {
-        int index = currentTileProperties.interleaved == 1 ?
-                    i * tw * th :
-                    i;
+    for (int i = 0; i < max_tiles; i++) {
+        int index = currentTileProperties.interleaved == 1 ? i * tw * th : i;
         int w = (i * tw) % columns;
         int h = th * ((i * tw) / columns);
 
-        for (int char_idx=0; char_idx < (tw * th); char_idx++)
-        {
+        for (int char_idx = 0; char_idx < (tw * th); char_idx++) {
             int local_w = w + char_idx % tw;
             int local_h = h + char_idx / tw;
 
@@ -257,17 +243,15 @@ void ServerPreview::updateForegroundColorForTileset()
 
 void ServerPreview::updateForegroundColor()
 {
-    if(!isConnected()) return;
+    if (!isConnected())
+        return;
 
     auto state = MainWindow::getCurrentState();
 
-    if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
-    {
+    if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL) {
         uchar foreground = state->getColorForPen(State::PEN_FOREGROUND, -1);
         protoFill(0xd800, foreground, 40 * 25);
-    }
-    else
-    {
+    } else {
         updateForegroundColorForCharset();
         updateForegroundColorForTileset();
     }
@@ -275,23 +259,26 @@ void ServerPreview::updateForegroundColor()
 
 void ServerPreview::updateMulticolor1()
 {
-    if(!isConnected()) return;
+    if (!isConnected())
+        return;
 
     auto state = MainWindow::getCurrentState();
-    protoPoke(0xd022, (uchar) state->getColorForPen(State::PEN_MULTICOLOR1));
+    protoPoke(0xd022, (uchar)state->getColorForPen(State::PEN_MULTICOLOR1));
 }
 
 void ServerPreview::updateMulticolor2()
 {
-    if(!isConnected()) return;
+    if (!isConnected())
+        return;
 
     auto state = MainWindow::getCurrentState();
-    protoPoke(0xd023, (uchar) state->getColorForPen(State::PEN_MULTICOLOR2));
+    protoPoke(0xd023, (uchar)state->getColorForPen(State::PEN_MULTICOLOR2));
 }
 
 void ServerPreview::updateColorMode()
 {
-    if(!isConnected()) return;
+    if (!isConnected())
+        return;
 
     auto state = MainWindow::getCurrentState();
     protoPoke(0xd016, state->isMulticolorMode() ? 0x18 : 0x08);
@@ -315,17 +302,16 @@ void ServerPreview::updateCharset()
     // send the charset in 2 parts to avoid filling the C64 MTU buffer
     const int segments = 2;
     const int segmentSize = 256 / segments;
-    for (int i=0; i<segments; i++)
-    {
-        protoSetChars(segmentSize*i, &charset[segmentSize*8*i], segmentSize);
+    for (int i = 0; i < segments; i++) {
+        protoSetChars(segmentSize * i, &charset[segmentSize * 8 * i], segmentSize);
     }
 }
 
 void ServerPreview::updateTiles()
 {
     auto currentTileProperties = MainWindow::getCurrentState()->getTileProperties();
-    if (currentTileProperties.interleaved != _prevTileProperties.interleaved || currentTileProperties.size != _prevTileProperties.size)
-    {
+    if (currentTileProperties.interleaved != _prevTileProperties.interleaved
+        || currentTileProperties.size != _prevTileProperties.size) {
         struct vchar64d_proto_header* header;
         struct vchar64d_proto_set_mem* payload;
 
@@ -337,10 +323,10 @@ void ServerPreview::updateTiles()
         static const quint16 SCREEN_MEMORY = 0xa400 + 12 * 40;
 
         int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
-        char* data = (char*) malloc(size);
+        char* data = (char*)malloc(size);
 
-        header = (struct vchar64d_proto_header*) data;
-        payload = (struct vchar64d_proto_set_mem*) (data + sizeof(*header));
+        header = (struct vchar64d_proto_header*)data;
+        payload = (struct vchar64d_proto_set_mem*)(data + sizeof(*header));
         quint8* chars = (quint8*)&payload->data;
 
         header->type = TYPE_SET_MEM;
@@ -354,22 +340,17 @@ void ServerPreview::updateTiles()
         int tw = currentTileProperties.size.width();
         int th = currentTileProperties.size.height();
 
-        int max_tiles = 256 / (tw*th);
+        int max_tiles = 256 / (tw * th);
 
         // 32 columns
         int columns = (32 / currentTileProperties.size.width()) * currentTileProperties.size.width();
 
-
-        for (int i=0; i<max_tiles;i++)
-        {
-            quint8 index = currentTileProperties.interleaved == 1 ?
-                        i * tw * th :
-                        i;
+        for (int i = 0; i < max_tiles; i++) {
+            quint8 index = currentTileProperties.interleaved == 1 ? i * tw * th : i;
             int w = (i * tw) % columns;
             int h = th * ((i * tw) / columns);
 
-            for (int char_idx=0; char_idx < (tw * th); char_idx++)
-            {
+            for (int char_idx = 0; char_idx < (tw * th); char_idx++) {
                 int local_w = w + char_idx % tw;
                 int local_h = h + char_idx / tw;
 
@@ -387,11 +368,11 @@ void ServerPreview::updateTiles()
 
 void ServerPreview::fileLoaded()
 {
-    if(!isConnected()) return;
+    if (!isConnected())
+        return;
 
     // flush queued commands
-    for (auto it=_tmpCommands.begin(); it!=_tmpCommands.end();)
-    {
+    for (auto it = _tmpCommands.begin(); it != _tmpCommands.end();) {
         auto command = *it;
         free(command->_data);
         it = _tmpCommands.erase(it);
@@ -399,10 +380,8 @@ void ServerPreview::fileLoaded()
     }
     _tmpCommands.clear();
 
-
     // flush queued commands
-    for (auto it=_commands.begin(); it!=_commands.end();)
-    {
+    for (auto it = _commands.begin(); it != _commands.end();) {
         auto command = *it;
         free(command->_data);
         it = _commands.erase(it);
@@ -420,21 +399,22 @@ void ServerPreview::fileLoaded()
 
 void ServerPreview::bytesUpdated(int pos, int count)
 {
-    if(!isConnected()) return;
+    if (!isConnected())
+        return;
 
-    if (pos % 8 != 0 || count % 8 != 0)
-    {
+    if (pos % 8 != 0 || count % 8 != 0) {
         qDebug() << "Invalid values for bytesUpdated:" << pos << count;
         return;
     }
     auto state = MainWindow::getCurrentState();
 
-    protoSetChars(pos/8, state->getCharAtIndex(pos/8), count/8);
+    protoSetChars(pos / 8, state->getCharAtIndex(pos / 8), count / 8);
 }
 
 void ServerPreview::tileUpdated(int tileIndex)
 {
-    if(!isConnected()) return;
+    if (!isConnected())
+        return;
     auto state = MainWindow::getCurrentState();
 
     State::TileProperties properties = state->getTileProperties();
@@ -442,11 +422,10 @@ void ServerPreview::tileUpdated(int tileIndex)
     int charIndex = state->getCharIndexFromTileIndex(tileIndex);
     int numChars = properties.size.width() * properties.size.height();
 
-    if(properties.interleaved == 1) {
+    if (properties.interleaved == 1) {
         protoSetChars(charIndex, state->getCharAtIndex(charIndex), numChars);
-    }
-    else {
-        for(int sent=0; sent<numChars; sent++) {
+    } else {
+        for (int sent = 0; sent < numChars; sent++) {
             protoSetChars(charIndex, state->getCharAtIndex(charIndex), 1);
             charIndex += properties.interleaved;
         }
@@ -455,7 +434,8 @@ void ServerPreview::tileUpdated(int tileIndex)
 
 void ServerPreview::colorPropertiesUpdated(int pen)
 {
-    if(!isConnected()) return;
+    if (!isConnected())
+        return;
     updateColorMode();
 
     if (pen == State::PEN_FOREGROUND)
@@ -470,7 +450,8 @@ void ServerPreview::multicolorModeUpdated(bool toggled)
 
 void ServerPreview::tilePropertiesUpdated()
 {
-    if(!isConnected()) return;
+    if (!isConnected())
+        return;
     updateTiles();
     updateForegroundColor();
 }
@@ -479,7 +460,7 @@ void ServerPreview::tilePropertiesUpdated()
 // Proto methods
 //
 
-void  ServerPreview::protoPing(quint8 pingValue)
+void ServerPreview::protoPing(quint8 pingValue)
 {
 #pragma pack(push)
 #pragma pack(1)
@@ -489,47 +470,47 @@ void  ServerPreview::protoPing(quint8 pingValue)
     };
 #pragma pack(pop)
 
-    struct _data* data = (struct _data*) malloc(sizeof(*data));
+    struct _data* data = (struct _data*)malloc(sizeof(*data));
 
     data->header.type = TYPE_PING;
     data->payload.something = pingValue;
     sendData((char*)data, sizeof(*data));
 
-//    _socket->waitForBytesWritten();
-//    while (_socket->bytesAvailable() < (qint64) sizeof(data))
-//    {
-//        if (!_socket->waitForReadyRead(2000))
-//        {
-//            qDebug() << "Error waiting";
-//            return;
-//        }
-//    }
+    //    _socket->waitForBytesWritten();
+    //    while (_socket->bytesAvailable() < (qint64) sizeof(data))
+    //    {
+    //        if (!_socket->waitForReadyRead(2000))
+    //        {
+    //            qDebug() << "Error waiting";
+    //            return;
+    //        }
+    //    }
 
-//    memset(&data, 0, sizeof(data));
-//    auto r = _socket->read((char*)&data, sizeof(data));
-//    if (r<0)
-//    {
-//        qDebug() << "Error reading";
-//        return;
-//    }
+    //    memset(&data, 0, sizeof(data));
+    //    auto r = _socket->read((char*)&data, sizeof(data));
+    //    if (r<0)
+    //    {
+    //        qDebug() << "Error reading";
+    //        return;
+    //    }
 
-//    if (data.header.type == TYPE_PONG && data.payload.something == pingValue)
-//        return;
+    //    if (data.header.type == TYPE_PONG && data.payload.something == pingValue)
+    //        return;
 
-//    qDebug() << "Error in ping";
+    //    qDebug() << "Error in ping";
 }
 
 void ServerPreview::protoPoke(quint16 addr, quint8 value)
 {
 #pragma pack(push)
 #pragma pack(1)
-    struct _data{
+    struct _data {
         struct vchar64d_proto_header header;
         struct vchar64d_proto_poke payload;
     };
 #pragma pack(pop)
 
-    struct _data* data = (struct _data*) malloc(sizeof(*data));
+    struct _data* data = (struct _data*)malloc(sizeof(*data));
 
     data->header.type = TYPE_POKE;
     data->payload.addr = qToLittleEndian(addr);
@@ -543,18 +524,17 @@ void ServerPreview::protoPeek(quint16 addr, const quint8* value)
     Q_UNUSED(value)
 }
 
-
 void ServerPreview::protoFill(quint16 addr, quint8 value, quint16 count)
 {
 #pragma pack(push)
 #pragma pack(1)
-    struct _data{
+    struct _data {
         struct vchar64d_proto_header header;
         struct vchar64d_proto_fill payload;
     };
 #pragma pack(pop)
 
-    struct _data* data = (struct _data*) malloc(sizeof(*data));
+    struct _data* data = (struct _data*)malloc(sizeof(*data));
 
     data->header.type = TYPE_FILL;
     data->payload.addr = qToLittleEndian(addr);
@@ -573,7 +553,7 @@ void ServerPreview::protoSetByte(quint16 addr, quint8 value)
     };
 #pragma pack(pop)
 
-    struct _data* data = (struct _data*) malloc(sizeof(*data));
+    struct _data* data = (struct _data*)malloc(sizeof(*data));
 
     data->header.type = TYPE_SET_BYTE_FOR_CHAR;
     data->payload.idx = qToLittleEndian(addr);
@@ -581,7 +561,7 @@ void ServerPreview::protoSetByte(quint16 addr, quint8 value)
     sendOrQueueData((char*)data, sizeof(*data));
 }
 
-void ServerPreview::protoSetChar(int charIdx, const quint8 *charBuf)
+void ServerPreview::protoSetChar(int charIdx, const quint8* charBuf)
 {
 #pragma pack(push)
 #pragma pack(1)
@@ -591,7 +571,7 @@ void ServerPreview::protoSetChar(int charIdx, const quint8 *charBuf)
     };
 #pragma pack(pop)
 
-    struct _data* data = (struct _data*) malloc(sizeof(*data));
+    struct _data* data = (struct _data*)malloc(sizeof(*data));
 
     data->header.type = TYPE_SET_CHAR;
     data->payload.idx = charIdx;
@@ -606,10 +586,10 @@ void ServerPreview::protoSetChars(int charIdx, const quint8* charBuf, int totalC
     struct vchar64d_proto_set_chars* payload;
 
     int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->charsdata)) + totalChars * 8;
-    char* data = (char*) malloc(size);
+    char* data = (char*)malloc(size);
 
-    header = (struct vchar64d_proto_header*) data;
-    payload = (struct vchar64d_proto_set_chars*) (data + sizeof(*header));
+    header = (struct vchar64d_proto_header*)data;
+    payload = (struct vchar64d_proto_set_chars*)(data + sizeof(*header));
 
     header->type = TYPE_SET_CHARS;
     payload->idx = charIdx;
@@ -621,8 +601,7 @@ void ServerPreview::protoSetChars(int charIdx, const quint8* charBuf, int totalC
 
 void ServerPreview::sendOrQueueData(char* buffer, int bufferSize)
 {
-    if (_alreadyQueued || _bytesSent + bufferSize > VCHAR64_SERVER_BUFFER_SIZE)
-    {
+    if (_alreadyQueued || _bytesSent + bufferSize > VCHAR64_SERVER_BUFFER_SIZE) {
         // won't enter into infinite loop since
         // it will go directly to sendData() and sendData() doesn't sync
         if (!_alreadyQueued)
@@ -632,9 +611,7 @@ void ServerPreview::sendOrQueueData(char* buffer, int bufferSize)
         else
             _commands.append(new ServerCommand(buffer, bufferSize));
         _alreadyQueued = true;
-    }
-    else
-    {
+    } else {
         sendData(buffer, bufferSize);
     }
 }

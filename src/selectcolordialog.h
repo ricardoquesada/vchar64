@@ -9,12 +9,11 @@ class SelectColorDialog;
 
 class ColorRectWidget;
 
-class SelectColorDialog : public QDialog
-{
+class SelectColorDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit SelectColorDialog(QWidget *parent = nullptr);
+    explicit SelectColorDialog(QWidget* parent = nullptr);
     virtual ~SelectColorDialog() Q_DECL_OVERRIDE;
 
     void setCurrentColor(int colorIndex);
@@ -27,7 +26,7 @@ protected:
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
 private:
-    Ui::SelectColorDialog *ui;
+    Ui::SelectColorDialog* ui;
 
     int _selectedColor;
     ColorRectWidget* _widgets[16];

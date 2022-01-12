@@ -18,8 +18,7 @@ limitations under the License.
 
 #include <QString>
 
-class FileUtils
-{
+class FileUtils {
 public:
     static QString getShortNativePath(const QString& filename);
 };

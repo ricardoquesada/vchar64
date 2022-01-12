@@ -23,12 +23,11 @@ namespace Ui {
 class PreferencesDialog;
 }
 
-class PreferencesDialog : public QDialog
-{
+class PreferencesDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit PreferencesDialog(QWidget *parent = nullptr);
+    explicit PreferencesDialog(QWidget* parent = nullptr);
     virtual ~PreferencesDialog() Q_DECL_OVERRIDE;
 
 private slots:
@@ -41,7 +40,7 @@ private slots:
 private:
     void setGridColor(const QColor& color);
 
-    Ui::PreferencesDialog *ui;
+    Ui::PreferencesDialog* ui;
 };
 
 #endif // PREFERENCESDIALOG_H

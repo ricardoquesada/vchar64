@@ -17,18 +17,17 @@ limitations under the License.
 #pragma once
 
 #include <QObject>
-#include <QString>
-#include <QSize>
-#include <QUndoStack>
 #include <QPoint>
+#include <QSize>
+#include <QString>
+#include <QUndoStack>
 
-#include <string>
 #include "stateimport.h"
+#include <string>
 
 class BigCharWidget;
 
-class State : public QObject
-{
+class State : public QObject {
     Q_OBJECT
 
     friend class StateImport;
@@ -77,10 +76,10 @@ public:
     const static int MAX_TILE_HEIGHT = 8;
 
     enum Pen {
-        PEN_BACKGROUND,     /* $d021 */
-        PEN_MULTICOLOR1,    /* $d022 */
-        PEN_MULTICOLOR2,    /* $d023 */
-        PEN_FOREGROUND,     /* color RAM: $d800-... */
+        PEN_BACKGROUND, /* $d021 */
+        PEN_MULTICOLOR1, /* $d022 */
+        PEN_MULTICOLOR2, /* $d023 */
+        PEN_FOREGROUND, /* color RAM: $d800-... */
 
         PEN_MAX
     };
@@ -119,16 +118,16 @@ public:
     };
 
     struct ExportProperties {
-        quint16 addresses[3];   // 0: CHARSET, 1:MAP, 2:COLORS
-        quint8 format;          // EXPORT_FORMAT
-        quint8 features;        // EXPORT_FEATURE
+        quint16 addresses[3]; // 0: CHARSET, 1:MAP, 2:COLORS
+        quint8 format; // EXPORT_FORMAT
+        quint8 features; // EXPORT_FEATURE
     };
 
     /**
      * @brief The CopyRange struct
      */
     struct CopyRange {
-        enum BufferType{
+        enum BufferType {
             CHARS,
             TILES,
             MAP
@@ -158,7 +157,7 @@ public:
      * @param map map to use or nullPtr
      * @param mapSize map size
      */
-    State(const QString& filename, quint8* charset, quint8* tileColors, quint8* map, const QSize &mapSize);
+    State(const QString& filename, quint8* charset, quint8* tileColors, quint8* map, const QSize& mapSize);
     /* delegating constructors */
     State(const QString& filename);
     State();
@@ -192,10 +191,10 @@ public:
      */
     bool openFile(const QString& filename);
     bool saveProject(const QString& filename);
-    bool exportRaw(const QString& filename, const ExportProperties &properties);
-    bool exportPRG(const QString& filename, const ExportProperties &properties);
-    bool exportAsm(const QString& filename, const ExportProperties &properties);
-    bool exportC(const QString& filename, const ExportProperties &properties);
+    bool exportRaw(const QString& filename, const ExportProperties& properties);
+    bool exportPRG(const QString& filename, const ExportProperties& properties);
+    bool exportAsm(const QString& filename, const ExportProperties& properties);
+    bool exportC(const QString& filename, const ExportProperties& properties);
     // export is a defined keyword, so we use export_ instead
     bool export_();
 
@@ -283,15 +282,18 @@ public:
      */
     bool shouldBeDisplayedInMulticolor2(int tileIdx) const;
 
-    QString getLoadedFilename() const {
+    QString getLoadedFilename() const
+    {
         return _loadedFilename;
     }
 
-    QString getSavedFilename() const {
+    QString getSavedFilename() const
+    {
         return _savedFilename;
     }
 
-    QString getExportedFilename() const {
+    QString getExportedFilename() const
+    {
         return _exportedFilename;
     }
 
@@ -317,7 +319,6 @@ public:
      * @return the ExportProperties being used
      */
     ExportProperties getExportProperties() const;
-
 
     /**
      * @brief seMapSize changes the map size
@@ -378,7 +379,6 @@ public:
      */
     QUndoStack* getUndoStack() const;
 
-
     /**
      * @brief clearUndoStack clears the UndoStack
      */
@@ -411,7 +411,7 @@ public:
      * @param copyRange range to paste
      * @param origBuffer buffer that contains the data to paste
      */
-    void paste(int offset, const CopyRange &copyRange, const quint8* origBuffer);
+    void paste(int offset, const CopyRange& copyRange, const quint8* origBuffer);
 
     /**
      * @brief cut cut the selected region. Region is filled with "zeroes"
@@ -422,7 +422,7 @@ public:
     //
     // tile manipulation
     //
-    void tilePaint(int tileIndex, const QPoint& point, int pen, bool mergeable=false);
+    void tilePaint(int tileIndex, const QPoint& point, int pen, bool mergeable = false);
     void tileInvert(int tileIndex);
     void tileClear(int tileIndex);
     void tileFlipHorizontally(int tileIndex);
@@ -456,7 +456,6 @@ public:
      * @return the current char Index
      */
     int getCharIndex() const;
-
 
 signals:
     // file loaded, or new project
@@ -517,8 +516,7 @@ public slots:
      */
     void setTileIndex(int tileIndex);
 
-
-protected:    
+protected:
     Char getCharFromTile(int tileIndex, int x, int y) const;
     void setCharForTile(int tileIndex, int x, int y, const Char& chr);
 
@@ -549,14 +547,13 @@ protected:
     void _setForegroundColorMode(ForegroundColorMode mode);
     void _setColorForPen(int pen, int color, int tileIdx);
     void _setTileProperties(const TileProperties& properties);
-    void _setExportProperties(const ExportProperties &properties);
+    void _setExportProperties(const ExportProperties& properties);
 
     void _setMapSize(const QSize& mapSize);
     void _setMap(const quint8* buffer, const QSize& mapSize);
     void _mapClear(int tileIdx);
     void _mapPaint(const QPoint& coord, int tileIdx);
     void _mapFill(const QPoint& coord, int tileIdx);
-
 
     int _totalChars;
 
@@ -598,6 +595,5 @@ protected:
 
     QUndoStack* _undoStack;
 
-    BigCharWidget* _bigCharWidget;          // weak ref to parent
+    BigCharWidget* _bigCharWidget; // weak ref to parent
 };
-

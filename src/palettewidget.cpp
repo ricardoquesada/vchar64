@@ -25,7 +25,6 @@ limitations under the License.
 
 #include "mainwindow.h"
 #include "palette.h"
-#include "palette.h"
 #include "state.h"
 
 static const int PIXEL_SIZE_X = 24;
@@ -33,7 +32,7 @@ static const int PIXEL_SIZE_Y = 16;
 static const int COLUMNS = 8;
 static const int ROWS = 2;
 
-PaletteWidget::PaletteWidget(QWidget *parent)
+PaletteWidget::PaletteWidget(QWidget* parent)
     : QWidget(parent)
     , _pixelSize(PIXEL_SIZE_X, PIXEL_SIZE_Y)
     , _sizeHint(_pixelSize.width() * COLUMNS, _pixelSize.height() * ROWS)
@@ -42,7 +41,7 @@ PaletteWidget::PaletteWidget(QWidget *parent)
     setMouseTracking(true);
 }
 
-void PaletteWidget::mousePressEvent(QMouseEvent * event)
+void PaletteWidget::mousePressEvent(QMouseEvent* event)
 {
     event->accept();
 
@@ -51,14 +50,13 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
     int x = static_cast<int>(pos.x() / _pixelSize.width());
     int y = static_cast<int>(pos.y() / _pixelSize.height());
 
-    x = qBound(0, x, COLUMNS-1);
-    y = qBound(0, y, ROWS-1);
+    x = qBound(0, x, COLUMNS - 1);
+    y = qBound(0, y, ROWS - 1);
 
     int color = 8 * y + x;
 
     auto state = MainWindow::getCurrentState();
-    if (state)
-    {
+    if (state) {
         int tileIndex = state->getTileIndex();
         int pen = state->getSelectedPen();
         int oldColor = state->getColorForPen(pen, tileIndex);
@@ -70,19 +68,18 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
     }
 }
 
-void PaletteWidget::mouseMoveEvent(QMouseEvent * event)
+void PaletteWidget::mouseMoveEvent(QMouseEvent* event)
 {
     event->accept();
 
-    if (event->buttons() == Qt::NoButton)
-    {
+    if (event->buttons() == Qt::NoButton) {
         auto pos = event->position();
 
         int x = static_cast<int>(pos.x() / _pixelSize.width());
         int y = static_cast<int>(pos.y() / _pixelSize.height());
 
-        x = qBound(0, x, COLUMNS-1);
-        y = qBound(0, y, ROWS-1);
+        x = qBound(0, x, COLUMNS - 1);
+        y = qBound(0, y, ROWS - 1);
 
         int color = 8 * y + x;
 
@@ -90,8 +87,7 @@ void PaletteWidget::mouseMoveEvent(QMouseEvent * event)
     }
 }
 
-
-void PaletteWidget::paintEvent(QPaintEvent *event)
+void PaletteWidget::paintEvent(QPaintEvent* event)
 {
     QPainter painter;
     painter.begin(this);
@@ -102,8 +98,7 @@ void PaletteWidget::paintEvent(QPaintEvent *event)
     int currentColor = 0;
     int selectedPen = State::PEN_BACKGROUND;
     auto state = MainWindow::getCurrentState();
-    if (state)
-    {
+    if (state) {
         selectedPen = state->getSelectedPen();
         currentColor = state->getColorForPen(selectedPen, state->getTileIndex());
     }
@@ -113,11 +108,11 @@ void PaletteWidget::paintEvent(QPaintEvent *event)
     pen.setWidth(3);
     pen.setStyle(Qt::PenStyle::DotLine);
 
-    for (int y=0; y<2; y++) {
-        for (int x=0; x<8; x++) {
+    for (int y = 0; y < 2; y++) {
+        for (int x = 0; x < 8; x++) {
             int c = 8 * y + x;
 
-            if (c==currentColor) {
+            if (c == currentColor) {
                 painter.setPen(pen);
             } else {
                 painter.setPen(Qt::PenStyle::NoPen);
@@ -128,9 +123,9 @@ void PaletteWidget::paintEvent(QPaintEvent *event)
             painter.setBrush(Palette::getColor(c));
 
             painter.drawRect(x * _pixelSize.width(),
-                             y * _pixelSize.height(),
-                             _pixelSize.width() - 1,
-                             _pixelSize.height() - 1);
+                y * _pixelSize.height(),
+                _pixelSize.width() - 1,
+                _pixelSize.height() - 1);
         }
     }
 
@@ -148,5 +143,5 @@ void PaletteWidget::resizeEvent(QResizeEvent* event)
 
     auto pixel_size_x = size().width() / COLUMNS;
     auto pixel_size_y = size().height() / ROWS;
-    _pixelSize = {pixel_size_x, pixel_size_y};
+    _pixelSize = { pixel_size_x, pixel_size_y };
 }

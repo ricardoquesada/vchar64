@@ -22,12 +22,11 @@ namespace Ui {
 class ConnectDialog;
 }
 
-class ServerConnectDialog : public QDialog
-{
+class ServerConnectDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ServerConnectDialog(QWidget *parent = nullptr);
+    explicit ServerConnectDialog(QWidget* parent = nullptr);
     virtual ~ServerConnectDialog() Q_DECL_OVERRIDE;
 
     QString getIPAddress() const;
@@ -35,5 +34,5 @@ public:
 private slots:
 
 private:
-    Ui::ConnectDialog *ui;
+    Ui::ConnectDialog* ui;
 };

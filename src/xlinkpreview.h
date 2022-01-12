@@ -16,8 +16,8 @@ limitations under the License.
 
 #pragma once
 
-#include <QObject>
 #include <QLibrary>
+#include <QObject>
 
 #include "state.h"
 
@@ -27,8 +27,7 @@ typedef bool (*xlink_peek_t)(uchar, uchar, ushort, uchar*);
 typedef bool (*xlink_poke_t)(uchar, uchar, ushort, uchar);
 typedef bool (*xlink_fill_t)(uchar, uchar, ushort, uchar, uint);
 
-class XlinkPreview : public QObject
-{
+class XlinkPreview : public QObject {
     Q_OBJECT
 
     bool _available;
@@ -40,7 +39,7 @@ class XlinkPreview : public QObject
     void updateMulticolor2();
     void updateColorMode();
     void updateCharset();
-    bool updateScreen(const QString &filename);
+    bool updateScreen(const QString& filename);
     void updateColorProperties();
     void install();
 
@@ -74,7 +73,7 @@ public slots:
 protected:
     XlinkPreview();
 
-    QLibrary *_xlink;
+    QLibrary* _xlink;
     xlink_ping_t xlink_ping;
     xlink_load_t xlink_load;
     xlink_peek_t xlink_peek;

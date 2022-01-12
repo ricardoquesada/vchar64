@@ -22,13 +22,13 @@ limitations under the License.
 
 #include "preferences.h"
 
-ServerConnectDialog::ServerConnectDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ConnectDialog)
+ServerConnectDialog::ServerConnectDialog(QWidget* parent)
+    : QDialog(parent)
+    , ui(new Ui::ConnectDialog)
 {
     ui->setupUi(this);
 
-    auto regexp = QRegularExpression ("^[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]$");
+    auto regexp = QRegularExpression("^[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]$");
     auto validator = new QRegularExpressionValidator(regexp, this);
     ui->lineEdit->setValidator(validator);
 
@@ -46,4 +46,3 @@ ServerConnectDialog::~ServerConnectDialog()
     Preferences::getInstance().setServerIPAddress(ui->lineEdit->text());
     delete ui;
 }
-

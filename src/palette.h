@@ -16,13 +16,12 @@ limitations under the License.
 
 #pragma once
 
-#include <QCoreApplication>
 #include <QColor>
+#include <QCoreApplication>
 
 class State;
 
-class Palette
-{
+class Palette {
     Q_DECLARE_TR_FUNCTIONS(Palette)
 
 public:
@@ -37,7 +36,7 @@ public:
     };
 
     static const QColor& getColor(int colorIndex);
-    static const QColor& getColorForPen(State *state, int pen);
+    static const QColor& getColorForPen(State* state, int pen);
     static void setActivePalette(int paletteIndex);
     static int getActivePalette();
 

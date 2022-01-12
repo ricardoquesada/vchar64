@@ -16,19 +16,18 @@ limitations under the License.
 
 #pragma once
 
-#include <unordered_map>
 #include <QDialog>
+#include <unordered_map>
 
 namespace Ui {
 class ImportKoalaDialog;
 }
 
-class ImportKoalaDialog : public QDialog
-{
+class ImportKoalaDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ImportKoalaDialog(QWidget *parent = nullptr);
+    explicit ImportKoalaDialog(QWidget* parent = nullptr);
     virtual ~ImportKoalaDialog() Q_DECL_OVERRIDE;
 
     const QString& getFilepath() const;
@@ -37,16 +36,16 @@ protected:
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
     void validateKoalaFile(const QString& filepath);
-    bool processChardef(const std::string& key, quint8 *outKey, quint8* outColorRAM);
+    bool processChardef(const std::string& key, quint8* outKey, quint8* outColorRAM);
 
-    int findColorRAM(const std::vector<std::pair<int,int>>& usedColors, int *outHiColor);
+    int findColorRAM(const std::vector<std::pair<int, int>>& usedColors, int* outHiColor);
 
     void normalizeKey(char* key, int hiColorRAM);
     void normalizeWithColorStrategy(char* key, int hiColorRAM);
     void normalizeWithNeighborStrategy(char* key, int hiColorRAM);
     bool tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM);
-    int getColorByLuminanceProximity(int colorIndex, const std::vector<int> &colorsToFind);
-    int getColorByPaletteProximity(int colorIndex, const std::vector<int> &colorsToFind);
+    int getColorByLuminanceProximity(int colorIndex, const std::vector<int>& colorsToFind);
+    int getColorByPaletteProximity(int colorIndex, const std::vector<int>& colorsToFind);
 
     bool convert();
     void updateWidgets();
@@ -73,9 +72,8 @@ private slots:
     void onSelectedRegionUpdated(const QRect& region);
 
 private:
-
     int _colorRAM;
-    Ui::ImportKoalaDialog *ui;
+    Ui::ImportKoalaDialog* ui;
     bool _validKoalaFile;
     bool _koaLoaded;
     QString _filepath;
@@ -84,5 +82,5 @@ private:
     // is that _uniqueCells is about "bitmaps" unique cells.
     // and where is about the converted chars, which is usually less
     // since it could have more duplicates
-    std::unordered_map<std::string, std::vector<std::pair<int,int>>> _uniqueChars;
+    std::unordered_map<std::string, std::vector<std::pair<int, int>>> _uniqueChars;
 };

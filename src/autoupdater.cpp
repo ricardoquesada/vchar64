@@ -23,23 +23,24 @@ limitations under the License.
 #include "preferences.h"
 #include "updatedialog.h"
 
-AutoUpdater& AutoUpdater::getInstance()
+AutoUpdater&
+AutoUpdater::getInstance()
 {
     static AutoUpdater instance;
     return instance;
 }
 
 AutoUpdater::AutoUpdater()
-    :_reply(nullptr)
-    ,_httpRequestAborted(false)
-    ,_inProgress(false)
+    : _reply(nullptr)
+    , _httpRequestAborted(false)
+    , _inProgress(false)
 {
-    _url = QUrl::fromUserInput("http://ricardoquesada.github.io/vchar64/LATEST_VERSION.txt");
+    _url = QUrl::fromUserInput(
+        "http://ricardoquesada.github.io/vchar64/LATEST_VERSION.txt");
     Q_ASSERT(_url.isValid() && "Invalid URL");
 }
 
-AutoUpdater::~AutoUpdater()
-= default;
+AutoUpdater::~AutoUpdater() = default;
 
 void AutoUpdater::checkUpdate()
 {
@@ -52,7 +53,7 @@ void AutoUpdater::checkUpdate()
     startRequest(_url);
 }
 
-void AutoUpdater::startRequest(const QUrl &requestedUrl)
+void AutoUpdater::startRequest(const QUrl& requestedUrl)
 {
     _qnam.clearAccessCache();
     _reply = _qnam.get(QNetworkRequest(requestedUrl));
@@ -104,13 +105,13 @@ void AutoUpdater::httpFinished()
     bool appendChanges = false;
 
     auto list = _data.split("\n", Qt::SkipEmptyParts);
-    for(const auto& str: list) {
+    for (const auto& str : list) {
         // not a comment?
         if (!str.startsWith("#")) {
             if (str.startsWith("stable_version:")) {
-                newVersion = str.mid(sizeof("stable_version:")-1).trimmed();
+                newVersion = str.mid(sizeof("stable_version:") - 1).trimmed();
             } else if (str.startsWith("stable_url:")) {
-                url = str.mid(sizeof("stable_url:")-1).trimmed();
+                url = str.mid(sizeof("stable_url:") - 1).trimmed();
             } else if (str.startsWith("changes:")) {
                 appendChanges = true;
             } else if (appendChanges) {

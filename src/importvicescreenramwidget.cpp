@@ -23,7 +23,6 @@ limitations under the License.
 #include "mainwindow.h"
 #include "palette.h"
 #include "state.h"
-#include "state.h"
 #include "utils.h"
 
 static const int PIXEL_SIZE = 1;
@@ -31,19 +30,19 @@ static const int COLUMNS = 40;
 static const int ROWS = 25;
 static const int OFFSET = 0;
 
-ImportVICEScreenRAMWidget::ImportVICEScreenRAMWidget(QWidget *parent)
+ImportVICEScreenRAMWidget::ImportVICEScreenRAMWidget(QWidget* parent)
     : QWidget(parent)
     , _parentDialog(nullptr)
     , _displayGrid(false)
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
-                 PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
+        PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 }
 
 //
 // Overriden
 //
-void ImportVICEScreenRAMWidget::paintEvent(QPaintEvent *event)
+void ImportVICEScreenRAMWidget::paintEvent(QPaintEvent* event)
 {
     QPainter painter;
 
@@ -55,36 +54,35 @@ void ImportVICEScreenRAMWidget::paintEvent(QPaintEvent *event)
 
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
-    painter.setBrush(QColor(0,0,0));
+    painter.setBrush(QColor(0, 0, 0));
     painter.setPen(Qt::NoPen);
 
-    State *state = _parentDialog->_tmpState;
-    for (int y=0; y<ROWS; y++)
-    {
-        for (int x=0; x<COLUMNS; ++x)
-        {
-            auto tileIdx = state->getTileIndexFromMap(QPoint(x,y));
+    State* state = _parentDialog->_tmpState;
+    for (int y = 0; y < ROWS; y++) {
+        for (int x = 0; x < COLUMNS; ++x) {
+            auto tileIdx = state->getTileIndexFromMap(QPoint(x, y));
             QRectF target(x * 8, y * 8, 8, 8);
-            painter.drawImage(target, * _parentDialog->_tileImages[tileIdx], _parentDialog->_tileImages[tileIdx]->rect());
+            painter.drawImage(
+                target,
+                *_parentDialog->_tileImages[tileIdx],
+                _parentDialog->_tileImages[tileIdx]->rect());
         }
     }
 
-    if (_displayGrid)
-    {
+    if (_displayGrid) {
         auto pen = painter.pen();
-        pen.setColor(QColor(0,128,0));
+        pen.setColor(QColor(0, 128, 0));
         pen.setStyle(Qt::DashLine);
         pen.setWidthF(1.0 / PIXEL_SIZE);
         painter.setPen(pen);
 
-
-        for (int y=0; y <= ROWS; ++y)
+        for (int y = 0; y <= ROWS; ++y)
             painter.drawLine(QPointF(0 + OFFSET, y * 8 + OFFSET),
-                             QPointF(COLUMNS * 8 + OFFSET, y * 8 + OFFSET));
+                QPointF(COLUMNS * 8 + OFFSET, y * 8 + OFFSET));
 
-        for (int x=0; x <= COLUMNS; ++x)
+        for (int x = 0; x <= COLUMNS; ++x)
             painter.drawLine(QPointF(x * 8 + OFFSET, OFFSET),
-                             QPointF(x * 8 + OFFSET, ROWS * 8 + OFFSET));
+                QPointF(x * 8 + OFFSET, ROWS * 8 + OFFSET));
     }
 
     painter.end();
@@ -92,10 +90,8 @@ void ImportVICEScreenRAMWidget::paintEvent(QPaintEvent *event)
 
 void ImportVICEScreenRAMWidget::setDisplayGrid(bool enabled)
 {
-    if (enabled != _displayGrid)
-    {
+    if (enabled != _displayGrid) {
         _displayGrid = enabled;
         update();
     }
 }
-

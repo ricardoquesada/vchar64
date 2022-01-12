@@ -18,19 +18,19 @@ limitations under the License.
 
 #include <unordered_map>
 
-#include <QWidget>
 #include <QRect>
+#include <QWidget>
 
 #include "state.h"
 
-class ImportKoalaBitmapWidget : public QWidget
-{
+class ImportKoalaBitmapWidget : public QWidget {
     Q_OBJECT
 
     friend class ImportKoalaDialog;
+
 public:
-    ImportKoalaBitmapWidget(QWidget *parent=nullptr);
-    void loadKoala(const QString &koalaFilepath);
+    ImportKoalaBitmapWidget(QWidget* parent = nullptr);
+    void loadKoala(const QString& koalaFilepath);
     void enableGrid(bool enabled);
     void parseKoala();
 
@@ -38,9 +38,9 @@ signals:
     void selectedRegionUpdated(const QRect& rect);
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
     void resetColors();
     void resetOffset();
@@ -54,9 +54,8 @@ protected:
 
 #pragma pack(push)
 #pragma pack(1)
-    struct koala
-    {
-        quint8 addr[2];    // load address. ignore
+    struct koala {
+        quint8 addr[2]; // load address. ignore
         quint8 bitmap[40 * 25 * 8];
         quint8 screenRAM[40 * 25];
         quint8 colorRAM[40 * 25];
@@ -73,10 +72,10 @@ protected:
 
     // key: color sequence
     // data: positions in screen ram
-    std::unordered_map<std::string, std::vector<std::pair<int,int>>> _uniqueCells;
+    std::unordered_map<std::string, std::vector<std::pair<int, int>>> _uniqueCells;
 
     // first: count, second: color index
-    std::vector<std::pair<int,int>> _colorsUsed;
+    std::vector<std::pair<int, int>> _colorsUsed;
 
     // colors to be used for d021, d022 and d023
     quint8 _d02xColors[3];
@@ -88,4 +87,3 @@ protected:
     QSize _selectingSize;
     QPoint _cursorPos;
 };
-

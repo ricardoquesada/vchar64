@@ -16,20 +16,18 @@ limitations under the License.
 
 #pragma once
 
+#include <QDateTime>
+#include <QNetworkAccessManager>
 #include <QObject>
 #include <QUrl>
-#include <QNetworkAccessManager>
-#include <QDateTime>
 
-class AutoUpdater: public QObject
-{
+class AutoUpdater : public QObject {
     Q_OBJECT
 public:
-
     static AutoUpdater& getInstance();
 
-    AutoUpdater(AutoUpdater const&)     = delete;
-    void operator=(AutoUpdater const&)  = delete;
+    AutoUpdater(AutoUpdater const&) = delete;
+    void operator=(AutoUpdater const&) = delete;
 
     void checkUpdate();
     void cancelDownload();
@@ -46,11 +44,11 @@ private:
     AutoUpdater();
     virtual ~AutoUpdater() Q_DECL_OVERRIDE;
 
-    void startRequest(const QUrl &requestedUrl);
+    void startRequest(const QUrl& requestedUrl);
 
     QUrl _url;
     QNetworkAccessManager _qnam;
-    QNetworkReply *_reply;
+    QNetworkReply* _reply;
     bool _httpRequestAborted;
     bool _inProgress;
 

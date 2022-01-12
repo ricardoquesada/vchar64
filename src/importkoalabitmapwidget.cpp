@@ -33,73 +33,69 @@ static const int COLUMNS = 40;
 static const int ROWS = 25;
 static const int OFFSET = 0;
 
-ImportKoalaBitmapWidget::ImportKoalaBitmapWidget(QWidget *parent)
+ImportKoalaBitmapWidget::ImportKoalaBitmapWidget(QWidget* parent)
     : QWidget(parent)
     , _displayGrid(false)
     , _selecting(false)
-    , _selectingSize({0,0})
-    , _cursorPos({0,0})
+    , _selectingSize({ 0, 0 })
+    , _cursorPos({ 0, 0 })
 {
     memset(_framebuffer, 0, sizeof(_framebuffer));
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
-                 PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
+        PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 }
 
 //
 // Overriden
 //
-void ImportKoalaBitmapWidget::paintEvent(QPaintEvent *event)
+void ImportKoalaBitmapWidget::paintEvent(QPaintEvent* event)
 {
     QPainter painter;
 
     painter.begin(this);
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
-    painter.setBrush(QColor(0,0,0));
+    painter.setBrush(QColor(0, 0, 0));
     painter.setPen(Qt::NoPen);
 
-    for (int y=0; y<200; y++)
-    {
-        for (int x=0; x<160; ++x)
-        {
+    for (int y = 0; y < 200; y++) {
+        for (int x = 0; x < 160; ++x) {
             painter.setBrush(Palette::getColor(_framebuffer[y * 160 + x]));
-            painter.drawRect((x*2) * PIXEL_SIZE + OFFSET,
-                             y * PIXEL_SIZE + OFFSET,
-                             PIXEL_SIZE * 2,
-                             PIXEL_SIZE);
+            painter.drawRect((x * 2) * PIXEL_SIZE + OFFSET,
+                y * PIXEL_SIZE + OFFSET,
+                PIXEL_SIZE * 2,
+                PIXEL_SIZE);
         }
     }
 
-    if (_displayGrid)
-    {
+    if (_displayGrid) {
         auto pen = painter.pen();
-        pen.setColor(QColor(0,128,0));
+        pen.setColor(QColor(0, 128, 0));
         pen.setStyle(Qt::DotLine);
         painter.setPen(pen);
 
-        for (int y=0; y<=200; y=y+8)
-            painter.drawLine(QPointF(0,y), QPointF(320,y));
+        for (int y = 0; y <= 200; y = y + 8)
+            painter.drawLine(QPointF(0, y), QPointF(320, y));
 
-        for (int x=0; x<=320; x=x+8)
-            painter.drawLine(QPointF(x,0), QPointF(x,200));
+        for (int x = 0; x <= 320; x = x + 8)
+            painter.drawLine(QPointF(x, 0), QPointF(x, 200));
     }
 
-    if (_selecting)
-    {
+    if (_selecting) {
         auto pen = painter.pen();
-        pen.setColor({149,195,244,255});
+        pen.setColor({ 149, 195, 244, 255 });
         painter.setPen(pen);
-        painter.setBrush(QColor(149,195,244,64));
+        painter.setBrush(QColor(149, 195, 244, 64));
         painter.drawRect(_cursorPos.x() * 8 * PIXEL_SIZE + OFFSET,
-                         _cursorPos.y() * 8 * PIXEL_SIZE + OFFSET,
-                         _selectingSize.width() * 8 * PIXEL_SIZE,
-                         _selectingSize.height() * 8 * PIXEL_SIZE);
+            _cursorPos.y() * 8 * PIXEL_SIZE + OFFSET,
+            _selectingSize.width() * 8 * PIXEL_SIZE,
+            _selectingSize.height() * 8 * PIXEL_SIZE);
     }
 
     painter.end();
 }
 
-void ImportKoalaBitmapWidget::mousePressEvent(QMouseEvent * event)
+void ImportKoalaBitmapWidget::mousePressEvent(QMouseEvent* event)
 {
     event->accept();
 
@@ -112,10 +108,8 @@ void ImportKoalaBitmapWidget::mousePressEvent(QMouseEvent * event)
     x = qBound(0, x, COLUMNS - 1);
     y = qBound(0, y, ROWS - 1);
 
-    if (event->button() == Qt::LeftButton)
-    {
-        if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier)
-        {
+    if (event->button() == Qt::LeftButton) {
+        if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier) {
             // Click + Shift == select mode
             _selecting = true;
 
@@ -124,24 +118,21 @@ void ImportKoalaBitmapWidget::mousePressEvent(QMouseEvent * event)
             if (y >= _cursorPos.y())
                 y++;
 
-            _selectingSize = {x - _cursorPos.x(),
-                              y - _cursorPos.y()};
+            _selectingSize = { x - _cursorPos.x(),
+                y - _cursorPos.y() };
 
             // sanity check
             _selectingSize = {
                 qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS - _cursorPos.x()),
                 qBound(-_cursorPos.y(), _selectingSize.height(), ROWS - _cursorPos.y())
             };
-        }
-        else
-        {
+        } else {
             // click without shift == select single char and clear select mode
-            if (_selecting)
-            {
+            if (_selecting) {
                 _selecting = false;
-                _selectingSize = {1,1};
+                _selectingSize = { 1, 1 };
             }
-            _cursorPos = {x,y};
+            _cursorPos = { x, y };
         }
 
         emit selectedRegionUpdated(getSelectedRegion());
@@ -150,12 +141,11 @@ void ImportKoalaBitmapWidget::mousePressEvent(QMouseEvent * event)
     }
 }
 
-void ImportKoalaBitmapWidget::mouseMoveEvent(QMouseEvent * event)
+void ImportKoalaBitmapWidget::mouseMoveEvent(QMouseEvent* event)
 {
     event->accept();
 
-    if (event->buttons() == Qt::LeftButton)
-    {
+    if (event->buttons() == Qt::LeftButton) {
         auto pos = event->position();
         int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
         int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
@@ -165,13 +155,13 @@ void ImportKoalaBitmapWidget::mouseMoveEvent(QMouseEvent * event)
         if (y >= _cursorPos.y())
             y++;
 
-        _selectingSize = {x - _cursorPos.x(),
-                          y - _cursorPos.y()};
+        _selectingSize = { x - _cursorPos.x(),
+            y - _cursorPos.y() };
 
         // sanity check
         _selectingSize = {
-            qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS-_cursorPos.x()),
-            qBound(-_cursorPos.y(), _selectingSize.height(), ROWS-_cursorPos.y())
+            qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS - _cursorPos.x()),
+            qBound(-_cursorPos.y(), _selectingSize.height(), ROWS - _cursorPos.y())
         };
 
         _selecting = true;
@@ -206,8 +196,7 @@ void ImportKoalaBitmapWidget::parseKoala()
 
 void ImportKoalaBitmapWidget::enableGrid(bool enabled)
 {
-    if (_displayGrid != enabled)
-    {
+    if (_displayGrid != enabled) {
         _displayGrid = enabled;
         update();
     }
@@ -215,27 +204,20 @@ void ImportKoalaBitmapWidget::enableGrid(bool enabled)
 
 QRect ImportKoalaBitmapWidget::getSelectedRegion() const
 {
-    QRect region = {0, 0, COLUMNS, ROWS};
-    if (_selecting)
-    {
-        if (_selectingSize.width() < 0)
-        {
+    QRect region = { 0, 0, COLUMNS, ROWS };
+    if (_selecting) {
+        if (_selectingSize.width() < 0) {
             region.setX(_cursorPos.x() + _selectingSize.width());
             region.setWidth(-_selectingSize.width());
-        }
-        else
-        {
+        } else {
             region.setX(_cursorPos.x());
             region.setWidth(_selectingSize.width());
         }
 
-        if (_selectingSize.height() < 0)
-        {
+        if (_selectingSize.height() < 0) {
             region.setY(_cursorPos.y() + _selectingSize.height());
             region.setHeight(-_selectingSize.height());
-        }
-        else
-        {
+        } else {
             region.setY(_cursorPos.y());
             region.setHeight(_selectingSize.height());
         }
@@ -250,11 +232,11 @@ void ImportKoalaBitmapWidget::resetColors()
 {
     // reset state
     _colorsUsed.clear();
-    for (int i=0; i<16; i++)
-        _colorsUsed.emplace_back(0,i);
+    for (int i = 0; i < 16; i++)
+        _colorsUsed.emplace_back(0, i);
     _uniqueCells.clear();
 
-    for (unsigned char & _d02xColor : _d02xColors)
+    for (unsigned char& _d02xColor : _d02xColors)
         _d02xColor = -1;
 }
 
@@ -264,36 +246,29 @@ void ImportKoalaBitmapWidget::findUniqueCells()
 
     auto region = getSelectedRegion();
 
-    for (int y=region.y(); y < region.y() + region.height(); ++y)
-    {
-        for (int x=region.x(); x < region.x() + region.width(); ++x)
-        {
+    for (int y = region.y(); y < region.y() + region.height(); ++y) {
+        for (int x = region.x(); x < region.x() + region.width(); ++x) {
             // 8 * 4
             char key[33];
             key[32] = 0;
 
-            for (int i=0; i<8; ++i)
-            {
-                for (int j=0; j<4; ++j)
-                {
+            for (int i = 0; i < 8; ++i) {
+                for (int j = 0; j < 4; ++j) {
                     quint8 colorIndex = _framebuffer[(y * 8 + i) * 160 + (x * 4 + j)];
-                    Q_ASSERT(colorIndex<16 && "Invalid color");
-                    key[i*4+j] = hex[colorIndex];
+                    Q_ASSERT(colorIndex < 16 && "Invalid color");
+                    key[i * 4 + j] = hex[colorIndex];
                     _colorsUsed[colorIndex].first++;
                 }
             }
             std::string skey(key);
-            Q_ASSERT(skey.size() == 8*4 && "Invalid Key");
+            Q_ASSERT(skey.size() == 8 * 4 && "Invalid Key");
 
-            if (_uniqueCells.find(skey) == _uniqueCells.end())
-            {
-                std::vector<std::pair<int,int>> v;
-                v.emplace_back(x,y);
+            if (_uniqueCells.find(skey) == _uniqueCells.end()) {
+                std::vector<std::pair<int, int>> v;
+                v.emplace_back(x, y);
                 _uniqueCells[skey] = v;
-            }
-            else
-            {
-                _uniqueCells[skey].push_back(std::make_pair(x,y));
+            } else {
+                _uniqueCells[skey].push_back(std::make_pair(x, y));
             }
         }
     }
@@ -306,27 +281,22 @@ void ImportKoalaBitmapWidget::findUniqueCells()
 void ImportKoalaBitmapWidget::toFrameBuffer()
 {
     // 25 rows
-    for (int y=0; y<ROWS; ++y)
-    {
+    for (int y = 0; y < ROWS; ++y) {
         // 40 cols
-        for (int x=0; x<COLUMNS; ++x)
-        {
+        for (int x = 0; x < COLUMNS; ++x) {
             // 8 pixels Y
-            for (int i=0; i<8; ++i)
-            {
+            for (int i = 0; i < 8; ++i) {
                 quint8 byte = _koala.bitmap[(y * COLUMNS + x) * 8 + i];
 
-                static const quint8 masks[] = {192, 48, 12, 3};
+                static const quint8 masks[] = { 192, 48, 12, 3 };
                 // 4 wide-pixels X
-                for (int j=0; j<4; ++j)
-                {
+                for (int j = 0; j < 4; ++j) {
                     quint8 colorIndex = 0;
                     // get the two bits that reprent the color
                     quint8 color = byte & masks[j];
-                    color >>= 6-j*2;
+                    color >>= 6 - j * 2;
 
-                    switch (color)
-                    {
+                    switch (color) {
                     // bitmask 00: background ($d021)
                     case 0x0:
                         colorIndex = _koala.backgroundColor & 0x0f;
@@ -351,7 +321,7 @@ void ImportKoalaBitmapWidget::toFrameBuffer()
                         break;
                     }
 
-                    Q_ASSERT(colorIndex<16 && "Invalid colorIndex");
+                    Q_ASSERT(colorIndex < 16 && "Invalid colorIndex");
 
                     _framebuffer[(y * 8 + i) * 160 + (x * 4 + j)] = colorIndex;
                 }
@@ -369,18 +339,16 @@ void ImportKoalaBitmapWidget::reportResults()
     int validUniqueCells = 0;
     int invalidUniqueCells = 0;
 
-    for (auto& _uniqueCell : _uniqueCells)
-    {
+    for (auto& _uniqueCell : _uniqueCells) {
         bool keyIsValid = true;
         auto key = _uniqueCell.first;
         // key is 4 * 32 bytes long. Each element of
         // the key, is a pixel
-        for (char i : key)
-        {
+        for (char i : key) {
             // convert Hex to int
             char c = i - '0';
             if (c > 9)
-                c -= 7;         // 'A' - '9'
+                c -= 7; // 'A' - '9'
 
             int color = c;
 
@@ -390,21 +358,17 @@ void ImportKoalaBitmapWidget::reportResults()
             if (std::find(std::begin(_d02xColors), std::end(_d02xColors), color) != std::end(_d02xColors))
                 continue;
 
-            if (c<8)
-            {
+            if (c < 8) {
                 keyIsValid = false;
                 break;
             }
         }
 
-        if (keyIsValid)
-        {
+        if (keyIsValid) {
             // it->second is the vector<pair<int,int>>
             validCells += (int)_uniqueCell.second.size();
             validUniqueCells++;
-        }
-        else
-        {
+        } else {
             // it->second is the vector<pair<int,int>>
             invalidCells += (int)_uniqueCell.second.size();
             invalidUniqueCells++;
@@ -416,8 +380,8 @@ void ImportKoalaBitmapWidget::reportResults()
     qDebug() << "$d021,22,23=" << _d02xColors[0] << _d02xColors[1] << _d02xColors[2];
 
     auto deb = qDebug();
-    for (int i=0; i<16; i++)
-         deb << "Color:" << _colorsUsed[i].second << "=" << _colorsUsed[i].first << "\n";
+    for (int i = 0; i < 16; i++)
+        deb << "Color:" << _colorsUsed[i].second << "=" << _colorsUsed[i].first << "\n";
 }
 
 void ImportKoalaBitmapWidget::strategyD02xAbove8()
@@ -429,8 +393,7 @@ void ImportKoalaBitmapWidget::strategyD02xAbove8()
     // values < 8 are reserved screen color
 
     int found = 0;
-    for (auto& color: _colorsUsed)
-    {
+    for (auto& color : _colorsUsed) {
         if (color.second >= 8 && color.first > 0) {
             _d02xColors[found++] = color.second;
             if (found == 3)
@@ -440,10 +403,8 @@ void ImportKoalaBitmapWidget::strategyD02xAbove8()
 
     // make sure that 3 colors where selected.
     // if not complete the list with most used colors where color < 8
-    for (int j=0,i=0; i<3-found; ++i, ++j)
-    {
-        if (_colorsUsed[j].second < 8 && _colorsUsed[j].first > 0)
-        {
+    for (int j = 0, i = 0; i < 3 - found; ++i, ++j) {
+        if (_colorsUsed[j].second < 8 && _colorsUsed[j].first > 0) {
             _d02xColors[found++] = _colorsUsed[j].second;
         }
     }
@@ -452,7 +413,6 @@ void ImportKoalaBitmapWidget::strategyD02xAbove8()
 void ImportKoalaBitmapWidget::strategyD02xAny()
 {
     // three most used colors are the ones to be used for d021, d022 and d023
-    for (int i=0; i<3; ++i)
+    for (int i = 0; i < 3; ++i)
         _d02xColors[i] = _colorsUsed[i].second;
 }
-

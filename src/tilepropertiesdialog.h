@@ -24,12 +24,11 @@ class TilePropertiesDialog;
 
 class State;
 
-class TilePropertiesDialog : public QDialog
-{
+class TilePropertiesDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit TilePropertiesDialog(State *state, QWidget *parent = nullptr);
+    explicit TilePropertiesDialog(State* state, QWidget* parent = nullptr);
     ~TilePropertiesDialog() Q_DECL_OVERRIDE;
 
 private slots:
@@ -40,7 +39,6 @@ private slots:
     void on_spinBoxSizeY_editingFinished();
 
 private:
-    Ui::TilePropertiesDialog *ui;
-    State* _state;  // weak ref
+    Ui::TilePropertiesDialog* ui;
+    State* _state; // weak ref
 };
-

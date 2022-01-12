@@ -3,7 +3,7 @@
 
 #include "state.h"
 
-MapPropertiesDialog::MapPropertiesDialog(State *state, QWidget *parent)
+MapPropertiesDialog::MapPropertiesDialog(State* state, QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::MapPropertiesDialog)
     , _state(state)
@@ -24,5 +24,5 @@ void MapPropertiesDialog::on_buttonBox_accepted()
 {
     int w = ui->spinBox_width->value();
     int h = ui->spinBox_height->value();
-    _state->setMapSize(QSize(w,h));
+    _state->setMapSize(QSize(w, h));
 }

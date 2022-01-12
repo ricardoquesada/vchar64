@@ -16,9 +16,9 @@ limitations under the License.
 
 #pragma once
 
-#include <QUndoCommand>
-#include <QPoint>
 #include <QList>
+#include <QPoint>
+#include <QUndoCommand>
 
 #include "state.h"
 
@@ -29,14 +29,13 @@ enum UndoCommands {
 };
 
 //
-class PaintTileCommand : public QUndoCommand
-{
+class PaintTileCommand : public QUndoCommand {
 public:
-    PaintTileCommand(State *state, int tileIndex, const QPoint& position, int pen, bool mergeable, QUndoCommand *parent = nullptr);
+    PaintTileCommand(State* state, int tileIndex, const QPoint& position, int pen, bool mergeable, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
     int id() const Q_DECL_OVERRIDE { return Cmd_PaintTile; }
-    bool mergeWith(const QUndoCommand *other) Q_DECL_OVERRIDE;
+    bool mergeWith(const QUndoCommand* other) Q_DECL_OVERRIDE;
 
 private:
     State* _state;
@@ -60,10 +59,9 @@ private:
 //    quint8 _buffer[State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8];
 //};
 
-class PasteCommand : public QUndoCommand
-{
+class PasteCommand : public QUndoCommand {
 public:
-    PasteCommand(State *state, int charIndex, const State::CopyRange &copyRange, const quint8* buffer, QUndoCommand *parent = nullptr);
+    PasteCommand(State* state, int charIndex, const State::CopyRange& copyRange, const quint8* buffer, QUndoCommand* parent = nullptr);
     virtual ~PasteCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
@@ -77,10 +75,9 @@ private:
     State::CopyRange _copyRange;
 };
 
-class CutCommand : public QUndoCommand
-{
+class CutCommand : public QUndoCommand {
 public:
-    CutCommand(State *state, const State::CopyRange &copyRange, QUndoCommand *parent = nullptr);
+    CutCommand(State* state, const State::CopyRange& copyRange, QUndoCommand* parent = nullptr);
     virtual ~CutCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
@@ -94,10 +91,9 @@ private:
     State::CopyRange _copyRange;
 };
 
-class FlipTileHCommand : public QUndoCommand
-{
+class FlipTileHCommand : public QUndoCommand {
 public:
-    FlipTileHCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+    FlipTileHCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -106,10 +102,9 @@ private:
     int _tileIndex;
 };
 
-class FlipTileVCommand : public QUndoCommand
-{
+class FlipTileVCommand : public QUndoCommand {
 public:
-    FlipTileVCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+    FlipTileVCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -118,10 +113,9 @@ private:
     int _tileIndex;
 };
 
-class ShiftLeftTileCommand : public QUndoCommand
-{
+class ShiftLeftTileCommand : public QUndoCommand {
 public:
-    ShiftLeftTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+    ShiftLeftTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -130,11 +124,9 @@ private:
     int _tileIndex;
 };
 
-
-class ShiftRightTileCommand : public QUndoCommand
-{
+class ShiftRightTileCommand : public QUndoCommand {
 public:
-    ShiftRightTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+    ShiftRightTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -143,10 +135,9 @@ private:
     int _tileIndex;
 };
 
-class ShiftUpTileCommand : public QUndoCommand
-{
+class ShiftUpTileCommand : public QUndoCommand {
 public:
-    ShiftUpTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+    ShiftUpTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -155,10 +146,9 @@ private:
     int _tileIndex;
 };
 
-class ShiftDownTileCommand : public QUndoCommand
-{
+class ShiftDownTileCommand : public QUndoCommand {
 public:
-    ShiftDownTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+    ShiftDownTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -167,10 +157,9 @@ private:
     int _tileIndex;
 };
 
-class RotateTileCommand : public QUndoCommand
-{
+class RotateTileCommand : public QUndoCommand {
 public:
-    RotateTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+    RotateTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -179,10 +168,9 @@ private:
     int _tileIndex;
 };
 
-class InvertTileCommand : public QUndoCommand
-{
+class InvertTileCommand : public QUndoCommand {
 public:
-    InvertTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+    InvertTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -191,10 +179,9 @@ private:
     int _tileIndex;
 };
 
-class ClearTileCommand : public QUndoCommand
-{
+class ClearTileCommand : public QUndoCommand {
 public:
-    ClearTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+    ClearTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -204,11 +191,9 @@ private:
     quint8 _buffer[State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8];
 };
 
-
-class SetTilePropertiesCommand : public QUndoCommand
-{
+class SetTilePropertiesCommand : public QUndoCommand {
 public:
-    SetTilePropertiesCommand(State *state, const State::TileProperties& properties, QUndoCommand *parent = nullptr);
+    SetTilePropertiesCommand(State* state, const State::TileProperties& properties, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -218,10 +203,9 @@ private:
     State::TileProperties _old;
 };
 
-class SetExportPropertiesCommand : public QUndoCommand
-{
+class SetExportPropertiesCommand : public QUndoCommand {
 public:
-    SetExportPropertiesCommand(State *state, const State::ExportProperties& properties, QUndoCommand *parent = nullptr);
+    SetExportPropertiesCommand(State* state, const State::ExportProperties& properties, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -231,12 +215,10 @@ private:
     State::ExportProperties _old;
 };
 
-
 //
-class SetMulticolorModeCommand : public QUndoCommand
-{
+class SetMulticolorModeCommand : public QUndoCommand {
 public:
-    SetMulticolorModeCommand(State *state, bool multicolorEnabled, QUndoCommand *parent = nullptr);
+    SetMulticolorModeCommand(State* state, bool multicolorEnabled, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -247,10 +229,9 @@ private:
 };
 
 // SetColorCommand
-class SetColorCommand : public QUndoCommand
-{
+class SetColorCommand : public QUndoCommand {
 public:
-    SetColorCommand(State *state, int color, int pen, int tileIdx, QUndoCommand *parent = nullptr);
+    SetColorCommand(State* state, int color, int pen, int tileIdx, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -263,10 +244,9 @@ private:
 };
 
 // SetForegroundColorMode
-class SetForegroundColorMode : public QUndoCommand
-{
+class SetForegroundColorMode : public QUndoCommand {
 public:
-    SetForegroundColorMode(State *state, State::ForegroundColorMode mode, QUndoCommand *parent = nullptr);
+    SetForegroundColorMode(State* state, State::ForegroundColorMode mode, QUndoCommand* parent = nullptr);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -276,10 +256,9 @@ private:
     State::ForegroundColorMode _oldMode;
 };
 
-class SetMapSizeCommand : public QUndoCommand
-{
+class SetMapSizeCommand : public QUndoCommand {
 public:
-    SetMapSizeCommand(State *state, const QSize& mapSize, QUndoCommand *parent = nullptr);
+    SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCommand* parent = nullptr);
     virtual ~SetMapSizeCommand() Q_DECL_OVERRIDE;
 
     void undo() Q_DECL_OVERRIDE;
@@ -293,10 +272,9 @@ private:
 };
 
 // FillMapCommand
-class FillMapCommand : public QUndoCommand
-{
+class FillMapCommand : public QUndoCommand {
 public:
-    FillMapCommand(State *state, const QPoint& coord, int tileIdx, QUndoCommand *parent = nullptr);
+    FillMapCommand(State* state, const QPoint& coord, int tileIdx, QUndoCommand* parent = nullptr);
     virtual ~FillMapCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
@@ -310,10 +288,9 @@ private:
 };
 
 // PaintMapCommand
-class PaintMapCommand : public QUndoCommand
-{
+class PaintMapCommand : public QUndoCommand {
 public:
-    PaintMapCommand(State *state, const QPoint& position, int tileIdx, bool mergeable, QUndoCommand *parent = nullptr);
+    PaintMapCommand(State* state, const QPoint& position, int tileIdx, bool mergeable, QUndoCommand* parent = nullptr);
     virtual ~PaintMapCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
@@ -330,10 +307,9 @@ private:
 };
 
 // ClearMapCommand
-class ClearMapCommand : public QUndoCommand
-{
+class ClearMapCommand : public QUndoCommand {
 public:
-    ClearMapCommand(State *state, int tileIdx, QUndoCommand *parent = nullptr);
+    ClearMapCommand(State* state, int tileIdx, QUndoCommand* parent = nullptr);
     virtual ~ClearMapCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
@@ -343,5 +319,4 @@ private:
     int _tileIdx;
     quint8* _oldMap;
     QSize _mapSize;
-
 };

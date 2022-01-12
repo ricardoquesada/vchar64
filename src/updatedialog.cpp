@@ -20,9 +20,9 @@ limitations under the License.
 #include <QDebug>
 #include <QDesktopServices>
 
-UpdateDialog::UpdateDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::UpdateDialog)
+UpdateDialog::UpdateDialog(QWidget* parent)
+    : QDialog(parent)
+    , ui(new Ui::UpdateDialog)
 {
     ui->setupUi(this);
 
@@ -34,17 +34,17 @@ UpdateDialog::~UpdateDialog()
     delete ui;
 }
 
-void UpdateDialog::setNewVersion(const QString &newVersion)
+void UpdateDialog::setNewVersion(const QString& newVersion)
 {
     ui->labelNewVersion->setText(tr("New version: %1").arg(newVersion));
 }
 
-void UpdateDialog::setChanges(const QString &changes)
+void UpdateDialog::setChanges(const QString& changes)
 {
     ui->textBrowserChanges->setHtml(changes);
 }
 
-void UpdateDialog::setUpdateURL(const QString &url)
+void UpdateDialog::setUpdateURL(const QString& url)
 {
     _url = QUrl::fromUserInput(url);
     if (!_url.isValid()) {

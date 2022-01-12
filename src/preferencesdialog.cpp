@@ -22,10 +22,9 @@ limitations under the License.
 #include "autoupdater.h"
 #include "preferences.h"
 
-
-PreferencesDialog::PreferencesDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::PreferencesDialog)
+PreferencesDialog::PreferencesDialog(QWidget* parent)
+    : QDialog(parent)
+    , ui(new Ui::PreferencesDialog)
 {
     ui->setupUi(this);
 
@@ -49,10 +48,10 @@ PreferencesDialog::~PreferencesDialog()
 }
 
 // from here: http://stackoverflow.com/a/15081186
-void PreferencesDialog::setGridColor(const QColor &color)
+void PreferencesDialog::setGridColor(const QColor& color)
 {
     QSize iconSize = ui->toolButtonSelectColor->iconSize();
-    QPixmap px(iconSize-QSize(2,2));
+    QPixmap px(iconSize - QSize(2, 2));
     px.fill(color);
     ui->toolButtonSelectColor->setIcon(px);
 

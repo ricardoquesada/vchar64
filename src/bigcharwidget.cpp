@@ -29,14 +29,14 @@ limitations under the License.
 #include "ui_mainwindow.h"
 #include "utils.h"
 
-BigCharWidget::BigCharWidget(State* state, QWidget *parent)
+BigCharWidget::BigCharWidget(State* state, QWidget* parent)
     : QWidget(parent)
     , _tileIndex(0)
     , _charIndex(0)
-    , _cursorPos({0,0})
-    , _tileProperties({{1,1},1})
+    , _cursorPos({ 0, 0 })
+    , _tileProperties({ { 1, 1 }, 1 })
     , _state(state)
-    , _pixelSize({32,32})
+    , _pixelSize({ 32, 32 })
     , _commandMergeable(false)
 {
     Q_ASSERT(state && "Invalid State");
@@ -71,11 +71,10 @@ State* BigCharWidget::getState() const
 
 void BigCharWidget::paintPixel(int x, int y, int pen)
 {
-    if (_state->tileGetPen(_tileIndex, QPoint(x,y)) != pen)
-    {
+    if (_state->tileGetPen(_tileIndex, QPoint(x, y)) != pen) {
         if (!_state->shouldBeDisplayedInMulticolor2(_tileIndex) && pen)
             pen = 1;
-        _state->tilePaint(_tileIndex, QPoint(x,y), pen, _commandMergeable);
+        _state->tilePaint(_tileIndex, QPoint(x, y), pen, _commandMergeable);
     }
 
     // redraw cursor
@@ -86,13 +85,13 @@ void BigCharWidget::cyclePixel(int x, int y)
 {
     int pen = _state->tileGetPen(_tileIndex, QPoint(x, y));
 
-    const int nextPenMC[] = {State::PEN_FOREGROUND,
-                       State::PEN_MULTICOLOR2,
-                       State::PEN_BACKGROUND,
-                       State::PEN_MULTICOLOR1};
+    const int nextPenMC[] = { State::PEN_FOREGROUND,
+        State::PEN_MULTICOLOR2,
+        State::PEN_BACKGROUND,
+        State::PEN_MULTICOLOR1 };
 
-    const int nextPenHR[] = {State::PEN_FOREGROUND,
-                       State::PEN_BACKGROUND};
+    const int nextPenHR[] = { State::PEN_FOREGROUND,
+        State::PEN_BACKGROUND };
 
     if (_state->shouldBeDisplayedInMulticolor2(_tileIndex))
         pen = nextPenMC[pen];
@@ -102,7 +101,7 @@ void BigCharWidget::cyclePixel(int x, int y)
     paintPixel(x, y, pen);
 }
 
-void BigCharWidget::mousePressEvent(QMouseEvent * event)
+void BigCharWidget::mousePressEvent(QMouseEvent* event)
 {
     event->accept();
 
@@ -113,19 +112,19 @@ void BigCharWidget::mousePressEvent(QMouseEvent * event)
     if (x >= 8 * _tileProperties.size.width() || y >= 8 * _tileProperties.size.height())
         return;
 
-    _cursorPos = {x,y};
+    _cursorPos = { x, y };
 
     int selectedPen = _state->getSelectedPen();
 
     if (event->button() == Qt::LeftButton)
         paintPixel(x, y, selectedPen);
-    else if(event->button() == Qt::RightButton)
+    else if (event->button() == Qt::RightButton)
         paintPixel(x, y, State::PEN_BACKGROUND);
 
     _commandMergeable = true;
 }
 
-void BigCharWidget::mouseMoveEvent(QMouseEvent * event)
+void BigCharWidget::mouseMoveEvent(QMouseEvent* event)
 {
     event->accept();
 
@@ -135,28 +134,25 @@ void BigCharWidget::mouseMoveEvent(QMouseEvent * event)
     int y = int(pos.y()) / _pixelSize.height();
 
     x = qBound(0, x, 8 * _tileProperties.size.width() - 1);
-    y = qBound(0, y, 8 * _tileProperties.size.height() -1 );
+    y = qBound(0, y, 8 * _tileProperties.size.height() - 1);
 
-    if (event->buttons() == Qt::NoButton)
-    {
+    if (event->buttons() == Qt::NoButton) {
         MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
-    }
-    else
-    {
-        _cursorPos = {x,y};
+    } else {
+        _cursorPos = { x, y };
         int pen = _state->getSelectedPen();
 
         auto&& button = event->buttons();
         if (button == Qt::LeftButton)
             paintPixel(x, y, pen);
-        else if(button == Qt::RightButton)
+        else if (button == Qt::RightButton)
             paintPixel(x, y, State::PEN_BACKGROUND);
 
         _commandMergeable = true;
     }
 }
 
-void BigCharWidget::mouseReleaseEvent(QMouseEvent * event)
+void BigCharWidget::mouseReleaseEvent(QMouseEvent* event)
 {
     event->accept();
 
@@ -165,27 +161,27 @@ void BigCharWidget::mouseReleaseEvent(QMouseEvent * event)
     _commandMergeable = false;
 }
 
-void BigCharWidget::keyPressEvent(QKeyEvent *event)
+void BigCharWidget::keyPressEvent(QKeyEvent* event)
 {
     event->accept();
 
     bool updated = false;
     bool ismc = _state->shouldBeDisplayedInMulticolor2(_tileIndex);
     auto oldCursorPos = _cursorPos;
-    int increment_x =  ismc ? 2 : 1;
+    int increment_x = ismc ? 2 : 1;
 
     switch (event->key()) {
     case Qt::Key_Left:
-        _cursorPos += {-increment_x, 0};
+        _cursorPos += { -increment_x, 0 };
         break;
     case Qt::Key_Right:
-        _cursorPos += {+increment_x, 0};
+        _cursorPos += { +increment_x, 0 };
         break;
     case Qt::Key_Down:
-        _cursorPos += {0, +1};
+        _cursorPos += { 0, +1 };
         break;
     case Qt::Key_Up:
-        _cursorPos += {0, -1};
+        _cursorPos += { 0, -1 };
         break;
     case Qt::Key_1:
         paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_BACKGROUND);
@@ -215,8 +211,8 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
         QWidget::keyPressEvent(event);
     }
 
-    _cursorPos = {qBound(0, _cursorPos.x(), 8 * _tileProperties.size.width() - increment_x),
-                  qBound(0, _cursorPos.y(), 8 * _tileProperties.size.height() - 1)};
+    _cursorPos = { qBound(0, _cursorPos.x(), 8 * _tileProperties.size.width() - increment_x),
+        qBound(0, _cursorPos.y(), 8 * _tileProperties.size.height() - 1) };
 
     // redraw cursor
     if (oldCursorPos != _cursorPos)
@@ -226,13 +222,12 @@ void BigCharWidget::keyPressEvent(QKeyEvent *event)
         update();
 
         MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2")
-                                                          .arg(_cursorPos.x())
-                                                          .arg(_cursorPos.y()));
+                                                              .arg(_cursorPos.x())
+                                                              .arg(_cursorPos.y()));
     }
 }
 
-
-void BigCharWidget::paintEvent(QPaintEvent *event)
+void BigCharWidget::paintEvent(QPaintEvent* event)
 {
     QPainter painter;
     painter.begin(this);
@@ -248,10 +243,10 @@ void BigCharWidget::paintEvent(QPaintEvent *event)
 
     int charIndex = _charIndex;
 
-    for (int y=0; y<_tileProperties.size.height(); y++) {
-        for (int x=0; x<_tileProperties.size.width(); x++) {
+    for (int y = 0; y < _tileProperties.size.height(); y++) {
+        for (int x = 0; x < _tileProperties.size.width(); x++) {
 
-            utilsDrawCharInPainter(_state, &painter, _pixelSize, QPoint(0,0), QPoint(x,y), charIndex);
+            utilsDrawCharInPainter(_state, &painter, _pixelSize, QPoint(0, 0), QPoint(x, y), charIndex);
             charIndex += _tileProperties.interleaved;
         }
     }
@@ -265,20 +260,20 @@ void BigCharWidget::paintEvent(QPaintEvent *event)
 
 void BigCharWidget::paintCursor(QPainter& painter)
 {
-    painter.setBrush(QColor(0,0,255,24));
+    painter.setBrush(QColor(0, 0, 255, 24));
     QPen pen;
-    pen.setColor({149,195,244,255});
+    pen.setColor({ 149, 195, 244, 255 });
     pen.setStyle(Qt::PenStyle::SolidLine);
 
     if (hasFocus())
         pen.setWidth(3);
-    else pen.setWidth(1);
+    else
+        pen.setWidth(1);
     painter.setPen(pen);
 
     int bit_width = 1;
     int x = _cursorPos.x();
-    if (_state->shouldBeDisplayedInMulticolor2(_tileIndex))
-    {
+    if (_state->shouldBeDisplayedInMulticolor2(_tileIndex)) {
         bit_width = 2;
 
         // this is needed because cursorPos.x might be pointing
@@ -287,40 +282,35 @@ void BigCharWidget::paintCursor(QPainter& painter)
     }
 
     painter.drawRect(x * _pixelSize.width(),
-                     _cursorPos.y() * _pixelSize.height(),
-                     _pixelSize.width() * bit_width,
-                     _pixelSize.height()
-                );
+        _cursorPos.y() * _pixelSize.height(),
+        _pixelSize.width() * bit_width,
+        _pixelSize.height());
 }
 
-void BigCharWidget::paintSeparators(QPainter &painter)
+void BigCharWidget::paintSeparators(QPainter& painter)
 {
     QPen pen;
-    pen.setColor({128,128,128,196});
+    pen.setColor({ 128, 128, 128, 196 });
     pen.setWidth(2);
     pen.setStyle(Qt::PenStyle::SolidLine);
 
     painter.setPen(pen);
 
-    for (int x=1; x<=_tileProperties.size.width()-1; x++)
-    {
-        painter.drawLine(x*_pixelSize.width()*8, 0,
-                         x*_pixelSize.width()*8, _pixelSize.height()*_tileProperties.size.height()*8);
+    for (int x = 1; x <= _tileProperties.size.width() - 1; x++) {
+        painter.drawLine(x * _pixelSize.width() * 8, 0,
+            x * _pixelSize.width() * 8, _pixelSize.height() * _tileProperties.size.height() * 8);
     }
-    for (int y=1; y<=_tileProperties.size.height()-1; y++)
-    {
-        painter.drawLine(0, y*_pixelSize.height()*8,
-                        _pixelSize.width()*_tileProperties.size.width()*8, y*_pixelSize.height()*8);
+    for (int y = 1; y <= _tileProperties.size.height() - 1; y++) {
+        painter.drawLine(0, y * _pixelSize.height() * 8,
+            _pixelSize.width() * _tileProperties.size.width() * 8, y * _pixelSize.height() * 8);
     }
-
 }
 
-void BigCharWidget::paintFocus(QPainter &painter)
+void BigCharWidget::paintFocus(QPainter& painter)
 {
-    if (hasFocus())
-    {
+    if (hasFocus()) {
         QPen pen;
-        pen.setColor({149,195,244,255});
+        pen.setColor({ 149, 195, 244, 255 });
         pen.setWidth(3);
         pen.setStyle(Qt::PenStyle::SolidLine);
 
@@ -328,15 +318,15 @@ void BigCharWidget::paintFocus(QPainter &painter)
 
         // vertical lines
         painter.drawLine(0, 0,
-                         0, _tileProperties.size.height() * _pixelSize.height() * 8);
+            0, _tileProperties.size.height() * _pixelSize.height() * 8);
         painter.drawLine(_tileProperties.size.width() * _pixelSize.width() * 8, 0,
-                         _tileProperties.size.width() * _pixelSize.width() * 8, _tileProperties.size.height() * _pixelSize.height() * 8);
+            _tileProperties.size.width() * _pixelSize.width() * 8, _tileProperties.size.height() * _pixelSize.height() * 8);
 
         // horizontal lines
         painter.drawLine(0, 0,
-                         _tileProperties.size.width() * _pixelSize.width() * 8, 0);
+            _tileProperties.size.width() * _pixelSize.width() * 8, 0);
         painter.drawLine(0, _tileProperties.size.height() * _pixelSize.height() * 8,
-                         _tileProperties.size.width() * _pixelSize.width() * 8, _tileProperties.size.height() * _pixelSize.height() * 8);
+            _tileProperties.size.width() * _pixelSize.width() * 8, _tileProperties.size.height() * _pixelSize.height() * 8);
     }
 }
 
@@ -345,9 +335,9 @@ bool BigCharWidget::maybeSave()
     if (_state->isModified()) {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning(this, tr("Application"),
-                     tr("The are unsaved changes.\n"
-                        "Do you want to save your changes?"),
-                     QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+            tr("The are unsaved changes.\n"
+               "Do you want to save your changes?"),
+            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         if (ret == QMessageBox::Save)
             return MainWindow::getInstance()->on_actionSave_triggered();
         if (ret == QMessageBox::Cancel)
@@ -381,11 +371,11 @@ void BigCharWidget::onTilePropertiesUpdated()
     // keep aspect ratio
     int maxTileSize = qMax(_tileProperties.size.width(), _tileProperties.size.height());
     int minWidgetSize = qMin(size().width(), size().height());
-    _pixelSize.setWidth(minWidgetSize / (8*maxTileSize));
-    _pixelSize.setHeight(minWidgetSize / (8*maxTileSize));
+    _pixelSize.setWidth(minWidgetSize / (8 * maxTileSize));
+    _pixelSize.setHeight(minWidgetSize / (8 * maxTileSize));
 
-//    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
-//    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
+    //    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
+    //    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
 
     update();
 }
@@ -422,14 +412,14 @@ void BigCharWidget::resizeEvent(QResizeEvent* event)
     // keep aspect ratio
     int maxTileSize = qMax(_tileProperties.size.width(), _tileProperties.size.height());
     int minWidgetSize = qMin(size().width(), size().height());
-    _pixelSize.setWidth(minWidgetSize / (8*maxTileSize));
-    _pixelSize.setHeight(minWidgetSize / (8*maxTileSize));
+    _pixelSize.setWidth(minWidgetSize / (8 * maxTileSize));
+    _pixelSize.setHeight(minWidgetSize / (8 * maxTileSize));
 
-//    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
-//    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
+    //    _pixelSize.setWidth(size().width() / (8*_tileProperties.size.width()));
+    //    _pixelSize.setHeight(size().height() / (8*_tileProperties.size.height()));
 }
 
-void BigCharWidget::closeEvent(QCloseEvent *event)
+void BigCharWidget::closeEvent(QCloseEvent* event)
 {
     if (maybeSave()) {
         event->accept();

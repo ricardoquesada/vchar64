@@ -27,10 +27,10 @@ limitations under the License.
 
 void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixelSize, const QPoint& offset, const QPoint& orig, int charIdx)
 {
-    Q_ASSERT(charIdx >=0 && charIdx < 256 && "Invalid charIdx");
+    Q_ASSERT(charIdx >= 0 && charIdx < 256 && "Invalid charIdx");
 
-    static const quint8 mc_masks[] = {192, 48, 12, 3};
-    static const quint8 hr_masks[] = {128, 64, 32, 16, 8, 4, 2, 1};
+    static const quint8 mc_masks[] = { 192, 48, 12, 3 };
+    static const quint8 hr_masks[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 
     auto charset = state->getCharsetBuffer();
     auto tileColors = state->getTileColors();
@@ -39,30 +39,26 @@ void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixel
 
     auto chardef = &charset[charIdx * 8];
 
-    for (int i=0; i<8; ++i)
-    {
+    for (int i = 0; i < 8; ++i) {
         auto byte = chardef[i];
 
         int char_width = 8;
-        int bit_width = 1;      /* 8 = 8 * 1 */
+        int bit_width = 1; /* 8 = 8 * 1 */
         const quint8* masks = &hr_masks[0];
 
-        if (ismc)
-        {
+        if (ismc) {
             char_width = 4;
-            bit_width = 2;    /* 8 = 4 * 2 */
+            bit_width = 2; /* 8 = 4 * 2 */
             masks = mc_masks;
         }
 
-        for (int j=0; j<char_width; ++j)
-        {
+        for (int j = 0; j < char_width; ++j) {
             quint8 colorIndex = 0;
             // get the two bits that reprent the color
             quint8 color = byte & masks[j];
             color >>= (8 - bit_width) - j * bit_width;
 
-            switch (color)
-            {
+            switch (color) {
             // bitmask 00: background ($d021)
             case 0x0:
                 colorIndex = state->getColorForPen(State::PEN_BACKGROUND);
@@ -72,8 +68,7 @@ void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixel
             case 0x1:
                 if (ismc)
                     colorIndex = state->getColorForPen(State::PEN_MULTICOLOR1);
-                else
-                {
+                else {
                     if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
                         colorIndex = state->getColorForPen(State::PEN_FOREGROUND);
                     else
@@ -100,20 +95,20 @@ void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixel
                 break;
             }
             painter->setBrush(Palette::getColor(colorIndex));
-            painter->drawRect( (orig.x() * 8 + j * bit_width) * pixelSize.width() + offset.x(),
-                             (orig.y() * 8 + i) * pixelSize.height() + offset.y(),
-                             qCeil(pixelSize.width() * bit_width),
-                             qCeil(pixelSize.height()));
+            painter->drawRect((orig.x() * 8 + j * bit_width) * pixelSize.width() + offset.x(),
+                (orig.y() * 8 + i) * pixelSize.height() + offset.y(),
+                qCeil(pixelSize.width() * bit_width),
+                qCeil(pixelSize.height()));
         }
     }
 }
 
 void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int charIdx)
 {
-    Q_ASSERT(charIdx >=0 && charIdx < 256 && "Invalid charIdx");
+    Q_ASSERT(charIdx >= 0 && charIdx < 256 && "Invalid charIdx");
 
-    static const quint8 mc_masks[] = {192, 48, 12, 3};
-    static const quint8 hr_masks[] = {128, 64, 32, 16, 8, 4, 2, 1};
+    static const quint8 mc_masks[] = { 192, 48, 12, 3 };
+    static const quint8 hr_masks[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 
     auto charset = state->getCharsetBuffer();
     auto tileColors = state->getTileColors();
@@ -122,30 +117,26 @@ void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int
 
     auto chardef = &charset[charIdx * 8];
 
-    for (int i=0; i<8; ++i)
-    {
+    for (int i = 0; i < 8; ++i) {
         auto byte = chardef[i];
 
         int char_width = 8;
-        int bit_width = 1;      /* 8 = 8 * 1 */
+        int bit_width = 1; /* 8 = 8 * 1 */
         const quint8* masks = &hr_masks[0];
 
-        if (ismc)
-        {
+        if (ismc) {
             char_width = 4;
-            bit_width = 2;    /* 8 = 4 * 2 */
+            bit_width = 2; /* 8 = 4 * 2 */
             masks = mc_masks;
         }
 
-        for (int j=0; j<char_width; ++j)
-        {
+        for (int j = 0; j < char_width; ++j) {
             quint8 colorIndex = 0;
             // get the two bits that reprent the color
             quint8 color = byte & masks[j];
             color >>= (8 - bit_width) - j * bit_width;
 
-            switch (color)
-            {
+            switch (color) {
             // bitmask 00: background ($d021)
             case 0x0:
                 colorIndex = state->getColorForPen(State::PEN_BACKGROUND);
@@ -155,8 +146,7 @@ void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int
             case 0x1:
                 if (ismc)
                     colorIndex = state->getColorForPen(State::PEN_MULTICOLOR1);
-                else
-                {
+                else {
                     if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
                         colorIndex = state->getColorForPen(State::PEN_FOREGROUND);
                     else
@@ -196,29 +186,141 @@ void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int
 // Table taken from Contiki OS
 // https://github.com/contiki-os/contiki/blob/master/core/lib/petsciiconv.c
 static unsigned char ascii2petscii[128] = {
-  0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,
-  0x14,0x09,0x0d,0x11,0x93,0x0a,0x0e,0x0f,
-  0x10,0x0b,0x12,0x13,0x08,0x15,0x16,0x17,
-  0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f,
-  0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,
-  0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f,
-  0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,
-  0x38,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,0x3f,
-  0x40,0xc1,0xc2,0xc3,0xc4,0xc5,0xc6,0xc7,
-  0xc8,0xc9,0xca,0xcb,0xcc,0xcd,0xce,0xcf,
-  0xd0,0xd1,0xd2,0xd3,0xd4,0xd5,0xd6,0xd7,
-  0xd8,0xd9,0xda,0x5b,0x5c,0x5d,0x5e,0x5f,
-  0xc0,0x41,0x42,0x43,0x44,0x45,0x46,0x47,
-  0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f,
-  0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,
-  0x58,0x59,0x5a,0xdb,0xdd,0xdd,0x5e,0xdf,
+    0x00,
+    0x01,
+    0x02,
+    0x03,
+    0x04,
+    0x05,
+    0x06,
+    0x07,
+    0x14,
+    0x09,
+    0x0d,
+    0x11,
+    0x93,
+    0x0a,
+    0x0e,
+    0x0f,
+    0x10,
+    0x0b,
+    0x12,
+    0x13,
+    0x08,
+    0x15,
+    0x16,
+    0x17,
+    0x18,
+    0x19,
+    0x1a,
+    0x1b,
+    0x1c,
+    0x1d,
+    0x1e,
+    0x1f,
+    0x20,
+    0x21,
+    0x22,
+    0x23,
+    0x24,
+    0x25,
+    0x26,
+    0x27,
+    0x28,
+    0x29,
+    0x2a,
+    0x2b,
+    0x2c,
+    0x2d,
+    0x2e,
+    0x2f,
+    0x30,
+    0x31,
+    0x32,
+    0x33,
+    0x34,
+    0x35,
+    0x36,
+    0x37,
+    0x38,
+    0x39,
+    0x3a,
+    0x3b,
+    0x3c,
+    0x3d,
+    0x3e,
+    0x3f,
+    0x40,
+    0xc1,
+    0xc2,
+    0xc3,
+    0xc4,
+    0xc5,
+    0xc6,
+    0xc7,
+    0xc8,
+    0xc9,
+    0xca,
+    0xcb,
+    0xcc,
+    0xcd,
+    0xce,
+    0xcf,
+    0xd0,
+    0xd1,
+    0xd2,
+    0xd3,
+    0xd4,
+    0xd5,
+    0xd6,
+    0xd7,
+    0xd8,
+    0xd9,
+    0xda,
+    0x5b,
+    0x5c,
+    0x5d,
+    0x5e,
+    0x5f,
+    0xc0,
+    0x41,
+    0x42,
+    0x43,
+    0x44,
+    0x45,
+    0x46,
+    0x47,
+    0x48,
+    0x49,
+    0x4a,
+    0x4b,
+    0x4c,
+    0x4d,
+    0x4e,
+    0x4f,
+    0x50,
+    0x51,
+    0x52,
+    0x53,
+    0x54,
+    0x55,
+    0x56,
+    0x57,
+    0x58,
+    0x59,
+    0x5a,
+    0xdb,
+    0xdd,
+    0xdd,
+    0x5e,
+    0xdf,
 };
 
 /*-----------------------------------------------------------------------------------*/
 quint8 utilsAsciiToScreenCode(quint8 ascii)
 {
     if (ascii >= 128)
-        return ascii;       // invalid
+        return ascii; // invalid
 
     quint8 petscii = ascii2petscii[ascii];
 

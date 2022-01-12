@@ -26,7 +26,7 @@ limitations under the License.
 #include "preferences.h"
 #include "state.h"
 
-ExportDialog::ExportDialog(State* state, QWidget *parent)
+ExportDialog::ExportDialog(State* state, QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::ExportDialog)
     , _state(state)
@@ -67,7 +67,7 @@ ExportDialog::ExportDialog(State* state, QWidget *parent)
     ui->editFilename->setText(fn);
 
     //
-    connect(ui->radioButton_prg, &QRadioButton::toggled, [&](bool toogled){
+    connect(ui->radioButton_prg, &QRadioButton::toggled, [&](bool toogled) {
         ui->spinBox_attribAddress->setEnabled(toogled);
         ui->spinBox_charsetAddress->setEnabled(toogled);
         ui->spinBox_mapAddress->setEnabled(toogled);
@@ -118,11 +118,11 @@ void ExportDialog::on_pushBrowse_clicked()
         filterIdx = 3;
 
     auto filename = QFileDialog::getSaveFileName(this,
-                                                 tr("Select filename"),
-                                                 ui->editFilename->text(),
-                                                 tr("Asm files (*.s *.a *.asm);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;Any file (*)"),
-                                                 &filters[filterIdx],
-                                                 QFileDialog::DontConfirmOverwrite);
+        tr("Select filename"),
+        ui->editFilename->text(),
+        tr("Asm files (*.s *.a *.asm);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;Any file (*)"),
+        &filters[filterIdx],
+        QFileDialog::DontConfirmOverwrite);
 
     if (!filename.isEmpty())
         ui->editFilename->setText(filename);
@@ -142,23 +142,16 @@ void ExportDialog::accept()
     if (ui->checkBox_charset->isChecked())
         properties.features |= State::EXPORT_FEATURE_CHARSET;
 
-    if (ui->radioButton_raw->isChecked())
-    {
+    if (ui->radioButton_raw->isChecked()) {
         ok = _state->exportRaw(filename, properties);
-    }
-    else if (ui->radioButton_prg->isChecked())
-    {
+    } else if (ui->radioButton_prg->isChecked()) {
         properties.addresses[0] = static_cast<quint16>(ui->spinBox_charsetAddress->value());
         properties.addresses[1] = static_cast<quint16>(ui->spinBox_mapAddress->value());
         properties.addresses[2] = static_cast<quint16>(ui->spinBox_attribAddress->value());
         ok = _state->exportPRG(filename, properties);
-    }
-    else if (ui->radioButton_asm->isChecked())
-    {
+    } else if (ui->radioButton_asm->isChecked()) {
         ok = _state->exportAsm(filename, properties);
-    }
-    else if (ui->radioButton_c->isChecked())
-    {
+    } else if (ui->radioButton_c->isChecked()) {
         ok = _state->exportC(filename, properties);
     }
 
@@ -169,9 +162,7 @@ void ExportDialog::accept()
         auto dir = info.absolutePath();
         Preferences::getInstance().setLastUsedDirectory(dir);
         mainWindow->statusBar()->showMessage(tr("File exported to %1").arg(_state->getExportedFilename()), 2000);
-    }
-    else
-    {
+    } else {
         mainWindow->statusBar()->showMessage(tr("Export failed"), 2000);
         qDebug() << "Error saving file: " << filename;
     }
@@ -190,7 +181,7 @@ void ExportDialog::on_radioButton_raw_toggled(bool checked)
     QFileInfo finfo(filename);
     auto extension = finfo.suffix();
 
-    filename.chop(extension.length()+1);
+    filename.chop(extension.length() + 1);
     filename += ".bin";
     ui->editFilename->setText(filename);
 }
@@ -205,7 +196,7 @@ void ExportDialog::on_radioButton_asm_toggled(bool checked)
     QFileInfo finfo(filename);
     auto extension = finfo.suffix();
 
-    filename.chop(extension.length()+1);
+    filename.chop(extension.length() + 1);
     filename += ".s";
     ui->editFilename->setText(filename);
 }
@@ -220,7 +211,7 @@ void ExportDialog::on_radioButton_c_toggled(bool checked)
     QFileInfo finfo(filename);
     auto extension = finfo.suffix();
 
-    filename.chop(extension.length()+1);
+    filename.chop(extension.length() + 1);
     filename += ".c";
     ui->editFilename->setText(filename);
 }
@@ -235,7 +226,7 @@ void ExportDialog::on_radioButton_prg_toggled(bool checked)
     QFileInfo finfo(filename);
     auto extension = finfo.suffix();
 
-    filename.chop(extension.length()+1);
+    filename.chop(extension.length() + 1);
     filename += ".prg";
     ui->editFilename->setText(filename);
 }

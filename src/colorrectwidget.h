@@ -21,8 +21,8 @@ limitations under the License.
 // paints a color:
 // either a fixed color `setColor()`, or the color from a pen `setPen()`
 // used in: Import Koala Dialog and Select Color Dialog
-class ColorRectWidget : public QWidget
-{
+class ColorRectWidget : public QWidget {
+
     Q_OBJECT
 public:
     enum {
@@ -33,8 +33,7 @@ public:
         SHOW_COLORINDEX_MODE,
     };
 
-
-    explicit ColorRectWidget(QWidget *parent = nullptr);
+    explicit ColorRectWidget(QWidget* parent = nullptr);
     virtual ~ColorRectWidget() Q_DECL_OVERRIDE;
 
     // Pen mode
@@ -53,7 +52,7 @@ signals:
 public slots:
 
 protected:
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent* event);
 
     // PEN or COLOR
     int _mode;
@@ -61,4 +60,3 @@ protected:
     int _colorIndex;
     bool _selected;
 };
-

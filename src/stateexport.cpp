@@ -22,7 +22,6 @@ limitations under the License.
 #include <QTextStream>
 #include <QtEndian>
 
-
 #include "state.h"
 #include "stateimport.h"
 
@@ -34,7 +33,7 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
 
     header.version = 3;
 
-    for (int i=0;i<4;i++)
+    for (int i = 0; i < 4; i++)
         header.colors[i] = state->_penColors[i];
 
     short chars = State::CHAR_BUFFER_SIZE / 8;
@@ -60,7 +59,6 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     header.export_features = state->_exportProperties.features;
     header.export_format = state->_exportProperties.format;
 
-
     QByteArray arrayHeader((const char*)&header, sizeof(header));
     auto total = file.write(arrayHeader);
 
@@ -84,10 +82,10 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     return total;
 }
 
-qint64 StateExport::saveRaw(const QString& filename, const void *buffer, int bufferSize)
+qint64 StateExport::saveRaw(const QString& filename, const void* buffer, int bufferSize)
 {
     QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
         return -1;
 
     int total = 0;
@@ -104,7 +102,7 @@ qint64 StateExport::saveRaw(const QString& filename, const void *buffer, int buf
 qint64 StateExport::savePRG(const QString& filename, const void* buffer, int bufferSize, quint16 address)
 {
     QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
         return -1;
 
     int total = 0;
@@ -112,7 +110,7 @@ qint64 StateExport::savePRG(const QString& filename, const void* buffer, int buf
     address = qToLittleEndian(address);
 
     // PRG header
-    QByteArray arrayAddress((char*)&address,2);
+    QByteArray arrayAddress((char*)&address, 2);
     total += file.write(arrayAddress);
 
     // data
@@ -128,21 +126,19 @@ qint64 StateExport::savePRG(const QString& filename, const void* buffer, int buf
 qint64 StateExport::saveAsm(const QString& filename, const void* buffer, int bufferSize, const QString& label)
 {
     QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
         return -1;
 
-    const unsigned char* charBuffer = (const unsigned char*) buffer;
+    const unsigned char* charBuffer = (const unsigned char*)buffer;
 
     QTextStream out(&file);
     out << "; Exported using VChar64 v" << QApplication::applicationVersion() << "\n";
     out << "; Total bytes: " << bufferSize << "\n";
     out << label << ":\n";
-    for (int i=0; i<bufferSize;)
-    {
+    for (int i = 0; i < bufferSize;) {
         out << ".byte ";
-        int j=0;
-        for (j=0; j<16 && i<bufferSize ; ++j, ++i)
-        {
+        int j = 0;
+        for (j = 0; j < 16 && i < bufferSize; ++j, ++i) {
             if (j != 0)
                 out << ",";
             out << "$";
@@ -152,7 +148,7 @@ qint64 StateExport::saveAsm(const QString& filename, const void* buffer, int buf
             out << Qt::hex << (unsigned int)charBuffer[i];
             out.setFieldWidth(0);
         }
-        out << "\t; " << Qt::dec << i-j << "\n";
+        out << "\t; " << Qt::dec << i - j << "\n";
     }
     out << label.toUpper() << "_COUNT = " << bufferSize << "\n";
 
@@ -161,25 +157,22 @@ qint64 StateExport::saveAsm(const QString& filename, const void* buffer, int buf
     return out.pos();
 }
 
-
 qint64 StateExport::saveC(const QString& filename, const void* buffer, int bufferSize, const QString& label)
 {
     QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
         return -1;
 
-    const unsigned char* charBuffer = (const unsigned char*) buffer;
+    const unsigned char* charBuffer = (const unsigned char*)buffer;
 
     QTextStream out(&file);
     out << "// Exported using VChar64 v" << QApplication::applicationVersion() << "\n";
     out << "// Total bytes: " << bufferSize << "\n";
     out << "const char " << label << "[][16] = {\n";
-    for (int i=0; i<bufferSize;)
-    {
+    for (int i = 0; i < bufferSize;) {
         out << "\t{ ";
-        int j=0;
-        for (j=0; j<16 && i<bufferSize ; ++j, ++i)
-        {
+        int j = 0;
+        for (j = 0; j < 16 && i < bufferSize; ++j, ++i) {
             if (j != 0)
                 out << ", ";
             out << "0x";
@@ -189,7 +182,7 @@ qint64 StateExport::saveC(const QString& filename, const void* buffer, int buffe
             out << Qt::hex << (unsigned int)charBuffer[i];
             out.setFieldWidth(0);
         }
-        out << " }" << ( i < bufferSize - 1 ? "," : " ") << " // " << Qt::dec << i-j << "\n";
+        out << " }" << (i < bufferSize - 1 ? "," : " ") << " // " << Qt::dec << i - j << "\n";
     }
     out << "};\n";
     out << "#define " << label.toUpper() << "_COUNT " << bufferSize << "\n";

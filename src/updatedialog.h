@@ -23,12 +23,11 @@ namespace Ui {
 class UpdateDialog;
 }
 
-class UpdateDialog : public QDialog
-{
+class UpdateDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit UpdateDialog(QWidget *parent = nullptr);
+    explicit UpdateDialog(QWidget* parent = nullptr);
     virtual ~UpdateDialog() Q_DECL_OVERRIDE;
 
     void setChanges(const QString& changes);
@@ -41,6 +40,6 @@ private slots:
     void on_pushButtonLater_clicked();
 
 private:
-    Ui::UpdateDialog *ui;
+    Ui::UpdateDialog* ui;
     QUrl _url;
 };

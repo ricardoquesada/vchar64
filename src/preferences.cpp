@@ -22,7 +22,6 @@ limitations under the License.
 #include <QDir>
 #include <QTime>
 
-
 Preferences& Preferences::getInstance()
 {
     static Preferences prefs;
@@ -30,13 +29,13 @@ Preferences& Preferences::getInstance()
 }
 
 Preferences::Preferences()
-    : _settings("RetroMoe","VChar64")
+    : _settings("RetroMoe", "VChar64")
 {
     qDebug() << _settings.fileName();
 }
 
 Preferences::~Preferences()
-= default;
+    = default;
 
 void Preferences::setGridColor(const QColor& color)
 {
@@ -46,7 +45,7 @@ void Preferences::setGridColor(const QColor& color)
 
 QColor Preferences::getGridColor() const
 {
-    return _settings.value(QLatin1String("UI/gridColor"), QColor(0,128,0)).value<QColor>();
+    return _settings.value(QLatin1String("UI/gridColor"), QColor(0, 128, 0)).value<QColor>();
 }
 
 void Preferences::setOpenLastFiles(bool enableIt)
@@ -76,7 +75,7 @@ void Preferences::setLastUpdateCheckDate(const QDateTime& date)
 
 QDateTime Preferences::getLastUpdateCheckDate() const
 {
-    return _settings.value(QLatin1String("Install/LastUpdateCheckDate"), QDateTime(QDate(2015,1,1), QTime(0,0))).toDateTime();
+    return _settings.value(QLatin1String("Install/LastUpdateCheckDate"), QDateTime(QDate(2015, 1, 1), QTime(0, 0))).toDateTime();
 }
 
 int Preferences::getLastTimeUpdateCheck() const

@@ -16,18 +16,17 @@ limitations under the License.
 
 #pragma once
 
-#include <QWidget>
 #include <QPoint>
 #include <QSize>
+#include <QWidget>
 
 #include "state.h"
 
-class TilesetWidget : public QWidget
-{
+class TilesetWidget : public QWidget {
     Q_OBJECT
 
 public:
-    TilesetWidget(QWidget *parent=nullptr);
+    TilesetWidget(QWidget* parent = nullptr);
 
     bool hasSelection() const;
     void getSelectionRange(State::CopyRange* copyRange) const;
@@ -43,16 +42,15 @@ public slots:
     void onCharsetUpdated();
     void onFileLoaded();
 
-
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
-    void paintFocus(QPainter &painter);
-    void paintPixel(QPainter &painter, int width, int height, quint8* charPtr);
+    void paintFocus(QPainter& painter);
+    void paintPixel(QPainter& painter, int width, int height, quint8* charPtr);
     void paintSelectedTile(QPainter& painter);
 
     QPoint _cursorPos;
@@ -66,4 +64,3 @@ protected:
     qreal _zoomLevel;
     bool _displayGrid;
 };
-

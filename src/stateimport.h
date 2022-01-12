@@ -24,8 +24,7 @@ class State;
  * @brief The StateImport class
  * Provices helper functions to load different formats into VChar64
  */
-class StateImport
-{
+class StateImport {
 public:
     /**
      * @brief loadRaw loads a raw file
@@ -70,7 +69,7 @@ public:
      * @param outVICRegistersBuf "out" buffer that will contain the VIC registers (d000-d03f)
      * @return
      */
-    static qint64 parseVICESnapshot(QFile& file, quint8* buffer64k, quint16 *outCharsetAddress, quint16 *outScreenRAMAddress, quint8 *outColorRAMBuf, quint8 *outVICRegistersBuf);
+    static qint64 parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* outCharsetAddress, quint16* outScreenRAMAddress, quint8* outColorRAMBuf, quint8* outVICRegistersBuf);
 
     //
     // From CharPad documentation
@@ -171,30 +170,29 @@ public:
 
 #pragma pack(push)
 #pragma pack(1)
-    struct CTMHeader4
-    {
-        char id[3];                 // must be CTM
-        char version;               // must be 4
-        char colors[4];             // BGR, MC1, MC2, RAM.
-        char color_mode;            // 0 = Global, 1 = Per Tile, 2 = Per Tile Cell.
-        char vic_res;               // 0 = Hi Resolution, 1 = Multicolour.
+    struct CTMHeader4 {
+        char id[3]; // must be CTM
+        char version; // must be 4
+        char colors[4]; // BGR, MC1, MC2, RAM.
+        char color_mode; // 0 = Global, 1 = Per Tile, 2 = Per Tile Cell.
+        char vic_res; // 0 = Hi Resolution, 1 = Multicolour.
 
-        unsigned short num_chars;   // 16-bits, Number of chars - 1 (low, high).
+        unsigned short num_chars; // 16-bits, Number of chars - 1 (low, high).
 
-        unsigned char num_tiles;    // Number of tiles - 1.
+        unsigned char num_tiles; // Number of tiles - 1.
 
-        unsigned char tile_width;   // Tile Width
-        unsigned char tile_height;  // Tile Height
+        unsigned char tile_width; // Tile Width
+        unsigned char tile_height; // Tile Height
 
-        unsigned short map_width;   // 16-bit Map width (low, high).
-        unsigned short map_height;  // 16-bit Map height (low, high).
+        unsigned short map_width; // 16-bit Map width (low, high).
+        unsigned short map_height; // 16-bit Map height (low, high).
 
-        char expanded;              // Boolean flag, 1 = CHAR_DATA is in "Expanded" form (CELL_DATA is unnecessary and absent).
+        char expanded; // Boolean flag, 1 = CHAR_DATA is in "Expanded" form (CELL_DATA is unnecessary and absent).
 
-        char reserved[4];           // Must be 24 bytes in total
+        char reserved[4]; // Must be 24 bytes in total
     };
 #pragma pack(pop)
-    static_assert (sizeof(CTMHeader4) == 24, "Size is not correct");
+    static_assert(sizeof(CTMHeader4) == 24, "Size is not correct");
 
     /*
     CTM files begins with a 20 byte header...
@@ -283,57 +281,54 @@ public:
     */
 #pragma pack(push)
 #pragma pack(1)
-    struct CTMHeader5
-    {
-        char id[3];                 // must be CTM
-        char version;               // must be 5
-        char colors[4];             // BGR, MC1, MC2, RAM.
-        char color_mode;            // 0 = Global, 1 = Per Tile, 2 = Per Tile Cell.
-        char flags;                 // bit 0 : Tile System (1 = Enabled), bit 1 : Expanded Data (1 = Yes), bit 2 : Multi-colour Mode (1 = Enabled).
+    struct CTMHeader5 {
+        char id[3]; // must be CTM
+        char version; // must be 5
+        char colors[4]; // BGR, MC1, MC2, RAM.
+        char color_mode; // 0 = Global, 1 = Per Tile, 2 = Per Tile Cell.
+        char flags; // bit 0 : Tile System (1 = Enabled), bit 1 : Expanded Data (1 = Yes), bit 2 : Multi-colour Mode (1 = Enabled).
 
-        quint16 num_chars;          // 16-bits, Number of chars - 1 (low, high).
+        quint16 num_chars; // 16-bits, Number of chars - 1 (low, high).
 
-        quint16 num_tiles;          // Number of tiles - 1.
+        quint16 num_tiles; // Number of tiles - 1.
 
-        unsigned char tile_width;   // Tile Width: 1-8
-        unsigned char tile_height;  // Tile Height: 1-8
+        unsigned char tile_width; // Tile Width: 1-8
+        unsigned char tile_height; // Tile Height: 1-8
 
-        quint16 map_width;          // 16-bit Map width (low, high).
-        quint16 map_height;         // 16-bit Map height (low, high).
+        quint16 map_width; // 16-bit Map width (low, high).
+        quint16 map_height; // 16-bit Map height (low, high).
     };
 #pragma pack(pop)
-    static_assert (sizeof(CTMHeader5) == 20, "Size is not correct");
-
+    static_assert(sizeof(CTMHeader5) == 20, "Size is not correct");
 
 #pragma pack(push)
 #pragma pack(1)
-    struct VChar64Header
-    {
-        char id[5];                 // must be VChar
-        char version;               // must be 3
-        char colors[4];             // BGR, MC1, MC2, RAM.
-        char vic_res;               // 0 = Hi Resolution, 1 = Multicolour.
+    struct VChar64Header {
+        char id[5]; // must be VChar
+        char version; // must be 3
+        char colors[4]; // BGR, MC1, MC2, RAM.
+        char vic_res; // 0 = Hi Resolution, 1 = Multicolour.
 
-        quint16 num_chars;          // 16-bits, Number of chars - 1 (low, high).
+        quint16 num_chars; // 16-bits, Number of chars - 1 (low, high).
 
-        quint8 tile_width;          // between 1-8
-        quint8 tile_height;         // between 1-8
-        quint8 char_interleaved;    // between 1-128
+        quint8 tile_width; // between 1-8
+        quint8 tile_height; // between 1-8
+        quint8 char_interleaved; // between 1-128
 
         // until here, it shares same structure as version 1
 
-        char color_mode;            // 0 = Global, 1 = Per Tile
+        char color_mode; // 0 = Global, 1 = Per Tile
 
-        quint16 map_width;          // 16-bit Map width (low, high).
-        quint16 map_height;         // 16-bit Map height (low, high).
+        quint16 map_width; // 16-bit Map width (low, high).
+        quint16 map_height; // 16-bit Map height (low, high).
 
-        quint16 address_charset;    // 16-bit for the Charset export address
-        quint16 address_map;        // 16-bit for the Map export address
-        quint16 address_attribs;    // 16-bit for the Attribs/Colors export address
-        quint8 export_features;     // 8 bits. what features should be exported: charset(1<<0), map(1<<1), color(1<<2)
-        quint8 export_format;       // 8 bits: export type: 0: RAW, 1:PRG, 2:ASM
+        quint16 address_charset; // 16-bit for the Charset export address
+        quint16 address_map; // 16-bit for the Map export address
+        quint16 address_attribs; // 16-bit for the Attribs/Colors export address
+        quint8 export_features; // 8 bits. what features should be exported: charset(1<<0), map(1<<1), color(1<<2)
+        quint8 export_format; // 8 bits: export type: 0: RAW, 1:PRG, 2:ASM
 
-        char reserved[3];           // Must be 32 bytes in total
+        char reserved[3]; // Must be 32 bytes in total
 
         // after the header comes:
         //  - charset[256 * 8]
@@ -341,102 +336,95 @@ public:
         //  - map_data[map_width * map_height bytes]
     };
 #pragma pack(pop)
-    static_assert (sizeof(VChar64Header) == 32, "Size is not correct");
+    static_assert(sizeof(VChar64Header) == 32, "Size is not correct");
 
 #pragma pack(push)
 #pragma pack(1)
-    struct VICESnapshotHeader
-    {
-        char id[19];                // "VICE Snapshot File\032"
+    struct VICESnapshotHeader {
+        char id[19]; // "VICE Snapshot File\032"
         char major;
         char minor;
-        char machine[16];           // "C64" or "C128" or...
+        char machine[16]; // "C64" or "C128" or...
     };
-    static_assert (sizeof(VICESnapshotHeader) == 37, "Size is not correct");
+    static_assert(sizeof(VICESnapshotHeader) == 37, "Size is not correct");
 
-    struct VICESnapshotVersion
-    {
-        char id[13];                // "VICE Version\032"
-        char viceversion[4];        // VICE number
-        quint32 vice_svn_rev;       // SVN revision, or 0
+    struct VICESnapshotVersion {
+        char id[13]; // "VICE Version\032"
+        char viceversion[4]; // VICE number
+        quint32 vice_svn_rev; // SVN revision, or 0
     };
-    static_assert (sizeof(VICESnapshotVersion) == 21, "Size is not correct");
+    static_assert(sizeof(VICESnapshotVersion) == 21, "Size is not correct");
 
-    struct VICESnapshoptModule
-    {
-        char moduleName[16];        // looking for "C64MEM"
+    struct VICESnapshoptModule {
+        char moduleName[16]; // looking for "C64MEM"
         char major;
         char minor;
-        quint32 lenght;             // little endian
+        quint32 lenght; // little endian
     };
 
-    struct VICESnapshoptC64Mem
-    {
-        quint8 cpudata;             // CPU port data byte
-        quint8 cpudir;              // CPU port direction byte
-        quint8 exrom;               // state of the EXROM line (?)
-        quint8 game;                // state of the GAME line (?)
-        quint8 ram[65536];          // 64k RAM dump
+    struct VICESnapshoptC64Mem {
+        quint8 cpudata; // CPU port data byte
+        quint8 cpudir; // CPU port direction byte
+        quint8 exrom; // state of the EXROM line (?)
+        quint8 game; // state of the GAME line (?)
+        quint8 ram[65536]; // 64k RAM dump
     };
 
-    struct VICESnapshoptC128Mem
-    {
-        quint8 mmu[11];             // MMU info
-        quint8 ram[4*65536];        // 256k RAM dump
+    struct VICESnapshoptC128Mem {
+        quint8 mmu[11]; // MMU info
+        quint8 ram[4 * 65536]; // 256k RAM dump
     };
 
-    struct VICESnapshoptCIA2
-    {
-        quint8 ora;                 // Output register A
-        quint8 orb;                 // Output register B
-        quint8 ddra;                // Data direction register A
-        quint8 ddrb;                // Data direction register B
-        quint16 tac;                // Timer A counter value
-        quint16 tbc;                // Timer B counter value
-        quint8 tod_ten;             // Time of Day - current tenth of second
-        quint8 tod_sec;             // Time of Day - current seconds
-        quint8 tod_min;             // Time of Day - current minutes
-        quint8 tod_hr;              // Time of Day - current hours
-        quint8 sdr;                 // contents of shift register
-        quint8 ier;                 // mask of enabled interrupt masks
-        quint8 cra;                 // Control register A
-        quint8 crb;                 // Control register B
-        quint16 tal;                // Timer A latch value
-        quint16 tbl;                // Timer B latch value
-        quint8 ifr;                 // mask of currently active interrupts
-        quint8 pbstate;             // Bit 6/7 reflect the PB6/7 toggle bit state.  Bit 2/3 reflect the corresponding port bit state.
-        quint8 srhbits;             // number of half-bits to still shift in/out SDR
-        quint8 alarm_ten;           // Time of Day - alarm tenth of second
-        quint8 alarm_sec;           // Time of Day - alarm seconds
-        quint8 alarm_min;           // Time of Day - alarm minutes
-        quint8 alarm_hr;            // Time of Day - alarm hours
-        quint8 readicr;             // current clock minus the clock when ICR was read last plus 128.
-        quint8 todlatched;          // Bit 0: 1= latched for reading, Bit 1: 2=stopped for writing
-        quint8 todl_ten;            // Time of Day - latched tenth of second
-        quint8 todl_sec;            // Time of Day - latched seconds
-        quint8 todl_min;            // Time of Day - latched minutes
-        quint8 todl_hr;             // Time of Day - latched hours
-        quint32 tod_ticks;          // clk ticks till next tenth of second
-        quint16 tastate;            // (v1.1+ only) The state bits of the CIA timer A, according to ciatimer.h
-        quint16 tbstate;            // (v1.1+ only) The state bits of the CIA timer B, according to ciatimer.h
+    struct VICESnapshoptCIA2 {
+        quint8 ora; // Output register A
+        quint8 orb; // Output register B
+        quint8 ddra; // Data direction register A
+        quint8 ddrb; // Data direction register B
+        quint16 tac; // Timer A counter value
+        quint16 tbc; // Timer B counter value
+        quint8 tod_ten; // Time of Day - current tenth of second
+        quint8 tod_sec; // Time of Day - current seconds
+        quint8 tod_min; // Time of Day - current minutes
+        quint8 tod_hr; // Time of Day - current hours
+        quint8 sdr; // contents of shift register
+        quint8 ier; // mask of enabled interrupt masks
+        quint8 cra; // Control register A
+        quint8 crb; // Control register B
+        quint16 tal; // Timer A latch value
+        quint16 tbl; // Timer B latch value
+        quint8 ifr; // mask of currently active interrupts
+        quint8 pbstate; // Bit 6/7 reflect the PB6/7 toggle bit state.  Bit 2/3 reflect the corresponding port bit state.
+        quint8 srhbits; // number of half-bits to still shift in/out SDR
+        quint8 alarm_ten; // Time of Day - alarm tenth of second
+        quint8 alarm_sec; // Time of Day - alarm seconds
+        quint8 alarm_min; // Time of Day - alarm minutes
+        quint8 alarm_hr; // Time of Day - alarm hours
+        quint8 readicr; // current clock minus the clock when ICR was read last plus 128.
+        quint8 todlatched; // Bit 0: 1= latched for reading, Bit 1: 2=stopped for writing
+        quint8 todl_ten; // Time of Day - latched tenth of second
+        quint8 todl_sec; // Time of Day - latched seconds
+        quint8 todl_min; // Time of Day - latched minutes
+        quint8 todl_hr; // Time of Day - latched hours
+        quint32 tod_ticks; // clk ticks till next tenth of second
+        quint16 tastate; // (v1.1+ only) The state bits of the CIA timer A, according to ciatimer.h
+        quint16 tbstate; // (v1.1+ only) The state bits of the CIA timer B, according to ciatimer.h
     };
-    struct VICESnapshoptVICII
-    {
-        quint8 allow_bad_lines;     // flag: if true, bad lines can happen
-        quint8 bad_line;            // flag: this is a bad line
-        quint8 blank_enabled;       // flag: draw lines in border color
-        quint8 color_buf[40];       // character memory buffer (loaded at bad line)
-        quint8 color_ram[1024];     // contents of color RAM
-        quint8 idle_state;          // flag: idle state enabled
-        quint8 lp_trigger;          // flag: light pen has been triggered
-        quint8 lp_x;                // light pen X
-        quint8 lp_Y;                // light pen Y
-        quint8 matrix_buf[40];      // video matrix buffer (loaded at bad line)
+    struct VICESnapshoptVICII {
+        quint8 allow_bad_lines; // flag: if true, bad lines can happen
+        quint8 bad_line; // flag: this is a bad line
+        quint8 blank_enabled; // flag: draw lines in border color
+        quint8 color_buf[40]; // character memory buffer (loaded at bad line)
+        quint8 color_ram[1024]; // contents of color RAM
+        quint8 idle_state; // flag: idle state enabled
+        quint8 lp_trigger; // flag: light pen has been triggered
+        quint8 lp_x; // light pen X
+        quint8 lp_Y; // light pen Y
+        quint8 matrix_buf[40]; // video matrix buffer (loaded at bad line)
         quint8 new_sprite_dma_mask; // value for SpriteDmaMask after drawing sprites
-        quint32 ram_base;           // pointer to the start of RAM seen by the VIC
-        quint8 raster_cycle;        // current vicii.raster cycle
-        quint16 raster_line;        // current vicii.raster line
-        quint8 registers[64];       // VIC-II registers
+        quint32 ram_base; // pointer to the start of RAM seen by the VIC
+        quint8 raster_cycle; // current vicii.raster cycle
+        quint16 raster_line; // current vicii.raster line
+        quint8 registers[64]; // VIC-II registers
 
         // sprites data, and more should be here... too lazy to add it.
         // wanna help? send a Pull Request with the missing data. Take it from here:
@@ -444,11 +432,7 @@ public:
     };
 #pragma pack(pop)
 
-
 protected:
-    static qint64 loadCTM4(State *state, QFile& file, struct CTMHeader4* v5header);
-    static qint64 loadCTM5(State *state, QFile& file, struct CTMHeader5* v5header);
-
+    static qint64 loadCTM4(State* state, QFile& file, struct CTMHeader4* v5header);
+    static qint64 loadCTM5(State* state, QFile& file, struct CTMHeader5* v5header);
 };
-
-

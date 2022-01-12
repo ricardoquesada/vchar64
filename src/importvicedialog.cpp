@@ -25,7 +25,7 @@ limitations under the License.
 #include "state.h"
 #include "utils.h"
 
-ImportVICEDialog::ImportVICEDialog(QWidget *parent)
+ImportVICEDialog::ImportVICEDialog(QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::ImportVICEDialog)
     , _validVICEFile(false)
@@ -39,14 +39,14 @@ ImportVICEDialog::ImportVICEDialog(QWidget *parent)
 
     // comes with a default map of 40*25
     _tmpState = new State();
-    _tmpState->_setForegroundColorMode(ui->checkBoxGuessColors->checkState() == Qt::CheckState::Checked ?
-                                           State::FOREGROUND_COLOR_PER_TILE :
-                                           State::FOREGROUND_COLOR_GLOBAL);
+    _tmpState->_setForegroundColorMode(
+        ui->checkBoxGuessColors->checkState() == Qt::CheckState::Checked
+            ? State::FOREGROUND_COLOR_PER_TILE
+            : State::FOREGROUND_COLOR_GLOBAL);
 
     // default tiles
-    for (auto& _tileImage : _tileImages)
-    {
-        _tileImage = new QImage(QSize(8,8), QImage::Format_RGB888);
+    for (auto& _tileImage : _tileImages) {
+        _tileImage = new QImage(QSize(8, 8), QImage::Format_RGB888);
     }
     updateTileImages();
 
@@ -74,8 +74,7 @@ const QString& ImportVICEDialog::getFilepath() const
 
 void ImportVICEDialog::updateTileImages()
 {
-    for (int tileIdx=0; tileIdx<256; ++tileIdx)
-    {
+    for (int tileIdx = 0; tileIdx < 256; ++tileIdx) {
         utilsDrawCharInImage(_tmpState, _tileImages[tileIdx], QPoint(0, 0), tileIdx);
     }
 }
@@ -106,7 +105,7 @@ void ImportVICEDialog::on_spinBoxCharset_editingFinished()
     int newvalue = 0;
     int oldvalue = ui->spinBoxCharset->value();
     if (_supportInvalidVICAddresses) {
-        newvalue = qMin(oldvalue, 0xf800);  // no bigger than 0xf800 to prevent buffer overflow issues
+        newvalue = qMin(oldvalue, 0xf800); // no bigger than 0xf800 to prevent buffer overflow issues
     } else {
         // normalize number, in case it was edited manually
         int m = oldvalue / 2048;
@@ -121,7 +120,7 @@ void ImportVICEDialog::on_spinBoxCharset_editingFinished()
 
 void ImportVICEDialog::on_spinBoxCharset_valueChanged(int address)
 {
-    Q_ASSERT(address <= (65536-2048) && "invalid address");
+    Q_ASSERT(address <= (65536 - 2048) && "invalid address");
     memcpy(_tmpState->_charset, &_memoryRAM[address], sizeof(_tmpState->_charset));
     updateTileImages();
 
@@ -134,7 +133,7 @@ void ImportVICEDialog::on_spinBoxScreenRAM_editingFinished()
     int newvalue = 0;
     int oldvalue = ui->spinBoxScreenRAM->value();
     if (_supportInvalidVICAddresses) {
-          // no bigger than 0xfc00 to prevent buffer overflow issues
+        // no bigger than 0xfc00 to prevent buffer overflow issues
         newvalue = qMin(oldvalue, 0xfc00);
     } else {
         // normalize number, in case it was edited manually
@@ -150,12 +149,11 @@ void ImportVICEDialog::on_spinBoxScreenRAM_editingFinished()
 
 void ImportVICEDialog::on_spinBoxScreenRAM_valueChanged(int address)
 {
-    Q_ASSERT(address <= (65536-1024) && "invalid address");
+    Q_ASSERT(address <= (65536 - 1024) && "invalid address");
 
-    memcpy(_tmpState->_map, &_memoryRAM[address], 40*25);
+    memcpy(_tmpState->_map, &_memoryRAM[address], 40 * 25);
 
-    for (int i=40*25-1; i>=0; --i)
-    {
+    for (int i = 40 * 25 - 1; i >= 0; --i) {
         quint8 tileColor = _colorRAM[i];
         quint8 tileIdx = _tmpState->_map[i];
 
@@ -172,20 +170,17 @@ void ImportVICEDialog::on_pushButtonBrowse_clicked()
 {
     auto filter = tr("VICE snapshot files");
     auto fn = QFileDialog::getOpenFileName(this,
-                                           tr("Select VICE Snapshot File"),
-                                           ui->lineEdit->text(),
-                                           tr(
-                                               "All files (*);;" \
-                                               "VICE snapshot files (*.vsf);;"
-                                           ),
-                                           &filter
-                                           /*,QFileDialog::DontUseNativeDialog*/
-                                           );
+        tr("Select VICE Snapshot File"),
+        ui->lineEdit->text(),
+        tr(
+            "All files (*);;"
+            "VICE snapshot files (*.vsf);;"),
+        &filter
+        /*,QFileDialog::DontUseNativeDialog*/
+    );
 
-    if (fn.length()> 0)
-    {
-        if (fn != _filepath)
-        {
+    if (fn.length() > 0) {
+        if (fn != _filepath) {
             _filepath = fn;
             ui->lineEdit->setText(fn);
 
@@ -199,8 +194,7 @@ void ImportVICEDialog::on_lineEdit_editingFinished()
 {
     QString filename = ui->lineEdit->text();
 
-    if (_filepath != filename)
-    {
+    if (_filepath != filename) {
         QFileInfo fi(filename);
         _validVICEFile = fi.exists() && validateVICEFile(filename);
         updateWidgets();
@@ -215,7 +209,14 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
 
     quint16 charsetAddress, screenRAMOAddress;
     quint8 VICRegisters[64];
-    auto ret = StateImport::parseVICESnapshot(file, _memoryRAM, &charsetAddress, &screenRAMOAddress, _colorRAM, (quint8*)&VICRegisters);
+    auto ret = StateImport::parseVICESnapshot(
+        file,
+        _memoryRAM,
+        &charsetAddress,
+        &screenRAMOAddress,
+        _colorRAM,
+        (quint8*)&VICRegisters);
+
     if (ret >= 0) {
         // colors d021, d022, d023
         _tmpState->_penColors[0] = VICRegisters[0x21] & 0xf;
@@ -250,8 +251,7 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
 
 void ImportVICEDialog::updateWidgets()
 {
-    QWidget* widgets[] =
-    {
+    QWidget* widgets[] = {
         ui->checkBoxMulticolor,
         ui->checkBoxGuessColors,
         ui->checkBoxDisplayGrid,
@@ -261,8 +261,7 @@ void ImportVICEDialog::updateWidgets()
         ui->pushButtonImport
     };
 
-    for (auto& widget : widgets)
-    {
+    for (auto& widget : widgets) {
         widget->setEnabled(_validVICEFile);
     }
 }
@@ -277,7 +276,11 @@ void ImportVICEDialog::on_checkBoxMulticolor_toggled(bool checked)
 
 void ImportVICEDialog::on_checkBoxGuessColors_toggled(bool checked)
 {
-    _tmpState->_setForegroundColorMode(checked ? State::FOREGROUND_COLOR_PER_TILE : State::FOREGROUND_COLOR_GLOBAL);
+    _tmpState->_setForegroundColorMode(
+        checked
+            ? State::FOREGROUND_COLOR_PER_TILE
+            : State::FOREGROUND_COLOR_GLOBAL);
+
     if (checked) {
         _tmpState->_penColors[0] = _vicColorsBackup[0];
         _tmpState->_penColors[1] = _vicColorsBackup[1];
@@ -287,10 +290,10 @@ void ImportVICEDialog::on_checkBoxGuessColors_toggled(bool checked)
         _vicColorsBackup[1] = _tmpState->_penColors[1];
         _vicColorsBackup[2] = _tmpState->_penColors[2];
 
-        _tmpState->_penColors[0] = 1;               // white
-        _tmpState->_penColors[1] = 5;               // green
-        _tmpState->_penColors[2] = 7;               // yellow
-        _tmpState->_penColors[3] = 11;              // dark grey
+        _tmpState->_penColors[0] = 1; // white
+        _tmpState->_penColors[1] = 5; // green
+        _tmpState->_penColors[2] = 7; // yellow
+        _tmpState->_penColors[3] = 11; // dark grey
     }
 
     updateTileImages();

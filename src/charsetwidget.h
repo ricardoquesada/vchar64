@@ -24,12 +24,11 @@ QT_BEGIN_NAMESPACE
 class QMdiSubWindow;
 QT_END_NAMESPACE
 
-class CharsetWidget : public QWidget
-{
+class CharsetWidget : public QWidget {
     Q_OBJECT
 
 public:
-    CharsetWidget(QWidget *parent=nullptr);
+    CharsetWidget(QWidget* parent = nullptr);
 
     bool hasSelection() const;
     void getSelectionRange(State::CopyRange* copyRange) const;
@@ -45,14 +44,14 @@ public slots:
     void setZoomLevel(int zoomLevel);
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
     void updateCharIndex(int charIndex);
-    void paintFocus(QPainter &painter);
+    void paintFocus(QPainter& painter);
 
     QPoint _cursorPos;
     bool _selecting;
@@ -62,4 +61,3 @@ protected:
     qreal _zoomLevel;
     bool _displayGrid;
 };
-

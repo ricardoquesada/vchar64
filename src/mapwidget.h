@@ -16,28 +16,25 @@ limitations under the License.
 
 #pragma once
 
-#include <QWidget>
 #include "state.h"
+#include <QWidget>
 
 QT_BEGIN_NAMESPACE
 class QImage;
 QT_END_NAMESPACE
 
 // draws the map of the state (screen RAM + color RAM + charset)
-class MapWidget : public QWidget
-{
+class MapWidget : public QWidget {
     Q_OBJECT
 
 public:
-
-    enum MapMode
-    {
+    enum MapMode {
         PAINT_MODE,
         SELECT_MODE,
         FILL_MODE
     };
 
-    explicit MapWidget(QWidget *parent = nullptr);
+    explicit MapWidget(QWidget* parent = nullptr);
 
     void enableGrid(bool enabled);
     void setMode(MapMode mode);
@@ -58,12 +55,12 @@ public slots:
     void onFileLoaded();
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent * event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
-    void keyReleaseEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
+    void keyReleaseEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
     QSize sizeHint() const Q_DECL_OVERRIDE;
 
     void updateTileImages();
@@ -79,9 +76,9 @@ private:
     MapMode _mode;
     bool _commandMergeable;
     qreal _zoomLevel;
-    int _altValue;      // value entered pressing ALT + number
+    int _altValue; // value entered pressing ALT + number
 
     // For gain speed, each tile will be pre-renderer in a QImage
     // a QImages will be renderer
-    QImage *_tileImages[256];
+    QImage* _tileImages[256];
 };

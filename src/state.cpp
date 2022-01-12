@@ -30,7 +30,6 @@ limitations under the License.
 #include <QTime>
 #include <QtGlobal>
 
-
 #include "commands.h"
 #include "mainwindow.h"
 #include "palette.h"
@@ -40,22 +39,22 @@ limitations under the License.
 const int State::CHAR_BUFFER_SIZE;
 
 // target constructor
-State::State(const QString& filename, quint8 *charset, quint8 *tileColors, quint8 *map, const QSize& mapSize)
+State::State(const QString& filename, quint8* charset, quint8* tileColors, quint8* map, const QSize& mapSize)
     : _totalChars(0)
-    , _charset{0}
-    , _tileColors{11}
+    , _charset { 0 }
+    , _tileColors { 11 }
     , _mapSize(mapSize)
     , _multicolorMode(false)
     , _foregroundColorMode(FOREGROUND_COLOR_GLOBAL)
     , _selectedPen(PEN_FOREGROUND)
-    , _penColors{1,5,7,11}
-    , _tileProperties{{1,1},1}
+    , _penColors { 1, 5, 7, 11 }
+    , _tileProperties { { 1, 1 }, 1 }
     , _charIndex(0)
     , _tileIndex(0)
     , _loadedFilename(filename)
     , _savedFilename("")
     , _exportedFilename("")
-    , _exportProperties({{0x3800,0x4000,0x4400},EXPORT_FORMAT_RAW,EXPORT_FEATURE_CHARSET})
+    , _exportProperties({ { 0x3800, 0x4000, 0x4400 }, EXPORT_FORMAT_RAW, EXPORT_FEATURE_CHARSET })
     , _undoStack(nullptr)
     , _bigCharWidget(nullptr)
 {
@@ -69,12 +68,9 @@ State::State(const QString& filename, quint8 *charset, quint8 *tileColors, quint
 
     Q_ASSERT(_mapSize.width() > 0 && _mapSize.height() > 0 && "Invalid size");
     _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
-    if (map)
-    {
+    if (map) {
         memcpy(_map, map, _mapSize.width() * _mapSize.height());
-    }
-    else
-    {
+    } else {
         setupDefaultMap();
     }
 }
@@ -82,16 +78,16 @@ State::State(const QString& filename, quint8 *charset, quint8 *tileColors, quint
 // Delegating constructor
 
 State::State(const QString& filename)
-    : State(filename, nullptr, nullptr, nullptr, QSize(40,25))
+    : State(filename, nullptr, nullptr, nullptr, QSize(40, 25))
 {
 }
 
 State::State()
-    : State("", nullptr, nullptr, nullptr, QSize(40,25))
+    : State("", nullptr, nullptr, nullptr, QSize(40, 25))
 {
 }
 
-void State::copyState(const State &copyFromMe)
+void State::copyState(const State& copyFromMe)
 {
     _totalChars = copyFromMe._totalChars;
     _mapSize = copyFromMe._mapSize;
@@ -130,7 +126,7 @@ void State::reset()
     _penColors[PEN_MULTICOLOR1] = 5;
     _penColors[PEN_MULTICOLOR2] = 7;
     _penColors[PEN_FOREGROUND] = 11;
-    _tileProperties.size = {1,1};
+    _tileProperties.size = { 1, 1 };
     _tileProperties.interleaved = 1;
     _loadedFilename = "untitled";
     _savedFilename = "";
@@ -164,8 +160,8 @@ bool State::openFile(const QString& filename)
     if (!file.open(QIODevice::ReadOnly))
         return false;
 
-    qint64 length=0;
-    quint16 loadedAddress=0;
+    qint64 length = 0;
+    quint16 loadedAddress = 0;
 
     enum {
         FILETYPE_VCHAR64,
@@ -178,23 +174,16 @@ bool State::openFile(const QString& filename)
     QFileInfo info(file);
     QString suffix = info.suffix().toLower();
 
-    if (suffix == "vchar64proj")
-    {
+    if (suffix == "vchar64proj") {
         length = StateImport::loadVChar64(this, file);
         filetype = FILETYPE_VCHAR64;
-    }
-    else if ((suffix == "64c") || (suffix == "prg"))
-    {
+    } else if ((suffix == "64c") || (suffix == "prg")) {
         length = StateImport::loadPRG(this, file, &loadedAddress);
         filetype = FILETYPE_PRG;
-    }
-    else if(suffix == "ctm")
-    {
+    } else if (suffix == "ctm") {
         length = StateImport::loadCTM(this, file);
         filetype = FILETYPE_CTM;
-    }
-    else
-    {
+    } else {
         if (suffix != "bin")
             qDebug() << "Unkwnow file extension: " << suffix << ". Treating it as binary.";
         length = StateImport::loadRaw(this, file);
@@ -203,27 +192,23 @@ bool State::openFile(const QString& filename)
 
     file.close();
 
-    if(length<=0)
+    if (length <= 0)
         return false;
 
     // built-in resources are not saved
-    if (filename[0] != ':')
-    {
+    if (filename[0] != ':') {
         _loadedFilename = filename;
 
-        if (filetype == FILETYPE_VCHAR64)
-        {
+        if (filetype == FILETYPE_VCHAR64) {
             _savedFilename = filename;
-        }
-        else if (filetype == FILETYPE_RAW || filetype == FILETYPE_PRG)
-        {
+        } else if (filetype == FILETYPE_RAW || filetype == FILETYPE_PRG) {
             _exportedFilename = filename;
             _exportProperties.features = EXPORT_FEATURE_CHARSET;
             if (filetype == FILETYPE_PRG) {
                 _exportProperties.addresses[0] = loadedAddress;
                 _exportProperties.format = EXPORT_FORMAT_PRG;
-            }
-            else _exportProperties.format = EXPORT_FORMAT_RAW;
+            } else
+                _exportProperties.format = EXPORT_FORMAT_RAW;
         }
     }
 
@@ -245,10 +230,8 @@ static QString filenameFixSuffix(const QString& filename, State::ExportFeature s
     auto name = info.baseName();
 
     // remove possible suffix
-    for (const auto& validDescription : validDescriptions)
-    {
-        if (name.endsWith(validDescription))
-        {
+    for (const auto& validDescription : validDescriptions) {
+        if (name.endsWith(validDescription)) {
             name = name.left(name.length() - validDescription.length());
             break;
         }
@@ -274,7 +257,7 @@ bool State::export_()
         ret = exportRaw(_exportedFilename, _exportProperties);
 
     /* else */
-    else if(_exportProperties.format == EXPORT_FORMAT_PRG)
+    else if (_exportProperties.format == EXPORT_FORMAT_PRG)
         ret = exportPRG(_exportedFilename, _exportProperties);
 
     /* else ASM */
@@ -292,24 +275,26 @@ bool State::export_()
     return ret;
 }
 
-bool State::exportRaw(const QString& filename, const ExportProperties &properties)
+bool State::exportRaw(const QString& filename, const ExportProperties& properties)
 {
     bool ret = true;
 
     if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
-                                     _charset, sizeof(_charset)) > 0);
+                    _charset, sizeof(_charset))
+            > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
         ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                                     _map, _mapSize.width() * _mapSize.height()) > 0);
+                    _map, _mapSize.width() * _mapSize.height())
+            > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                                     _tileColors, sizeof(_tileColors)) > 0);
+                    _tileColors, sizeof(_tileColors))
+            > 0);
 
-    if (ret)
-    {
+    if (ret) {
         _exportedFilename = filename;
         auto copy = properties;
         copy.format = EXPORT_FORMAT_RAW;
@@ -324,18 +309,20 @@ bool State::exportPRG(const QString& filename, const ExportProperties& propertie
 
     if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
-                                     _charset, sizeof(_charset), properties.addresses[0]) > 0);
+                    _charset, sizeof(_charset), properties.addresses[0])
+            > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                                     _map, _mapSize.width() * _mapSize.height(), properties.addresses[1]) > 0);
+                    _map, _mapSize.width() * _mapSize.height(), properties.addresses[1])
+            > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                                     _tileColors, sizeof(_tileColors), properties.addresses[2]) > 0);
+                    _tileColors, sizeof(_tileColors), properties.addresses[2])
+            > 0);
 
-    if (ret)
-    {
+    if (ret) {
         _exportedFilename = filename;
         auto copy = properties;
         copy.format = EXPORT_FORMAT_PRG;
@@ -345,23 +332,25 @@ bool State::exportPRG(const QString& filename, const ExportProperties& propertie
     return ret;
 }
 
-bool State::exportAsm(const QString& filename, const ExportProperties &properties)
+bool State::exportAsm(const QString& filename, const ExportProperties& properties)
 {
     bool ret = true;
     if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
-                                     _charset, sizeof(_charset), "charset") > 0);
+                    _charset, sizeof(_charset), "charset")
+            > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_MAP ),
-                                     _map, _mapSize.width() * _mapSize.height(), "map") > 0);
+        ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
+                    _map, _mapSize.width() * _mapSize.height(), "map")
+            > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                                     _tileColors, sizeof(_tileColors), "colors") > 0);
+                    _tileColors, sizeof(_tileColors), "colors")
+            > 0);
 
-    if (ret)
-    {
+    if (ret) {
         _exportedFilename = filename;
         auto copy = properties;
         copy.format = EXPORT_FORMAT_ASM;
@@ -370,24 +359,25 @@ bool State::exportAsm(const QString& filename, const ExportProperties &propertie
     return ret;
 }
 
-
-bool State::exportC(const QString& filename, const ExportProperties &properties)
+bool State::exportC(const QString& filename, const ExportProperties& properties)
 {
     bool ret = true;
     if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
-                                     _charset, sizeof(_charset), "charset") > 0);
+                    _charset, sizeof(_charset), "charset")
+            > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_MAP ),
-                                     _map, _mapSize.width() * _mapSize.height(), "map") > 0);
+        ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
+                    _map, _mapSize.width() * _mapSize.height(), "map")
+            > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                                     _tileColors, sizeof(_tileColors), "colors") > 0);
+                    _tileColors, sizeof(_tileColors), "colors")
+            > 0);
 
-    if (ret)
-    {
+    if (ret) {
         _exportedFilename = filename;
         auto copy = properties;
         copy.format = EXPORT_FORMAT_ASM;
@@ -401,8 +391,7 @@ bool State::saveProject(const QString& filename)
     bool ret = false;
 
     // don't save it nothing has changed. Same behavior as Qt Creator
-    if (getUndoStack()->isClean() && _savedFilename == filename)
-    {
+    if (getUndoStack()->isClean() && _savedFilename == filename) {
         // clean, nothing to save
         QApplication::beep();
         // hack: return true so that mainWindow doesn't treat it as an error
@@ -410,24 +399,22 @@ bool State::saveProject(const QString& filename)
     }
 
     QFile file(filename);
-    ret = file.open(QIODevice::WriteOnly|QIODevice::Truncate);
+    ret = file.open(QIODevice::WriteOnly | QIODevice::Truncate);
 
     if (ret) {
-        qint64 length=0;
+        qint64 length = 0;
         length = StateExport::saveVChar64(this, file);
         file.close();
 
-        ret = (length>0);
-        if (ret)
-        {
+        ret = (length > 0);
+        if (ret) {
             _loadedFilename = _savedFilename = filename;
             getUndoStack()->setClean();
             emit contentsChanged();
         }
     }
 
-    if (ret)
-    {
+    if (ret) {
         MainWindow::getInstance()->showMessageOnStatusBar(tr("Save: Ok"));
     } else {
         MainWindow::getInstance()->showMessageOnStatusBar(tr("Save: Error"));
@@ -450,13 +437,12 @@ bool State::shouldBeDisplayedInMulticolor() const
 bool State::shouldBeDisplayedInMulticolor2(int tileIdx) const
 {
     Q_ASSERT(((tileIdx == -1 && _foregroundColorMode == FOREGROUND_COLOR_GLOBAL)
-             || (tileIdx >=0 && tileIdx < 256))
-              && "Invalid tileIdx");
+                 || (tileIdx >= 0 && tileIdx < 256))
+        && "Invalid tileIdx");
 
-    return (_multicolorMode &&
-            ((_foregroundColorMode == FOREGROUND_COLOR_GLOBAL && _penColors[PEN_FOREGROUND] >= 8) ||
-            (_foregroundColorMode == FOREGROUND_COLOR_PER_TILE && (_tileColors[tileIdx] & 0xf) >= 8))
-            );
+    return (_multicolorMode
+        && ((_foregroundColorMode == FOREGROUND_COLOR_GLOBAL && _penColors[PEN_FOREGROUND] >= 8)
+            || (_foregroundColorMode == FOREGROUND_COLOR_PER_TILE && (_tileColors[tileIdx] & 0xf) >= 8)));
 }
 
 bool State::isMulticolorMode() const
@@ -471,8 +457,7 @@ void State::setMulticolorMode(bool enabled)
 
 void State::_setMulticolorMode(bool enabled)
 {
-    if (_multicolorMode != enabled)
-    {
+    if (_multicolorMode != enabled) {
         _multicolorMode = enabled;
 
         emit multicolorModeToggled(enabled);
@@ -487,8 +472,7 @@ void State::setForegroundColorMode(State::ForegroundColorMode mode)
 
 void State::_setForegroundColorMode(ForegroundColorMode mode)
 {
-    if (_foregroundColorMode != mode)
-    {
+    if (_foregroundColorMode != mode) {
         _foregroundColorMode = mode;
         emit colorPropertiesUpdated(PEN_FOREGROUND);
         emit contentsChanged();
@@ -507,9 +491,10 @@ int State::getColorForPen(int pen) const
 
 int State::getColorForPen(int pen, int tileIdx) const
 {
-    Q_ASSERT(pen >=0 && pen < PEN_MAX);
+    Q_ASSERT(pen >= 0 && pen < PEN_MAX);
 
-    bool foregroundAndPerTile = (pen == PEN_FOREGROUND && _foregroundColorMode == FOREGROUND_COLOR_PER_TILE);
+    bool foregroundAndPerTile = (pen == PEN_FOREGROUND
+        && _foregroundColorMode == FOREGROUND_COLOR_PER_TILE);
 
     Q_ASSERT((!foregroundAndPerTile || tileIdx != -1) && "Provide a valid tileIdx");
 
@@ -531,8 +516,8 @@ void State::setColorForPen(int pen, int color, int tileIdx)
 
 void State::_setColorForPen(int pen, int color, int tileIdx)
 {
-    Q_ASSERT(pen >=0 && pen < PEN_MAX);
-    Q_ASSERT(color >=0 && color < 16);
+    Q_ASSERT(pen >= 0 && pen < PEN_MAX);
+    Q_ASSERT(color >= 0 && color < 16);
 
     bool foregroundAndPerTile = (pen == PEN_FOREGROUND && _foregroundColorMode == FOREGROUND_COLOR_PER_TILE);
 
@@ -540,13 +525,13 @@ void State::_setColorForPen(int pen, int color, int tileIdx)
 
     int currentColor = foregroundAndPerTile ? _tileColors[tileIdx] : _penColors[pen];
 
-    if (currentColor != color)
-    {
+    if (currentColor != color) {
         bool oldvalue = shouldBeDisplayedInMulticolor2(tileIdx);
 
         if (foregroundAndPerTile)
             _tileColors[tileIdx] = color;
-        else _penColors[pen] = color;
+        else
+            _penColors[pen] = color;
 
         bool newvalue = shouldBeDisplayedInMulticolor2(tileIdx);
 
@@ -571,80 +556,82 @@ int State::getSelectedPen() const
 
 void State::setSelectedPen(int pen)
 {
-    Q_ASSERT(pen>=0 && pen<PEN_MAX);
+    Q_ASSERT(pen >= 0 && pen < PEN_MAX);
 
-    if (pen != _selectedPen)
-    {
+    if (pen != _selectedPen) {
         _selectedPen = pen;
-       emit selectedPenChaged(pen);
+        emit selectedPenChaged(pen);
     }
 }
 
 int State::tileGetPen(int tileIndex, const QPoint& position)
 {
-    Q_ASSERT(tileIndex>=0 && tileIndex<=getTileIndexFromCharIndex(255) && "invalid index value");
-    Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
+    Q_ASSERT(tileIndex >= 0
+        && tileIndex <= getTileIndexFromCharIndex(255)
+        && "invalid index value");
+    Q_ASSERT(position.x() < State::MAX_TILE_WIDTH * 8
+        && position.y() < State::MAX_TILE_HEIGHT * 8
+        && "Invalid position");
 
     int x = position.x();
     int y = position.y();
-    int bitIndex = (x%8) + (y%8) * 8;
+    int bitIndex = (x % 8) + (y % 8) * 8;
     int charIndex = getCharIndexFromTileIndex(tileIndex)
-            + (x/8) * _tileProperties.interleaved
-            + (y/8) * _tileProperties.interleaved * _tileProperties.size.width();
+        + (x / 8) * _tileProperties.interleaved
+        + (y / 8) * _tileProperties.interleaved * _tileProperties.size.width();
 
-    quint8 c = _charset[charIndex*8 + bitIndex/8];
-    quint8 b = bitIndex%8;
+    quint8 c = _charset[charIndex * 8 + bitIndex / 8];
+    quint8 b = bitIndex % 8;
 
     int ret = 0;
 
     // not multicolor: expected result: 0 or 1
-    if (!shouldBeDisplayedInMulticolor2(tileIndex))
-    {
-        quint8 mask = 1 << (7-b);
-        ret = (c & mask) >> (7-b);
-    }
-    else
-    {
-        quint8 masks[] = {192,192,48,48,12,12,3,3};
+    if (!shouldBeDisplayedInMulticolor2(tileIndex)) {
+        quint8 mask = 1 << (7 - b);
+        ret = (c & mask) >> (7 - b);
+    } else {
+        quint8 masks[] = { 192, 192, 48, 48, 12, 12, 3, 3 };
         quint8 mask = masks[b];
 
         // ignore "odd" numbers when... valid bits to shift: 6,4,2,0
-        ret = (c & mask) >> ((7-b) & 254);
+        ret = (c & mask) >> ((7 - b) & 254);
     }
 
-    Q_ASSERT(ret >=0 && ret < PEN_MAX);
+    Q_ASSERT(ret >= 0 && ret < PEN_MAX);
     return ret;
 }
 
 void State::_tileSetPen(int tileIndex, const QPoint& position, int pen)
 {
-    Q_ASSERT(tileIndex>=0 && tileIndex<=getTileIndexFromCharIndex(255) && "invalid index value");
-    Q_ASSERT(position.x()<State::MAX_TILE_WIDTH*8 && position.y()<State::MAX_TILE_HEIGHT*8 && "Invalid position");
-    Q_ASSERT(pen >=0 && pen < PEN_MAX && "Invalid pen. range: 0,4");
+    Q_ASSERT(tileIndex >= 0
+        && tileIndex <= getTileIndexFromCharIndex(255)
+        && "invalid index value");
+    Q_ASSERT(position.x() < State::MAX_TILE_WIDTH * 8
+        && position.y() < State::MAX_TILE_HEIGHT * 8
+        && "Invalid position");
+    Q_ASSERT(pen >= 0
+        && pen < PEN_MAX
+        && "Invalid pen. range: 0,4");
 
     int x = position.x();
     int y = position.y();
-    int bitIndex = (x%8) + (y%8) * 8;
+    int bitIndex = (x % 8) + (y % 8) * 8;
     int charIndex = getCharIndexFromTileIndex(tileIndex)
-            + (x/8) * _tileProperties.interleaved
-            + (y/8) * _tileProperties.interleaved * _tileProperties.size.width();
+        + (x / 8) * _tileProperties.interleaved
+        + (y / 8) * _tileProperties.interleaved * _tileProperties.size.width();
 
-    int byteIndex = charIndex*8 + bitIndex/8;
+    int byteIndex = charIndex * 8 + bitIndex / 8;
 
-
-    quint8 b = bitIndex%8;
+    quint8 b = bitIndex % 8;
     quint8 and_mask = 0x00;
     quint8 or_mask = 0x00;
-    if (!shouldBeDisplayedInMulticolor2(tileIndex))
-    {
-        and_mask = 1 << (7-b);
-        or_mask = pen << (7-b);
-    }
-    else
-    {
-        quint8 masks[] = {128+64, 128+64, 32+16, 32+16, 8+4, 8+4, 2+1, 2+1};
+    if (!shouldBeDisplayedInMulticolor2(tileIndex)) {
+        and_mask = 1 << (7 - b);
+        or_mask = pen << (7 - b);
+    } else {
+        quint8 masks[] = { 128 + 64, 128 + 64, 32 + 16, 32 + 16, 8 + 4, 8 + 4, 2 + 1, 2 + 1 };
         and_mask = masks[b];
-        or_mask = pen << ((7-b) & 254);
+        or_mask = pen << ((7 - b) & 254);
     }
 
     // get the neede byte
@@ -713,18 +700,15 @@ void State::setMapSize(const QSize& mapSize)
 
 void State::_setMapSize(const QSize& mapSize)
 {
-    if (_mapSize != mapSize)
-    {
+    if (_mapSize != mapSize) {
         const int newSizeInBytes = mapSize.width() * mapSize.height();
-        quint8* newMap = (quint8*) malloc(newSizeInBytes);
+        quint8* newMap = (quint8*)malloc(newSizeInBytes);
         Q_ASSERT(newMap && "No memory");
 
-        for (int i=0; i<newSizeInBytes; ++i)
+        for (int i = 0; i < newSizeInBytes; ++i)
             newMap[i] = _tileIndex;
 
-
-        for (int row=0; row<mapSize.height(); ++row)
-        {
+        for (int row = 0; row < mapSize.height(); ++row) {
             // no more rows to copy
             if (row >= _mapSize.height())
                 break;
@@ -769,10 +753,10 @@ void State::floodFillImpl(const QPoint& coord, int targetTile, int newTile)
 
     _map[coord.y() * _mapSize.width() + coord.x()] = newTile;
 
-    floodFillImpl(QPoint(coord.x()-1, coord.y()), targetTile, newTile);
-    floodFillImpl(QPoint(coord.x()+1, coord.y()), targetTile, newTile);
-    floodFillImpl(QPoint(coord.x(), coord.y()-1), targetTile, newTile);
-    floodFillImpl(QPoint(coord.x(), coord.y()+1), targetTile, newTile);
+    floodFillImpl(QPoint(coord.x() - 1, coord.y()), targetTile, newTile);
+    floodFillImpl(QPoint(coord.x() + 1, coord.y()), targetTile, newTile);
+    floodFillImpl(QPoint(coord.x(), coord.y() - 1), targetTile, newTile);
+    floodFillImpl(QPoint(coord.x(), coord.y() + 1), targetTile, newTile);
 }
 
 void State::mapFill(const QPoint& coord, int tileIdx)
@@ -780,14 +764,12 @@ void State::mapFill(const QPoint& coord, int tileIdx)
     getUndoStack()->push(new FillMapCommand(this, coord, tileIdx));
 }
 
-void State::_mapFill(const QPoint &coord, int tileIdx)
+void State::_mapFill(const QPoint& coord, int tileIdx)
 {
-    if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height())
-    {
+    if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height()) {
         int targetTile = _map[coord.y() * _mapSize.width() + coord.x()];
 
-        if (targetTile != tileIdx)
-        {
+        if (targetTile != tileIdx) {
             floodFillImpl(coord, targetTile, tileIdx);
             emit mapContentUpdated();
             emit contentsChanged();
@@ -802,8 +784,7 @@ void State::mapPaint(const QPoint& coord, int tileIdx, bool mergeable)
 
 void State::_mapPaint(const QPoint& coord, int tileIdx)
 {
-    if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height())
-    {
+    if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height()) {
         _map[coord.y() * _mapSize.width() + coord.x()] = tileIdx;
         emit mapContentUpdated();
         emit contentsChanged();
@@ -817,7 +798,7 @@ void State::mapClear(int tileIdx)
 
 void State::_mapClear(int tileIdx)
 {
-    for (int i=0; i<_mapSize.width() * _mapSize.height(); ++i)
+    for (int i = 0; i < _mapSize.width() * _mapSize.height(); ++i)
         _map[i] = tileIdx;
 
     emit mapContentUpdated();
@@ -849,7 +830,6 @@ const quint8* State::getTileColors() const
     return _tileColors;
 }
 
-
 void State::resetCharsetBuffer()
 {
     memset(_charset, 0, sizeof(_charset));
@@ -862,14 +842,10 @@ void State::copyTileFromIndex(int tileIndex, quint8* buffer, int bufferSize)
     Q_ASSERT(bufferSize >= (tileSize * 8) && "invalid bufferSize. Too small");
     Q_ASSERT(tileIndex >= 0 && tileIndex <= getTileIndexFromCharIndex(255) && "invalid index value");
 
-    if (_tileProperties.interleaved == 1)
-    {
+    if (_tileProperties.interleaved == 1) {
         memcpy(buffer, &_charset[tileIndex * tileSize * 8], qMin(tileSize * 8, bufferSize));
-    }
-    else
-    {
-        for (int i=0; i < tileSize; i++)
-        {
+    } else {
+        for (int i = 0; i < tileSize; i++) {
             memcpy(&buffer[i * 8], &_charset[(tileIndex + i * _tileProperties.interleaved) * 8], 8);
         }
     }
@@ -882,14 +858,10 @@ void State::copyTileToIndex(int tileIndex, quint8* buffer, int bufferSize)
     Q_ASSERT(bufferSize >= (tileSize * 8) && "invalid bufferSize. Too small");
     Q_ASSERT(tileIndex >= 0 && tileIndex <= getTileIndexFromCharIndex(255) && "invalid index value");
 
-    if (_tileProperties.interleaved == 1)
-    {
+    if (_tileProperties.interleaved == 1) {
         memcpy(&_charset[tileIndex * tileSize * 8], buffer, qMin(tileSize * 8, bufferSize));
-    }
-    else
-    {
-        for (int i=0; i < tileSize; i++)
-        {
+    } else {
+        for (int i = 0; i < tileSize; i++) {
             memcpy(&_charset[(tileIndex + i * _tileProperties.interleaved) * 8], &buffer[i * 8], 8);
         }
     }
@@ -898,17 +870,13 @@ void State::copyTileToIndex(int tileIndex, quint8* buffer, int bufferSize)
     emit contentsChanged();
 }
 
-
 // helper functions
 int State::getCharIndexFromTileIndex(int tileIndex) const
 {
     int charIndex = -1;
-    if (_tileProperties.interleaved == 1)
-    {
+    if (_tileProperties.interleaved == 1) {
         charIndex = tileIndex * (_tileProperties.size.width() * _tileProperties.size.height());
-    }
-    else
-    {
+    } else {
         charIndex = tileIndex;
     }
     return charIndex;
@@ -921,9 +889,7 @@ int State::getTileIndexFromCharIndex(int charIndex) const
     int tileIndex = -1;
     if (_tileProperties.interleaved == 1) {
         tileIndex = charIndex / (_tileProperties.size.width() * _tileProperties.size.height());
-    }
-    else
-    {
+    } else {
         tileIndex = charIndex % _tileProperties.interleaved;
     }
 
@@ -932,11 +898,11 @@ int State::getTileIndexFromCharIndex(int charIndex) const
 
 quint8* State::getCharAtIndex(int charIndex)
 {
-    Q_ASSERT(charIndex>=0 && charIndex<256 && "Invalid index");
-    return &_charset[charIndex*8];
+    Q_ASSERT(charIndex >= 0 && charIndex < 256 && "Invalid index");
+    return &_charset[charIndex * 8];
 }
 
-void State::cut(const CopyRange &copyRange)
+void State::cut(const CopyRange& copyRange)
 {
     getUndoStack()->push(new CutCommand(this, copyRange));
 }
@@ -948,7 +914,7 @@ void State::paste(int offset, const CopyRange& copyRange, const quint8* origBuff
 
 void State::_pasteChars(int charIndex, const CopyRange& copyRange, const quint8* origBuffer)
 {
-    Q_ASSERT(charIndex >=0 && charIndex< CHAR_BUFFER_SIZE && "Invalid charIndex size");
+    Q_ASSERT(charIndex >= 0 && charIndex < CHAR_BUFFER_SIZE && "Invalid charIndex size");
 
     int count = copyRange.count;
 
@@ -959,14 +925,13 @@ void State::_pasteChars(int charIndex, const CopyRange& copyRange, const quint8*
     const quint8* chrsrc = origBuffer + (copyRange.offset * 8);
     const quint8* colorsrc = colorsBuffer + copyRange.offset;
 
-    while (count>0)
-    {
+    while (count > 0) {
         const auto lastByte = &_charset[sizeof(_charset)];
         int bytesToCopy = qMin((qint64)copyRange.blockSize * 8, (qint64)(lastByte - chrdst));
-        if (bytesToCopy <0)
+        if (bytesToCopy < 0)
             break;
         memcpy(chrdst, chrsrc, bytesToCopy);
-        memcpy(colordst, colorsrc, bytesToCopy/8);
+        memcpy(colordst, colorsrc, bytesToCopy / 8);
         emit bytesUpdated((chrdst - _charset), bytesToCopy);
 
         chrdst += (copyRange.blockSize + copyRange.skip) * 8;
@@ -979,18 +944,17 @@ void State::_pasteChars(int charIndex, const CopyRange& copyRange, const quint8*
 
     // copying should also include updating the new colors and possible multi-color mode
     emit colorPropertiesUpdated(PEN_FOREGROUND);
-//    emit contentsChanged();
+    //    emit contentsChanged();
 }
 
 void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8* origBuffer)
 {
-    Q_ASSERT(charIndex >=0 && charIndex< CHAR_BUFFER_SIZE && "Invalid charIndex size");
+    Q_ASSERT(charIndex >= 0 && charIndex < CHAR_BUFFER_SIZE && "Invalid charIndex size");
 
     int count = copyRange.count;
     const quint8* colorsBuffer = origBuffer + CHAR_BUFFER_SIZE;
 
-    if (copyRange.tileProperties.size != _tileProperties.size)
-    {
+    if (copyRange.tileProperties.size != _tileProperties.size) {
         qDebug() << "Error. Src:" << copyRange.tileProperties.size << " Dst:" << _tileProperties.size;
         MainWindow::getInstance()->showMessageOnStatusBar(tr("Error. Tile size different than src"));
         return;
@@ -1003,10 +967,8 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
     int interleavedFactorDst = (_tileProperties.interleaved == 1) ? tileSize : 1;
     int srcskip = 0;
     int dstskip = 0;
-    while (count>0)
-    {
-        for (int i=0; i<copyRange.blockSize; i++)
-        {
+    while (count > 0) {
+        for (int i = 0; i < copyRange.blockSize; i++) {
             int srcidx = (tileSrcIdx + i + srcskip) * interleavedFactorSrc;
             int dstidx = (tileDstIdx + i + dstskip) * interleavedFactorDst;
 
@@ -1016,14 +978,12 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
                 _tileColors[colorIdx] = colorsBuffer[tileSrcIdx + i + srcskip];
 
             // when interleaved, break the copy to prevent ugly artifacts
-            if (_tileProperties.interleaved != 1 && dstidx >= (256 / tileSize))
-            {
+            if (_tileProperties.interleaved != 1 && dstidx >= (256 / tileSize)) {
                 count = 0;
                 break;
             }
 
-            for (int j=0; j < tileSize; j++)
-            {
+            for (int j = 0; j < tileSize; j++) {
                 int charsrc = (srcidx + j * copyRange.tileProperties.interleaved) * 8;
                 int chardst = (dstidx + j * _tileProperties.interleaved) * 8;
 
@@ -1047,11 +1007,10 @@ void State::_pasteMap(int charIndex, const CopyRange& copyRange, const quint8* o
     quint8* dst = _map + charIndex;
     const quint8* src = origBuffer + copyRange.offset;
 
-    while (count>0)
-    {
-        const auto lastByte = &_map[_mapSize.width()*_mapSize.height()];
+    while (count > 0) {
+        const auto lastByte = &_map[_mapSize.width() * _mapSize.height()];
         int bytesToCopy = qMin((qint64)copyRange.blockSize, (qint64)(lastByte - dst));
-        if (bytesToCopy <0)
+        if (bytesToCopy < 0)
             break;
         memcpy(dst, src, bytesToCopy);
 
@@ -1098,10 +1057,10 @@ void State::_tileInvert(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
-    for (int y=0; y<_tileProperties.size.height(); y++) {
-        for (int x=0; x<_tileProperties.size.width(); x++) {
-            for (int i=0; i<8; i++) {
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = ~charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
+    for (int y = 0; y < _tileProperties.size.height(); y++) {
+        for (int x = 0; x < _tileProperties.size.width(); x++) {
+            for (int i = 0; i < 8; i++) {
+                charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = ~charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
             }
         }
     }
@@ -1120,10 +1079,10 @@ void State::_tileClear(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
-    for (int y=0; y<_tileProperties.size.height(); y++) {
-        for (int x=0; x<_tileProperties.size.width(); x++) {
-            for (int i=0; i<8; i++) {
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = 0;
+    for (int y = 0; y < _tileProperties.size.height(); y++) {
+        for (int x = 0; x < _tileProperties.size.width(); x++) {
+            for (int i = 0; i < 8; i++) {
+                charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = 0;
             }
         }
     }
@@ -1143,26 +1102,26 @@ void State::_tileFlipHorizontally(int tileIndex)
     quint8* charPtr = getCharAtIndex(charIndex);
 
     // flip bits
-    for (int y=0; y<_tileProperties.size.height(); y++) {
-        for (int x=0; x<_tileProperties.size.width(); x++) {
+    for (int y = 0; y < _tileProperties.size.height(); y++) {
+        for (int x = 0; x < _tileProperties.size.width(); x++) {
 
-            for (int i=0; i<8; i++) {
+            for (int i = 0; i < 8; i++) {
                 char tmp = 0;
-                for (int j=0; j<8; j++) {
-                    if (charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<j))
-                        tmp |= 1 << (7-j);
+                for (int j = 0; j < 8; j++) {
+                    if (charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] & (1 << j))
+                        tmp |= 1 << (7 - j);
                 }
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = tmp;
+                charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = tmp;
             }
         }
     }
 
     // swap the chars
-    for (int y=0; y<_tileProperties.size.height(); y++) {
-        for (int x=0; x<_tileProperties.size.width()/2; x++) {
-            for (int i=0; i<8; i++) {
-                std::swap(charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved],
-                        charPtr[i+(_tileProperties.size.width()-1-x+y*_tileProperties.size.width())*8*_tileProperties.interleaved]);
+    for (int y = 0; y < _tileProperties.size.height(); y++) {
+        for (int x = 0; x < _tileProperties.size.width() / 2; x++) {
+            for (int i = 0; i < 8; i++) {
+                std::swap(charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved],
+                    charPtr[i + (_tileProperties.size.width() - 1 - x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved]);
             }
         }
     }
@@ -1182,22 +1141,22 @@ void State::_tileFlipVertically(int tileIndex)
     quint8* charPtr = getCharAtIndex(charIndex);
 
     // flip bits
-    for (int y=0; y<_tileProperties.size.height(); y++) {
-        for (int x=0; x<_tileProperties.size.width(); x++) {
+    for (int y = 0; y < _tileProperties.size.height(); y++) {
+        for (int x = 0; x < _tileProperties.size.width(); x++) {
 
-            for (int i=0; i<4; i++) {
-                std::swap(charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved],
-                        charPtr[7-i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved]);
+            for (int i = 0; i < 4; i++) {
+                std::swap(charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved],
+                    charPtr[7 - i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved]);
             }
         }
     }
 
     // swap the chars
-    for (int y=0; y<_tileProperties.size.height()/2; y++) {
-        for (int x=0; x<_tileProperties.size.width(); x++) {
-            for (int i=0; i<8; i++) {
-                std::swap(charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved],
-                        charPtr[i+(x+(_tileProperties.size.height()-1-y)*_tileProperties.size.width())*8*_tileProperties.interleaved]);
+    for (int y = 0; y < _tileProperties.size.height() / 2; y++) {
+        for (int x = 0; x < _tileProperties.size.width(); x++) {
+            for (int i = 0; i < 8; i++) {
+                std::swap(charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved],
+                    charPtr[i + (x + (_tileProperties.size.height() - 1 - y) * _tileProperties.size.width()) * 8 * _tileProperties.interleaved]);
             }
         }
     }
@@ -1218,17 +1177,16 @@ void State::_tileRotate(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
-
     // rotate each char (its bits) individually
-    for (int y=0; y<_tileProperties.size.height(); y++) {
-        for (int x=0; x<_tileProperties.size.width(); x++) {
+    for (int y = 0; y < _tileProperties.size.height(); y++) {
+        for (int x = 0; x < _tileProperties.size.width(); x++) {
 
-            Char tmpchr{0};
+            Char tmpchr { 0 };
 
-            for (int i=0; i<8; i++) {
-                for (int j=0; j<8; j++) {
-                    if (charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<(7-j)))
-                        tmpchr._char8[j] |= (1<<i);
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) {
+                    if (charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] & (1 << (7 - j)))
+                        tmpchr._char8[j] |= (1 << i);
                 }
             }
 
@@ -1236,23 +1194,22 @@ void State::_tileRotate(int tileIndex)
         }
     }
 
-
     // replace the chars in the correct order.
-    if (_tileProperties.size.width()>1) {
-        std::vector<Char> tmpchars(_tileProperties.size.width()*_tileProperties.size.height());
+    if (_tileProperties.size.width() > 1) {
+        std::vector<Char> tmpchars(_tileProperties.size.width() * _tileProperties.size.height());
 
         // place the rotated chars in a rotated tmp buffer
-        for (int y=0; y<_tileProperties.size.height(); y++) {
-            for (int x=0; x<_tileProperties.size.width(); x++) {
+        for (int y = 0; y < _tileProperties.size.height(); y++) {
+            for (int x = 0; x < _tileProperties.size.width(); x++) {
                 // rotate them: tmpchars[w-y-1,x] = tile[x,y];
-                tmpchars[(_tileProperties.size.width()-1-y) + x * _tileProperties.size.width()] = getCharFromTile(tileIndex, x, y);
+                tmpchars[(_tileProperties.size.width() - 1 - y) + x * _tileProperties.size.width()] = getCharFromTile(tileIndex, x, y);
             }
         }
 
         // place the rotated tmp buffer in the final position
-        for (int y=0; y<_tileProperties.size.height(); y++) {
-            for (int x=0; x<_tileProperties.size.width(); x++) {
-                    setCharForTile(tileIndex, x, y, tmpchars[x + _tileProperties.size.width() * y]);
+        for (int y = 0; y < _tileProperties.size.height(); y++) {
+            for (int x = 0; x < _tileProperties.size.width(); x++) {
+                setCharForTile(tileIndex, x, y, tmpchars[x + _tileProperties.size.width() * y]);
             }
         }
     }
@@ -1274,29 +1231,28 @@ void State::_tileShiftLeft(int tileIndex)
     int times = shouldBeDisplayedInMulticolor2(tileIndex) ? 2 : 1;
 
     // shift two times in multicolor mode
-    for (int i=0; i<times; ++i)
-    {
+    for (int i = 0; i < times; ++i) {
         // top tile first
-        for (int y=0; y<_tileProperties.size.height(); y++) {
+        for (int y = 0; y < _tileProperties.size.height(); y++) {
 
             // top byte of
-            for (int i=0; i<8; i++) {
+            for (int i = 0; i < 8; i++) {
 
                 bool leftBit = false;
                 bool prevLeftBit = false;
 
-                for (int x=_tileProperties.size.width()-1; x>=0; x--) {
-                    leftBit = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<7);
+                for (int x = _tileProperties.size.width() - 1; x >= 0; x--) {
+                    leftBit = charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] & (1 << 7);
 
-                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] <<= 1;
+                    charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] <<= 1;
 
-                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 254;
-                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (quint8)prevLeftBit;
+                    charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] &= 254;
+                    charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] |= (quint8)prevLeftBit;
 
                     prevLeftBit = leftBit;
                 }
-                charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 254;
-                charPtr[i+(_tileProperties.size.width()-1+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (quint8)leftBit;
+                charPtr[i + (_tileProperties.size.width() - 1 + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] &= 254;
+                charPtr[i + (_tileProperties.size.width() - 1 + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] |= (quint8)leftBit;
             }
         }
     }
@@ -1317,36 +1273,34 @@ void State::_tileShiftRight(int tileIndex)
 
     // shift two times in multicolor mode
     int times = shouldBeDisplayedInMulticolor2(tileIndex) ? 2 : 1;
-    for (int i=0; i<times; i++)
-    {
+    for (int i = 0; i < times; i++) {
         // top tile first
-        for (int y=0; y<_tileProperties.size.height(); y++) {
+        for (int y = 0; y < _tileProperties.size.height(); y++) {
 
             // top byte of
-            for (int i=0; i<8; i++) {
+            for (int i = 0; i < 8; i++) {
 
                 bool rightBit = false;
                 bool prevRightBit = false;
 
-                for (int x=0; x<_tileProperties.size.width(); x++) {
-                    rightBit = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] & (1<<0);
+                for (int x = 0; x < _tileProperties.size.width(); x++) {
+                    rightBit = charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] & (1 << 0);
 
-                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] >>= 1;
+                    charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] >>= 1;
 
-                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 127;
-                    charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (prevRightBit<<7);
+                    charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] &= 127;
+                    charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] |= (prevRightBit << 7);
 
                     prevRightBit = rightBit;
                 }
-                charPtr[i+(0+y*_tileProperties.size.width())*8*_tileProperties.interleaved] &= 127;
-                charPtr[i+(0+y*_tileProperties.size.width())*8*_tileProperties.interleaved] |= (rightBit<<7);
+                charPtr[i + (0 + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] &= 127;
+                charPtr[i + (0 + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] |= (rightBit << 7);
             }
         }
     }
 
     emit tileUpdated(tileIndex);
     emit contentsChanged();
-
 }
 
 void State::tileShiftUp(int tileIndex)
@@ -1359,24 +1313,24 @@ void State::_tileShiftUp(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
-    for (int x=0; x<_tileProperties.size.width(); x++) {
+    for (int x = 0; x < _tileProperties.size.width(); x++) {
 
         // bottom byte of bottom
         qint8 topByte, prevTopByte = 0;
 
-        for (int y=_tileProperties.size.height()-1; y>=0; y--) {
+        for (int y = _tileProperties.size.height() - 1; y >= 0; y--) {
 
-            topByte = charPtr[0+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
+            topByte = charPtr[0 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
 
-            for (int i=0; i<7; i++) {
-                charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = charPtr[i+1+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
+            for (int i = 0; i < 7; i++) {
+                charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = charPtr[i + 1 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
             }
 
-            charPtr[7+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = prevTopByte;
+            charPtr[7 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = prevTopByte;
             prevTopByte = topByte;
         }
         // replace bottom byte (y=height-1) with top byte
-        charPtr[7+(x+(_tileProperties.size.height()-1)*_tileProperties.size.width())*8*_tileProperties.interleaved] = prevTopByte;
+        charPtr[7 + (x + (_tileProperties.size.height() - 1) * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = prevTopByte;
     }
 
     emit tileUpdated(tileIndex);
@@ -1393,24 +1347,24 @@ void State::_tileShiftDown(int tileIndex)
     int charIndex = getCharIndexFromTileIndex(tileIndex);
     quint8* charPtr = getCharAtIndex(charIndex);
 
-    for (int x=0; x<_tileProperties.size.width(); x++) {
+    for (int x = 0; x < _tileProperties.size.width(); x++) {
 
         // bottom byte of bottom
         qint8 bottomByte, prevBottomByte = 0;
 
-        for (int y=0; y<_tileProperties.size.height(); y++) {
+        for (int y = 0; y < _tileProperties.size.height(); y++) {
 
-            bottomByte = charPtr[7+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
+            bottomByte = charPtr[7 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
 
-            for (int i=6; i>=0; i--) {
-                charPtr[i+1+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = charPtr[i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
+            for (int i = 6; i >= 0; i--) {
+                charPtr[i + 1 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
             }
 
-            charPtr[0+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = prevBottomByte;
+            charPtr[0 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = prevBottomByte;
             prevBottomByte = bottomByte;
         }
         // replace top byte (y=0) with bottom byte
-        charPtr[x*8*_tileProperties.interleaved] = prevBottomByte;
+        charPtr[x * 8 * _tileProperties.interleaved] = prevBottomByte;
     }
 
     emit tileUpdated(tileIndex);
@@ -1428,8 +1382,7 @@ void State::setCharIndex(int charIndex)
 {
     Q_ASSERT(charIndex >= 0 && charIndex < 256);
 
-    if (_charIndex != charIndex)
-    {
+    if (_charIndex != charIndex) {
         _setCharIndex(charIndex);
 
         int tileIndex = getTileIndexFromCharIndex(charIndex);
@@ -1439,13 +1392,11 @@ void State::setCharIndex(int charIndex)
 
 void State::_setCharIndex(int charIndex)
 {
-    if (_charIndex != charIndex)
-    {
+    if (_charIndex != charIndex) {
         _charIndex = charIndex;
         emit charIndexUpdated(_charIndex);
     }
 }
-
 
 int State::getTileIndex() const
 {
@@ -1456,8 +1407,7 @@ void State::setTileIndex(int tileIndex)
 {
     Q_ASSERT(tileIndex >= 0 && tileIndex <= (256 / (_tileProperties.size.width() * _tileProperties.size.height())));
 
-    if (_tileIndex != tileIndex)
-    {
+    if (_tileIndex != tileIndex) {
         _setTileIndex(tileIndex);
 
         int charIndex = getCharIndexFromTileIndex(tileIndex);
@@ -1467,8 +1417,7 @@ void State::setTileIndex(int tileIndex)
 
 void State::_setTileIndex(int tileIndex)
 {
-    if (_tileIndex != tileIndex)
-    {
+    if (_tileIndex != tileIndex) {
         int oldTileIndex = _tileIndex;
 
         // set _tileIndex before emiting colorPropertiesUpdated
@@ -1508,11 +1457,11 @@ void State::clearUndoStack()
 //
 State::Char State::getCharFromTile(int tileIndex, int x, int y) const
 {
-    Char ret{};
+    Char ret {};
     int charIndex = getCharIndexFromTileIndex(tileIndex);
 
-    for (int i=0; i<8; i++) {
-        ret._char8[i] = _charset[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved];
+    for (int i = 0; i < 8; i++) {
+        ret._char8[i] = _charset[charIndex * 8 + i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
     }
     return ret;
 }
@@ -1521,11 +1470,10 @@ void State::setCharForTile(int tileIndex, int x, int y, const Char& chr)
 {
     int charIndex = getCharIndexFromTileIndex(tileIndex);
 
-    for (int i=0; i<8; i++) {
-        _charset[charIndex*8+i+(x+y*_tileProperties.size.width())*8*_tileProperties.interleaved] = chr._char8[i];
+    for (int i = 0; i < 8; i++) {
+        _charset[charIndex * 8 + i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = chr._char8[i];
     }
 }
-
 
 BigCharWidget* State::getBigCharWidget() const
 {
@@ -1535,28 +1483,28 @@ BigCharWidget* State::getBigCharWidget() const
 void State::setupDefaultMap()
 {
     memset(_map, 0x20, _mapSize.width() * _mapSize.height());
-                          //1234567890123456789012345678901234567890
-    const char hello64[] = "                                        " \
-                           "    **** COMMODORE 64 BASIC V2 ****     " \
-                           "                                        " \
+    //1234567890123456789012345678901234567890
+    const char hello64[] = "                                        "
+                           "    **** COMMODORE 64 BASIC V2 ****     "
+                           "                                        "
                            " 64K RAM SYSTEM  38911 BASIC BYTES FREE ";
 
-    const char hello128[] = "                                        " \
-                            " COMMODORE BASIC V7.0 122365 BYTES FREE " \
-                            "   (C)1986 COMMODORE ELECTRONICS, LTD.  " \
-                            "         (C)1977 MICROSOFT CORP.        " \
+    const char hello128[] = "                                        "
+                            " COMMODORE BASIC V7.0 122365 BYTES FREE "
+                            "   (C)1986 COMMODORE ELECTRONICS, LTD.  "
+                            "         (C)1977 MICROSOFT CORP.        "
                             "           ALL RIGHTS RESERVED          ";
     struct {
         const char* hello;
         int helloSize;
     } hellos[] = {
-        {hello64, sizeof(hello64)-1},
-        {hello128, sizeof(hello128)-1}
+        { hello64, sizeof(hello64) - 1 },
+        { hello128, sizeof(hello128) - 1 }
     };
 
     QRandomGenerator prng(QTime::currentTime().msec());
     int helloidx = prng.generate() % 2;
     // ASCII to PETSCII screen codes
-    for (int i=0; i<hellos[helloidx].helloSize; ++i)
+    for (int i = 0; i < hellos[helloidx].helloSize; ++i)
         _map[i] = hellos[helloidx].hello[i] & ~0x40;
 }
