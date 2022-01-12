@@ -64,7 +64,7 @@ protected:
     int _maxTiles;
 
     QSize _sizeHint;
-    float _zoomLevel;
+    qreal _zoomLevel;
     bool _displayGrid;
 };
 

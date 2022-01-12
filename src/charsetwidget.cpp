@@ -70,10 +70,10 @@ void CharsetWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
-    auto pos = event->localPos();
+    auto pos = event->position();
 
-    int x = (pos.x() / _zoomLevel - OFFSET) / 8;
-    int y = (pos.y() /_zoomLevel - OFFSET) / 8;
+    int x = int((pos.x() / _zoomLevel - OFFSET)) / 8;
+    int y = int((pos.y() /_zoomLevel - OFFSET)) / 8;
     int charIndex = x + y * COLUMNS;
 
     if (event->button() == Qt::LeftButton)
@@ -116,9 +116,9 @@ void CharsetWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
 
-    auto pos = event->localPos();
-    int x = (pos.x() / _zoomLevel - OFFSET) / 8;
-    int y = (pos.y() /_zoomLevel - OFFSET) / 8;
+    auto pos = event->position();
+    int x = int((pos.x() / _zoomLevel - OFFSET)) / 8;
+    int y = int((pos.y() /_zoomLevel - OFFSET)) / 8;
     x = qBound(0, x, COLUMNS-1);
     y = qBound(0, y, ROWS-1);
 
@@ -343,19 +343,19 @@ void CharsetWidget::onCharIndexUpdated(int charIndex)
 
 void CharsetWidget::onMulticolorModeToggled(bool state)
 {
-    Q_UNUSED(state);
+    Q_UNUSED(state)
     update();
 }
 
 void CharsetWidget::onColorPropertiesUpdated(int pen)
 {
-    Q_UNUSED(pen);
+    Q_UNUSED(pen)
     update();
 }
 
 void CharsetWidget::onTileUpdated(int tileIndex)
 {
-    Q_UNUSED(tileIndex);
+    Q_UNUSED(tileIndex)
     update();
 }
 

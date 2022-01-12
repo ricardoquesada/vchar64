@@ -68,13 +68,13 @@ void TilesetWidget::mousePressEvent(QMouseEvent * event)
     if (event->button() == Qt::LeftButton)
     {
 
-        const auto pos = event->localPos();
+        const auto pos = event->position();
         const auto tileProperties = state->getTileProperties();
         const int tw = tileProperties.size.width();
         const int th = tileProperties.size.height();
 
-        int x = (pos.x() / _zoomLevel - OFFSET) / 8 / tw;
-        int y = (pos.y() /_zoomLevel - OFFSET) / 8 / th;
+        int x = int((pos.x() / _zoomLevel - OFFSET)) / 8 / tw;
+        int y = int((pos.y() /_zoomLevel - OFFSET)) / 8 / th;
 
 
         // sanity check
@@ -127,14 +127,14 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
 
-    auto pos = event->localPos();
+    auto pos = event->position();
     auto state = MainWindow::getCurrentState();
     auto tileProperties = state->getTileProperties();
     int tw = tileProperties.size.width();
     int th = tileProperties.size.height();
 
-    int x = (pos.x() / _zoomLevel - OFFSET) / 8 / tw;
-    int y = (pos.y() /_zoomLevel - OFFSET) / 8 / th;
+    int x = int((pos.x() / _zoomLevel - OFFSET)) / 8 / tw;
+    int y = int((pos.y() /_zoomLevel - OFFSET)) / 8 / th;
 
     x = qBound(0, x, _tileColumns-1);
     y = qBound(0, y, _tileRows-1);
@@ -273,7 +273,7 @@ void TilesetWidget::paintEvent(QPaintEvent *event)
 
     for (int i=0; i<max_tiles;i++)
     {
-        quint8 charIdx = tileProperties.interleaved == 1 ?
+        int charIdx = tileProperties.interleaved == 1 ?
                                                     i * tw * th :
                                                     i;
 
@@ -426,19 +426,19 @@ void TilesetWidget::onTilePropertiesUpdated()
 
 void TilesetWidget::onMulticolorModeToggled(bool state)
 {
-    Q_UNUSED(state);
+    Q_UNUSED(state)
     update();
 }
 
 void TilesetWidget::onColorPropertiesUpdated(int pen)
 {
-    Q_UNUSED(pen);
+    Q_UNUSED(pen)
     update();
 }
 
 void TilesetWidget::onTileUpdated(int tileIndex)
 {
-    Q_UNUSED(tileIndex);
+    Q_UNUSED(tileIndex)
     update();
 }
 

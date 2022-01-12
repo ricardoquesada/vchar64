@@ -159,7 +159,7 @@ void MapWidget::mousePressEvent(QMouseEvent * event)
     if (!state)
         return;
 
-    auto pos = event->localPos();
+    auto pos = event->position();
 
     int x = (pos.x() - OFFSET) / _zoomLevel / _tileSize.width() / 8;
     int y = (pos.y() - OFFSET) / _zoomLevel / _tileSize.height() / 8;
@@ -230,7 +230,7 @@ void MapWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
 
-    auto pos = event->localPos();
+    auto pos = event->position();
     int x = (pos.x() - OFFSET) / _zoomLevel / _tileSize.width() / 8;
     int y = (pos.y() - OFFSET) / _zoomLevel / _tileSize.height() / 8;
 

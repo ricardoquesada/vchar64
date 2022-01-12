@@ -29,10 +29,9 @@ int main(int argc, char *argv[])
 
     // translation code
     QTranslator qtTranslator;
-    qtTranslator.load("qt_" + QLocale::system().name(),
-                      QLibraryInfo::location(QLibraryInfo::TranslationsPath));
-    app.installTranslator(&qtTranslator);
-
+    if (qtTranslator.load("qt_" + QLocale::system().name(),
+                          QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+        app.installTranslator(&qtTranslator);
 
     auto translationDir = QCoreApplication::applicationDirPath();
 #ifdef Q_OS_WIN32
@@ -44,9 +43,9 @@ int main(int argc, char *argv[])
 #endif
 
     QTranslator myappTranslator;
-    myappTranslator.load("vchar64_" + QLocale::system().name(),
-                         translationDir);
-    app.installTranslator(&myappTranslator);
+    if (myappTranslator.load("vchar64_" + QLocale::system().name(),
+                             translationDir))
+        app.installTranslator(&myappTranslator);
 
     // name code
     app.setOrganizationDomain(QLatin1String("retro.moe"));
@@ -63,11 +62,6 @@ int main(int argc, char *argv[])
 
 #ifdef Q_OS_MAC
     app.setAttribute(Qt::AA_DontShowIconsInMenus);
-#endif
-
-#if QT_VERSION >= 0x050100
-    // Enable support for highres images (added in Qt 5.1, but off by default)
-    app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
     QApplication::setWindowIcon(QIcon(":/res/logo512.png"));

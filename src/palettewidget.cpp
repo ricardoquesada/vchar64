@@ -46,7 +46,7 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
-    auto pos = event->localPos();
+    auto pos = event->position();
 
     int x = pos.x() / _pixelSize.width();
     int y = pos.y() / _pixelSize.height();
@@ -76,7 +76,7 @@ void PaletteWidget::mouseMoveEvent(QMouseEvent * event)
 
     if (event->buttons() == Qt::NoButton)
     {
-        auto pos = event->localPos();
+        auto pos = event->position();
 
         int x = pos.x() / _pixelSize.width();
         int y = pos.y() / _pixelSize.height();

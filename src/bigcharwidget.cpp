@@ -106,10 +106,10 @@ void BigCharWidget::mousePressEvent(QMouseEvent * event)
 {
     event->accept();
 
-    const auto pos = event->localPos();
+    const auto pos = event->position();
 
-    const int x = pos.x() / _pixelSize.width();
-    const int y = pos.y() / _pixelSize.height();
+    const int x = int(pos.x()) / _pixelSize.width();
+    const int y = int(pos.y()) / _pixelSize.height();
     if (x >= 8 * _tileProperties.size.width() || y >= 8 * _tileProperties.size.height())
         return;
 
@@ -129,10 +129,10 @@ void BigCharWidget::mouseMoveEvent(QMouseEvent * event)
 {
     event->accept();
 
-    const auto pos = event->localPos();
+    const auto pos = event->position();
 
-    int x = pos.x() / _pixelSize.width();
-    int y = pos.y() / _pixelSize.height();
+    int x = int(pos.x()) / _pixelSize.width();
+    int y = int(pos.y()) / _pixelSize.height();
 
     x = qBound(0, x, 8 * _tileProperties.size.width() - 1);
     y = qBound(0, y, 8 * _tileProperties.size.height() -1 );
@@ -246,7 +246,7 @@ void BigCharWidget::paintEvent(QPaintEvent *event)
     pen.setStyle(Qt::PenStyle::SolidLine);
     painter.setPen(pen);
 
-    quint8 charIndex = _charIndex;
+    int charIndex = _charIndex;
 
     for (int y=0; y<_tileProperties.size.height(); y++) {
         for (int x=0; x<_tileProperties.size.width(); x++) {
@@ -361,7 +361,7 @@ bool BigCharWidget::maybeSave()
 //
 void BigCharWidget::onMulticolorModeToggled(bool state)
 {
-    Q_UNUSED(state);
+    Q_UNUSED(state)
     update();
 }
 
@@ -392,13 +392,13 @@ void BigCharWidget::onTilePropertiesUpdated()
 
 void BigCharWidget::onColorPropertiesUpdated(int pen)
 {
-    Q_UNUSED(pen);
+    Q_UNUSED(pen)
     update();
 }
 
 void BigCharWidget::onTileUpdated(int tileIndex)
 {
-    Q_UNUSED(tileIndex);
+    Q_UNUSED(tileIndex)
     update();
 }
 
@@ -417,7 +417,7 @@ void BigCharWidget::onFileLoaded()
 //
 void BigCharWidget::resizeEvent(QResizeEvent* event)
 {
-    Q_UNUSED(event);
+    Q_UNUSED(event)
 
     // keep aspect ratio
     int maxTileSize = qMax(_tileProperties.size.width(), _tileProperties.size.height());
