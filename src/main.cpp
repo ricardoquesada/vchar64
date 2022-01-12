@@ -21,7 +21,7 @@ limitations under the License.
 #include "mainwindow.h"
 #include "vchar64application.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     Q_INIT_RESOURCE(resources);
 
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     // translation code
     QTranslator qtTranslator;
     if (qtTranslator.load("qt_" + QLocale::system().name(),
-                          QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+            QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
         app.installTranslator(&qtTranslator);
 
     auto translationDir = QCoreApplication::applicationDirPath();
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
     QTranslator myappTranslator;
     if (myappTranslator.load("vchar64_" + QLocale::system().name(),
-                             translationDir))
+            translationDir))
         app.installTranslator(&myappTranslator);
 
     // name code
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     bool loadFromArgv = false;
     if (argc == 2) {
         if (QFile::exists(argv[1]))
-                loadFromArgv =true;
+            loadFromArgv = true;
         else
             qDebug() << "Invalid VChar project file: " << argv[1];
     }
