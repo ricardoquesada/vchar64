@@ -28,7 +28,7 @@ limitations under the License.
 #include "preferences.h"
 #include "selectcolordialog.h"
 
-static const char* _hex ="0123456789ABCDEF";
+static const char* hex_digits = "0123456789ABCDEF";
 static quint8 dehexify(char h)
 {
     h -= '0';
@@ -201,7 +201,7 @@ bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int h
         // prevent that case.
         if (hiColorRAM != -1 && colorIndex == hiColorRAM)
         {
-            key[y*4+x] = _hex[_colorRAM];
+            key[y*4+x] = hex_digits[_colorRAM];
             return true;
         }
 
@@ -232,7 +232,7 @@ bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int h
                 neighColor == ui->widgetKoala->_d02xColors[1] ||
                 neighColor == ui->widgetKoala->_d02xColors[2])
         {
-            key[y*4+x] = _hex[neighColor];
+            key[y*4+x] = hex_digits[neighColor];
             return true;
         }
     }
@@ -382,7 +382,7 @@ int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vec
 
 void ImportKoalaDialog::normalizeWithColorStrategy(char* key, int hiColorRAM)
 {
-    Q_UNUSED(hiColorRAM);
+    Q_UNUSED(hiColorRAM)
 
     for (int y=0; y<8; ++y)
     {
@@ -406,7 +406,7 @@ void ImportKoalaDialog::normalizeWithColorStrategy(char* key, int hiColorRAM)
                     newColor = getColorByLuminanceProximity(colorIndex, colorsToFind);
                 else
                     newColor = getColorByPaletteProximity(colorIndex, colorsToFind);
-                key[y*4+x] = _hex[newColor];
+                key[y*4+x] = hex_digits[newColor];
             }
         }
     }
@@ -544,9 +544,17 @@ bool ImportKoalaDialog::convert()
         bitmap->strategyD02xAbove8();
     else /* manual */
     {
-        bitmap->_d02xColors[0] = ui->widgetD021->getColorIndex();
-        bitmap->_d02xColors[1] = ui->widgetD022->getColorIndex();
-        bitmap->_d02xColors[2] = ui->widgetD023->getColorIndex();
+        auto d021 = ui->widgetD021->getColorIndex();
+        Q_ASSERT(d021 < 16);
+        bitmap->_d02xColors[0] = static_cast<quint8>(d021);
+
+        auto d022 = ui->widgetD022->getColorIndex();
+        Q_ASSERT(d022 < 16);
+        bitmap->_d02xColors[1] = static_cast<quint8>(d022);
+
+        auto d023 = ui->widgetD023->getColorIndex();
+        Q_ASSERT(d023 < 16);
+        bitmap->_d02xColors[2] = static_cast<quint8>(d023);
     }
 
 //    bitmap->reportResults();
@@ -583,10 +591,10 @@ bool ImportKoalaDialog::convert()
         std::string key;
         for (unsigned char i: chardef)
         {
-            key += _hex[i >> 4];
-            key += _hex[i & 0x0f];
+            key += hex_digits[i >> 4];
+            key += hex_digits[i & 0x0f];
         }
-        key += _hex[colorRAM];
+        key += hex_digits[colorRAM];
 
         if (_uniqueChars.find(key) != std::end(_uniqueChars))
             // append coordinates since they all share the same key
@@ -703,7 +711,7 @@ void ImportKoalaDialog::on_radioButtonPalette_toggled(bool checked)
 
 void ImportKoalaDialog::onSelectedRegionUpdated(const QRect& region)
 {
-    Q_UNUSED(region);
+    Q_UNUSED(region)
     ui->widgetCharset->clean();
     ui->widgetKoala->parseKoala();
     _validKoalaFile = convert();

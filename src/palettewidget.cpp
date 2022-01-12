@@ -48,8 +48,8 @@ void PaletteWidget::mousePressEvent(QMouseEvent * event)
 
     auto pos = event->position();
 
-    int x = pos.x() / _pixelSize.width();
-    int y = pos.y() / _pixelSize.height();
+    int x = static_cast<int>(pos.x() / _pixelSize.width());
+    int y = static_cast<int>(pos.y() / _pixelSize.height());
 
     x = qBound(0, x, COLUMNS-1);
     y = qBound(0, y, ROWS-1);
@@ -78,8 +78,8 @@ void PaletteWidget::mouseMoveEvent(QMouseEvent * event)
     {
         auto pos = event->position();
 
-        int x = pos.x() / _pixelSize.width();
-        int y = pos.y() / _pixelSize.height();
+        int x = static_cast<int>(pos.x() / _pixelSize.width());
+        int y = static_cast<int>(pos.y() / _pixelSize.height());
 
         x = qBound(0, x, COLUMNS-1);
         y = qBound(0, y, ROWS-1);
@@ -144,7 +144,7 @@ QSize PaletteWidget::sizeHint() const
 
 void PaletteWidget::resizeEvent(QResizeEvent* event)
 {
-    Q_UNUSED(event);
+    Q_UNUSED(event)
 
     auto pixel_size_x = size().width() / COLUMNS;
     auto pixel_size_y = size().height() / ROWS;

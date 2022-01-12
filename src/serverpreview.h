@@ -62,7 +62,7 @@ public slots:
 
 protected:
     ServerPreview();
-    virtual ~ServerPreview();
+    virtual ~ServerPreview() Q_DECL_OVERRIDE;
 
     // Proto: generic
     void protoPoke(quint16 addr, quint8 value);

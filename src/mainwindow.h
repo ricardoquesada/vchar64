@@ -96,7 +96,7 @@ public slots:
 
 protected:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow() override;
+    virtual ~MainWindow() Q_DECL_OVERRIDE;
 
     bool _openFile(const QString& fileName);
     bool activateIfAlreadyOpen(const QString& fileName);

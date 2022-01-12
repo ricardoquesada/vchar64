@@ -37,7 +37,7 @@ public:
         FILL_MODE
     };
 
-    explicit MapWidget(QWidget *parent = 0);
+    explicit MapWidget(QWidget *parent = nullptr);
 
     void enableGrid(bool enabled);
     void setMode(MapMode mode);
@@ -78,7 +78,7 @@ private:
     QSize _tileSize;
     MapMode _mode;
     bool _commandMergeable;
-    float _zoomLevel;
+    qreal _zoomLevel;
     int _altValue;      // value entered pressing ALT + number
 
     // For gain speed, each tile will be pre-renderer in a QImage

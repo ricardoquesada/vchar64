@@ -85,7 +85,7 @@ void ServerPreview::disconnect()
 // SLOTS
 void ServerPreview::onBytesWritten(qint64 bytes)
 {
-    Q_UNUSED(bytes);
+    Q_UNUSED(bytes)
 }
 
 void ServerPreview::onReadyRead()
@@ -235,7 +235,7 @@ void ServerPreview::updateForegroundColorForTileset()
 
     for (int i=0; i<max_tiles;i++)
     {
-        quint8 index = currentTileProperties.interleaved == 1 ?
+        int index = currentTileProperties.interleaved == 1 ?
                     i * tw * th :
                     i;
         int w = (i * tw) % columns;
@@ -464,7 +464,7 @@ void ServerPreview::colorPropertiesUpdated(int pen)
 
 void ServerPreview::multicolorModeUpdated(bool toggled)
 {
-    Q_UNUSED(toggled);
+    Q_UNUSED(toggled)
     updateColorMode();
 }
 
@@ -539,8 +539,8 @@ void ServerPreview::protoPoke(quint16 addr, quint8 value)
 
 void ServerPreview::protoPeek(quint16 addr, const quint8* value)
 {
-    Q_UNUSED(addr);
-    Q_UNUSED(value);
+    Q_UNUSED(addr)
+    Q_UNUSED(value)
 }
 
 

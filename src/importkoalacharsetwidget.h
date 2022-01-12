@@ -26,9 +26,10 @@ class ImportKoalaCharsetWidget : public QWidget
     friend class ImportKoalaDialog;
 
 public:
-    explicit ImportKoalaCharsetWidget(QWidget *parent = 0);
+    explicit ImportKoalaCharsetWidget(QWidget *parent = nullptr);
 
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+
     void populateScreenAndColorRAM(const std::vector<std::pair<int,int>>& coords, quint8 screenRAM, quint8 colorRAM);
     void setCharset(int charIndex, const quint8* chardef);
     void enableGrid(bool enabled);

@@ -28,8 +28,8 @@ class ImportKoalaDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ImportKoalaDialog(QWidget *parent = 0);
-    ~ImportKoalaDialog();
+    explicit ImportKoalaDialog(QWidget *parent = nullptr);
+    virtual ~ImportKoalaDialog() Q_DECL_OVERRIDE;
 
     const QString& getFilepath() const;
 

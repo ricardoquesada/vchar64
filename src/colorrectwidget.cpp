@@ -34,9 +34,7 @@ ColorRectWidget::ColorRectWidget(QWidget *parent)
     setMinimumSize(60,10);
 }
 
-ColorRectWidget::~ColorRectWidget()
-= default;
-
+ColorRectWidget::~ColorRectWidget() = default;
 
 void ColorRectWidget::setPen(int pen)
 {

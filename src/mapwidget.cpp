@@ -328,6 +328,7 @@ void MapWidget::keyPressEvent(QKeyEvent *event)
         if (_mode != SELECT_MODE)
             break;
         /* else fall-through */
+        Q_FALLTHROUGH();
     default:
         if (event->text().isEmpty())
         {
@@ -531,19 +532,19 @@ void MapWidget::onMapContentUpdated()
 
 void MapWidget::onMulticolorModeToggled(bool state)
 {
-    Q_UNUSED(state);
+    Q_UNUSED(state)
     update();
 }
 
 void MapWidget::onColorPropertiesUpdated(int pen)
 {
-    Q_UNUSED(pen);
+    Q_UNUSED(pen)
     update();
 }
 
 void MapWidget::onTileUpdated(int tileIndex)
 {
-    Q_UNUSED(tileIndex);
+    Q_UNUSED(tileIndex)
     update();
 }
 
@@ -590,9 +591,9 @@ void MapWidget::updateTileImages()
 
     for (int tileIdx=0; tileIdx<totalTiles; ++tileIdx)
     {
-        quint8 charIdx = tileProperties.interleaved == 1 ?
-                                                    tileIdx * tw * th :
-                                                    tileIdx;
+        int charIdx = tileProperties.interleaved == 1 ?
+                          tileIdx * tw * th :
+                          tileIdx;
 
         for (int char_quadrant=0; char_quadrant < (tw * th); char_quadrant++)
         {

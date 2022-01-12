@@ -30,7 +30,7 @@ class ExportDialog : public QDialog
 
 public:
     explicit ExportDialog(State *state, QWidget *parent = nullptr);
-    ~ExportDialog();
+    ~ExportDialog() Q_DECL_OVERRIDE;
 
 private slots:
     void on_pushBrowse_clicked();
@@ -48,7 +48,7 @@ private slots:
     void on_checkBox_tileColors_toggled(bool checked);
 
 private:
-    void accept();
+    void accept() Q_DECL_OVERRIDE;
     void updateButtons();
 
     Ui::ExportDialog *ui;

@@ -32,8 +32,8 @@ class ImportVICEDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ImportVICEDialog(QWidget *parent = 0);
-    ~ImportVICEDialog();
+    explicit ImportVICEDialog(QWidget *parent = nullptr);
+    virtual ~ImportVICEDialog() Q_DECL_OVERRIDE;
 
     const QString& getFilepath() const;
 
@@ -74,7 +74,7 @@ private:
 
     quint8 _memoryRAM[64*1024];     // RAM: 64k
     quint8 _colorRAM[1024];         // Color RAM: 1k
-    quint8 _VICColorsBackup[3];
+    quint8 _vicColorsBackup[3];
     State* _tmpState;
 
     // To gain speed, each tile will be pre-renderer in a QImage

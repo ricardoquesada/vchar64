@@ -34,8 +34,8 @@ public:
     };
 
 
-    explicit ColorRectWidget(QWidget *parent = 0);
-    ~ColorRectWidget();
+    explicit ColorRectWidget(QWidget *parent = nullptr);
+    virtual ~ColorRectWidget() Q_DECL_OVERRIDE;
 
     // Pen mode
     void setPen(int pen);

@@ -279,13 +279,13 @@ void ImportVICEDialog::on_checkBoxGuessColors_toggled(bool checked)
 {
     _tmpState->_setForegroundColorMode(checked ? State::FOREGROUND_COLOR_PER_TILE : State::FOREGROUND_COLOR_GLOBAL);
     if (checked) {
-        _tmpState->_penColors[0] = _VICColorsBackup[0];
-        _tmpState->_penColors[1] = _VICColorsBackup[1];
-        _tmpState->_penColors[2] = _VICColorsBackup[2];
+        _tmpState->_penColors[0] = _vicColorsBackup[0];
+        _tmpState->_penColors[1] = _vicColorsBackup[1];
+        _tmpState->_penColors[2] = _vicColorsBackup[2];
     } else {
-        _VICColorsBackup[0] = _tmpState->_penColors[0];
-        _VICColorsBackup[1] = _tmpState->_penColors[1];
-        _VICColorsBackup[2] = _tmpState->_penColors[2];
+        _vicColorsBackup[0] = _tmpState->_penColors[0];
+        _vicColorsBackup[1] = _tmpState->_penColors[1];
+        _vicColorsBackup[2] = _tmpState->_penColors[2];
 
         _tmpState->_penColors[0] = 1;               // white
         _tmpState->_penColors[1] = 5;               // green

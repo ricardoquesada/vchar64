@@ -30,7 +30,7 @@ class TilePropertiesDialog : public QDialog
 
 public:
     explicit TilePropertiesDialog(State *state, QWidget *parent = nullptr);
-    ~TilePropertiesDialog();
+    ~TilePropertiesDialog() Q_DECL_OVERRIDE;
 
 private slots:
     void on_buttonBox_accepted();

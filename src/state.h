@@ -166,7 +166,7 @@ public:
     /**
      * @brief ~State destructor
      */
-    virtual ~State();
+    virtual ~State() Q_DECL_OVERRIDE;
 
     /**
      * @brief Copy the state from orig to self.
@@ -569,7 +569,7 @@ protected:
     ForegroundColorMode _foregroundColorMode;
 
     int _selectedPen;
-    int _penColors[PEN_MAX];
+    quint8 _penColors[PEN_MAX];
 
     TileProperties _tileProperties;
 

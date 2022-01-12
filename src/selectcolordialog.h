@@ -14,8 +14,8 @@ class SelectColorDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SelectColorDialog(QWidget *parent = 0);
-    ~SelectColorDialog();
+    explicit SelectColorDialog(QWidget *parent = nullptr);
+    virtual ~SelectColorDialog() Q_DECL_OVERRIDE;
 
     void setCurrentColor(int colorIndex);
     int getSelectedColor() const;

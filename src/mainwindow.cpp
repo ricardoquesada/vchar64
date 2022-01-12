@@ -665,7 +665,7 @@ void MainWindow::updateRecentFiles()
         _recentFiles[i]->setData(files[i]);
         _recentFiles[i]->setVisible(true);
         // enable only if the file exists
-        _recentFiles[i]->setEnabled(QFileInfo(files[i]).exists());
+        _recentFiles[i]->setEnabled(QFileInfo::exists(files[i]));
     }
     for (int j=numRecentFiles; j<MAX_RECENT_FILES; ++j)
     {
@@ -696,7 +696,7 @@ void MainWindow::setRecentFile(const QString& fileName)
 void MainWindow::setSessionFiles()
 {
     QStringList fileList;
-    const QStringList suffixList = {QString("vsf"), QString("koa"), QString("kla")};
+    const QVector<QString> suffixList = {QString("vsf"), QString("koa"), QString("kla")};
     auto mdiList = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::StackingOrder);
     for (auto item: mdiList) {
         auto bigchar = qobject_cast<BigCharWidget*>(item->widget());
@@ -1023,7 +1023,6 @@ bool MainWindow::_openFile(const QString& path)
 
 bool MainWindow::activateIfAlreadyOpen(const QString& fileName)
 {
-    QStringList fileList;
     auto mdiList = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::StackingOrder);
     for (auto mdiSubWindow: mdiList) {
         auto bigchar = qobject_cast<BigCharWidget*>(mdiSubWindow->widget());

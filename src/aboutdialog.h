@@ -27,8 +27,8 @@ class AboutDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AboutDialog(QWidget *parent = 0);
-    ~AboutDialog();
+    explicit AboutDialog(QWidget *parent = nullptr);
+    virtual ~AboutDialog() Q_DECL_OVERRIDE;
 
 private slots:
 

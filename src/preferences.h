@@ -73,7 +73,7 @@ public:
 
 private:
     Preferences();
-    ~Preferences();
+    virtual ~Preferences() Q_DECL_OVERRIDE;
 
     QSettings _settings;
 };

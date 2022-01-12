@@ -148,10 +148,9 @@ void ExportDialog::accept()
     }
     else if (ui->radioButton_prg->isChecked())
     {
-        properties.addresses[0] = ui->spinBox_charsetAddress->value();
-        properties.addresses[1] = ui->spinBox_mapAddress->value();
-        properties.addresses[2] = ui->spinBox_attribAddress->value();
-
+        properties.addresses[0] = static_cast<quint16>(ui->spinBox_charsetAddress->value());
+        properties.addresses[1] = static_cast<quint16>(ui->spinBox_mapAddress->value());
+        properties.addresses[2] = static_cast<quint16>(ui->spinBox_attribAddress->value());
         ok = _state->exportPRG(filename, properties);
     }
     else if (ui->radioButton_asm->isChecked())

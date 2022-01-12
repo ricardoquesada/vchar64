@@ -35,7 +35,7 @@ class BigCharWidget : public QWidget
 
 public:
     BigCharWidget(State *state, QWidget *parent=nullptr);
-    virtual ~BigCharWidget();
+    virtual ~BigCharWidget() Q_DECL_OVERRIDE;
 
     int getTileIndex() const;
     QSize getTileSize() const;

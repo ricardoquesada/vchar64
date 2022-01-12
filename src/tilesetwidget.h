@@ -22,7 +22,6 @@ limitations under the License.
 
 #include "state.h"
 
-
 class TilesetWidget : public QWidget
 {
     Q_OBJECT
@@ -30,6 +29,10 @@ class TilesetWidget : public QWidget
 public:
     TilesetWidget(QWidget *parent=nullptr);
 
+    bool hasSelection() const;
+    void getSelectionRange(State::CopyRange* copyRange) const;
+    void enableGrid(bool enabled);
+    void setZoomLevel(int zoomLevel);
 
 public slots:
     void onTileIndexUpdated(int selectedTileIndex);
@@ -40,10 +43,6 @@ public slots:
     void onCharsetUpdated();
     void onFileLoaded();
 
-    bool hasSelection() const;
-    void getSelectionRange(State::CopyRange* copyRange) const;
-    void enableGrid(bool enabled);
-    void setZoomLevel(int zoomLevel);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

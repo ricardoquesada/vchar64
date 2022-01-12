@@ -165,7 +165,7 @@ bool State::openFile(const QString& filename)
         return false;
 
     qint64 length=0;
-    quint16 loadedAddress;
+    quint16 loadedAddress=0;
 
     enum {
         FILETYPE_VCHAR64,
@@ -592,21 +592,21 @@ int State::tileGetPen(int tileIndex, const QPoint& position)
             + (x/8) * _tileProperties.interleaved
             + (y/8) * _tileProperties.interleaved * _tileProperties.size.width();
 
-    char c = _charset[charIndex*8 + bitIndex/8];
-    int b = bitIndex%8;
+    quint8 c = _charset[charIndex*8 + bitIndex/8];
+    quint8 b = bitIndex%8;
 
     int ret = 0;
 
     // not multicolor: expected result: 0 or 1
     if (!shouldBeDisplayedInMulticolor2(tileIndex))
     {
-        uint8_t mask = 1 << (7-b);
+        quint8 mask = 1 << (7-b);
         ret = (c & mask) >> (7-b);
     }
     else
     {
-        uint8_t masks[] = {192,192,48,48,12,12,3,3};
-        uint8_t mask = masks[b];
+        quint8 masks[] = {192,192,48,48,12,12,3,3};
+        quint8 mask = masks[b];
 
         // ignore "odd" numbers when... valid bits to shift: 6,4,2,0
         ret = (c & mask) >> ((7-b) & 254);
@@ -632,9 +632,9 @@ void State::_tileSetPen(int tileIndex, const QPoint& position, int pen)
     int byteIndex = charIndex*8 + bitIndex/8;
 
 
-    uint8_t b = bitIndex%8;
-    uint8_t and_mask = 0x00;
-    uint8_t or_mask = 0x00;
+    quint8 b = bitIndex%8;
+    quint8 and_mask = 0x00;
+    quint8 or_mask = 0x00;
     if (!shouldBeDisplayedInMulticolor2(tileIndex))
     {
         and_mask = 1 << (7-b);
@@ -642,7 +642,7 @@ void State::_tileSetPen(int tileIndex, const QPoint& position, int pen)
     }
     else
     {
-        uint8_t masks[] = {128+64, 128+64, 32+16, 32+16, 8+4, 8+4, 2+1, 2+1};
+        quint8 masks[] = {128+64, 128+64, 32+16, 32+16, 8+4, 8+4, 2+1, 2+1};
         and_mask = masks[b];
         or_mask = pen << ((7-b) & 254);
     }
@@ -916,6 +916,8 @@ int State::getCharIndexFromTileIndex(int tileIndex) const
 
 int State::getTileIndexFromCharIndex(int charIndex) const
 {
+    Q_ASSERT(charIndex >= 0 && charIndex < 256);
+
     int tileIndex = -1;
     if (_tileProperties.interleaved == 1) {
         tileIndex = charIndex / (_tileProperties.size.width() * _tileProperties.size.height());

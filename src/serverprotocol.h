@@ -19,6 +19,8 @@ limitations under the License.
 /* shared both by cc64 (c64) and Qt projects */
 /* only add pure C code */
 
+#include <stdint.h>
+
 #ifndef __CC65__
 #pragma pack(push)
 #pragma pack(1)

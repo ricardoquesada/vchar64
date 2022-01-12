@@ -64,7 +64,7 @@ class PasteCommand : public QUndoCommand
 {
 public:
     PasteCommand(State *state, int charIndex, const State::CopyRange &copyRange, const quint8* buffer, QUndoCommand *parent = nullptr);
-    virtual ~PasteCommand();
+    virtual ~PasteCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -81,7 +81,7 @@ class CutCommand : public QUndoCommand
 {
 public:
     CutCommand(State *state, const State::CopyRange &copyRange, QUndoCommand *parent = nullptr);
-    virtual ~CutCommand();
+    virtual ~CutCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -280,7 +280,7 @@ class SetMapSizeCommand : public QUndoCommand
 {
 public:
     SetMapSizeCommand(State *state, const QSize& mapSize, QUndoCommand *parent = nullptr);
-    virtual ~SetMapSizeCommand();
+    virtual ~SetMapSizeCommand() Q_DECL_OVERRIDE;
 
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
@@ -297,7 +297,7 @@ class FillMapCommand : public QUndoCommand
 {
 public:
     FillMapCommand(State *state, const QPoint& coord, int tileIdx, QUndoCommand *parent = nullptr);
-    virtual ~FillMapCommand();
+    virtual ~FillMapCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -314,7 +314,7 @@ class PaintMapCommand : public QUndoCommand
 {
 public:
     PaintMapCommand(State *state, const QPoint& position, int tileIdx, bool mergeable, QUndoCommand *parent = nullptr);
-    virtual ~PaintMapCommand();
+    virtual ~PaintMapCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
     int id() const Q_DECL_OVERRIDE { return Cmd_PaintMap; }
@@ -334,7 +334,7 @@ class ClearMapCommand : public QUndoCommand
 {
 public:
     ClearMapCommand(State *state, int tileIdx, QUndoCommand *parent = nullptr);
-    virtual ~ClearMapCommand();
+    virtual ~ClearMapCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 

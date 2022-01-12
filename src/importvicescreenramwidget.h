@@ -9,7 +9,7 @@ class ImportVICEScreenRAMWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ImportVICEScreenRAMWidget(QWidget *parent = 0);
+    explicit ImportVICEScreenRAMWidget(QWidget *parent = nullptr);
     void setParentDialog(ImportVICEDialog* parentDialog) { _parentDialog = parentDialog; }
     void setDisplayGrid(bool enabled);
 
