@@ -29,7 +29,7 @@ class TilePropertiesDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit TilePropertiesDialog(State *state, QWidget *parent = 0);
+    explicit TilePropertiesDialog(State *state, QWidget *parent = nullptr);
     ~TilePropertiesDialog();
 
 private slots:

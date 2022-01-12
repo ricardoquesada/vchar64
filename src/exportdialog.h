@@ -29,7 +29,7 @@ class ExportDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ExportDialog(State *state, QWidget *parent = 0);
+    explicit ExportDialog(State *state, QWidget *parent = nullptr);
     ~ExportDialog();
 
 private slots:
