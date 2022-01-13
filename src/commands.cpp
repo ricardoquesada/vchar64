@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+#include <cstring>
+#include <new>
+
 #include <QDebug>
 #include <QObject>
 
@@ -36,12 +39,12 @@ PaintTileCommand::PaintTileCommand(State* state, int tileIndex, const QPoint& po
 
 void PaintTileCommand::undo()
 {
-    _state->copyTileToIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
+    _state->copyTileToIndex(_tileIndex, &_buffer[0], sizeof(_buffer));
 }
 
 void PaintTileCommand::redo()
 {
-    _state->copyTileFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
+    _state->copyTileFromIndex(_tileIndex, &_buffer[0], sizeof(_buffer));
 
     for (auto point : _points) {
         _state->_tileSetPen(_tileIndex, point, _pen);
@@ -76,12 +79,12 @@ ClearTileCommand::ClearTileCommand(State* state, int tileIndex, QUndoCommand* pa
 
 void ClearTileCommand::undo()
 {
-    _state->copyTileToIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
+    _state->copyTileToIndex(_tileIndex, &_buffer[0], sizeof(_buffer));
 }
 
 void ClearTileCommand::redo()
 {
-    _state->copyTileFromIndex(_tileIndex, (quint8*)&_buffer, sizeof(_buffer));
+    _state->copyTileFromIndex(_tileIndex, &_buffer[0], sizeof(_buffer));
     _state->_tileClear(_tileIndex);
 }
 
@@ -91,8 +94,6 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
     : QUndoCommand(parent)
     , _state(state)
     , _charIndex(charIndex)
-    , _copyBuffer(nullptr)
-    , _origBuffer(nullptr)
     , _copyRange(copyRange)
 {
 
@@ -101,16 +102,16 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
         sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
         Q_ASSERT(copyRange.bufferSize == sizeToCopy && "Invalid bufferSize");
 
-        _copyBuffer = (quint8*)malloc(sizeToCopy);
-        _origBuffer = (quint8*)malloc(sizeToCopy);
+        _copyBuffer.reserve(sizeToCopy);
+        _origBuffer.reserve(sizeToCopy);
     } else /* MAP */
     {
         sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
-        _origBuffer = (quint8*)malloc(sizeToCopy);
-        _copyBuffer = (quint8*)malloc(copyRange.bufferSize);
+        _copyBuffer.reserve(copyRange.bufferSize);
+        _origBuffer.reserve(sizeToCopy);
     }
 
-    memcpy(_copyBuffer, buffer, copyRange.bufferSize);
+    std::memcpy(_copyBuffer.data(), buffer, copyRange.bufferSize);
 
     static const QString types[] = {
         QObject::tr("Chars"),
@@ -119,12 +120,6 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
     };
 
     setText(QObject::tr("Paste %1").arg(types[_copyRange.type]));
-}
-
-PasteCommand::~PasteCommand()
-{
-    free(_copyBuffer);
-    free(_origBuffer);
 }
 
 void PasteCommand::undo()
@@ -137,19 +132,19 @@ void PasteCommand::undo()
     else
         reversedCopyRange.offset = _charIndex;
 
-    _state->_paste(_charIndex, reversedCopyRange, _origBuffer);
+    _state->_paste(_charIndex, reversedCopyRange, _origBuffer.data());
 }
 
 void PasteCommand::redo()
 {
     if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES) {
-        memcpy(_origBuffer, _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
-        memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileColors(), State::TILE_COLORS_BUFFER_SIZE);
+        std::memcpy(_origBuffer.data(), _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
+        std::memcpy(_origBuffer.data() + State::CHAR_BUFFER_SIZE, _state->getTileColors(), State::TILE_COLORS_BUFFER_SIZE);
     } else /* MAP */
     {
-        memcpy(_origBuffer, _state->getMapBuffer(), _state->getMapSize().width() * _state->getMapSize().height());
+        std::memcpy(_origBuffer.data(), _state->getMapBuffer(), _state->getMapSize().width() * _state->getMapSize().height());
     }
-    _state->_paste(_charIndex, _copyRange, _copyBuffer);
+    _state->_paste(_charIndex, _copyRange, _copyBuffer.data());
 }
 
 // CutCommand
@@ -157,24 +152,22 @@ void PasteCommand::redo()
 CutCommand::CutCommand(State* state, const State::CopyRange& copyRange, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
-    , _zeroBuffer(nullptr)
-    , _origBuffer(nullptr)
     , _copyRange(copyRange)
 {
     int sizeToCopy = -1;
     if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
         sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
-        _zeroBuffer = (quint8*)malloc(sizeToCopy);
-        _origBuffer = (quint8*)malloc(sizeToCopy);
+        _zeroBuffer.reserve(sizeToCopy);
+        _origBuffer.reserve(sizeToCopy);
 
-        memset(_zeroBuffer, 0, sizeToCopy);
+        std::memset(_zeroBuffer.data(), 0, sizeToCopy);
     } else /* MAP */
     {
         sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
-        _zeroBuffer = (quint8*)malloc(sizeToCopy);
-        _origBuffer = (quint8*)malloc(sizeToCopy);
+        _zeroBuffer.reserve(sizeToCopy);
+        _origBuffer.reserve(sizeToCopy);
 
-        memset(_zeroBuffer, 0 /*state->getTileIndex()*/, sizeToCopy);
+        std::memset(_zeroBuffer.data(), 0 /*state->getTileIndex()*/, sizeToCopy);
     }
 
     // _charIndex: offset to be used for cut
@@ -192,12 +185,6 @@ CutCommand::CutCommand(State* state, const State::CopyRange& copyRange, QUndoCom
     setText(QObject::tr("Cut %1").arg(types[_copyRange.type]));
 }
 
-CutCommand::~CutCommand()
-{
-    free(_zeroBuffer);
-    free(_origBuffer);
-}
-
 void CutCommand::undo()
 {
     State::CopyRange reversedCopyRange = _copyRange;
@@ -208,19 +195,19 @@ void CutCommand::undo()
     else
         reversedCopyRange.offset = _charIndex;
 
-    _state->_paste(_charIndex, reversedCopyRange, _origBuffer);
+    _state->_paste(_charIndex, reversedCopyRange, _origBuffer.data());
 }
 
 void CutCommand::redo()
 {
     if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES) {
-        memcpy(_origBuffer, _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
-        memcpy(_origBuffer + State::CHAR_BUFFER_SIZE, _state->getTileColors(), State::TILE_COLORS_BUFFER_SIZE);
+        std::memcpy(_origBuffer.data(), _state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
+        std::memcpy(_origBuffer.data() + State::CHAR_BUFFER_SIZE, _state->getTileColors(), State::TILE_COLORS_BUFFER_SIZE);
     } else /* MAP */
     {
-        memcpy(_origBuffer, _state->getMapBuffer(), _state->getMapSize().width() * _state->getMapSize().height());
+        std::memcpy(_origBuffer.data(), _state->getMapBuffer(), _state->getMapSize().width() * _state->getMapSize().height());
     }
-    _state->_paste(_charIndex, _copyRange, _zeroBuffer);
+    _state->_paste(_charIndex, _copyRange, _zeroBuffer.data());
 }
 // FlipTileHCommand
 
@@ -508,24 +495,19 @@ SetMapSizeCommand::SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCo
     , _new(mapSize)
 {
     _old = _state->getMapSize();
-    _oldMap = (quint8*)malloc(_old.width() * _old.height());
-    Q_ASSERT(_oldMap && "No more memory");
+    _oldMap.reserve(_old.width() * _old.height());
 
-    memcpy(_oldMap, _state->_map, _old.width() * _old.height());
+    std::memcpy(_oldMap.data(), _state->_map, _old.width() * _old.height());
 
     setText(QObject::tr("Map Size %1x%2")
                 .arg(mapSize.width())
                 .arg(mapSize.height()));
 }
-SetMapSizeCommand::~SetMapSizeCommand()
-{
-    free(_oldMap);
-}
 
 void SetMapSizeCommand::undo()
 {
     _state->_setMapSize(_old);
-    _state->_setMap(_oldMap, _old);
+    _state->_setMap(_oldMap.data(), _old);
 }
 
 void SetMapSizeCommand::redo()
@@ -539,27 +521,21 @@ FillMapCommand::FillMapCommand(State* state, const QPoint& coord, int tileIdx, Q
     , _state(state)
     , _coord(coord)
     , _tileIdx(tileIdx)
-    , _oldMap(nullptr)
 {
     setText(QObject::tr("Map Fill"));
 }
 
-FillMapCommand::~FillMapCommand()
-{
-    free(_oldMap);
-}
-
 void FillMapCommand::undo()
 {
-    _state->_setMap(_oldMap, _mapSize);
+    _state->_setMap(_oldMap.data(), _mapSize);
 }
 
 void FillMapCommand::redo()
 {
-    if (!_oldMap) {
+    if (_oldMap.empty()) {
         _mapSize = _state->getMapSize();
-        _oldMap = (quint8*)malloc(_mapSize.width() * _mapSize.height());
-        memcpy(_oldMap, _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
+        _oldMap.reserve(_mapSize.width() * _mapSize.height());
+        std::memcpy(_oldMap.data(), _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
     }
     _state->_mapFill(_coord, _tileIdx);
 }
@@ -569,27 +545,21 @@ ClearMapCommand::ClearMapCommand(State* state, int tileIdx, QUndoCommand* parent
     : QUndoCommand(parent)
     , _state(state)
     , _tileIdx(tileIdx)
-    , _oldMap(nullptr)
 {
     setText(QObject::tr("Map Clear"));
 }
 
-ClearMapCommand::~ClearMapCommand()
-{
-    free(_oldMap);
-}
-
 void ClearMapCommand::undo()
 {
-    _state->_setMap(_oldMap, _mapSize);
+    _state->_setMap(_oldMap.data(), _mapSize);
 }
 
 void ClearMapCommand::redo()
 {
-    if (!_oldMap) {
+    if (_oldMap.empty()) {
         _mapSize = _state->getMapSize();
-        _oldMap = (quint8*)malloc(_mapSize.width() * _mapSize.height());
-        memcpy(_oldMap, _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
+        _oldMap.reserve(_mapSize.width() * _mapSize.height());
+        std::memcpy(_oldMap.data(), _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
     }
     _state->_mapClear(_tileIdx);
 }
@@ -600,30 +570,24 @@ PaintMapCommand::PaintMapCommand(State* state, const QPoint& position, int tileI
     , _state(state)
     , _tileIdx(tileIdx)
     , _mergeable(mergeable)
-    , _oldMap(nullptr)
 {
     _points.append(position);
 
     setText(QObject::tr("Paint Map #%1").arg(_tileIdx));
 }
 
-PaintMapCommand::~PaintMapCommand()
-{
-    free(_oldMap);
-}
-
 void PaintMapCommand::undo()
 {
-    _state->_setMap(_oldMap, _mapSize);
+    _state->_setMap(_oldMap.data(), _mapSize);
 }
 
 void PaintMapCommand::redo()
 {
-    if (!_oldMap) {
+    if (_oldMap.empty()) {
         _mapSize = _state->getMapSize();
-        _oldMap = (quint8*)malloc(_mapSize.width() * _mapSize.height());
+        _oldMap.reserve(_mapSize.width() * _mapSize.height());
     }
-    memcpy(_oldMap, _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
+    std::memcpy(_oldMap.data(), _state->getMapBuffer(), _mapSize.width() * _mapSize.height());
 
     for (auto _point : _points) {
         _state->_mapPaint(_point, _tileIdx);

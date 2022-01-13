@@ -16,6 +16,8 @@ limitations under the License.
 
 #pragma once
 
+#include <vector>
+
 #include <QList>
 #include <QPoint>
 #include <QUndoCommand>
@@ -42,8 +44,8 @@ private:
     int _tileIndex;
     int _pen;
     quint8 _buffer[State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8];
-    bool _mergeable;
     QList<QPoint> _points;
+    bool _mergeable;
 };
 
 //class PasteTileCommand : public QUndoCommand
@@ -62,7 +64,6 @@ private:
 class PasteCommand : public QUndoCommand {
 public:
     PasteCommand(State* state, int charIndex, const State::CopyRange& copyRange, const quint8* buffer, QUndoCommand* parent = nullptr);
-    virtual ~PasteCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -70,15 +71,14 @@ private:
     State* _state;
     int _charIndex;
 
-    quint8* _copyBuffer;
-    quint8* _origBuffer;
+    std::vector<quint8> _copyBuffer;
+    std::vector<quint8> _origBuffer;
     State::CopyRange _copyRange;
 };
 
 class CutCommand : public QUndoCommand {
 public:
     CutCommand(State* state, const State::CopyRange& copyRange, QUndoCommand* parent = nullptr);
-    virtual ~CutCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -86,8 +86,8 @@ private:
     State* _state;
     int _charIndex;
 
-    quint8* _zeroBuffer;
-    quint8* _origBuffer;
+    std::vector<quint8> _zeroBuffer;
+    std::vector<quint8> _origBuffer;
     State::CopyRange _copyRange;
 };
 
@@ -259,7 +259,6 @@ private:
 class SetMapSizeCommand : public QUndoCommand {
 public:
     SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCommand* parent = nullptr);
-    virtual ~SetMapSizeCommand() Q_DECL_OVERRIDE;
 
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
@@ -268,14 +267,13 @@ private:
     State* _state;
     QSize _new;
     QSize _old;
-    quint8* _oldMap;
+    std::vector<quint8> _oldMap;
 };
 
 // FillMapCommand
 class FillMapCommand : public QUndoCommand {
 public:
     FillMapCommand(State* state, const QPoint& coord, int tileIdx, QUndoCommand* parent = nullptr);
-    virtual ~FillMapCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -283,7 +281,7 @@ private:
     State* _state;
     QPoint _coord;
     int _tileIdx;
-    quint8* _oldMap;
+    std::vector<quint8> _oldMap;
     QSize _mapSize;
 };
 
@@ -291,7 +289,6 @@ private:
 class PaintMapCommand : public QUndoCommand {
 public:
     PaintMapCommand(State* state, const QPoint& position, int tileIdx, bool mergeable, QUndoCommand* parent = nullptr);
-    virtual ~PaintMapCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
     int id() const Q_DECL_OVERRIDE { return Cmd_PaintMap; }
@@ -302,7 +299,7 @@ private:
     int _tileIdx;
     bool _mergeable;
     QList<QPoint> _points;
-    quint8* _oldMap;
+    std::vector<quint8> _oldMap;
     QSize _mapSize;
 };
 
@@ -310,13 +307,12 @@ private:
 class ClearMapCommand : public QUndoCommand {
 public:
     ClearMapCommand(State* state, int tileIdx, QUndoCommand* parent = nullptr);
-    virtual ~ClearMapCommand() Q_DECL_OVERRIDE;
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
 private:
     State* _state;
     int _tileIdx;
-    quint8* _oldMap;
+    std::vector<quint8> _oldMap;
     QSize _mapSize;
 };

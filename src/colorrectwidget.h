@@ -52,7 +52,7 @@ signals:
 public slots:
 
 protected:
-    void paintEvent(QPaintEvent* event);
+    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
 
     // PEN or COLOR
     int _mode;

@@ -404,8 +404,9 @@ void CharsetWidget::setZoomLevel(int zoomLevel)
 {
     _zoomLevel = zoomLevel * ZOOM_LEVEL / 100.0;
 
-    _sizeHint = QSize((COLUMNS * 8 + OFFSET) * _zoomLevel + 1,
-        (ROWS * 8 + OFFSET) * _zoomLevel + 1);
+    _sizeHint = QSize(
+        static_cast<int>((COLUMNS * 8 + OFFSET) * _zoomLevel + 1),
+        static_cast<int>((ROWS * 8 + OFFSET) * _zoomLevel + 1));
 
     setMinimumSize(_sizeHint);
     update();
