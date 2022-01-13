@@ -30,6 +30,8 @@ class ServerPreview : public QObject {
 
 public:
     static ServerPreview* getInstance();
+    static void deleteInstance();
+
     bool isConnected();
     bool connect(const QString& ipaddress);
     void disconnect();
@@ -110,4 +112,6 @@ protected:
 
     QVector<ServerCommand*> _commands;
     QVector<ServerCommand*> _tmpCommands;
+
+    static ServerPreview* _instance;
 };

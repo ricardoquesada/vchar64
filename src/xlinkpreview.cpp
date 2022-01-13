@@ -21,14 +21,20 @@ limitations under the License.
 
 #include "mainwindow.h"
 
-static XlinkPreview* __instance = nullptr;
+XlinkPreview* XlinkPreview::_instance = nullptr;
 
 XlinkPreview* XlinkPreview::getInstance()
 {
-    if (!__instance)
-        __instance = new XlinkPreview();
+    if (!_instance)
+        _instance = new XlinkPreview();
+    return _instance;
+}
 
-    return __instance;
+void XlinkPreview::deleteInstance()
+{
+    Q_ASSERT(_instance);
+    delete _instance;
+    _instance = nullptr;
 }
 
 bool XlinkPreview::isConnected()
@@ -83,6 +89,8 @@ XlinkPreview::XlinkPreview()
         connect();
     }
 }
+
+XlinkPreview::~XlinkPreview() = default;
 
 void XlinkPreview::updateBackgroundColor()
 {

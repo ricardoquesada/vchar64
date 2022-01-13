@@ -27,14 +27,20 @@ limitations under the License.
 #include "mainwindow.h"
 #include "serverprotocol.h"
 
-static ServerPreview* __instance = nullptr;
+ServerPreview* ServerPreview::_instance = nullptr;
 
 ServerPreview* ServerPreview::getInstance()
 {
-    if (!__instance)
-        __instance = new ServerPreview();
+    if (!_instance)
+        _instance = new ServerPreview;
+    return _instance;
+}
 
-    return __instance;
+void ServerPreview::deleteInstance()
+{
+    Q_ASSERT(_instance);
+    delete _instance;
+    _instance = nullptr;
 }
 
 ServerPreview::ServerPreview()
@@ -48,8 +54,7 @@ ServerPreview::ServerPreview()
     _prevTileProperties.size = { 1, 1 };
 }
 
-ServerPreview::~ServerPreview()
-    = default;
+ServerPreview::~ServerPreview() = default;
 
 bool ServerPreview::isConnected()
 {

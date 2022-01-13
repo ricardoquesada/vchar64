@@ -30,6 +30,8 @@ typedef bool (*xlink_fill_t)(uchar, uchar, ushort, uchar, uint);
 class XlinkPreview : public QObject {
     Q_OBJECT
 
+    virtual ~XlinkPreview() Q_DECL_OVERRIDE;
+
     bool _available;
     bool _connected;
 
@@ -45,6 +47,8 @@ class XlinkPreview : public QObject {
 
 public:
     static XlinkPreview* getInstance();
+    static void deleteInstance();
+
     bool isConnected();
     bool isAvailable() { return _available; }
     bool connect();
@@ -79,4 +83,6 @@ protected:
     xlink_peek_t xlink_peek;
     xlink_poke_t xlink_poke;
     xlink_fill_t xlink_fill;
+
+    static XlinkPreview* _instance;
 };

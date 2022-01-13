@@ -23,8 +23,7 @@ limitations under the License.
 #include "preferences.h"
 #include "updatedialog.h"
 
-AutoUpdater&
-AutoUpdater::getInstance()
+AutoUpdater& AutoUpdater::getInstance()
 {
     static AutoUpdater instance;
     return instance;
