@@ -18,6 +18,7 @@ limitations under the License.
 
 #include <QApplication>
 #include <QByteArray>
+#include <QDataStream>
 #include <QDebug>
 #include <QTextStream>
 #include <QtEndian>
@@ -62,20 +63,24 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     QByteArray arrayHeader((const char*)&header, sizeof(header));
     auto total = file.write(arrayHeader);
 
+    QDataStream out(&file);
     // charset
-    auto charset = state->getCharsetBuffer();
-    QByteArray arrayCharset(reinterpret_cast<const char*>(charset.data()), charset.size());
-    total += file.write(arrayCharset);
+    for (const auto c : state->getCharsetBuffer()) {
+        out << c;
+        total++;
+    }
 
     // colors
-    auto colors = state->getTileColors();
-    QByteArray arrayColors(reinterpret_cast<const char*>(colors.data()), colors.size());
-    total += file.write(arrayColors);
+    for (const auto c : state->getTileColors()) {
+        out << c;
+        total++;
+    }
 
     // map
-    auto map = state->getMapBuffer();
-    QByteArray arrayMap(reinterpret_cast<const char*>(map.data()), map.size());
-    total += file.write(arrayMap);
+    for (const auto c : state->getMapBuffer()) {
+        out << c;
+        total++;
+    }
 
     file.flush();
 

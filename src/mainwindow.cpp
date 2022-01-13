@@ -1026,7 +1026,7 @@ void MainWindow::on_actionCloneCurrentProject_triggered()
     auto currentState = getState();
     Q_ASSERT(currentState && "Invalid state");
 
-    auto newState = new State();
+    auto newState = new State;
     newState->copyState(*currentState);
     createDocument(newState);
     setWindowFilePath(tr("(untitled)"));

@@ -38,7 +38,7 @@ ImportVICEDialog::ImportVICEDialog(QWidget* parent)
     std::memset(_colorRAM, 0, sizeof(_colorRAM));
 
     // comes with a default map of 40*25
-    _tmpState = new State();
+    _tmpState = new State;
     _tmpState->_setForegroundColorMode(
         ui->checkBoxGuessColors->checkState() == Qt::CheckState::Checked
             ? State::FOREGROUND_COLOR_PER_TILE

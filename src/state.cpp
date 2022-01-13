@@ -70,6 +70,7 @@ State::State(const QString& filename,
         _map.resize(_mapSize.width() * _mapSize.height());
         setupDefaultMap();
     }
+    Q_ASSERT(_map.size() == _mapSize.width() * _mapSize.height());
 }
 
 // Delegating constructor
@@ -136,9 +137,9 @@ void State::reset()
     _exportProperties.format = EXPORT_FORMAT_RAW;
     _exportProperties.features = EXPORT_FEATURE_CHARSET;
 
-    std::memset(_charset.data(), 0, _charset.size());
-    std::memset(_tileColors.data(), 11, _tileColors.size());
-    std::memset(_map.data(), 0, _map.size());
+    std::fill_n(std::begin(_charset), _charset.size(), 0);
+    std::fill_n(std::begin(_tileColors), _tileColors.size(), 11);
+    std::fill_n(std::begin(_map), _map.size(), 0);
 }
 
 void State::emitNewState()
