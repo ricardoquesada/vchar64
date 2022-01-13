@@ -121,7 +121,7 @@ void ImportVICEDialog::on_spinBoxCharset_editingFinished()
 void ImportVICEDialog::on_spinBoxCharset_valueChanged(int address)
 {
     Q_ASSERT(address <= (65536 - 2048) && "invalid address");
-    std::memcpy(_tmpState->_charset.data(), &_memoryRAM[address], _tmpState->_charset.size());
+    std::copy_n(std::begin(_memoryRAM) + address, _tmpState->_charset.size(), std::begin(_tmpState->_charset));
     updateTileImages();
 
     ui->widgetCharset->update();
@@ -151,7 +151,7 @@ void ImportVICEDialog::on_spinBoxScreenRAM_valueChanged(int address)
 {
     Q_ASSERT(address <= (65536 - 1024) && "invalid address");
 
-    std::memcpy(_tmpState->_map.data(), &_memoryRAM[address], 40 * 25);
+    std::copy_n(std::begin(_memoryRAM) + address, 40 * 25, std::begin(_tmpState->_map));
 
     for (int i = 40 * 25 - 1; i >= 0; --i) {
         quint8 tileColor = _colorRAM[i];

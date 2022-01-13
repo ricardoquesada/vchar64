@@ -1579,8 +1579,8 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
     if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
         array.append((const char*)state->getCharsetBuffer().data(), State::CHAR_BUFFER_SIZE);
         array.append((const char*)state->getTileColors().data(), State::TILE_COLORS_BUFFER_SIZE);
-    } else /* MAP */
-    {
+    } else {
+        /* MAP */
         array.append((const char*)state->getMapBuffer().data(), state->getMapSize().width() * state->getMapSize().height());
     }
 
