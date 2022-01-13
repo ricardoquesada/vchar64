@@ -162,7 +162,7 @@ void XlinkPreview::updateCharset()
 
     auto state = MainWindow::getCurrentState();
 
-    xlink_load(0xb7, 0x00, 0x3000, (const uchar*)state->getCharsetBuffer(), State::CHAR_BUFFER_SIZE);
+    xlink_load(0xb7, 0x00, 0x3000, state->getCharsetBuffer().data(), State::CHAR_BUFFER_SIZE);
     xlink_poke(0x37, 0x00, 0xd018, 0x1c);
 }
 
@@ -210,7 +210,7 @@ void XlinkPreview::bytesUpdated(int pos, int count)
         return;
 
     auto state = MainWindow::getCurrentState();
-    xlink_load(0xb7, 0x00, 0x3000 + pos, state->getCharsetBuffer() + pos, count);
+    xlink_load(0xb7, 0x00, 0x3000 + pos, &state->getCharsetBuffer()[pos], count);
 }
 
 void XlinkPreview::tileUpdated(int tileIndex)

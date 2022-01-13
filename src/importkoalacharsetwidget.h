@@ -16,6 +16,9 @@ limitations under the License.
 
 #pragma once
 
+#include <array>
+#include <vector>
+
 #include <QWidget>
 
 // draws a screen (40x25) with a charset, screen ram, color ram and multicolors
@@ -40,9 +43,10 @@ signals:
 public slots:
 
 private:
-    quint8 _colorRAMForChars[256];
-    quint8 _screenRAM[40 * 25];
+    std::array<quint8, 256> _colorRAMForChars;
+    std::array<quint8, 256 * 8> _charset;
+    std::vector<quint8> _screenRAM;
+
     quint8 _d02x[3];
-    quint8 _charset[256 * 8];
     bool _displayGrid;
 };

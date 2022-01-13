@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "importkoalacharsetwidget.h"
 
+#include <algorithm>
 #include <functional>
 
 #include <QDebug>
@@ -34,7 +35,9 @@ static const int OFFSET = 0;
 
 ImportKoalaCharsetWidget::ImportKoalaCharsetWidget(QWidget* parent)
     : QWidget(parent)
+    , _screenRAM(40 * 25)
     , _displayGrid(false)
+
 {
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
         PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
@@ -44,9 +47,10 @@ ImportKoalaCharsetWidget::ImportKoalaCharsetWidget(QWidget* parent)
 
 void ImportKoalaCharsetWidget::clean()
 {
-    std::memset(_screenRAM, 0, sizeof(_screenRAM));
-    std::memset(_colorRAMForChars, 0, sizeof(_colorRAMForChars));
-    std::memset(_charset, 0, sizeof(_charset));
+    std::fill(_screenRAM.begin(), _screenRAM.end(), 0);
+    std::fill(_colorRAMForChars.begin(), _colorRAMForChars.end(), 0);
+    std::fill(_charset.begin(), _charset.end(), 0);
+
     _d02x[0] = 0;
     _d02x[1] = 1;
     _d02x[2] = 2;

@@ -63,18 +63,18 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     auto total = file.write(arrayHeader);
 
     // charset
-    auto buffer = state->getCharsetBuffer();
-    QByteArray arrayCharset((char*)buffer, State::CHAR_BUFFER_SIZE);
+    auto charset = state->getCharsetBuffer();
+    QByteArray arrayCharset(reinterpret_cast<const char*>(charset.data()), charset.size());
     total += file.write(arrayCharset);
 
     // colors
-    buffer = state->getTileColors();
-    QByteArray arrayColors((char*)buffer, State::TILE_COLORS_BUFFER_SIZE);
+    auto colors = state->getTileColors();
+    QByteArray arrayColors(reinterpret_cast<const char*>(colors.data()), colors.size());
     total += file.write(arrayColors);
 
     // map
-    buffer = state->getMapBuffer();
-    QByteArray arrayMap((char*)buffer, state->getMapSize().width() * state->getMapSize().height());
+    auto map = state->getMapBuffer();
+    QByteArray arrayMap(reinterpret_cast<const char*>(map.data()), map.size());
     total += file.write(arrayMap);
 
     file.flush();

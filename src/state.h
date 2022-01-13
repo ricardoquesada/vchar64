@@ -16,6 +16,7 @@ limitations under the License.
 
 #pragma once
 
+#include <array>
 #include <vector>
 
 #include <QObject>
@@ -159,7 +160,11 @@ public:
      * @param map map to use or nullPtr
      * @param mapSize map size
      */
-    State(const QString& filename, quint8* charset, quint8* tileColors, quint8* map, const QSize& mapSize);
+    State(const QString& filename,
+        const std::array<quint8, CHAR_BUFFER_SIZE>& charset,
+        const std::array<quint8, TILE_COLORS_BUFFER_SIZE>& tileColors,
+        const std::vector<quint8>& map,
+        const QSize& mapSize);
     /* delegating constructors */
     State(const QString& filename);
     State();
@@ -401,9 +406,9 @@ public:
     //
     // charset, map, and related
     //
-    const quint8* getCharsetBuffer() const;
-    const quint8* getMapBuffer() const;
-    const quint8* getTileColors() const;
+    const std::array<quint8, CHAR_BUFFER_SIZE>& getCharsetBuffer() const;
+    const std::vector<quint8>& getMapBuffer() const;
+    const std::array<quint8, TILE_COLORS_BUFFER_SIZE>& getTileColors() const;
 
     void resetCharsetBuffer();
 
@@ -552,15 +557,15 @@ protected:
     void _setExportProperties(const ExportProperties& properties);
 
     void _setMapSize(const QSize& mapSize);
-    void _setMap(const quint8* buffer, const QSize& mapSize);
+    void _setMap(const std::vector<quint8>& map, const QSize& mapSize);
     void _mapClear(int tileIdx);
     void _mapPaint(const QPoint& coord, int tileIdx);
     void _mapFill(const QPoint& coord, int tileIdx);
 
     int _totalChars;
 
-    quint8 _charset[State::CHAR_BUFFER_SIZE];
-    quint8 _tileColors[State::TILE_COLORS_BUFFER_SIZE];
+    std::array<quint8, CHAR_BUFFER_SIZE> _charset;
+    std::array<quint8, TILE_COLORS_BUFFER_SIZE> _tileColors;
     std::vector<quint8> _map;
     QSize _mapSize;
 

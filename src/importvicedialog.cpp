@@ -121,7 +121,7 @@ void ImportVICEDialog::on_spinBoxCharset_editingFinished()
 void ImportVICEDialog::on_spinBoxCharset_valueChanged(int address)
 {
     Q_ASSERT(address <= (65536 - 2048) && "invalid address");
-    std::memcpy(_tmpState->_charset, &_memoryRAM[address], sizeof(_tmpState->_charset));
+    std::memcpy(_tmpState->_charset.data(), &_memoryRAM[address], _tmpState->_charset.size());
     updateTileImages();
 
     ui->widgetCharset->update();
@@ -223,7 +223,7 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
         _tmpState->_penColors[1] = VICRegisters[0x22] & 0xf;
         _tmpState->_penColors[2] = VICRegisters[0x23] & 0xf;
 
-        std::memset(_tmpState->_tileColors, 11, sizeof(_tmpState->_tileColors));
+        std::fill(std::begin(_tmpState->_tileColors), std::end(_tmpState->_tileColors), 11);
 
         int oldCharset = ui->spinBoxCharset->value();
         int oldScreenRAM = ui->spinBoxScreenRAM->value();

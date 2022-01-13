@@ -39,11 +39,15 @@ limitations under the License.
 const int State::CHAR_BUFFER_SIZE;
 
 // target constructor
-State::State(const QString& filename, quint8* charset, quint8* tileColors, quint8* map, const QSize& mapSize)
+State::State(const QString& filename,
+    const std::array<quint8, CHAR_BUFFER_SIZE>& charset,
+    const std::array<quint8, TILE_COLORS_BUFFER_SIZE>& tileColors,
+    const std::vector<quint8>& map,
+    const QSize& mapSize)
     : _totalChars(0)
-    , _charset { 0 }
-    , _tileColors { 11 }
-    , _map(mapSize.width() * mapSize.height())
+    , _charset(charset)
+    , _tileColors(tileColors)
+    , _map(map)
     , _mapSize(mapSize)
     , _multicolorMode(false)
     , _foregroundColorMode(FOREGROUND_COLOR_GLOBAL)
@@ -61,16 +65,9 @@ State::State(const QString& filename, quint8* charset, quint8* tileColors, quint
 {
     _undoStack = new QUndoStack;
 
-    if (charset)
-        std::memcpy(_charset, charset, sizeof(_charset));
-
-    if (tileColors)
-        std::memcpy(_tileColors, tileColors, sizeof(_tileColors));
-
     Q_ASSERT(_mapSize.width() > 0 && _mapSize.height() > 0 && "Invalid size");
-    if (map) {
-        std::memcpy(_map.data(), map, _mapSize.width() * _mapSize.height());
-    } else {
+    if (map.empty()) {
+        _map.resize(_mapSize.width() * _mapSize.height());
         setupDefaultMap();
     }
 }
@@ -78,12 +75,20 @@ State::State(const QString& filename, quint8* charset, quint8* tileColors, quint
 // Delegating constructor
 
 State::State(const QString& filename)
-    : State(filename, nullptr, nullptr, nullptr, QSize(40, 25))
+    : State(filename,
+        std::array<quint8, CHAR_BUFFER_SIZE>(),
+        std::array<quint8, TILE_COLORS_BUFFER_SIZE>(),
+        std::vector<quint8>(),
+        QSize(40, 25))
 {
 }
 
 State::State()
-    : State("", nullptr, nullptr, nullptr, QSize(40, 25))
+    : State("",
+        std::array<quint8, CHAR_BUFFER_SIZE>(),
+        std::array<quint8, TILE_COLORS_BUFFER_SIZE>(),
+        std::vector<quint8>(),
+        QSize(40, 25))
 {
 }
 
@@ -100,11 +105,9 @@ void State::copyState(const State& copyFromMe)
     _exportProperties = copyFromMe._exportProperties;
 
     std::memcpy(_penColors, copyFromMe._penColors, sizeof(_penColors));
-    std::memcpy(_charset, copyFromMe._charset, sizeof(_charset));
-    std::memcpy(_tileColors, copyFromMe._tileColors, sizeof(_tileColors));
-
-    _map.reserve(_mapSize.width() * _mapSize.height());
-    std::memcpy(_map.data(), copyFromMe._map.data(), _mapSize.width() * _mapSize.height());
+    _charset = copyFromMe._charset;
+    _tileColors = copyFromMe._tileColors;
+    _map = copyFromMe._map;
 }
 
 State::~State()
@@ -133,9 +136,9 @@ void State::reset()
     _exportProperties.format = EXPORT_FORMAT_RAW;
     _exportProperties.features = EXPORT_FEATURE_CHARSET;
 
-    std::memset(_charset, 0, sizeof(_charset));
-    std::memset(_tileColors, 11, sizeof(_tileColors));
-    std::memset(_map.data(), 0, _mapSize.width() * _mapSize.height());
+    std::memset(_charset.data(), 0, _charset.size());
+    std::memset(_tileColors.data(), 11, _tileColors.size());
+    std::memset(_map.data(), 0, _map.size());
 }
 
 void State::emitNewState()
@@ -277,7 +280,7 @@ bool State::exportRaw(const QString& filename, const ExportProperties& propertie
 
     if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
-                    _charset, sizeof(_charset))
+                    _charset.data(), _charset.size())
             > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
@@ -287,7 +290,7 @@ bool State::exportRaw(const QString& filename, const ExportProperties& propertie
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                    _tileColors, sizeof(_tileColors))
+                    _tileColors.data(), _tileColors.size())
             > 0);
 
     if (ret) {
@@ -305,7 +308,7 @@ bool State::exportPRG(const QString& filename, const ExportProperties& propertie
 
     if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
-                    _charset, sizeof(_charset), properties.addresses[0])
+                    _charset.data(), _charset.size(), properties.addresses[0])
             > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
@@ -315,7 +318,7 @@ bool State::exportPRG(const QString& filename, const ExportProperties& propertie
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                    _tileColors, sizeof(_tileColors), properties.addresses[2])
+                    _tileColors.data(), _tileColors.size(), properties.addresses[2])
             > 0);
 
     if (ret) {
@@ -333,7 +336,7 @@ bool State::exportAsm(const QString& filename, const ExportProperties& propertie
     bool ret = true;
     if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
-                    _charset, sizeof(_charset), "charset")
+                    _charset.data(), _charset.size(), "charset")
             > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
@@ -343,7 +346,7 @@ bool State::exportAsm(const QString& filename, const ExportProperties& propertie
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                    _tileColors, sizeof(_tileColors), "colors")
+                    _tileColors.data(), _tileColors.size(), "colors")
             > 0);
 
     if (ret) {
@@ -360,7 +363,7 @@ bool State::exportC(const QString& filename, const ExportProperties& properties)
     bool ret = true;
     if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
         ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
-                    _charset, sizeof(_charset), "charset")
+                    _charset.data(), _charset.size(), "charset")
             > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
@@ -370,7 +373,7 @@ bool State::exportC(const QString& filename, const ExportProperties& properties)
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                    _tileColors, sizeof(_tileColors), "colors")
+                    _tileColors.data(), _tileColors.size(), "colors")
             > 0);
 
     if (ret) {
@@ -792,41 +795,40 @@ void State::mapClear(int tileIdx)
 
 void State::_mapClear(int tileIdx)
 {
-    for (int i = 0; i < _mapSize.width() * _mapSize.height(); ++i)
-        _map[i] = tileIdx;
+    std::fill(_map.begin(), _map.end(), tileIdx);
 
     emit mapContentUpdated();
     emit contentsChanged();
 }
 
-void State::_setMap(const quint8* buffer, const QSize& mapSize)
+void State::_setMap(const std::vector<quint8>& map, const QSize& mapSize)
 {
     Q_ASSERT(_mapSize == mapSize && "Invalid map size");
-    std::memcpy(_map.data(), buffer, mapSize.width() * mapSize.height());
+    _map = map;
 
     emit mapContentUpdated();
     emit contentsChanged();
 }
 
 // charset methods
-const quint8* State::getCharsetBuffer() const
+const std::array<quint8, State::CHAR_BUFFER_SIZE>& State::getCharsetBuffer() const
 {
     return _charset;
 }
 
-const quint8* State::getMapBuffer() const
+const std::vector<quint8>& State::getMapBuffer() const
 {
-    return _map.data();
+    return _map;
 }
 
-const quint8* State::getTileColors() const
+const std::array<quint8, State::TILE_COLORS_BUFFER_SIZE>& State::getTileColors() const
 {
     return _tileColors;
 }
 
 void State::resetCharsetBuffer()
 {
-    std::memset(_charset, 0, sizeof(_charset));
+    std::memset(_charset.data(), 0, _charset.size());
 }
 
 // buffer must be at least 8x8*8 bytes big
@@ -912,21 +914,21 @@ void State::_pasteChars(int charIndex, const CopyRange& copyRange, const quint8*
 
     int count = copyRange.count;
 
-    quint8* chrdst = _charset + (charIndex * 8);
-    quint8* colordst = _tileColors + charIndex;
+    quint8* chrdst = _charset.data() + (charIndex * 8);
+    quint8* colordst = _tileColors.data() + charIndex;
 
     const quint8* colorsBuffer = origBuffer + CHAR_BUFFER_SIZE;
     const quint8* chrsrc = origBuffer + (copyRange.offset * 8);
     const quint8* colorsrc = colorsBuffer + copyRange.offset;
 
     while (count > 0) {
-        const auto lastByte = &_charset[sizeof(_charset)];
+        const auto lastByte = &_charset[_charset.size()];
         int bytesToCopy = qMin((qint64)copyRange.blockSize * 8, (qint64)(lastByte - chrdst));
         if (bytesToCopy < 0)
             break;
         std::memcpy(chrdst, chrsrc, bytesToCopy);
         std::memcpy(colordst, colorsrc, bytesToCopy / 8);
-        emit bytesUpdated((chrdst - _charset), bytesToCopy);
+        emit bytesUpdated((chrdst - _charset.data()), bytesToCopy);
 
         chrdst += (copyRange.blockSize + copyRange.skip) * 8;
         chrsrc += (copyRange.blockSize + copyRange.skip) * 8;
@@ -1476,7 +1478,7 @@ BigCharWidget* State::getBigCharWidget() const
 
 void State::setupDefaultMap()
 {
-    std::memset(_map.data(), 0x20, _mapSize.width() * _mapSize.height());
+    std::fill(_map.begin(), _map.end(), 0x20);
     //1234567890123456789012345678901234567890
     const char hello64[] = "                                        "
                            "    **** COMMODORE 64 BASIC V2 ****     "
