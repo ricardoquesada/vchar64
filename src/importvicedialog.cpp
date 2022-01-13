@@ -34,8 +34,8 @@ ImportVICEDialog::ImportVICEDialog(QWidget* parent)
 {
     ui->setupUi(this);
 
-    memset(_memoryRAM, 0, sizeof(_memoryRAM));
-    memset(_colorRAM, 0, sizeof(_colorRAM));
+    std::memset(_memoryRAM, 0, sizeof(_memoryRAM));
+    std::memset(_colorRAM, 0, sizeof(_colorRAM));
 
     // comes with a default map of 40*25
     _tmpState = new State();
@@ -121,7 +121,7 @@ void ImportVICEDialog::on_spinBoxCharset_editingFinished()
 void ImportVICEDialog::on_spinBoxCharset_valueChanged(int address)
 {
     Q_ASSERT(address <= (65536 - 2048) && "invalid address");
-    memcpy(_tmpState->_charset, &_memoryRAM[address], sizeof(_tmpState->_charset));
+    std::memcpy(_tmpState->_charset, &_memoryRAM[address], sizeof(_tmpState->_charset));
     updateTileImages();
 
     ui->widgetCharset->update();
@@ -151,7 +151,7 @@ void ImportVICEDialog::on_spinBoxScreenRAM_valueChanged(int address)
 {
     Q_ASSERT(address <= (65536 - 1024) && "invalid address");
 
-    memcpy(_tmpState->_map, &_memoryRAM[address], 40 * 25);
+    std::memcpy(_tmpState->_map.data(), &_memoryRAM[address], 40 * 25);
 
     for (int i = 40 * 25 - 1; i >= 0; --i) {
         quint8 tileColor = _colorRAM[i];
@@ -223,7 +223,7 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
         _tmpState->_penColors[1] = VICRegisters[0x22] & 0xf;
         _tmpState->_penColors[2] = VICRegisters[0x23] & 0xf;
 
-        memset(_tmpState->_tileColors, 11, sizeof(_tmpState->_tileColors));
+        std::memset(_tmpState->_tileColors, 11, sizeof(_tmpState->_tileColors));
 
         int oldCharset = ui->spinBoxCharset->value();
         int oldScreenRAM = ui->spinBoxScreenRAM->value();

@@ -40,7 +40,7 @@ ImportKoalaBitmapWidget::ImportKoalaBitmapWidget(QWidget* parent)
     , _selectingSize({ 0, 0 })
     , _cursorPos({ 0, 0 })
 {
-    memset(_framebuffer, 0, sizeof(_framebuffer));
+    std::memset(_framebuffer, 0, sizeof(_framebuffer));
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
         PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 }
@@ -177,7 +177,7 @@ void ImportKoalaBitmapWidget::mouseMoveEvent(QMouseEvent* event)
 void ImportKoalaBitmapWidget::loadKoala(const QString& koalaFilepath)
 {
     // in case the loaded file has less bytes than required, fill the buffer with zeroes
-    memset(&_koala, 0, sizeof(_koala));
+    std::memset(&_koala, 0, sizeof(_koala));
 
     QFile file(koalaFilepath);
     file.open(QIODevice::ReadOnly);

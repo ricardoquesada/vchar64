@@ -29,7 +29,7 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
 {
     StateImport::VChar64Header header;
 
-    memcpy(header.id, "VChar", 5);
+    std::memcpy(header.id, "VChar", 5);
 
     header.version = 3;
 

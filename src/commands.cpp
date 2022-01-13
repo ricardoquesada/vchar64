@@ -497,7 +497,7 @@ SetMapSizeCommand::SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCo
     _old = _state->getMapSize();
     _oldMap.reserve(_old.width() * _old.height());
 
-    std::memcpy(_oldMap.data(), _state->_map, _old.width() * _old.height());
+    std::memcpy(_oldMap.data(), _state->getMapBuffer(), _old.width() * _old.height());
 
     setText(QObject::tr("Map Size %1x%2")
                 .arg(mapSize.width())

@@ -167,7 +167,7 @@ void ServerPreview::updateForegroundColorForCharset()
     auto tileColors = state->getTileColors();
 
     int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
-    char* data = (char*)malloc(size);
+    char* data = (char*)std::malloc(size);
 
     header = (struct vchar64d_proto_header*)data;
     payload = (struct vchar64d_proto_set_mem*)(data + sizeof(*header));
@@ -178,7 +178,7 @@ void ServerPreview::updateForegroundColorForCharset()
     payload->count = qToLittleEndian(CHARS_TO_COPY);
 
     // clean the screen memory since "fill" won't fill everything
-    memset(chars, 0x08, CHARS_TO_COPY);
+    std::memset(chars, 0x08, CHARS_TO_COPY);
 
     for (int y = 0; y < 8; ++y) {
         for (int x = 0; x < 32; ++x) {
@@ -201,7 +201,7 @@ void ServerPreview::updateForegroundColorForTileset()
     auto currentTileProperties = state->getTileProperties();
 
     int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
-    char* data = (char*)malloc(size);
+    char* data = (char*)std::malloc(size);
 
     header = (struct vchar64d_proto_header*)data;
     payload = (struct vchar64d_proto_set_mem*)(data + sizeof(*header));
@@ -212,7 +212,7 @@ void ServerPreview::updateForegroundColorForTileset()
     payload->count = qToLittleEndian(CHARS_TO_COPY);
 
     // clean the screen memory since "fill" won't fill everything
-    memset(chars, 0x08, CHARS_TO_COPY);
+    std::memset(chars, 0x08, CHARS_TO_COPY);
 
     // fill the screen memory
     int tw = currentTileProperties.size.width();
@@ -323,7 +323,7 @@ void ServerPreview::updateTiles()
         static const quint16 SCREEN_MEMORY = 0xa400 + 12 * 40;
 
         int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
-        char* data = (char*)malloc(size);
+        char* data = (char*)std::malloc(size);
 
         header = (struct vchar64d_proto_header*)data;
         payload = (struct vchar64d_proto_set_mem*)(data + sizeof(*header));
@@ -334,7 +334,7 @@ void ServerPreview::updateTiles()
         payload->count = qToLittleEndian(CHARS_TO_COPY);
 
         // clean the screen memory since "fill" won't fill everything
-        memset(chars, 0x20, CHARS_TO_COPY);
+        std::memset(chars, 0x20, CHARS_TO_COPY);
 
         // fill the screen memory
         int tw = currentTileProperties.size.width();
@@ -470,7 +470,7 @@ void ServerPreview::protoPing(quint8 pingValue)
     };
 #pragma pack(pop)
 
-    struct _data* data = (struct _data*)malloc(sizeof(*data));
+    struct _data* data = (struct _data*)std::malloc(sizeof(*data));
 
     data->header.type = TYPE_PING;
     data->payload.something = pingValue;
@@ -486,7 +486,7 @@ void ServerPreview::protoPing(quint8 pingValue)
     //        }
     //    }
 
-    //    memset(&data, 0, sizeof(data));
+    //    std::memset(&data, 0, sizeof(data));
     //    auto r = _socket->read((char*)&data, sizeof(data));
     //    if (r<0)
     //    {
@@ -510,7 +510,7 @@ void ServerPreview::protoPoke(quint16 addr, quint8 value)
     };
 #pragma pack(pop)
 
-    struct _data* data = (struct _data*)malloc(sizeof(*data));
+    struct _data* data = (struct _data*)std::malloc(sizeof(*data));
 
     data->header.type = TYPE_POKE;
     data->payload.addr = qToLittleEndian(addr);
@@ -534,7 +534,7 @@ void ServerPreview::protoFill(quint16 addr, quint8 value, quint16 count)
     };
 #pragma pack(pop)
 
-    struct _data* data = (struct _data*)malloc(sizeof(*data));
+    struct _data* data = (struct _data*)std::malloc(sizeof(*data));
 
     data->header.type = TYPE_FILL;
     data->payload.addr = qToLittleEndian(addr);
@@ -553,7 +553,7 @@ void ServerPreview::protoSetByte(quint16 addr, quint8 value)
     };
 #pragma pack(pop)
 
-    struct _data* data = (struct _data*)malloc(sizeof(*data));
+    struct _data* data = (struct _data*)std::malloc(sizeof(*data));
 
     data->header.type = TYPE_SET_BYTE_FOR_CHAR;
     data->payload.idx = qToLittleEndian(addr);
@@ -571,11 +571,11 @@ void ServerPreview::protoSetChar(int charIdx, const quint8* charBuf)
     };
 #pragma pack(pop)
 
-    struct _data* data = (struct _data*)malloc(sizeof(*data));
+    struct _data* data = (struct _data*)std::malloc(sizeof(*data));
 
     data->header.type = TYPE_SET_CHAR;
     data->payload.idx = charIdx;
-    memcpy(data->payload.chardata, charBuf, sizeof(data->payload.chardata));
+    std::memcpy(data->payload.chardata, charBuf, sizeof(data->payload.chardata));
 
     sendOrQueueData((char*)data, sizeof(*data));
 }
@@ -586,7 +586,7 @@ void ServerPreview::protoSetChars(int charIdx, const quint8* charBuf, int totalC
     struct vchar64d_proto_set_chars* payload;
 
     int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->charsdata)) + totalChars * 8;
-    char* data = (char*)malloc(size);
+    char* data = (char*)std::malloc(size);
 
     header = (struct vchar64d_proto_header*)data;
     payload = (struct vchar64d_proto_set_chars*)(data + sizeof(*header));
@@ -594,7 +594,7 @@ void ServerPreview::protoSetChars(int charIdx, const quint8* charBuf, int totalC
     header->type = TYPE_SET_CHARS;
     payload->idx = charIdx;
     payload->count = totalChars;
-    memcpy(&payload->charsdata, charBuf, totalChars * 8);
+    std::memcpy(&payload->charsdata, charBuf, totalChars * 8);
 
     sendOrQueueData(data, size);
 }
@@ -619,6 +619,7 @@ void ServerPreview::sendOrQueueData(char* buffer, int bufferSize)
 void ServerPreview::sendData(char* buffer, int bufferSize)
 {
     _socket->write(buffer, bufferSize);
-    free(buffer);
     _bytesSent += bufferSize;
+
+    free(buffer);
 }

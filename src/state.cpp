@@ -43,6 +43,7 @@ State::State(const QString& filename, quint8* charset, quint8* tileColors, quint
     : _totalChars(0)
     , _charset { 0 }
     , _tileColors { 11 }
+    , _map(mapSize.width() * mapSize.height())
     , _mapSize(mapSize)
     , _multicolorMode(false)
     , _foregroundColorMode(FOREGROUND_COLOR_GLOBAL)
@@ -61,15 +62,14 @@ State::State(const QString& filename, quint8* charset, quint8* tileColors, quint
     _undoStack = new QUndoStack;
 
     if (charset)
-        memcpy(_charset, charset, sizeof(_charset));
+        std::memcpy(_charset, charset, sizeof(_charset));
 
     if (tileColors)
-        memcpy(_tileColors, tileColors, sizeof(_tileColors));
+        std::memcpy(_tileColors, tileColors, sizeof(_tileColors));
 
     Q_ASSERT(_mapSize.width() > 0 && _mapSize.height() > 0 && "Invalid size");
-    _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
     if (map) {
-        memcpy(_map, map, _mapSize.width() * _mapSize.height());
+        std::memcpy(_map.data(), map, _mapSize.width() * _mapSize.height());
     } else {
         setupDefaultMap();
     }
@@ -99,21 +99,17 @@ void State::copyState(const State& copyFromMe)
     _tileIndex = copyFromMe._tileIndex;
     _exportProperties = copyFromMe._exportProperties;
 
-    memcpy(_penColors, copyFromMe._penColors, sizeof(_penColors));
-    memcpy(_charset, copyFromMe._charset, sizeof(_charset));
-    memcpy(_tileColors, copyFromMe._tileColors, sizeof(_tileColors));
+    std::memcpy(_penColors, copyFromMe._penColors, sizeof(_penColors));
+    std::memcpy(_charset, copyFromMe._charset, sizeof(_charset));
+    std::memcpy(_tileColors, copyFromMe._tileColors, sizeof(_tileColors));
 
-    if (_map) {
-        free(_map);
-    }
-    _map = (quint8*)malloc(_mapSize.width() * _mapSize.height());
-    memcpy(_map, copyFromMe._map, _mapSize.width() * _mapSize.height());
+    _map.reserve(_mapSize.width() * _mapSize.height());
+    std::memcpy(_map.data(), copyFromMe._map.data(), _mapSize.width() * _mapSize.height());
 }
 
 State::~State()
 {
     delete _undoStack;
-    free(_map);
 }
 
 void State::reset()
@@ -137,9 +133,9 @@ void State::reset()
     _exportProperties.format = EXPORT_FORMAT_RAW;
     _exportProperties.features = EXPORT_FEATURE_CHARSET;
 
-    memset(_charset, 0, sizeof(_charset));
-    memset(_tileColors, 11, sizeof(_tileColors));
-    memset(_map, 0, _mapSize.width() * _mapSize.height());
+    std::memset(_charset, 0, sizeof(_charset));
+    std::memset(_tileColors, 11, sizeof(_tileColors));
+    std::memset(_map.data(), 0, _mapSize.width() * _mapSize.height());
 }
 
 void State::emitNewState()
@@ -286,7 +282,7 @@ bool State::exportRaw(const QString& filename, const ExportProperties& propertie
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
         ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map, _mapSize.width() * _mapSize.height())
+                    _map.data(), _mapSize.width() * _mapSize.height())
             > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
@@ -314,7 +310,7 @@ bool State::exportPRG(const QString& filename, const ExportProperties& propertie
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map, _mapSize.width() * _mapSize.height(), properties.addresses[1])
+                    _map.data(), _mapSize.width() * _mapSize.height(), properties.addresses[1])
             > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
@@ -342,7 +338,7 @@ bool State::exportAsm(const QString& filename, const ExportProperties& propertie
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map, _mapSize.width() * _mapSize.height(), "map")
+                    _map.data(), _mapSize.width() * _mapSize.height(), "map")
             > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
@@ -369,7 +365,7 @@ bool State::exportC(const QString& filename, const ExportProperties& properties)
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP))
         ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map, _mapSize.width() * _mapSize.height(), "map")
+                    _map.data(), _mapSize.width() * _mapSize.height(), "map")
             > 0);
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
@@ -702,8 +698,7 @@ void State::_setMapSize(const QSize& mapSize)
 {
     if (_mapSize != mapSize) {
         const int newSizeInBytes = mapSize.width() * mapSize.height();
-        quint8* newMap = (quint8*)malloc(newSizeInBytes);
-        Q_ASSERT(newMap && "No memory");
+        std::vector<quint8> newMap(newSizeInBytes);
 
         for (int i = 0; i < newSizeInBytes; ++i)
             newMap[i] = _tileIndex;
@@ -715,10 +710,9 @@ void State::_setMapSize(const QSize& mapSize)
 
             // bytes to copy per row
             int toCopy = qMin(mapSize.width(), _mapSize.width());
-            memcpy(&newMap[mapSize.width() * row], &_map[_mapSize.width() * row], toCopy);
+            std::memcpy(&newMap[mapSize.width() * row], &_map[_mapSize.width() * row], toCopy);
         }
 
-        free(_map);
         _map = newMap;
         _mapSize = mapSize;
 
@@ -808,7 +802,7 @@ void State::_mapClear(int tileIdx)
 void State::_setMap(const quint8* buffer, const QSize& mapSize)
 {
     Q_ASSERT(_mapSize == mapSize && "Invalid map size");
-    memcpy(_map, buffer, mapSize.width() * mapSize.height());
+    std::memcpy(_map.data(), buffer, mapSize.width() * mapSize.height());
 
     emit mapContentUpdated();
     emit contentsChanged();
@@ -822,7 +816,7 @@ const quint8* State::getCharsetBuffer() const
 
 const quint8* State::getMapBuffer() const
 {
-    return _map;
+    return _map.data();
 }
 
 const quint8* State::getTileColors() const
@@ -832,7 +826,7 @@ const quint8* State::getTileColors() const
 
 void State::resetCharsetBuffer()
 {
-    memset(_charset, 0, sizeof(_charset));
+    std::memset(_charset, 0, sizeof(_charset));
 }
 
 // buffer must be at least 8x8*8 bytes big
@@ -843,10 +837,10 @@ void State::copyTileFromIndex(int tileIndex, quint8* buffer, int bufferSize)
     Q_ASSERT(tileIndex >= 0 && tileIndex <= getTileIndexFromCharIndex(255) && "invalid index value");
 
     if (_tileProperties.interleaved == 1) {
-        memcpy(buffer, &_charset[tileIndex * tileSize * 8], qMin(tileSize * 8, bufferSize));
+        std::memcpy(buffer, &_charset[tileIndex * tileSize * 8], qMin(tileSize * 8, bufferSize));
     } else {
         for (int i = 0; i < tileSize; i++) {
-            memcpy(&buffer[i * 8], &_charset[(tileIndex + i * _tileProperties.interleaved) * 8], 8);
+            std::memcpy(&buffer[i * 8], &_charset[(tileIndex + i * _tileProperties.interleaved) * 8], 8);
         }
     }
 }
@@ -859,10 +853,10 @@ void State::copyTileToIndex(int tileIndex, quint8* buffer, int bufferSize)
     Q_ASSERT(tileIndex >= 0 && tileIndex <= getTileIndexFromCharIndex(255) && "invalid index value");
 
     if (_tileProperties.interleaved == 1) {
-        memcpy(&_charset[tileIndex * tileSize * 8], buffer, qMin(tileSize * 8, bufferSize));
+        std::memcpy(&_charset[tileIndex * tileSize * 8], buffer, qMin(tileSize * 8, bufferSize));
     } else {
         for (int i = 0; i < tileSize; i++) {
-            memcpy(&_charset[(tileIndex + i * _tileProperties.interleaved) * 8], &buffer[i * 8], 8);
+            std::memcpy(&_charset[(tileIndex + i * _tileProperties.interleaved) * 8], &buffer[i * 8], 8);
         }
     }
 
@@ -930,8 +924,8 @@ void State::_pasteChars(int charIndex, const CopyRange& copyRange, const quint8*
         int bytesToCopy = qMin((qint64)copyRange.blockSize * 8, (qint64)(lastByte - chrdst));
         if (bytesToCopy < 0)
             break;
-        memcpy(chrdst, chrsrc, bytesToCopy);
-        memcpy(colordst, colorsrc, bytesToCopy / 8);
+        std::memcpy(chrdst, chrsrc, bytesToCopy);
+        std::memcpy(colordst, colorsrc, bytesToCopy / 8);
         emit bytesUpdated((chrdst - _charset), bytesToCopy);
 
         chrdst += (copyRange.blockSize + copyRange.skip) * 8;
@@ -989,7 +983,7 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
 
                 // don't overflow, don't copy crappy chars
                 if ((CHAR_BUFFER_SIZE - chardst) >= 8 && (CHAR_BUFFER_SIZE - charsrc) >= 8) {
-                    memcpy(&_charset[chardst], &origBuffer[charsrc], 8);
+                    std::memcpy(&_charset[chardst], &origBuffer[charsrc], 8);
                     emit bytesUpdated(chardst, 8);
                 }
             }
@@ -1004,7 +998,7 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
 void State::_pasteMap(int charIndex, const CopyRange& copyRange, const quint8* origBuffer)
 {
     int count = copyRange.count;
-    quint8* dst = _map + charIndex;
+    quint8* dst = _map.data() + charIndex;
     const quint8* src = origBuffer + copyRange.offset;
 
     while (count > 0) {
@@ -1012,7 +1006,7 @@ void State::_pasteMap(int charIndex, const CopyRange& copyRange, const quint8* o
         int bytesToCopy = qMin((qint64)copyRange.blockSize, (qint64)(lastByte - dst));
         if (bytesToCopy < 0)
             break;
-        memcpy(dst, src, bytesToCopy);
+        std::memcpy(dst, src, bytesToCopy);
 
         dst += copyRange.blockSize + copyRange.skip;
         src += copyRange.blockSize + copyRange.skip;
@@ -1482,7 +1476,7 @@ BigCharWidget* State::getBigCharWidget() const
 
 void State::setupDefaultMap()
 {
-    memset(_map, 0x20, _mapSize.width() * _mapSize.height());
+    std::memset(_map.data(), 0x20, _mapSize.width() * _mapSize.height());
     //1234567890123456789012345678901234567890
     const char hello64[] = "                                        "
                            "    **** COMMODORE 64 BASIC V2 ****     "

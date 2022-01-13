@@ -16,6 +16,8 @@ limitations under the License.
 
 #pragma once
 
+#include <vector>
+
 #include <QObject>
 #include <QPoint>
 #include <QSize>
@@ -559,7 +561,7 @@ protected:
 
     quint8 _charset[State::CHAR_BUFFER_SIZE];
     quint8 _tileColors[State::TILE_COLORS_BUFFER_SIZE];
-    quint8* _map;
+    std::vector<quint8> _map;
     QSize _mapSize;
 
     bool _multicolorMode;

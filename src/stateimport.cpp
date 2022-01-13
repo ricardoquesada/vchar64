@@ -145,7 +145,7 @@ qint64 StateImport::loadCTM4(State* state, QFile& file, struct CTMHeader4* v4hea
 
     int mapInBytes = map_size.width() * map_size.height();
     // read map
-    total += file.read((char*)state->_map, mapInBytes);
+    total += file.read((char*)state->getMapBuffer(), mapInBytes);
 
     return total;
 }
@@ -206,14 +206,13 @@ qint64 StateImport::loadCTM5(State* state, QFile& file, struct CTMHeader5* v5hea
     // since it is expanded, there are no tile_data
 
     int mapInBytes = map_size.width() * map_size.height();
-    quint16* tmpBuffer = (quint16*)malloc(mapInBytes * 2);
+    std::vector<quint16> tmpBuffer(mapInBytes * 2);
     // read map
-    file.read((char*)tmpBuffer, mapInBytes * 2);
+    file.read((char*)tmpBuffer.data(), mapInBytes * 2);
     for (int i = 0; i < mapInBytes; i++) {
         // FIXME: what happens with tiles bigger than 255?
         state->_map[i] = tmpBuffer[i] & 0xff;
     }
-    free(tmpBuffer);
 
     return total;
 }
@@ -308,7 +307,7 @@ qint64 StateImport::loadVChar64(State* state, QFile& file)
         state->_setMapSize(QSize(map_width, map_height));
 
         file.read((char*)state->_tileColors, State::TILE_COLORS_BUFFER_SIZE);
-        file.read((char*)state->_map, map_width * map_height);
+        file.read((char*)state->getMapBuffer(), map_width * map_height);
     }
 
     // version 3 only
@@ -447,7 +446,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
                 mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE C64MEM segment"));
                 return -1;
             }
-            memcpy(buffer64k, c64mem.ram, sizeof(c64mem.ram));
+            std::memcpy(buffer64k, c64mem.ram, sizeof(c64mem.ram));
         }
         // ...or from c128
         else if (c128memoffset != -1) {
@@ -458,7 +457,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
                 return -1;
             }
             // FIXME: copy only first 64k
-            memcpy(buffer64k, c128mem.ram, 65536);
+            std::memcpy(buffer64k, c128mem.ram, 65536);
         }
 
         // find default charset
@@ -495,10 +494,10 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
         }
 
         // update color RAM
-        memcpy(outColorRAMBuf, vic2.color_ram, sizeof(vic2.color_ram));
+        std::memcpy(outColorRAMBuf, vic2.color_ram, sizeof(vic2.color_ram));
 
         // update VIC registers
-        memcpy(outVICRegistersBuf, vic2.registers, sizeof(vic2.registers));
+        std::memcpy(outVICRegistersBuf, vic2.registers, sizeof(vic2.registers));
     } else {
         mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE C64MEM/C128MEM segment not found"));
         return -1;

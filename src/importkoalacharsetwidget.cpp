@@ -44,9 +44,9 @@ ImportKoalaCharsetWidget::ImportKoalaCharsetWidget(QWidget* parent)
 
 void ImportKoalaCharsetWidget::clean()
 {
-    memset(_screenRAM, 0, sizeof(_screenRAM));
-    memset(_colorRAMForChars, 0, sizeof(_colorRAMForChars));
-    memset(_charset, 0, sizeof(_charset));
+    std::memset(_screenRAM, 0, sizeof(_screenRAM));
+    std::memset(_colorRAMForChars, 0, sizeof(_colorRAMForChars));
+    std::memset(_charset, 0, sizeof(_charset));
     _d02x[0] = 0;
     _d02x[1] = 1;
     _d02x[2] = 2;
