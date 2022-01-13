@@ -31,8 +31,8 @@
         <location filename="../src/bigcharwidget.cpp" line="347"/>
         <source>The are unsaved changes.
 Do you want to save your changes?</source>
-        <translation>Existen cambios que no fueron guardados
-¿Desea guardas los cambios?</translation>
+        <translation type="unfinished">Existen cambios que no fueron guardados
+¿Desea guardar los cambios?</translation>
     </message>
 </context>
 <context>
