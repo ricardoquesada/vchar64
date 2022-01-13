@@ -322,6 +322,11 @@ void MapWidget::keyPressEvent(QKeyEvent* event)
                 _altValue = keyValue;
             else
                 _altValue = _altValue * 10 + keyValue;
+        } else if (event->modifiers() & (Qt::ControlModifier | Qt::AltModifier)) {
+            // Just ignore the event if Alt or Ctrl is pressed. This is because some shortcuts are already binded.
+            // For example, Ctrl+Z is Undo, and we don't want to "paint" something.
+            QWidget::keyPressEvent(event);
+            return;
         } else {
             auto asciiCode = event->text().toLatin1()[0];
             auto screenCode = utilsAsciiToScreenCode(asciiCode);
