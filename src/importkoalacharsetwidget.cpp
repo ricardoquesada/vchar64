@@ -38,7 +38,8 @@ ImportKoalaCharsetWidget::ImportKoalaCharsetWidget(QWidget* parent)
     , _displayGrid(false)
 
 {
-    setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
+    setFixedSize(
+        PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
         PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 
     clean();
@@ -133,7 +134,8 @@ void ImportKoalaCharsetWidget::paintEvent(QPaintEvent* event)
                         break;
                     }
                     painter.setBrush(Palette::getColor(colorIndex));
-                    painter.drawRect((x * 8 + j * 2) * PIXEL_SIZE + OFFSET,
+                    painter.drawRect(
+                        (x * 8 + j * 2) * PIXEL_SIZE + OFFSET,
                         (y * 8 + i) * PIXEL_SIZE + OFFSET,
                         PIXEL_SIZE * 2,
                         PIXEL_SIZE);

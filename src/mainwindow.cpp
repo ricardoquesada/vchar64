@@ -1242,8 +1242,6 @@ void MainWindow::on_actionPaste_triggered()
     }
     auto data = bytearray.data();
     State::CopyRange* range = reinterpret_cast<State::CopyRange*>(data);
-    data += sizeof(State::CopyRange);
-    quint8* buffer = reinterpret_cast<quint8*>(data);
 
     {
         // sanity check #1
@@ -1278,6 +1276,8 @@ void MainWindow::on_actionPaste_triggered()
             ? _ui->charsetWidget->getCursorPos()
             : _ui->mapWidget->getCursorPos();
 
+        data += sizeof(State::CopyRange);
+        quint8* buffer = reinterpret_cast<quint8*>(data);
         state->paste(cursorPos, *range, buffer);
     }
 }
