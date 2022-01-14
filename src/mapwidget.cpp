@@ -48,8 +48,10 @@ MapWidget::MapWidget(QWidget* parent)
     , _altValue(-1)
 {
     // FIXME: should be updated when the map size changes
-    _sizeHint = { (int)(_mapSize.width() * _tileSize.width() * _zoomLevel * 8),
-        (int)(_mapSize.height() * _tileSize.height() * _zoomLevel * 8) };
+    _sizeHint = {
+        static_cast<int>(_mapSize.width() * _tileSize.width() * _zoomLevel * 8),
+        static_cast<int>(_mapSize.height() * _tileSize.height() * _zoomLevel * 8)
+    };
     setMinimumSize(_sizeHint);
 
     setMouseTracking(true);
@@ -163,51 +165,48 @@ void MapWidget::mousePressEvent(QMouseEvent* event)
     x = qBound(0, x, _mapSize.width() - 1);
     y = qBound(0, y, _mapSize.height() - 1);
 
-    if (event->button() == Qt::LeftButton) {
-        if (_mode == SELECT_MODE) {
-            if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier) {
-                // Click + Shift == select mode
-                _selecting = true;
+    // Select mode can be used using Right click as well
+    if ((event->button() == Qt::LeftButton && _mode == SELECT_MODE) || event->button() == Qt::RightButton) {
+        if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier) {
+            // Click + Shift == select mode
+            _selecting = true;
 
-                if (x >= _cursorPos.x())
-                    x++;
-                if (y >= _cursorPos.y())
-                    y++;
+            if (x >= _cursorPos.x())
+                x++;
+            if (y >= _cursorPos.y())
+                y++;
 
-                _selectingSize = { x - _cursorPos.x(),
-                    y - _cursorPos.y() };
+            _selectingSize = { x - _cursorPos.x(), y - _cursorPos.y() };
 
-                // sanity check
-                _selectingSize = {
-                    qBound(-_cursorPos.x(), _selectingSize.width(), _mapSize.width() - _cursorPos.x()),
-                    qBound(-_cursorPos.y(), _selectingSize.height(), _mapSize.height() - _cursorPos.y())
-                };
-            } else {
-                // click without shift == select single char and clear select mode
-                if (_selecting) {
-                    _selecting = false;
-                    _selectingSize = { 1, 1 };
-                }
-                _cursorPos = { x, y };
-
-                // update tileIndex
-                state->setTileIndex(state->getTileIndexFromMap(_cursorPos));
+            // sanity check
+            _selectingSize = {
+                qBound(-_cursorPos.x(), _selectingSize.width(), _mapSize.width() - _cursorPos.x()),
+                qBound(-_cursorPos.y(), _selectingSize.height(), _mapSize.height() - _cursorPos.y())
+            };
+        } else {
+            // click without shift == select single char and clear select mode
+            if (_selecting) {
+                _selecting = false;
+                _selectingSize = { 1, 1 };
             }
+            _cursorPos = { x, y };
 
-            update();
-        } else if (_mode == PAINT_MODE) {
-            _cursorPos = { x, y };
-            auto state = MainWindow::getCurrentState();
-            if (state) {
-                state->mapPaint(QPoint(x, y), state->getTileIndex(), _commandMergeable);
-                _commandMergeable = true;
-            }
-        } else if (_mode == FILL_MODE) {
-            _cursorPos = { x, y };
-            auto state = MainWindow::getCurrentState();
-            if (state)
-                state->mapFill(QPoint(x, y), state->getTileIndex());
+            // update tileIndex
+            state->setTileIndex(state->getTileIndexFromMap(_cursorPos));
         }
+        update();
+    } else if (event->button() == Qt::LeftButton && _mode == PAINT_MODE) {
+        _cursorPos = { x, y };
+        auto state = MainWindow::getCurrentState();
+        if (state) {
+            state->mapPaint(QPoint(x, y), state->getTileIndex(), _commandMergeable);
+            _commandMergeable = true;
+        }
+    } else if (event->button() == Qt::LeftButton && _mode == FILL_MODE) {
+        _cursorPos = { x, y };
+        auto state = MainWindow::getCurrentState();
+        if (state)
+            state->mapFill(QPoint(x, y), state->getTileIndex());
     }
 }
 
@@ -224,32 +223,29 @@ void MapWidget::mouseMoveEvent(QMouseEvent* event)
 
     if (event->buttons() == Qt::NoButton) {
         MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
-    } else if (event->buttons() == Qt::LeftButton) {
+    } else if ((event->buttons() == Qt::LeftButton && _mode == SELECT_MODE) || event->buttons() == Qt::RightButton) {
+        if (x >= _cursorPos.x())
+            x++;
+        if (y >= _cursorPos.y())
+            y++;
 
-        if (_mode == SELECT_MODE) {
-            if (x >= _cursorPos.x())
-                x++;
-            if (y >= _cursorPos.y())
-                y++;
+        _selectingSize = { x - _cursorPos.x(),
+            y - _cursorPos.y() };
 
-            _selectingSize = { x - _cursorPos.x(),
-                y - _cursorPos.y() };
+        // sanity check
+        _selectingSize = {
+            qBound(-_cursorPos.x(), _selectingSize.width(), _mapSize.width() - _cursorPos.x()),
+            qBound(-_cursorPos.y(), _selectingSize.height(), _mapSize.height() - _cursorPos.y())
+        };
 
-            // sanity check
-            _selectingSize = {
-                qBound(-_cursorPos.x(), _selectingSize.width(), _mapSize.width() - _cursorPos.x()),
-                qBound(-_cursorPos.y(), _selectingSize.height(), _mapSize.height() - _cursorPos.y())
-            };
-
-            _selecting = true;
-            update();
-        } else if (_mode == PAINT_MODE) {
-            _cursorPos = { x, y };
-            auto state = MainWindow::getCurrentState();
-            if (state) {
-                state->mapPaint(QPoint(x, y), state->getTileIndex(), _commandMergeable);
-                _commandMergeable = true;
-            }
+        _selecting = true;
+        update();
+    } else if (event->buttons() == Qt::LeftButton && _mode == PAINT_MODE) {
+        _cursorPos = { x, y };
+        auto state = MainWindow::getCurrentState();
+        if (state) {
+            state->mapPaint(QPoint(x, y), state->getTileIndex(), _commandMergeable);
+            _commandMergeable = true;
         }
     }
 }
@@ -471,8 +467,9 @@ void MapWidget::onTilePropertiesUpdated()
 {
     _tileSize = MainWindow::getCurrentState()->getTileProperties().size;
 
-    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * _zoomLevel * 8,
-        _mapSize.height() * _tileSize.height() * _zoomLevel * 8);
+    _sizeHint = QSize(
+        static_cast<int>(_mapSize.width() * _tileSize.width() * _zoomLevel * 8),
+        static_cast<int>(_mapSize.height() * _tileSize.height() * _zoomLevel * 8));
 
     setMinimumSize(_sizeHint);
     update();
@@ -482,8 +479,9 @@ void MapWidget::onMapSizeUpdated()
 {
     _mapSize = MainWindow::getCurrentState()->getMapSize();
 
-    _sizeHint = QSize(_mapSize.width() * _tileSize.width() * _zoomLevel * 8,
-        _mapSize.height() * _tileSize.height() * _zoomLevel * 8);
+    _sizeHint = QSize(
+        static_cast<int>(_mapSize.width() * _tileSize.width() * _zoomLevel * 8),
+        static_cast<int>(_mapSize.height() * _tileSize.height() * _zoomLevel * 8));
 
     setMinimumSize(_sizeHint);
     update();
