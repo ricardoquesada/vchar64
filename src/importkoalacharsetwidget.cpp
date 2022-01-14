@@ -35,7 +35,6 @@ static const int OFFSET = 0;
 
 ImportKoalaCharsetWidget::ImportKoalaCharsetWidget(QWidget* parent)
     : QWidget(parent)
-    , _screenRAM(40 * 25)
     , _displayGrid(false)
 
 {
@@ -47,9 +46,9 @@ ImportKoalaCharsetWidget::ImportKoalaCharsetWidget(QWidget* parent)
 
 void ImportKoalaCharsetWidget::clean()
 {
-    std::fill(_screenRAM.begin(), _screenRAM.end(), 0);
-    std::fill(_colorRAMForChars.begin(), _colorRAMForChars.end(), 0);
-    std::fill(_charset.begin(), _charset.end(), 0);
+    std::fill(std::begin(_screenRAM), std::end(_screenRAM), 0);
+    std::fill(std::begin(_colorRAMForChars), std::end(_colorRAMForChars), 0);
+    std::fill(std::begin(_charset), std::end(_charset), 0);
 
     _d02x[0] = 0;
     _d02x[1] = 1;
@@ -92,8 +91,8 @@ void ImportKoalaCharsetWidget::paintEvent(QPaintEvent* event)
 
     for (int y = 0; y < 25; y++) {
         for (int x = 0; x < 40; ++x) {
-            auto c = _screenRAM[y * 40 + x];
-            auto chardef = &_charset[c * 8];
+            quint8 c = _screenRAM[y * 40 + x];
+            quint8* chardef = &_charset[c * 8];
 
             for (int i = 0; i < 8; ++i) {
                 static const quint8 masks[] = { 192, 48, 12, 3 };

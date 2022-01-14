@@ -73,10 +73,16 @@ public:
 
     // char attributes: color (4-bit LSB)
     const static int TILE_COLORS_BUFFER_SIZE = 256;
+    // Color used to initialize the tileColors buffer
+    const static quint8 TILE_COLORS_DEFAULT = 11;
 
     // Max Tile size: 8x8
     const static int MAX_TILE_WIDTH = 8;
     const static int MAX_TILE_HEIGHT = 8;
+
+    typedef quint8 charset_t[CHAR_BUFFER_SIZE];
+    typedef quint8 tileColors_t[TILE_COLORS_BUFFER_SIZE];
+    typedef std::vector<quint8> map_t;
 
     enum Pen {
         PEN_BACKGROUND, /* $d021 */
@@ -155,16 +161,9 @@ public:
     /**
      * @brief State the Target constructor
      * @param filename the loaded name. Used when save/export is called
-     * @param charset charset to use or nullptr
-     * @param tileColors tileColors to use or nullptr
-     * @param map map to use or nullPtr
      * @param mapSize map size
      */
-    State(const QString& filename,
-        const std::array<quint8, CHAR_BUFFER_SIZE>& charset,
-        const std::array<quint8, TILE_COLORS_BUFFER_SIZE>& tileColors,
-        const std::vector<quint8>& map,
-        const QSize& mapSize);
+    State(const QString& filename, const QSize& mapSize);
     /* delegating constructors */
     State(const QString& filename);
     State();
@@ -406,9 +405,13 @@ public:
     //
     // charset, map, and related
     //
-    const std::array<quint8, CHAR_BUFFER_SIZE>& getCharsetBuffer() const;
-    const std::vector<quint8>& getMapBuffer() const;
-    const std::array<quint8, TILE_COLORS_BUFFER_SIZE>& getTileColors() const;
+    const charset_t& getCharsetBuffer() const;
+    const map_t& getMapBuffer() const;
+    const tileColors_t& getTileColors() const;
+
+    charset_t& getCharsetBuffer();
+    map_t& getMapBuffer();
+    tileColors_t& getTileColors();
 
     void resetCharsetBuffer();
 
@@ -564,9 +567,9 @@ protected:
 
     int _totalChars;
 
-    std::array<quint8, CHAR_BUFFER_SIZE> _charset;
-    std::array<quint8, TILE_COLORS_BUFFER_SIZE> _tileColors;
-    std::vector<quint8> _map;
+    charset_t _charset;
+    tileColors_t _tileColors;
+    map_t _map;
     QSize _mapSize;
 
     bool _multicolorMode;

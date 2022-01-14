@@ -32,15 +32,15 @@ void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixel
     static const quint8 mc_masks[] = { 192, 48, 12, 3 };
     static const quint8 hr_masks[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 
-    auto charset = state->getCharsetBuffer();
-    auto tileColors = state->getTileColors();
+    const auto& charset = state->getCharsetBuffer();
+    const auto& tileColors = state->getTileColors();
     int tileIdx = state->getTileIndexFromCharIndex(charIdx);
     auto ismc = state->shouldBeDisplayedInMulticolor2(tileIdx);
 
-    auto chardef = &charset[charIdx * 8];
+    const quint8* chardef = &charset[charIdx * 8];
 
     for (int i = 0; i < 8; ++i) {
-        auto byte = chardef[i];
+        quint8 byte = chardef[i];
 
         int char_width = 8;
         int bit_width = 1; /* 8 = 8 * 1 */
@@ -110,7 +110,7 @@ void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int
     static const quint8 mc_masks[] = { 192, 48, 12, 3 };
     static const quint8 hr_masks[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 
-    auto charset = state->getCharsetBuffer();
+    const auto& charset = state->getCharsetBuffer();
     auto tileColors = state->getTileColors();
     int tileIdx = state->getTileIndexFromCharIndex(charIdx);
     auto ismc = state->shouldBeDisplayedInMulticolor2(tileIdx);

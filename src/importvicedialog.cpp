@@ -34,8 +34,8 @@ ImportVICEDialog::ImportVICEDialog(QWidget* parent)
 {
     ui->setupUi(this);
 
-    std::memset(_memoryRAM, 0, sizeof(_memoryRAM));
-    std::memset(_colorRAM, 0, sizeof(_colorRAM));
+    std::memset(_memoryRAM, 0, std::size(_memoryRAM));
+    std::memset(_colorRAM, 0, std::size(_colorRAM));
 
     // comes with a default map of 40*25
     _tmpState = new State;
@@ -121,7 +121,7 @@ void ImportVICEDialog::on_spinBoxCharset_editingFinished()
 void ImportVICEDialog::on_spinBoxCharset_valueChanged(int address)
 {
     Q_ASSERT(address <= (65536 - 2048) && "invalid address");
-    std::copy_n(std::begin(_memoryRAM) + address, _tmpState->_charset.size(), std::begin(_tmpState->_charset));
+    std::copy_n(std::begin(_memoryRAM) + address, std::size(_tmpState->_charset), std::begin(_tmpState->_charset));
     updateTileImages();
 
     ui->widgetCharset->update();

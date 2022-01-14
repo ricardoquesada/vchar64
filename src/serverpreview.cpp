@@ -120,8 +120,8 @@ void ServerPreview::onReadyRead()
         _bytesSent = 0;
         _alreadyQueued = false;
         _readOnlyQueue = true;
-        auto it = _commands.begin();
-        while (it != _commands.end()) {
+        auto it = std::begin(_commands);
+        while (it != std::end(_commands)) {
             auto command = *it;
             sendOrQueueData(command->_data, command->_dataSize);
             it = _commands.erase(it);
@@ -377,7 +377,7 @@ void ServerPreview::fileLoaded()
         return;
 
     // flush queued commands
-    for (auto it = _tmpCommands.begin(); it != _tmpCommands.end();) {
+    for (auto it = std::begin(_tmpCommands); it != std::end(_tmpCommands);) {
         auto command = *it;
         free(command->_data);
         it = _tmpCommands.erase(it);
@@ -386,7 +386,7 @@ void ServerPreview::fileLoaded()
     _tmpCommands.clear();
 
     // flush queued commands
-    for (auto it = _commands.begin(); it != _commands.end();) {
+    for (auto it = std::begin(_commands); it != std::end(_commands);) {
         auto command = *it;
         free(command->_data);
         it = _commands.erase(it);

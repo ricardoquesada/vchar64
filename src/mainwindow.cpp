@@ -1577,11 +1577,14 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
     auto mimeData = new QMimeData;
     QByteArray array((char*)&copyRange, sizeof(copyRange));
     if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
-        array.append((const char*)state->getCharsetBuffer().data(), State::CHAR_BUFFER_SIZE);
-        array.append((const char*)state->getTileColors().data(), State::TILE_COLORS_BUFFER_SIZE);
+        const auto& charset = state->getCharsetBuffer();
+        const auto& tileColors = state->getTileColors();
+        array.append((const char*)charset, std::size(charset));
+        array.append((const char*)tileColors, std::size(tileColors));
     } else {
         /* MAP */
-        array.append((const char*)state->getMapBuffer().data(), state->getMapSize().width() * state->getMapSize().height());
+        const auto& map = state->getMapBuffer();
+        array.append((const char*)map.data(), std::size(map));
     }
 
     mimeData->setData("vchar64/range", array);

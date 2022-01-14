@@ -555,7 +555,7 @@ bool ImportKoalaDialog::convert()
 
         if (_uniqueChars.find(key) != std::end(_uniqueChars))
             // append coordinates since they all share the same key
-            _uniqueChars[key].insert(_uniqueChars[key].end(), it->second.begin(), it->second.end());
+            _uniqueChars[key].insert(std::end(_uniqueChars[key]), std::begin(it->second), std::end(it->second));
         else
             _uniqueChars[key] = it->second;
     }
@@ -683,11 +683,20 @@ void ImportKoalaDialog::on_pushButtonImport_clicked()
     QFileInfo info(ui->lineEdit->text());
     Preferences::getInstance().setLastUsedDirectory(info.absolutePath());
 
-    auto state = new State(info.filePath(),
-        ui->widgetCharset->_charset,
-        ui->widgetCharset->_colorRAMForChars,
-        ui->widgetCharset->_screenRAM,
-        QSize(40, 25));
+    auto state = new State(info.filePath(), QSize(40, 25));
+
+    std::copy(
+        std::begin(ui->widgetCharset->_charset),
+        std::end(ui->widgetCharset->_charset),
+        std::begin(state->getCharsetBuffer()));
+    std::copy(
+        std::begin(ui->widgetCharset->_colorRAMForChars),
+        std::end(ui->widgetCharset->_colorRAMForChars),
+        std::begin(state->getTileColors()));
+    std::copy(
+        std::begin(ui->widgetCharset->_screenRAM),
+        std::end(ui->widgetCharset->_screenRAM),
+        std::begin(state->getMapBuffer()));
 
     state->setColorForPen(State::PEN_BACKGROUND, ui->widgetCharset->_d02x[0]);
     state->setColorForPen(State::PEN_MULTICOLOR1, ui->widgetCharset->_d02x[1]);

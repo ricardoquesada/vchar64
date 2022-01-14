@@ -101,7 +101,6 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
     if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
         sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
         Q_ASSERT(copyRange.bufferSize == sizeToCopy && "Invalid bufferSize");
-
         _copyBuffer.resize(sizeToCopy);
         _origBuffer.resize(sizeToCopy);
     } else {

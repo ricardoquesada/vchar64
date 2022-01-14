@@ -236,8 +236,8 @@ void ImportKoalaBitmapWidget::resetColors()
         _colorsUsed.emplace_back(0, i);
     _uniqueCells.clear();
 
-    for (unsigned char& _d02xColor : _d02xColors)
-        _d02xColor = -1;
+    for (auto& d02xColor : _d02xColors)
+        d02xColor = 0xff;
 }
 
 void ImportKoalaBitmapWidget::findUniqueCells()
@@ -263,7 +263,7 @@ void ImportKoalaBitmapWidget::findUniqueCells()
             std::string skey(key);
             Q_ASSERT(skey.size() == 8 * 4 && "Invalid Key");
 
-            if (_uniqueCells.find(skey) == _uniqueCells.end()) {
+            if (_uniqueCells.find(skey) == std::end(_uniqueCells)) {
                 std::vector<std::pair<int, int>> v;
                 v.emplace_back(x, y);
                 _uniqueCells[skey] = v;

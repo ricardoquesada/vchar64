@@ -43,9 +43,9 @@ signals:
 public slots:
 
 private:
-    std::array<quint8, 256> _colorRAMForChars;
-    std::array<quint8, 256 * 8> _charset;
-    std::vector<quint8> _screenRAM;
+    quint8 _colorRAMForChars[256];
+    quint8 _charset[256 * 8];
+    quint8 _screenRAM[40 * 25];
 
     quint8 _d02x[3];
     bool _displayGrid;
