@@ -2,6 +2,7 @@
 * [NEW] Possibility to load file from command line
 * [NEW] Export: support for C language export
 * [NEW] Issue #53: Right-click select char in Map
+* [FIX] Compiles under Qt6. In fact Qt5 is no longer supported.
 * [FIX] Cleaner code: Converted many C structs to C++ ones. Easier to mantain.
 
 0.2.4 (30 March 2017)
