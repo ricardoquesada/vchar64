@@ -88,7 +88,7 @@ ExportDialog::ExportDialog(State* state, QWidget* parent)
     ui->checkBox_map->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_MAP);
     ui->checkBox_tileColors->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_COLORS);
 
-    /* don't change the order */
+    // Don't change the order, must honor the order from State::ExportFormat
     QRadioButton* radios[] = {
         ui->radioButton_raw,
         ui->radioButton_prg,
@@ -112,25 +112,26 @@ void ExportDialog::on_pushBrowse_clicked()
 {
     QString filters[] = {
         tr("Asm files (*.s *.a *.asm)"),
+        tr("C files (*.c *.h)"),
         tr("Raw files (*.raw *.bin)"),
-        tr("PRG files (*.prg *.64c)")
+        tr("PRG files (*.prg *.64c)"),
     };
 
     int filterIdx = 0;
 
     if (ui->radioButton_asm->isChecked())
         filterIdx = 0;
-    else if (ui->radioButton_raw->isChecked())
-        filterIdx = 1;
-    else if (ui->radioButton_prg->isChecked())
-        filterIdx = 2;
     else if (ui->radioButton_c->isChecked())
+        filterIdx = 1;
+    else if (ui->radioButton_raw->isChecked())
+        filterIdx = 2;
+    else if (ui->radioButton_prg->isChecked())
         filterIdx = 3;
 
     auto filename = QFileDialog::getSaveFileName(this,
         tr("Select filename"),
         ui->editFilename->text(),
-        tr("Asm files (*.s *.a *.asm);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;Any file (*)"),
+        tr("Asm files (*.s *.a *.asm);;C files (*.c *.h);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;Any file (*)"),
         &filters[filterIdx],
         QFileDialog::DontConfirmOverwrite);
 

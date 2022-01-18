@@ -36,8 +36,8 @@ limitations under the License.
 #include "stateexport.h"
 #include "stateimport.h"
 
-const int State::CHAR_BUFFER_SIZE;
-const quint8 State::TILE_COLORS_DEFAULT;
+constexpr int State::CHAR_BUFFER_SIZE;
+constexpr quint8 State::TILE_COLORS_DEFAULT;
 
 // target constructor
 State::State(const QString& filename,

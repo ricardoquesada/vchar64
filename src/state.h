@@ -69,16 +69,16 @@ class State : public QObject {
 
 public:
     // only 256 chars at the time
-    const static int CHAR_BUFFER_SIZE = 8 * 256;
+    constexpr static int CHAR_BUFFER_SIZE = 8 * 256;
 
     // char attributes: color (4-bit LSB)
-    const static int TILE_COLORS_BUFFER_SIZE = 256;
+    constexpr static int TILE_COLORS_BUFFER_SIZE = 256;
     // Color used to initialize the tileColors buffer
-    const static quint8 TILE_COLORS_DEFAULT = 11;
+    constexpr static quint8 TILE_COLORS_DEFAULT = 11;
 
     // Max Tile size: 8x8
-    const static int MAX_TILE_WIDTH = 8;
-    const static int MAX_TILE_HEIGHT = 8;
+    constexpr static int MAX_TILE_WIDTH = 8;
+    constexpr static int MAX_TILE_HEIGHT = 8;
 
     typedef quint8 charset_t[CHAR_BUFFER_SIZE];
     typedef quint8 tileColors_t[TILE_COLORS_BUFFER_SIZE];
