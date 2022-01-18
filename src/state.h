@@ -128,7 +128,7 @@ public:
 
     struct ExportProperties {
         quint16 addresses[3]; // 0: CHARSET, 1:MAP, 2:COLORS
-        quint8 format; // EXPORT_FORMAT
+        ExportFormat format; // EXPORT_FORMAT
         quint8 features; // EXPORT_FEATURE
     };
 

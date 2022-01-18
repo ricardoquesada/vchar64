@@ -266,30 +266,41 @@ bool State::export_()
 
 bool State::exportRaw(const QString& filename, const ExportProperties& properties)
 {
-    bool ret = true;
+    quint64 bytesWritten;
 
-    if (ret && (properties.features & EXPORT_FEATURE_CHARSET))
-        ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
-                    _charset, std::size(_charset))
-            > 0);
-
-    if (ret && (properties.features & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map.data(), std::size(_map))
-            > 0);
-
-    if (ret && (properties.features & EXPORT_FEATURE_COLORS))
-        ret &= (StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                    _tileColors, std::size(_tileColors))
-            > 0);
-
-    if (ret) {
-        _exportedFilename = filename;
-        auto copy = properties;
-        copy.format = EXPORT_FORMAT_RAW;
-        setExportProperties(copy);
+    if (properties.features & EXPORT_FEATURE_CHARSET) {
+        bytesWritten = StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
+            _charset, std::size(_charset));
+        if (bytesWritten <= 0) {
+            qDebug() << "Failed to export Charset to Raw";
+            return false;
+        }
     }
-    return ret;
+
+    if (properties.features & EXPORT_FEATURE_MAP) {
+        bytesWritten = StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
+            _map.data(), std::size(_map));
+        if (bytesWritten <= 0) {
+            qDebug() << "Failed to export Map to Raw";
+            return false;
+        }
+    }
+
+    if (properties.features & EXPORT_FEATURE_COLORS) {
+        bytesWritten = StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
+            _tileColors, std::size(_tileColors));
+        if (bytesWritten <= 0) {
+            qDebug() << "Failed to export Colors to Raw";
+            return false;
+        }
+    }
+
+    _exportedFilename = filename;
+    auto copy = properties;
+    copy.format = EXPORT_FORMAT_RAW;
+    setExportProperties(copy);
+
+    return true;
 }
 
 bool State::exportPRG(const QString& filename, const ExportProperties& properties)

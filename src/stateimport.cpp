@@ -300,7 +300,7 @@ qint64 StateImport::loadVChar64(State* state, QFile& file)
     // version 2 and 3 only
     if (header.version == 2 || header.version == 3) {
         int color_mode = header.color_mode;
-        state->_setForegroundColorMode((State::ForegroundColorMode)color_mode);
+        state->_setForegroundColorMode(static_cast<State::ForegroundColorMode>(color_mode));
 
         int map_width = qFromLittleEndian((int)header.map_width);
         int map_height = qFromLittleEndian((int)header.map_height);
@@ -319,7 +319,7 @@ qint64 StateImport::loadVChar64(State* state, QFile& file)
         state->_exportProperties.addresses[0] = charset_addr;
         state->_exportProperties.addresses[1] = map_addr;
         state->_exportProperties.addresses[2] = color_addr;
-        state->_exportProperties.format = header.export_format;
+        state->_exportProperties.format = static_cast<State::ExportFormat>(header.export_format);
         state->_exportProperties.features = header.export_features;
     }
 

@@ -50,14 +50,24 @@ ExportDialog::ExportDialog(State* state, QWidget* parent)
             QFileInfo fileInfo(fn);
             fn = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName();
 
-            if (format == State::EXPORT_FORMAT_ASM)
+            switch (format) {
+            case State::EXPORT_FORMAT_ASM:
                 fn += ".s";
-            else if (format == State::EXPORT_FORMAT_RAW)
+                break;
+            case State::EXPORT_FORMAT_RAW:
                 fn += ".bin";
-            else if (format == State::EXPORT_FORMAT_PRG)
+                break;
+            case State::EXPORT_FORMAT_PRG:
                 fn += ".prg";
-            else // bug
+                break;
+            case State::EXPORT_FORMAT_C:
+                fn += ".c";
+                break;
+            default:
+                qDebug() << "Unsupported extension";
                 fn += ".xxx";
+                break;
+            }
         }
     }
 
