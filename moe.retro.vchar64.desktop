@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=VChar64
+GenericName=Character Editor
+Comment=Character and Map editor for the Commodore 64
+TryExec=vchar64
+Exec=vchar64 %F
+Terminal=false
+Type=Application
+Icon=vchar64
+Categories=Graphics;
+StartupNotify=true
+X-Desktop-File-Install-Version=0.24
+MimeType=application/x-vchar64-proj;

@@ -30,10 +30,10 @@ limitations under the License.
 #include "ui_mainwindow.h"
 #include "utils.h"
 
-static const int COLUMNS = 32;
-static const int ROWS = 8;
-static const int OFFSET = 2;
-static const int ZOOM_LEVEL = 2;
+constexpr int COLUMNS = 32;
+constexpr int ROWS = 8;
+constexpr int OFFSET = 2;
+constexpr int ZOOM_LEVEL = 2;
 
 CharsetWidget::CharsetWidget(QWidget* parent)
     : QWidget(parent)

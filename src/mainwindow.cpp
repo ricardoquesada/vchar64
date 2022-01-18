@@ -57,7 +57,7 @@ limitations under the License.
 #include "xlinkpreview.h"
 
 constexpr int MainWindow::MAX_RECENT_FILES;
-static const int STATE_VERSION = 11;
+constexpr int STATE_VERSION = 11;
 
 MainWindow* MainWindow::getInstance()
 {

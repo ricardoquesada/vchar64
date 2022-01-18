@@ -31,8 +31,8 @@ limitations under the License.
 #include "state.h"
 #include "utils.h"
 
-static const int ZOOM_LEVEL = 2;
-static const int OFFSET = 0;
+constexpr int ZOOM_LEVEL = 2;
+constexpr int OFFSET = 0;
 
 MapWidget::MapWidget(QWidget* parent)
     : QWidget(parent)

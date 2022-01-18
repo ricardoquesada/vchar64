@@ -25,10 +25,10 @@ limitations under the License.
 #include "state.h"
 #include "utils.h"
 
-static const int PIXEL_SIZE = 1;
-static const int COLUMNS = 40;
-static const int ROWS = 25;
-static const int OFFSET = 0;
+constexpr int PIXEL_SIZE = 1;
+constexpr int COLUMNS = 40;
+constexpr int ROWS = 25;
+constexpr int OFFSET = 0;
 
 ImportVICEScreenRAMWidget::ImportVICEScreenRAMWidget(QWidget* parent)
     : QWidget(parent)

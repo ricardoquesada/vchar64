@@ -305,8 +305,8 @@ void ServerPreview::updateCharset()
     auto charset = state->getCharsetBuffer();
 
     // send the charset in 2 parts to avoid filling the C64 MTU buffer
-    const int segments = 2;
-    const int segmentSize = 256 / segments;
+    constexpr int segments = 2;
+    constexpr int segmentSize = 256 / segments;
     for (int i = 0; i < segments; i++) {
         protoSetChars(segmentSize * i, &charset[segmentSize * 8 * i], segmentSize);
     }

@@ -24,10 +24,10 @@ limitations under the License.
 #include "palette.h"
 #include "state.h"
 
-static const float PIXEL_SIZE = 1.5625f;
-static const int COLUMNS = 16;
-static const int ROWS = 16;
-static const int OFFSET = 0;
+constexpr float PIXEL_SIZE = 1.5625f;
+constexpr int COLUMNS = 16;
+constexpr int ROWS = 16;
+constexpr int OFFSET = 0;
 
 ImportVICECharsetWidget::ImportVICECharsetWidget(QWidget* parent)
     : QWidget(parent)

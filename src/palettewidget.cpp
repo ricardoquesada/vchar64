@@ -27,10 +27,10 @@ limitations under the License.
 #include "palette.h"
 #include "state.h"
 
-static const int PIXEL_SIZE_X = 24;
-static const int PIXEL_SIZE_Y = 16;
-static const int COLUMNS = 8;
-static const int ROWS = 2;
+constexpr int PIXEL_SIZE_X = 24;
+constexpr int PIXEL_SIZE_Y = 16;
+constexpr int COLUMNS = 8;
+constexpr int ROWS = 2;
 
 PaletteWidget::PaletteWidget(QWidget* parent)
     : QWidget(parent)

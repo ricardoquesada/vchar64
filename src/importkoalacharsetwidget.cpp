@@ -28,10 +28,10 @@ limitations under the License.
 #include "palette.h"
 #include "state.h"
 
-static const int PIXEL_SIZE = 1;
-static const int COLUMNS = 40;
-static const int ROWS = 25;
-static const int OFFSET = 0;
+constexpr int PIXEL_SIZE = 1;
+constexpr int COLUMNS = 40;
+constexpr int ROWS = 25;
+constexpr int OFFSET = 0;
 
 ImportKoalaCharsetWidget::ImportKoalaCharsetWidget(QWidget* parent)
     : QWidget(parent)
