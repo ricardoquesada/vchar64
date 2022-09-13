@@ -16,6 +16,8 @@ limitations under the License.
 
 #include "stateexport.h"
 
+#include <cstring>
+
 #include <QApplication>
 #include <QByteArray>
 #include <QDataStream>

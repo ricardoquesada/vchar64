@@ -17,7 +17,9 @@ limitations under the License.
 #include "stateimport.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
+#include <cstring>
 
 #include <QDebug>
 #include <QtEndian>

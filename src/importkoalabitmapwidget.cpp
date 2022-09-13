@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "importkoalabitmapwidget.h"
 
+#include <cstring>
 #include <functional>
 
 #include <QDebug>
