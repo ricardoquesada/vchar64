@@ -17,7 +17,7 @@ limitations under the License.
 #include "stateimport.h"
 
 #include <algorithm>
-#include <array>
+#include <vector>
 #include <cstdlib>
 #include <cstring>
 

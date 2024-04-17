@@ -105,7 +105,7 @@ void BigCharWidget::mousePressEvent(QMouseEvent* event)
 {
     event->accept();
 
-    const auto pos = event->position();
+    const auto pos = event->pos();
 
     const int x = int(pos.x()) / _pixelSize.width();
     const int y = int(pos.y()) / _pixelSize.height();
@@ -128,7 +128,7 @@ void BigCharWidget::mouseMoveEvent(QMouseEvent* event)
 {
     event->accept();
 
-    const auto pos = event->position();
+    const auto pos = event->pos();
 
     int x = int(pos.x()) / _pixelSize.width();
     int y = int(pos.y()) / _pixelSize.height();

@@ -67,7 +67,7 @@ void TilesetWidget::mousePressEvent(QMouseEvent* event)
 
     if (event->button() == Qt::LeftButton) {
 
-        const auto pos = event->position();
+        const auto pos = event->pos();
         const auto tileProperties = state->getTileProperties();
         const int tw = tileProperties.size.width();
         const int th = tileProperties.size.height();
@@ -121,7 +121,7 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent* event)
 {
     event->accept();
 
-    auto pos = event->position();
+    auto pos = event->pos();
     auto state = MainWindow::getCurrentState();
     auto tileProperties = state->getTileProperties();
     int tw = tileProperties.size.width();

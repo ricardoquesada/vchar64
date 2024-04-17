@@ -34,8 +34,8 @@ ImportVICEDialog::ImportVICEDialog(QWidget* parent)
 {
     ui->setupUi(this);
 
-    std::memset(_memoryRAM, 0, std::size(_memoryRAM));
-    std::memset(_colorRAM, 0, std::size(_colorRAM));
+    memset(_memoryRAM, 0, std::size(_memoryRAM));
+    memset(_colorRAM, 0, std::size(_colorRAM));
 
     // comes with a default map of 40*25
     _tmpState = new State;

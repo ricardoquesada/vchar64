@@ -69,7 +69,7 @@ void CharsetWidget::mousePressEvent(QMouseEvent* event)
 {
     event->accept();
 
-    auto pos = event->position();
+    auto pos = event->pos();
 
     int x = int((pos.x() / _zoomLevel - OFFSET)) / 8;
     int y = int((pos.y() / _zoomLevel - OFFSET)) / 8;
@@ -110,7 +110,7 @@ void CharsetWidget::mouseMoveEvent(QMouseEvent* event)
 {
     event->accept();
 
-    auto pos = event->position();
+    auto pos = event->pos();
     int x = int((pos.x() / _zoomLevel - OFFSET)) / 8;
     int y = int((pos.y() / _zoomLevel - OFFSET)) / 8;
     x = qBound(0, x, COLUMNS - 1);

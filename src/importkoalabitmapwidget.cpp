@@ -100,7 +100,7 @@ void ImportKoalaBitmapWidget::mousePressEvent(QMouseEvent* event)
 {
     event->accept();
 
-    auto pos = event->position();
+    auto pos = event->pos();
 
     int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
     int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
@@ -147,7 +147,7 @@ void ImportKoalaBitmapWidget::mouseMoveEvent(QMouseEvent* event)
     event->accept();
 
     if (event->buttons() == Qt::LeftButton) {
-        auto pos = event->position();
+        auto pos = event->pos();
         int x = (pos.x() - OFFSET) / PIXEL_SIZE / 8;
         int y = (pos.y() - OFFSET) / PIXEL_SIZE / 8;
 

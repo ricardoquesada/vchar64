@@ -440,7 +440,7 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
 
     if (!invalidCoords.empty()) {
         char copyKey[8 * 4 + 1];
-        std::memcpy(copyKey, key.c_str(), sizeof(copyKey));
+        memcpy(copyKey, key.c_str(), sizeof(copyKey));
         copyKey[8 * 4] = 0; // used when printing the key
 
         normalizeKey(copyKey, hiColorRAM);
@@ -538,7 +538,7 @@ bool ImportKoalaDialog::convert()
     _uniqueChars.clear();
     for (auto it = std::begin(bitmap->_uniqueCells); it != std::end(bitmap->_uniqueCells); ++it) {
         quint8 chardef[8];
-        std::memset(chardef, 0, sizeof(chardef));
+        memset(chardef, 0, sizeof(chardef));
 
         quint8 colorRAM;
         // it->first: key

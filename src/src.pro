@@ -48,7 +48,7 @@ VERSION = 0.2.4
 GIT_VERSION = $$system(git describe --abbrev=4 --dirty --always --tags)
 DEFINES += GIT_VERSION=\\\"$$GIT_VERSION\\\" VERSION=\\\"$$VERSION\\\"
 
-CONFIG += c++11
+CONFIG += c++17
 CONFIG += debug_and_release
 
 
