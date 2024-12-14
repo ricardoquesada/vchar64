@@ -256,6 +256,8 @@ void ExportDialog::on_radioButton_prg_toggled(bool checked)
 
 void ExportDialog::on_radioButton_png_toggled(bool checked)
 {
+    ui->checkBox_tileColors->setEnabled(!checked);
+
     if (!checked)
         return;
 
