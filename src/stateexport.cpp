@@ -201,24 +201,22 @@ qint64 StateExport::saveC(const QString& filename, const void* buffer, qsizetype
     return out.pos();
 }
 
-qint64 StateExport::savePNG(const QString& filename, QWidget* widget)
+qint64 StateExport::savePNG(const QString& filename, const QImage& image)
 {
-    if (!widget) {
-        qDebug() << "Failed to export PNG file. Invalid widget for: " << filename;
-        return 0;
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        return -1;
     }
 
-    QPixmap pixmap(widget->size());
-    QPainter painter(&pixmap);
-    widget->render(&painter);
-    painter.end();
-
-    bool ok = pixmap.save(filename, "PNG");
-    if (!ok) {
-        qDebug() << "Failed to export PNG file: " << filename;
-        return 0;
+    bool success = image.save(&file, "PNG");
+    file.close();
+    if (!success) {
+        qDebug() << "Failed to PNG file: " << filename;
+        return -1;
     }
+
     qDebug() << "File exported as PNG successfully: " << filename;
+
     // FIXME: return the bytes written
-    return pixmap.size().width() * pixmap.size().height();
+    return image.sizeInBytes();
 }

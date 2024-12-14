@@ -26,9 +26,13 @@ limitations under the License.
 #include <QUndoStack>
 
 #include "stateimport.h"
+
 #include <string>
 
 class BigCharWidget;
+class MapWidget;
+class TilesetWidget;
+
 
 class State : public QObject {
     Q_OBJECT
@@ -202,7 +206,7 @@ public:
     bool exportPRG(const QString& filename, const ExportProperties& properties);
     bool exportAsm(const QString& filename, const ExportProperties& properties);
     bool exportC(const QString& filename, const ExportProperties& properties);
-    bool exportPNG(const QString& filename, const ExportProperties& properties, QWidget* tilesetWidget, QWidget* mapWidget);
+    bool exportPNG(const QString& filename, const ExportProperties& properties, TilesetWidget* tilesetWidget, MapWidget* mapWidget);
     // export is a defined keyword, so we use export_ instead
     bool export_();
 

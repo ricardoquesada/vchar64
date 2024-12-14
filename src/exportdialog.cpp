@@ -175,12 +175,10 @@ void ExportDialog::accept()
     } else if (ui->radioButton_c->isChecked()) {
         ok = _state->exportC(filename, properties);
     } else if (ui->radioButton_png->isChecked()) {
-        QWidget *mapWidget = mainWindow->getUi()->mapWidget;
-        QWidget *tilesetWidget = mainWindow->getUi()->tilesetWidget;
+        MapWidget *mapWidget = mainWindow->getUi()->mapWidget;
+        TilesetWidget *tilesetWidget = mainWindow->getUi()->tilesetWidget;
         ok = _state->exportPNG(filename, properties, tilesetWidget, mapWidget);
     }
-
-
 
     if (ok) {
         QFileInfo info(filename);

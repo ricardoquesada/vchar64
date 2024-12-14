@@ -31,16 +31,19 @@ public:
     enum MapMode {
         PAINT_MODE,
         SELECT_MODE,
-        FILL_MODE
+        FILL_MODE,
     };
 
     explicit MapWidget(QWidget* parent = nullptr);
 
     void enableGrid(bool enabled);
     void setMode(MapMode mode);
+    void setZoomLevel(int zoomLevel);
+
     void getSelectionRange(State::CopyRange* copyRange) const;
     int getCursorPos() const;
-    void setZoomLevel(int zoomLevel);
+
+    QImage renderToQImage();
 
 signals:
 

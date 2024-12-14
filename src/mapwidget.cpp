@@ -80,8 +80,8 @@ void MapWidget::paintEvent(QPaintEvent* event)
 
     QPainter painter;
     painter.begin(this);
-    painter.scale(_zoomLevel, _zoomLevel);
 
+    painter.scale(_zoomLevel, _zoomLevel);
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
     painter.setBrush(QColor(0, 0, 0));
@@ -146,6 +146,45 @@ void MapWidget::paintEvent(QPaintEvent* event)
     }
 
     painter.end();
+}
+
+QImage MapWidget::renderToQImage()
+{
+    auto state = MainWindow::getCurrentState();
+
+    // no open documents?
+    if (!state)
+        return QImage();
+
+    updateTileImages();
+
+    auto mapSize = state->getMapSize();
+
+    QImage image(mapSize.width(), mapSize.height(), QImage::Format_RGB888);
+
+    QPainter painter;
+    painter.begin(&image);
+
+    QRect rect = QRect(QPoint(0,0), mapSize);
+
+    painter.fillRect(rect, QWidget::palette().color(QWidget::backgroundRole()));
+
+    painter.setBrush(QColor(0, 0, 0));
+    painter.setPen(Qt::NoPen);
+
+    auto tileProperties = state->getTileProperties();
+    _tileSize = tileProperties.size;
+
+    for (int y = 0; y < mapSize.height(); y++) {
+        for (int x = 0; x < mapSize.width(); ++x) {
+            auto tileIdx = state->getTileIndexFromMap(QPoint(x, y));
+            QRectF target(x * _tileSize.width() * 8, y * _tileSize.height() * 8,
+                _tileSize.width() * 8, _tileSize.height() * 8);
+            painter.drawImage(target, *_tileImages[tileIdx], _tileImages[tileIdx]->rect());
+        }
+    }
+
+    return image;
 }
 
 void MapWidget::mousePressEvent(QMouseEvent* event)

@@ -36,6 +36,8 @@ limitations under the License.
 #include "palette.h"
 #include "stateexport.h"
 #include "stateimport.h"
+#include "mapwidget.h"
+#include "tilesetwidget.h"
 
 constexpr int State::CHAR_BUFFER_SIZE;
 constexpr quint8 State::TILE_COLORS_DEFAULT;
@@ -388,7 +390,7 @@ bool State::exportC(const QString& filename, const ExportProperties& properties)
     return ret;
 }
 
-bool State::exportPNG(const QString& filename, const ExportProperties& properties, QWidget* tilesetWidget, QWidget* mapWidget)
+bool State::exportPNG(const QString& filename, const ExportProperties& properties, TilesetWidget* tilesetWidget, MapWidget* mapWidget)
 {
     bool ret = true;
     if (ret && (properties.features & EXPORT_FEATURE_CHARSET)) {
@@ -402,7 +404,8 @@ bool State::exportPNG(const QString& filename, const ExportProperties& propertie
         if (!mapWidget) {
             return false;
         }
-        ret &= (StateExport::savePNG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP), mapWidget) > 0);
+        QImage image = mapWidget->renderToQImage();
+        ret &= (StateExport::savePNG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP), image) > 0);
     }
 
 
