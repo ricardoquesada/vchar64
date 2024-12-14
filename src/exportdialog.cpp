@@ -16,11 +16,13 @@ limitations under the License.
 
 #include "exportdialog.h"
 #include "ui_exportdialog.h"
+#include "ui_mainwindow.h"
 
 #include <QDebug>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QStatusBar>
+#include <QWidget>
 
 #include "mainwindow.h"
 #include "preferences.h"
@@ -63,6 +65,9 @@ ExportDialog::ExportDialog(State* state, QWidget* parent)
             case State::EXPORT_FORMAT_C:
                 fn += ".c";
                 break;
+            case State::EXPORT_FORMAT_PNG:
+                fn += ".png";
+                break;
             default:
                 qDebug() << "Unsupported extension";
                 fn += ".xxx";
@@ -93,7 +98,8 @@ ExportDialog::ExportDialog(State* state, QWidget* parent)
         ui->radioButton_raw,
         ui->radioButton_prg,
         ui->radioButton_asm,
-        ui->radioButton_c
+        ui->radioButton_c,
+        ui->radioButton_png,
     };
     radios[format]->setChecked(true);
 
@@ -115,6 +121,7 @@ void ExportDialog::on_pushBrowse_clicked()
         tr("C files (*.c *.h)"),
         tr("Raw files (*.raw *.bin)"),
         tr("PRG files (*.prg *.64c)"),
+        tr("PNG files (*.png"),
     };
 
     int filterIdx = 0;
@@ -127,11 +134,13 @@ void ExportDialog::on_pushBrowse_clicked()
         filterIdx = 2;
     else if (ui->radioButton_prg->isChecked())
         filterIdx = 3;
+    else if (ui->radioButton_png->isChecked())
+        filterIdx = 4;
 
     auto filename = QFileDialog::getSaveFileName(this,
         tr("Select filename"),
         ui->editFilename->text(),
-        tr("Asm files (*.s *.a *.asm);;C files (*.c *.h);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;Any file (*)"),
+        tr("Asm files (*.s *.a *.asm);;C files (*.c *.h);;Raw files (*.raw *.bin);;PRG files (*.prg *.64c);;PNG files (*.png);;Any file (*)"),
         &filters[filterIdx],
         QFileDialog::DontConfirmOverwrite);
 
@@ -143,6 +152,7 @@ void ExportDialog::accept()
 {
     bool ok = false;
     auto filename = ui->editFilename->text();
+    auto mainWindow = qobject_cast<MainWindow*>(parent());
 
     auto properties = _state->getExportProperties();
     properties.features = State::EXPORT_FEATURE_NONE;
@@ -164,9 +174,13 @@ void ExportDialog::accept()
         ok = _state->exportAsm(filename, properties);
     } else if (ui->radioButton_c->isChecked()) {
         ok = _state->exportC(filename, properties);
+    } else if (ui->radioButton_png->isChecked()) {
+        QWidget *mapWidget = mainWindow->getUi()->mapWidget;
+        QWidget *tilesetWidget = mainWindow->getUi()->tilesetWidget;
+        ok = _state->exportPNG(filename, properties, tilesetWidget, mapWidget);
     }
 
-    auto mainWindow = qobject_cast<MainWindow*>(parent());
+
 
     if (ok) {
         QFileInfo info(filename);
@@ -241,6 +255,22 @@ void ExportDialog::on_radioButton_prg_toggled(bool checked)
     filename += ".prg";
     ui->editFilename->setText(filename);
 }
+
+void ExportDialog::on_radioButton_png_toggled(bool checked)
+{
+    if (!checked)
+        return;
+
+    auto filename = ui->editFilename->text();
+
+    QFileInfo finfo(filename);
+    auto extension = finfo.suffix();
+
+    filename.chop(extension.length() + 1);
+    filename += ".png";
+    ui->editFilename->setText(filename);
+}
+
 
 void ExportDialog::on_checkBox_charset_toggled(bool checked)
 {

@@ -17,6 +17,7 @@ limitations under the License.
 #pragma once
 
 #include <QFile>
+#include <QWidget>
 
 class State;
 
@@ -28,4 +29,5 @@ public:
     static qint64 savePRG(const QString& filename, const void* buffer, qsizetype bufferSize, quint16 address);
     static qint64 saveAsm(const QString& filename, const void* buffer, qsizetype bufferSize, const QString& label);
     static qint64 saveC(const QString& filename, const void* buffer, qsizetype bufferSize, const QString& label);
+    static qint64 savePNG(const QString& filename, QWidget* widget);
 };

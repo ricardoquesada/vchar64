@@ -113,7 +113,8 @@ public:
         EXPORT_FORMAT_RAW,
         EXPORT_FORMAT_PRG,
         EXPORT_FORMAT_ASM,
-        EXPORT_FORMAT_C
+        EXPORT_FORMAT_C,
+        EXPORT_FORMAT_PNG,
     };
 
     union Char {
@@ -201,6 +202,7 @@ public:
     bool exportPRG(const QString& filename, const ExportProperties& properties);
     bool exportAsm(const QString& filename, const ExportProperties& properties);
     bool exportC(const QString& filename, const ExportProperties& properties);
+    bool exportPNG(const QString& filename, const ExportProperties& properties, QWidget* tilesetWidget, QWidget* mapWidget);
     // export is a defined keyword, so we use export_ instead
     bool export_();
 

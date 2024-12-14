@@ -17,7 +17,6 @@ limitations under the License.
 #include "state.h"
 
 #include <algorithm>
-#include <cstdio>
 #include <cstring>
 #include <utility>
 #include <vector>
@@ -29,6 +28,8 @@ limitations under the License.
 #include <QRandomGenerator>
 #include <QTime>
 #include <QtGlobal>
+#include <QPixmap>
+#include <QPainter>
 
 #include "commands.h"
 #include "mainwindow.h"
@@ -381,11 +382,40 @@ bool State::exportC(const QString& filename, const ExportProperties& properties)
         _exportedFilename = filename;
         auto copy = properties;
         // FIXME: Why is this needed?
-        copy.format = EXPORT_FORMAT_ASM;
+        copy.format = EXPORT_FORMAT_C;
         setExportProperties(copy);
     }
     return ret;
 }
+
+bool State::exportPNG(const QString& filename, const ExportProperties& properties, QWidget* tilesetWidget, QWidget* mapWidget)
+{
+    bool ret = true;
+    if (ret && (properties.features & EXPORT_FEATURE_CHARSET)) {
+        if (!tilesetWidget) {
+            return false;
+        }
+        ret &= (StateExport::savePNG(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET), tilesetWidget) > 0);
+    }
+
+    if (ret && (properties.features & EXPORT_FEATURE_MAP)) {
+        if (!mapWidget) {
+            return false;
+        }
+        ret &= (StateExport::savePNG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP), mapWidget) > 0);
+    }
+
+
+    if (ret) {
+        _exportedFilename = filename;
+        auto copy = properties;
+        // FIXME: Why is this needed?
+        copy.format = EXPORT_FORMAT_PNG;
+        setExportProperties(copy);
+    }
+    return ret;
+}
+
 
 bool State::saveProject(const QString& filename)
 {

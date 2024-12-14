@@ -24,6 +24,8 @@ limitations under the License.
 #include <QDebug>
 #include <QTextStream>
 #include <QtEndian>
+#include <QPixmap>
+#include <QPainter>
 
 #include "state.h"
 #include "stateimport.h"
@@ -197,4 +199,26 @@ qint64 StateExport::saveC(const QString& filename, const void* buffer, qsizetype
     qDebug() << "File exported as C successfully: " << file.fileName();
     out.flush();
     return out.pos();
+}
+
+qint64 StateExport::savePNG(const QString& filename, QWidget* widget)
+{
+    if (!widget) {
+        qDebug() << "Failed to export PNG file. Invalid widget for: " << filename;
+        return 0;
+    }
+
+    QPixmap pixmap(widget->size());
+    QPainter painter(&pixmap);
+    widget->render(&painter);
+    painter.end();
+
+    bool ok = pixmap.save(filename, "PNG");
+    if (!ok) {
+        qDebug() << "Failed to export PNG file: " << filename;
+        return 0;
+    }
+    qDebug() << "File exported as PNG successfully: " << filename;
+    // FIXME: return the bytes written
+    return pixmap.size().width() * pixmap.size().height();
 }
