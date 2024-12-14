@@ -16,9 +16,12 @@ limitations under the License.
 
 #pragma once
 
+#include <memory>
+
 #include <QPoint>
 #include <QSize>
 #include <QWidget>
+#include <QImage>
 
 #include "state.h"
 
@@ -32,6 +35,7 @@ public:
     void getSelectionRange(State::CopyRange* copyRange) const;
     void enableGrid(bool enabled);
     void setZoomLevel(int zoomLevel);
+    std::unique_ptr<QImage> renderToQImage();
 
 public slots:
     void onTileIndexUpdated(int selectedTileIndex);

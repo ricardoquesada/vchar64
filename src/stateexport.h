@@ -16,6 +16,8 @@ limitations under the License.
 
 #pragma once
 
+#include <memory>
+
 #include <QFile>
 #include <QImage>
 
@@ -29,5 +31,5 @@ public:
     static qint64 savePRG(const QString& filename, const void* buffer, qsizetype bufferSize, quint16 address);
     static qint64 saveAsm(const QString& filename, const void* buffer, qsizetype bufferSize, const QString& label);
     static qint64 saveC(const QString& filename, const void* buffer, qsizetype bufferSize, const QString& label);
-    static qint64 savePNG(const QString& filename, const QImage& image);
+    static qint64 savePNG(const QString& filename, std::unique_ptr<QImage> image);
 };

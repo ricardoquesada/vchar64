@@ -16,6 +16,8 @@ limitations under the License.
 
 #pragma once
 
+#include <memory>
+
 #include "state.h"
 #include <QWidget>
 
@@ -43,7 +45,7 @@ public:
     void getSelectionRange(State::CopyRange* copyRange) const;
     int getCursorPos() const;
 
-    QImage renderToQImage();
+    std::unique_ptr<QImage> renderToQImage();
 
 signals:
 

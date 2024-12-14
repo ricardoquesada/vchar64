@@ -201,14 +201,19 @@ qint64 StateExport::saveC(const QString& filename, const void* buffer, qsizetype
     return out.pos();
 }
 
-qint64 StateExport::savePNG(const QString& filename, const QImage& image)
+qint64 StateExport::savePNG(const QString& filename, std::unique_ptr<QImage> image)
 {
+    if (!image) {
+        qDebug() << "Invalid QImage for: " << filename;
+        return -1;
+    }
+
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         return -1;
     }
 
-    bool success = image.save(&file, "PNG");
+    bool success = image->save(&file, "PNG");
     file.close();
     if (!success) {
         qDebug() << "Failed to PNG file: " << filename;
@@ -218,5 +223,5 @@ qint64 StateExport::savePNG(const QString& filename, const QImage& image)
     qDebug() << "File exported as PNG successfully: " << filename;
 
     // FIXME: return the bytes written
-    return image.sizeInBytes();
+    return image->sizeInBytes();
 }

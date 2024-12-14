@@ -148,22 +148,22 @@ void MapWidget::paintEvent(QPaintEvent* event)
     painter.end();
 }
 
-QImage MapWidget::renderToQImage()
+std::unique_ptr<QImage> MapWidget::renderToQImage()
 {
     auto state = MainWindow::getCurrentState();
 
     // no open documents?
     if (!state)
-        return QImage();
+        return nullptr;
 
     updateTileImages();
 
     auto mapSize = state->getMapSize();
 
-    QImage image(mapSize.width(), mapSize.height(), QImage::Format_RGB888);
+    std::unique_ptr<QImage> image = std::make_unique<QImage>(mapSize.width() * _tileSize.width() * 8, mapSize.height() * _tileSize.height() * 8, QImage::Format_RGBA8888);
 
     QPainter painter;
-    painter.begin(&image);
+    painter.begin(image.get());
 
     QRect rect = QRect(QPoint(0,0), mapSize);
 

@@ -296,6 +296,54 @@ void TilesetWidget::paintEvent(QPaintEvent* event)
     painter.end();
 }
 
+std::unique_ptr<QImage> TilesetWidget::renderToQImage()
+{
+    auto state = MainWindow::getCurrentState();
+
+    // no open documents?
+    if (!state)
+        return nullptr;
+
+    std::unique_ptr<QImage> image = std::make_unique<QImage>(_columns * 8, _rows * 8, QImage::Format_RGBA8888);
+    QPainter painter;
+
+    painter.begin(image.get());
+
+    painter.setBrush(QColor(0, 0, 0));
+    painter.setPen(Qt::NoPen);
+
+    QPen pen;
+    pen.setColor({ 149, 195, 244, 255 });
+    pen.setWidthF((hasFocus() ? 3 : 1) / _zoomLevel);
+    pen.setStyle(Qt::PenStyle::SolidLine);
+
+    auto tileProperties = state->getTileProperties();
+    int tw = tileProperties.size.width();
+    int th = tileProperties.size.height();
+
+    int max_tiles = 256 / (tw * th);
+
+    for (int i = 0; i < max_tiles; i++) {
+        int charIdx = tileProperties.interleaved == 1 ? i * tw * th : i;
+
+        int w = (i * tw) % _columns;
+        int h = th * ((i * tw) / _columns);
+
+        for (int char_idx = 0; char_idx < (tw * th); char_idx++) {
+            int local_w = w + char_idx % tw;
+            int local_h = h + char_idx / tw;
+
+            utilsDrawCharInPainter(state, &painter, QSizeF(1, 1), QPoint(0, 0), QPoint(local_w, local_h), charIdx);
+
+            charIdx += tileProperties.interleaved;
+        }
+    }
+
+    painter.end();
+
+    return image;
+}
+
 QSize TilesetWidget::sizeHint() const
 {
     return _sizeHint;
