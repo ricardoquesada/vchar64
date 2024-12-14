@@ -165,10 +165,6 @@ std::unique_ptr<QImage> MapWidget::renderToQImage()
     QPainter painter;
     painter.begin(image.get());
 
-    QRect rect = QRect(QPoint(0,0), mapSize);
-
-    painter.fillRect(rect, QWidget::palette().color(QWidget::backgroundRole()));
-
     painter.setBrush(QColor(0, 0, 0));
     painter.setPen(Qt::NoPen);
 

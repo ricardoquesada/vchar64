@@ -29,6 +29,7 @@ limitations under the License.
 
 #include "state.h"
 #include "stateimport.h"
+#include "palette.h"
 
 qint64 StateExport::saveVChar64(State* state, QFile& file)
 {
@@ -201,11 +202,23 @@ qint64 StateExport::saveC(const QString& filename, const void* buffer, qsizetype
     return out.pos();
 }
 
-qint64 StateExport::savePNG(const QString& filename, std::unique_ptr<QImage> image)
+qint64 StateExport::savePNG(const QString& filename, std::unique_ptr<QImage> image, State* state)
 {
     if (!image) {
         qDebug() << "Invalid QImage for: " << filename;
         return -1;
+    }
+
+    // Replace background with transparent
+    QColor background = Palette::getColorForPen(state, State::PEN_BACKGROUND);
+    QRgb backColor = qRgb(background.red(), background.green(), background.blue());
+    for (int x = 0; x < image->width(); x++) {
+        for (int y=0; y < image->height(); y++) {
+            QRgb rgb = image->pixel(x, y);
+            if (backColor == rgb) {
+                image->setPixelColor(x, y, QColor(255, 255, 255, 0));
+            }
+        }
     }
 
     QFile file(filename);

@@ -397,14 +397,14 @@ bool State::exportPNG(const QString& filename, const ExportProperties& propertie
         if (!tilesetWidget) {
             return false;
         }
-        ret &= (StateExport::savePNG(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET), tilesetWidget->renderToQImage()) > 0);
+        ret &= (StateExport::savePNG(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET), tilesetWidget->renderToQImage(), this) > 0);
     }
 
     if (ret && (properties.features & EXPORT_FEATURE_MAP)) {
         if (!mapWidget) {
             return false;
         }
-        ret &= (StateExport::savePNG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP), mapWidget->renderToQImage()) > 0);
+        ret &= (StateExport::savePNG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP), mapWidget->renderToQImage(), this) > 0);
     }
 
 
