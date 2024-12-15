@@ -1006,9 +1006,9 @@ void MainWindow::on_actionOpen_triggered()
         preferences.getLastUsedDirectory(),
         tr(
             "All files (*);;"
-            "All supported files (*.vchar64proj *.raw *.bin *.prg *.64c *.ctm);;"
+            "All supported files (*.vchar64proj *.raw *.bin *.fnt *.prg *.64c *.ctm);;"
             "VChar64 Project (*.vchar64proj);;"
-            "Raw (*.raw *.bin);;"
+            "Raw (*.raw *.bin *.fnt);;"
             "PRG (*.prg *.64c);;"
             "CharPad (*.ctm);;"),
         &filter
