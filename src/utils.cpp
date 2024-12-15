@@ -207,7 +207,25 @@ static unsigned char ascii2petscii[128] = {
 // clang-format on
 
 /*-----------------------------------------------------------------------------------*/
-quint8 utilsAsciiToScreenCode(quint8 ascii)
+quint8 utilsAsciiToScreenCode(State* state, quint8 ascii)
+{
+    quint8 ret = 0;
+
+    switch (state->getKeyboardMapping()) {
+    case State::KeyboardMapping::KEYBOARD_MAPPING_C64:
+        ret = utilsAsciiToCommodore8Bit(ascii);
+        break;
+    case State::KeyboardMapping::KEYBOARD_MAPPING_ATARI8:
+        ret = utilsAsciiToAtari8Bit(ascii);
+        break;
+    default:
+        qDebug() << "Invalid state keyboard mapping: " << state->getKeyboardMapping();
+        break;
+    }
+    return ret;
+}
+
+quint8 utilsAsciiToCommodore8Bit(quint8 ascii)
 {
     if (ascii >= 128)
         return ascii; // invalid

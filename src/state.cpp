@@ -165,12 +165,9 @@ bool State::openFile(const QString& filename)
         FILETYPE_CTM
     };
     int filetype = FILETYPE_RAW;
-    KeyboardMapping keyboard_mappings = KEYBOARD_MAPPING_C64;
 
     QFileInfo info(file);
     QString suffix = info.suffix().toLower();
-
-    qDebug() << "Suffix is: " << suffix;
 
     if (suffix == "vchar64proj") {
         length = StateImport::loadVChar64(this, file);
@@ -186,14 +183,13 @@ bool State::openFile(const QString& filename)
             // do nothing
         } else if (suffix == "fnt") {
             qDebug() << "FNT extension. Assuming it uses Atari 8-bit keyboard mappings";
-            keyboard_mappings = KEYBOARD_MAPPING_ATARI8;
+            _keyboardMapping = KEYBOARD_MAPPING_ATARI8;
         } else {
             qDebug() << "Unkwnow file extension: " << suffix << ". Treating it as binary.";
         }
         length = StateImport::loadRaw(this, file);
         filetype = FILETYPE_RAW;
     }
-
 
     file.close();
 
@@ -216,9 +212,6 @@ bool State::openFile(const QString& filename)
                 _exportProperties.format = EXPORT_FORMAT_RAW;
         }
     }
-
-    // Update Keyboard Mapping only after the file was loaded succesfully.
-    _keyboardMapping = keyboard_mappings;
 
     return true;
 }

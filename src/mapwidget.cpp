@@ -324,7 +324,8 @@ void MapWidget::keyPressEvent(QKeyEvent* event)
 
     case Qt::Key_Backspace:
     case Qt::Key_Delete:
-        state->mapPaint(_cursorPos, 0x20, false);
+        // 0x20: space
+        state->mapPaint(_cursorPos, utilsAsciiToScreenCode(state, 0x20), false);
         point = { -1, 0 };
         break;
 
@@ -360,15 +361,7 @@ void MapWidget::keyPressEvent(QKeyEvent* event)
             return;
         } else {
             auto asciiCode = event->text().toLatin1()[0];
-            quint8 code;
-            if (state->getKeyboardMapping() == State::KEYBOARD_MAPPING_C64){
-                code = utilsAsciiToScreenCode(asciiCode);
-            } else if (state->getKeyboardMapping() == State::KEYBOARD_MAPPING_ATARI8) {
-                code = utilsAsciiToAtari8Bit(asciiCode);
-            } else {
-                qDebug() << "Invalid keyboard mappings: " << state->getKeyboardMapping() << ". Using C64";
-                code = utilsAsciiToScreenCode(asciiCode);
-            }
+            quint8 code = utilsAsciiToScreenCode(state, asciiCode);
             state->mapPaint(_cursorPos, code, false);
             point = { +1, 0 };
             typing = true;
