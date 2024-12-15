@@ -62,6 +62,10 @@ qt_add_big_resources(RESOURCES
     resources.qrc
 )
 
+# Have big_resource.qrc treated as a source file by Qt Creator
+list(APPEND SOURCES resources.qrc)
+set_property(SOURCE resources.qrc PROPERTY SKIP_AUTORCC ON)
+
 qt_add_executable(${PROJECT_NAME}
     ${SOURCES}
     ${RESOURCES}
