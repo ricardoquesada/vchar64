@@ -335,7 +335,7 @@ bool BigCharWidget::maybeSave()
     if (_state->isModified()) {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning(this, tr("Application"),
-            tr("The are unsaved changes.\n"
+            tr("There are unsaved changes.\n"
                "Do you want to save your changes?"),
             QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
         if (ret == QMessageBox::Save)

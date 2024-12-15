@@ -29,9 +29,15 @@
     </message>
     <message>
         <location filename="../src/bigcharwidget.cpp" line="338"/>
+        <source>There are unsaved changes.
+Do you want to save your changes?</source>
+        <translation>Existen cambios que no fueron guardados
+¿Desea guardar los cambios?</translation>
+    </message>
+    <message>
         <source>The are unsaved changes.
 Do you want to save your changes?</source>
-        <translation type="unfinished">Existen cambios que no fueron guardados
+        <translation type="obsolete">Existen cambios que no fueron guardados
 ¿Desea guardar los cambios?</translation>
     </message>
 </context>
@@ -117,7 +123,7 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../src/exportdialog.ui" line="197"/>
         <source>PNG</source>
-        <translation type="unfinished"></translation>
+        <translation>PNG</translation>
     </message>
     <message>
         <location filename="../src/exportdialog.ui" line="88"/>
@@ -127,7 +133,7 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../src/exportdialog.ui" line="157"/>
         <source>C</source>
-        <translation type="unfinished"></translation>
+        <translation>C</translation>
     </message>
     <message>
         <location filename="../src/exportdialog.ui" line="164"/>
