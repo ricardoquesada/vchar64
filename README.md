@@ -62,7 +62,7 @@ $ git clone https://github.com/ricardoquesada/vchar64.git
 $ cd vchar64
 $ mkdir build
 $ cd build
-$ qmake ..
+$ cmake ..
 $ make
 ```
 
