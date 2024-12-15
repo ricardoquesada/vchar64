@@ -64,6 +64,7 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
     header.address_attribs = qToLittleEndian(state->_exportProperties.addresses[2]);
     header.export_features = state->_exportProperties.features;
     header.export_format = state->_exportProperties.format;
+    header.keyboard_mapping = state->_keyboardMapping;
 
     QByteArray arrayHeader((const char*)&header, sizeof(header));
     auto total = file.write(arrayHeader);

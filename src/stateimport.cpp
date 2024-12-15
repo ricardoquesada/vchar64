@@ -323,6 +323,7 @@ qint64 StateImport::loadVChar64(State* state, QFile& file)
         state->_exportProperties.addresses[2] = color_addr;
         state->_exportProperties.format = static_cast<State::ExportFormat>(header.export_format);
         state->_exportProperties.features = header.export_features;
+        state->_keyboardMapping = static_cast<State::KeyboardMapping>(header.keyboard_mapping);
     }
 
     return total;

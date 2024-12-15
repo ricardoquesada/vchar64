@@ -237,3 +237,24 @@ quint8 utilsAsciiToScreenCode(quint8 ascii)
 
     return petscii;
 }
+
+quint8 utilsAsciiToAtari8Bit(quint8 ascii)
+{
+    if (ascii >= 128)
+        return ascii; // invalid
+
+    quint8 ret = 0;  // space
+
+    // Ascii and ATASCII are pretty similar.
+    // See: https://atariwiki.org/wiki/attach/Atari%20ATASCII%20Table/ascii_atascii_table.pdf
+
+    // Now we have to convert Ascii to Atari screen code:
+    if (ascii <= 0x1f)
+        ;
+    else if (ascii <= 0x5f)
+        ret = ascii - 0x20;
+    else
+        ret = ascii;
+
+    return ret;
+}

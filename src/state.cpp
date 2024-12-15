@@ -60,6 +60,7 @@ State::State(const QString& filename,
     , _exportProperties({ { 0x3800, 0x4000, 0x4400 }, EXPORT_FORMAT_RAW, EXPORT_FEATURE_CHARSET })
     , _undoStack(nullptr)
     , _bigCharWidget(nullptr)
+    , _keyboardMapping(KEYBOARD_MAPPING_C64)
 {
     _undoStack = new QUndoStack;
 
@@ -95,6 +96,7 @@ void State::copyState(const State& copyFromMe)
     _charIndex = copyFromMe._charIndex;
     _tileIndex = copyFromMe._tileIndex;
     _exportProperties = copyFromMe._exportProperties;
+    _keyboardMapping = copyFromMe._keyboardMapping;
 
     std::memcpy(_penColors, copyFromMe._penColors, std::size(_penColors));
 
@@ -128,6 +130,7 @@ void State::reset()
     _exportProperties.addresses[2] = 0x4400;
     _exportProperties.format = EXPORT_FORMAT_RAW;
     _exportProperties.features = EXPORT_FEATURE_CHARSET;
+    _keyboardMapping = KEYBOARD_MAPPING_C64;
 
     std::fill_n(std::begin(_charset), std::size(_charset), 0);
     std::fill_n(std::begin(_tileColors), std::size(_tileColors), TILE_COLORS_DEFAULT);
@@ -162,9 +165,12 @@ bool State::openFile(const QString& filename)
         FILETYPE_CTM
     };
     int filetype = FILETYPE_RAW;
+    KeyboardMapping keyboard_mappings = KEYBOARD_MAPPING_C64;
 
     QFileInfo info(file);
     QString suffix = info.suffix().toLower();
+
+    qDebug() << "Suffix is: " << suffix;
 
     if (suffix == "vchar64proj") {
         length = StateImport::loadVChar64(this, file);
@@ -176,11 +182,18 @@ bool State::openFile(const QString& filename)
         length = StateImport::loadCTM(this, file);
         filetype = FILETYPE_CTM;
     } else {
-        if (suffix != "bin")
+        if (suffix == "bin") {
+            // do nothing
+        } else if (suffix == "fnt") {
+            qDebug() << "FNT extension. Assuming it uses Atari 8-bit keyboard mappings";
+            keyboard_mappings = KEYBOARD_MAPPING_ATARI8;
+        } else {
             qDebug() << "Unkwnow file extension: " << suffix << ". Treating it as binary.";
+        }
         length = StateImport::loadRaw(this, file);
         filetype = FILETYPE_RAW;
     }
+
 
     file.close();
 
@@ -203,6 +216,9 @@ bool State::openFile(const QString& filename)
                 _exportProperties.format = EXPORT_FORMAT_RAW;
         }
     }
+
+    // Update Keyboard Mapping only after the file was loaded succesfully.
+    _keyboardMapping = keyboard_mappings;
 
     return true;
 }
@@ -1474,6 +1490,11 @@ void State::_setTileIndex(int tileIndex)
 
         emit tileIndexUpdated(tileIndex);
     }
+}
+
+State::KeyboardMapping State::getKeyboardMapping() const
+{
+    return _keyboardMapping;
 }
 
 void State::undo()

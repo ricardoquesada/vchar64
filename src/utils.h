@@ -30,3 +30,4 @@ class State;
 void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixelSize, const QPoint& offset, const QPoint& orig, int charIdx);
 void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int charIdx);
 quint8 utilsAsciiToScreenCode(quint8 ascii);
+quint8 utilsAsciiToAtari8Bit(quint8 ascii);

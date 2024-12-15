@@ -121,6 +121,11 @@ public:
         EXPORT_FORMAT_PNG,
     };
 
+    enum KeyboardMapping {
+        KEYBOARD_MAPPING_C64, // Commodore 8-bit screen code. Not PETSCII
+        KEYBOARD_MAPPING_ATARI8, // Atari 8-bit
+    };
+
     union Char {
         quint64 _char64;
         quint8 _char8[8];
@@ -473,6 +478,8 @@ public:
      */
     int getCharIndex() const;
 
+    KeyboardMapping getKeyboardMapping() const;
+
 signals:
     // file loaded, or new project
     void fileLoaded();
@@ -612,4 +619,6 @@ protected:
     QUndoStack* _undoStack;
 
     BigCharWidget* _bigCharWidget; // weak ref to parent
+
+    KeyboardMapping _keyboardMapping;
 };
