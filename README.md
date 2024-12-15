@@ -66,6 +66,13 @@ $ cmake ..
 $ make
 ```
 
+To update the translations do:
+
+```
+$ lupdate-pro vchar64.pro -ts translations/vchar64_es.ts
+$ linguist translations/vchar64_es.ts
+```
+
 ### Using Qt Creator
 
 * Open `vchar64.pro` file with Qt Creator
