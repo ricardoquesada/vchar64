@@ -69,8 +69,11 @@ $ make
 To update the translations do:
 
 ```
-$ lupdate-pro vchar64.pro -ts translations/vchar64_es.ts
-$ linguist translations/vchar64_es.ts
+# To update the entries in the .ts file
+$ cmake --build . --target update_translations
+
+# To trigger the generation of the .qm files manually
+$ cmake --build . --target release_translations
 ```
 
 ### Using Qt Creator

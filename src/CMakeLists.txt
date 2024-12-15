@@ -39,12 +39,24 @@ set(SOURCES
     xlinkpreview.cpp xlinkpreview.h
 )
 
+set(UI_SOURCES
+    aboutdialog.ui
+    exportdialog.ui
+    importkoaladialog.ui
+    importvicedialog.ui
+    mainwindow.ui
+    mappropertiesdialog.ui
+    preferencesdialog.ui
+    selectcolordialog.ui
+    serverconnectdialog.ui
+    tilepropertiesdialog.ui
+    updatedialog.ui
+)
+
 find_package(Qt6
     COMPONENTS Core Gui Network Widgets
     REQUIRED
 )
-
-qt_standard_project_setup()
 
 qt_add_big_resources(RESOURCES
     resources.qrc
@@ -53,6 +65,10 @@ qt_add_big_resources(RESOURCES
 qt_add_executable(${PROJECT_NAME}
     ${SOURCES}
     ${RESOURCES}
+)
+
+qt_add_ui(${PROJECT_NAME}
+    SOURCES ${UI_SOURCES}
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
