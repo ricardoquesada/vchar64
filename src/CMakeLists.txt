@@ -44,6 +44,8 @@ find_package(Qt6
     REQUIRED
 )
 
+qt_standard_project_setup()
+
 qt_add_big_resources(RESOURCES
     resources.qrc
 )
