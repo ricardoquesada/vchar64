@@ -1,8 +1,11 @@
-0.2.5
+0.2.5 (?)
 * [NEW] Possibility to load file from command line
 * [NEW] Export: support for C language export
+* [NEW] Export: support for PNG for map and tileset
 * [NEW] Issue #53: Right-click select char in Map
-* [FIX] Compiles under Qt6. In fact Qt5 is no longer supported.
+* [NEW] Supports .fnt file format. They are the same as .bin / .raw, but they
+        are support Atari screen codes. Easier to edit the map.
+* [FIX] Compiles under Qt6. Qt5 is still supported.
 * [FIX] Cleaner code: Converted many C structs to C++ ones. Easier to mantain.
 
 0.2.4 (30 March 2017)
