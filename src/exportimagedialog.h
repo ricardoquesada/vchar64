@@ -31,6 +31,12 @@ public:
     explicit ExportImageDialog(State* state, QWidget* parent = nullptr);
     ~ExportImageDialog() Q_DECL_OVERRIDE;
 
+private slots:
+    void on_pushBrowse_clicked();
+
+private:
+    void accept() Q_DECL_OVERRIDE;
+
     Ui::ExportImageDialog* ui;
-    State* _state;
+    State* _state; // weak ref
 };

@@ -118,7 +118,6 @@ public:
         EXPORT_FORMAT_PRG,
         EXPORT_FORMAT_ASM,
         EXPORT_FORMAT_C,
-        EXPORT_FORMAT_PNG,
     };
 
     enum KeyboardMapping {
@@ -211,7 +210,7 @@ public:
     bool exportPRG(const QString& filename, const ExportProperties& properties);
     bool exportAsm(const QString& filename, const ExportProperties& properties);
     bool exportC(const QString& filename, const ExportProperties& properties);
-    bool exportPNG(const QString& filename, const ExportProperties& properties, TilesetWidget* tilesetWidget, MapWidget* mapWidget);
+    bool exportPNG(const QString& filename, TilesetWidget* tilesetWidget, MapWidget* mapWidget);
     // export is a defined keyword, so we use export_ instead
     bool export_();
 

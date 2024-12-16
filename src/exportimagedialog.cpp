@@ -26,6 +26,7 @@ limitations under the License.
 
 #include "mainwindow.h"
 #include "state.h"
+#include "preferences.h"
 
 ExportImageDialog::ExportImageDialog(State* state, QWidget* parent)
     : QDialog(parent)
@@ -33,9 +34,84 @@ ExportImageDialog::ExportImageDialog(State* state, QWidget* parent)
     , _state(state)
 {
     ui->setupUi(this);
+
+    const auto lastDir = Preferences::getInstance().getLastUsedDirectory();
+
+           // set correct extension
+    const auto exportProperties = _state->getExportProperties();
+    const int format = exportProperties.format;
+
+    auto fn = _state->getExportedFilename();
+    if (fn.length() == 0) {
+        fn = state->getLoadedFilename();
+
+       // if getExportedFilename() == 0 then getLoadedFilename() will have the .vcharproj extension.
+       // Replace it with .png
+        if (fn.length() != 0) {
+            QFileInfo fileInfo(fn);
+            fn = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName();
+            fn += ".png";
+        }
+    }
+
+    if (fn.length() == 0)
+        fn = lastDir + "/" + "untitled";
+
+    ui->editFilename->setText(fn);
+
 }
 
 ExportImageDialog::~ExportImageDialog()
 {
     delete ui;
+}
+
+void ExportImageDialog::on_pushBrowse_clicked()
+{
+    QString filters[] = {
+        tr("PNG files (*.png)"),
+    };
+
+    int filterIdx = 0;
+
+    auto filename = QFileDialog::getSaveFileName(this,
+        tr("Select filename"),
+        ui->editFilename->text(),
+        tr("PNG files (*.png);;Any file (*)"),
+        &filters[filterIdx],
+        QFileDialog::DontConfirmOverwrite);
+
+    if (!filename.isEmpty())
+        ui->editFilename->setText(filename);
+}
+
+void ExportImageDialog::accept()
+{
+    bool ok = false;
+    MapWidget* mapWidget = nullptr;
+    TilesetWidget* tilesetWidget = nullptr;
+    auto filename = ui->editFilename->text();
+    auto mainWindow = qobject_cast<MainWindow*>(parent());
+
+
+    auto properties = _state->getExportProperties();
+
+    if (ui->checkBox_map->isChecked())
+        mapWidget = mainWindow->getUi()->mapWidget;
+    if (ui->checkBox_tileset->isChecked())
+        tilesetWidget = mainWindow->getUi()->tilesetWidget;
+
+    ok = _state->exportPNG(filename, tilesetWidget, mapWidget);
+
+    if (ok) {
+        QFileInfo info(filename);
+        auto dir = info.absolutePath();
+        Preferences::getInstance().setLastUsedDirectory(dir);
+        mainWindow->statusBar()->showMessage(tr("File exported to %1").arg(_state->getExportedFilename()), 2000);
+    } else {
+        mainWindow->statusBar()->showMessage(tr("Export failed"), 2000);
+        qDebug() << "Error saving file: " << filename;
+    }
+
+    QDialog::accept();
 }

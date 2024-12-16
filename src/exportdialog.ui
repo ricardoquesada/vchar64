@@ -229,6 +229,7 @@
   <tabstop>checkBox_map</tabstop>
   <tabstop>checkBox_tileColors</tabstop>
   <tabstop>radioButton_asm</tabstop>
+  <tabstop>radioButton_c</tabstop>
   <tabstop>radioButton_raw</tabstop>
   <tabstop>radioButton_prg</tabstop>
   <tabstop>spinBox_charsetAddress</tabstop>
@@ -244,8 +245,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>212</x>
-     <y>219</y>
+     <x>221</x>
+     <y>443</y>
     </hint>
     <hint type="destinationlabel">
      <x>212</x>
@@ -260,8 +261,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>212</x>
-     <y>219</y>
+     <x>221</x>
+     <y>443</y>
     </hint>
     <hint type="destinationlabel">
      <x>212</x>

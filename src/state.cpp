@@ -399,31 +399,18 @@ bool State::exportC(const QString& filename, const ExportProperties& properties)
     return ret;
 }
 
-bool State::exportPNG(const QString& filename, const ExportProperties& properties, TilesetWidget* tilesetWidget, MapWidget* mapWidget)
+bool State::exportPNG(const QString& filename, TilesetWidget* tilesetWidget, MapWidget* mapWidget)
 {
     bool ret = true;
-    if (ret && (properties.features & EXPORT_FEATURE_CHARSET)) {
-        if (!tilesetWidget) {
-            return false;
-        }
+
+    if (tilesetWidget) {
         ret &= (StateExport::savePNG(filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET), tilesetWidget->renderToQImage(), this) > 0);
     }
 
-    if (ret && (properties.features & EXPORT_FEATURE_MAP)) {
-        if (!mapWidget) {
-            return false;
-        }
+    if (mapWidget) {
         ret &= (StateExport::savePNG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP), mapWidget->renderToQImage(), this) > 0);
     }
 
-
-    if (ret) {
-        _exportedFilename = filename;
-        auto copy = properties;
-        // FIXME: Why is this needed?
-        copy.format = EXPORT_FORMAT_PNG;
-        setExportProperties(copy);
-    }
     return ret;
 }
 
