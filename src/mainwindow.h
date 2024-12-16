@@ -136,6 +136,7 @@ private slots:
     bool on_actionSaveAs_triggered();
     void on_actionExport_triggered();
     void on_actionExportAs_triggered();
+    void on_actionExportAsImage_triggered();
     void on_actionInvert_triggered();
     void on_actionFlipHorizontally_triggered();
     void on_actionFlipVertically_triggered();

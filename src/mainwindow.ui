@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="focusPolicy">
-   <enum>Qt::WheelFocus</enum>
+   <enum>Qt::FocusPolicy::WheelFocus</enum>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -30,7 +30,7 @@
     <item>
      <widget class="QMdiArea" name="mdiArea">
       <property name="viewMode">
-       <enum>QMdiArea::TabbedView</enum>
+       <enum>QMdiArea::ViewMode::TabbedView</enum>
       </property>
       <property name="documentMode">
        <bool>true</bool>
@@ -84,6 +84,7 @@
     <addaction name="actionSaveAs"/>
     <addaction name="actionExport"/>
     <addaction name="actionExportAs"/>
+    <addaction name="actionExportAsImage"/>
     <addaction name="separator"/>
     <addaction name="actionClose"/>
     <addaction name="actionClose_All"/>
@@ -228,11 +229,11 @@
           <x>0</x>
           <y>0</y>
           <width>563</width>
-          <height>77</height>
+          <height>68</height>
          </rect>
         </property>
         <property name="focusPolicy">
-         <enum>Qt::StrongFocus</enum>
+         <enum>Qt::FocusPolicy::StrongFocus</enum>
         </property>
        </widget>
       </widget>
@@ -368,7 +369,7 @@
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -422,12 +423,12 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>77</width>
-          <height>198</height>
+          <width>68</width>
+          <height>205</height>
          </rect>
         </property>
         <property name="focusPolicy">
-         <enum>Qt::StrongFocus</enum>
+         <enum>Qt::FocusPolicy::StrongFocus</enum>
         </property>
        </widget>
       </widget>
@@ -466,12 +467,12 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>77</width>
-          <height>198</height>
+          <width>68</width>
+          <height>205</height>
          </rect>
         </property>
         <property name="focusPolicy">
-         <enum>Qt::StrongFocus</enum>
+         <enum>Qt::FocusPolicy::StrongFocus</enum>
         </property>
        </widget>
       </widget>
@@ -501,7 +502,7 @@
   </widget>
   <action name="actionOpen">
    <property name="icon">
-    <iconset theme="document-open" resource="resources.qrc">
+    <iconset theme="document-open">
      <normaloff>:/res/icons/22x22/actions/document-open.png</normaloff>:/res/icons/22x22/actions/document-open.png</iconset>
    </property>
    <property name="text">
@@ -516,8 +517,7 @@
   </action>
   <action name="actionExit">
    <property name="icon">
-    <iconset theme="application-exit">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="application-exit"/>
    </property>
    <property name="text">
     <string notr="true">Exit</string>
@@ -542,7 +542,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset theme="document-save" resource="resources.qrc">
+    <iconset theme="document-save">
      <normaloff>:/res/icons/22x22/actions/document-save.png</normaloff>:/res/icons/22x22/actions/document-save.png</iconset>
    </property>
    <property name="text">
@@ -557,7 +557,7 @@
   </action>
   <action name="actionCopy">
    <property name="icon">
-    <iconset theme="edit-copy" resource="resources.qrc">
+    <iconset theme="edit-copy">
      <normaloff>:/res/icons/22x22/actions/edit-copy.png</normaloff>:/res/icons/22x22/actions/edit-copy.png</iconset>
    </property>
    <property name="text">
@@ -572,7 +572,7 @@
   </action>
   <action name="actionPaste">
    <property name="icon">
-    <iconset theme="edit-paste" resource="resources.qrc">
+    <iconset theme="edit-paste">
      <normaloff>:/res/icons/22x22/actions/edit-paste.png</normaloff>:/res/icons/22x22/actions/edit-paste.png</iconset>
    </property>
    <property name="text">
@@ -587,7 +587,7 @@
   </action>
   <action name="actionSaveAs">
    <property name="icon">
-    <iconset theme="document-save-as" resource="resources.qrc">
+    <iconset theme="document-save-as">
      <normaloff>:/res/icons/22x22/actions/document-save-as.png</normaloff>:/res/icons/22x22/actions/document-save-as.png</iconset>
    </property>
    <property name="text">
@@ -706,8 +706,7 @@
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset theme="help-about">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="help-about"/>
    </property>
    <property name="text">
     <string notr="true">About</string>
@@ -726,7 +725,7 @@
   </action>
   <action name="actionClearRecentFiles">
    <property name="icon">
-    <iconset theme="edit-clear" resource="resources.qrc">
+    <iconset theme="edit-clear">
      <normaloff>:/res/icons/22x22/actions/edit-clear.png</normaloff>:/res/icons/22x22/actions/edit-clear.png</iconset>
    </property>
    <property name="text">
@@ -735,7 +734,7 @@
   </action>
   <action name="actionEmptyProject">
    <property name="icon">
-    <iconset theme="document-new" resource="resources.qrc">
+    <iconset theme="document-new">
      <normaloff>:/res/icons/22x22/actions/document-new.png</normaloff>:/res/icons/22x22/actions/document-new.png</iconset>
    </property>
    <property name="text">
@@ -782,7 +781,7 @@
   </action>
   <action name="actionUndo">
    <property name="icon">
-    <iconset theme="edit-undo" resource="resources.qrc">
+    <iconset theme="edit-undo">
      <normaloff>:/res/icons/22x22/actions/edit-undo.png</normaloff>:/res/icons/22x22/actions/edit-undo.png</iconset>
    </property>
    <property name="text">
@@ -794,7 +793,7 @@
   </action>
   <action name="actionRedo">
    <property name="icon">
-    <iconset theme="edit-redo" resource="resources.qrc">
+    <iconset theme="edit-redo">
      <normaloff>:/res/icons/22x22/actions/edit-redo.png</normaloff>:/res/icons/22x22/actions/edit-redo.png</iconset>
    </property>
    <property name="text">
@@ -910,8 +909,7 @@
   </action>
   <action name="actionDocumentation">
    <property name="icon">
-    <iconset theme="help-contents">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="help-contents"/>
    </property>
    <property name="text">
     <string>Documentation</string>
@@ -940,7 +938,7 @@
   </action>
   <action name="actionCut">
    <property name="icon">
-    <iconset theme="edit-cut" resource="resources.qrc">
+    <iconset theme="edit-cut">
      <normaloff>:/res/icons/22x22/actions/edit-cut.png</normaloff>:/res/icons/22x22/actions/edit-cut.png</iconset>
    </property>
    <property name="text">
@@ -957,8 +955,7 @@
   </action>
   <action name="actionClose">
    <property name="icon">
-    <iconset theme="window-close">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="window-close"/>
    </property>
    <property name="text">
     <string>Close</string>
@@ -997,7 +994,7 @@
   </action>
   <action name="actionClear_Map">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/res/icons/16x16/actions/edit-clear.png</normaloff>:/res/icons/16x16/actions/edit-clear.png</iconset>
    </property>
    <property name="text">
@@ -1012,7 +1009,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/res/icons/22x22/actions/stock-tool-bucket-fill.png</normaloff>:/res/icons/22x22/actions/stock-tool-bucket-fill.png</iconset>
    </property>
    <property name="text">
@@ -1027,7 +1024,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/res/icons/16x16/categories/applications-graphics.png</normaloff>:/res/icons/16x16/categories/applications-graphics.png</iconset>
    </property>
    <property name="text">
@@ -1042,7 +1039,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/res/icons/22x22/actions/stock-tool-rect-select.png</normaloff>:/res/icons/22x22/actions/stock-tool-rect-select.png</iconset>
    </property>
    <property name="text">
@@ -1057,7 +1054,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/res/icons/22x22/actions/stock-tool-grid.png</normaloff>:/res/icons/22x22/actions/stock-tool-grid.png</iconset>
    </property>
    <property name="text">
@@ -1072,7 +1069,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/res/icons/22x22/actions/stock-tool-grid.png</normaloff>:/res/icons/22x22/actions/stock-tool-grid.png</iconset>
    </property>
    <property name="text">
@@ -1087,7 +1084,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset>
      <normaloff>:/res/icons/22x22/actions/stock-tool-grid.png</normaloff>:/res/icons/22x22/actions/stock-tool-grid.png</iconset>
    </property>
    <property name="text">
@@ -1113,6 +1110,17 @@
    </property>
    <property name="text">
     <string>Colodore</string>
+   </property>
+  </action>
+  <action name="actionExportAsImage">
+   <property name="text">
+    <string>Export As Image...</string>
+   </property>
+   <property name="toolTip">
+    <string>Export map and/or tilset as a PNG image</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
  </widget>
@@ -1165,9 +1173,7 @@
   <tabstop>scrollArea_tileset</tabstop>
   <tabstop>scrollArea_map</tabstop>
  </tabstops>
- <resources>
-  <include location="resources.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>actionEnable_Multicolor</sender>

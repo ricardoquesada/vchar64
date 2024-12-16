@@ -42,6 +42,7 @@ limitations under the License.
 #include "autoupdater.h"
 #include "bigcharwidget.h"
 #include "exportdialog.h"
+#include "exportimagedialog.h"
 #include "fileutils.h"
 #include "importkoaladialog.h"
 #include "importvicedialog.h"
@@ -617,6 +618,7 @@ void MainWindow::updateMenus()
     QAction* actions[] = {
         _ui->actionExport,
         _ui->actionExportAs,
+        _ui->actionExportAsImage,
         _ui->actionSave,
         _ui->actionSaveAs,
         _ui->actionClose,
@@ -1131,6 +1133,12 @@ void MainWindow::on_actionExport_triggered()
 void MainWindow::on_actionExportAs_triggered()
 {
     ExportDialog dialog(getState(), this);
+    dialog.exec();
+}
+
+void MainWindow::on_actionExportAsImage_triggered()
+{
+    ExportImageDialog dialog(getState(), this);
     dialog.exec();
 }
 

@@ -9,6 +9,7 @@ set(SOURCES
     colorrectwidget.cpp colorrectwidget.h
     commands.cpp commands.h
     exportdialog.cpp exportdialog.h
+    exportimagedialog.cpp exportimagedialog.h
     fileutils.cpp fileutils.h
     importkoalabitmapwidget.cpp importkoalabitmapwidget.h
     importkoalacharsetwidget.cpp importkoalacharsetwidget.h
@@ -40,6 +41,7 @@ set(SOURCES
 )
 
 set(UI_SOURCES
+    exportimagedialog.ui
     aboutdialog.ui
     exportdialog.ui
     importkoaladialog.ui
@@ -61,6 +63,10 @@ find_package(Qt6
 qt_add_big_resources(RESOURCES
     resources.qrc
 )
+
+# target_sources(rcc_object_resources
+#   PRIVATE
+# )
 
 # Have big_resource.qrc treated as a source file by Qt Creator
 list(APPEND SOURCES resources.qrc)
