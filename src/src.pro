@@ -60,6 +60,7 @@ SOURCES += \
     colorrectwidget.cpp \
     commands.cpp \
     exportdialog.cpp \
+    exportimagedialog.cpp \
     fileutils.cpp \
     importkoalabitmapwidget.cpp \
     importkoalacharsetwidget.cpp \
@@ -96,6 +97,7 @@ HEADERS  += \
     colorrectwidget.h \
     commands.h \
     exportdialog.h \
+    exportimagedialog.h \
     fileutils.h \
     importkoalabitmapwidget.h \
     importkoalacharsetwidget.h \
@@ -127,6 +129,7 @@ HEADERS  += \
 FORMS    += \
     aboutdialog.ui \
     exportdialog.ui \
+    exportimagedialog.ui \
     importkoaladialog.ui \
     importvicedialog.ui \
     mainwindow.ui \
