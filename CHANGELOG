@@ -1,7 +1,7 @@
 0.2.5 (?)
 * [NEW] Possibility to load file from command line
 * [NEW] Export: support for C language export
-* [NEW] Export: support for PNG for map and tileset
+* [NEW] Export As Image: PNG for map and tileset
 * [NEW] Issue #53: Right-click select char in Map
 * [NEW] Supports .fnt file format. They are the same as .bin / .raw, but they
         are support Atari screen codes. Easier to edit the map.
