@@ -18,10 +18,10 @@ limitations under the License.
 
 #include <memory>
 
+#include <QImage>
 #include <QPoint>
 #include <QSize>
 #include <QWidget>
-#include <QImage>
 
 #include "state.h"
 

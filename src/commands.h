@@ -48,18 +48,18 @@ private:
     bool _mergeable;
 };
 
-//class PasteTileCommand : public QUndoCommand
+// class PasteTileCommand : public QUndoCommand
 //{
-//public:
-//    PasteTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
-//    void undo() Q_DECL_OVERRIDE;
-//    void redo() Q_DECL_OVERRIDE;
+// public:
+//     PasteTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
+//     void undo() Q_DECL_OVERRIDE;
+//     void redo() Q_DECL_OVERRIDE;
 
-//private:
-//    State* _state;
-//    int _tileIndex;
-//    quint8 _buffer[State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8];
-//};
+// private:
+//     State* _state;
+//     int _tileIndex;
+//     quint8 _buffer[State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8];
+// };
 
 class PasteCommand : public QUndoCommand {
 public:

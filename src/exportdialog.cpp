@@ -16,7 +16,6 @@ limitations under the License.
 
 #include "exportdialog.h"
 #include "ui_exportdialog.h"
-#include "ui_mainwindow.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -27,6 +26,7 @@ limitations under the License.
 #include "mainwindow.h"
 #include "preferences.h"
 #include "state.h"
+#include "ui_mainwindow.h"
 
 ExportDialog::ExportDialog(State* state, QWidget* parent)
     : QDialog(parent)
@@ -167,10 +167,6 @@ void ExportDialog::accept()
         ok = _state->exportAsm(filename, properties);
     } else if (ui->radioButton_c->isChecked()) {
         ok = _state->exportC(filename, properties);
-    // } else if (ui->radioButton_png->isChecked()) {
-    //     MapWidget *mapWidget = mainWindow->getUi()->mapWidget;
-    //     TilesetWidget *tilesetWidget = mainWindow->getUi()->tilesetWidget;
-    //     ok = _state->exportPNG(filename, properties, tilesetWidget, mapWidget);
     }
 
     if (ok) {

@@ -22,14 +22,14 @@ limitations under the License.
 #include <QByteArray>
 #include <QDataStream>
 #include <QDebug>
+#include <QPainter>
+#include <QPixmap>
 #include <QTextStream>
 #include <QtEndian>
-#include <QPixmap>
-#include <QPainter>
 
+#include "palette.h"
 #include "state.h"
 #include "stateimport.h"
-#include "palette.h"
 
 qint64 StateExport::saveVChar64(State* state, QFile& file)
 {
@@ -214,7 +214,7 @@ qint64 StateExport::savePNG(const QString& filename, std::unique_ptr<QImage> ima
     QColor background = Palette::getColorForPen(state, State::PEN_BACKGROUND);
     QRgb backColor = qRgb(background.red(), background.green(), background.blue());
     for (int x = 0; x < image->width(); x++) {
-        for (int y=0; y < image->height(); y++) {
+        for (int y = 0; y < image->height(); y++) {
             QRgb rgb = image->pixel(x, y);
             if (backColor == rgb) {
                 image->setPixelColor(x, y, QColor(255, 255, 255, 0));

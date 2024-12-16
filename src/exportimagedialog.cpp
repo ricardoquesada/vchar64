@@ -16,7 +16,6 @@ limitations under the License.
 
 #include "exportimagedialog.h"
 #include "ui_exportimagedialog.h"
-#include "ui_mainwindow.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -25,8 +24,9 @@ limitations under the License.
 #include <QWidget>
 
 #include "mainwindow.h"
-#include "state.h"
 #include "preferences.h"
+#include "state.h"
+#include "ui_mainwindow.h"
 
 ExportImageDialog::ExportImageDialog(State* state, QWidget* parent)
     : QDialog(parent)
@@ -37,7 +37,7 @@ ExportImageDialog::ExportImageDialog(State* state, QWidget* parent)
 
     const auto lastDir = Preferences::getInstance().getLastUsedDirectory();
 
-           // set correct extension
+    // set correct extension
     const auto exportProperties = _state->getExportProperties();
     const int format = exportProperties.format;
 
@@ -45,8 +45,8 @@ ExportImageDialog::ExportImageDialog(State* state, QWidget* parent)
     if (fn.length() == 0) {
         fn = state->getLoadedFilename();
 
-       // if getExportedFilename() == 0 then getLoadedFilename() will have the .vcharproj extension.
-       // Replace it with .png
+        // if getExportedFilename() == 0 then getLoadedFilename() will have the .vcharproj extension.
+        // Replace it with .png
         if (fn.length() != 0) {
             QFileInfo fileInfo(fn);
             fn = fileInfo.absolutePath() + "/" + fileInfo.completeBaseName();
@@ -58,7 +58,6 @@ ExportImageDialog::ExportImageDialog(State* state, QWidget* parent)
         fn = lastDir + "/" + "untitled";
 
     ui->editFilename->setText(fn);
-
 }
 
 ExportImageDialog::~ExportImageDialog()
@@ -92,7 +91,6 @@ void ExportImageDialog::accept()
     TilesetWidget* tilesetWidget = nullptr;
     auto filename = ui->editFilename->text();
     auto mainWindow = qobject_cast<MainWindow*>(parent());
-
 
     auto properties = _state->getExportProperties();
 

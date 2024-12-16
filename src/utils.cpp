@@ -261,7 +261,7 @@ quint8 utilsAsciiToAtari8Bit(quint8 ascii)
     if (ascii >= 128)
         return ascii; // invalid
 
-    quint8 ret = 0;  // space
+    quint8 ret = 0; // space
 
     // Ascii and ATASCII are pretty similar.
     // See: https://atariwiki.org/wiki/attach/Atari%20ATASCII%20Table/ascii_atascii_table.pdf

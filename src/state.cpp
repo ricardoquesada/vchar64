@@ -25,18 +25,18 @@ limitations under the License.
 #include <QDebug>
 #include <QFile>
 #include <QFileInfo>
+#include <QPainter>
+#include <QPixmap>
 #include <QRandomGenerator>
 #include <QTime>
 #include <QtGlobal>
-#include <QPixmap>
-#include <QPainter>
 
 #include "commands.h"
 #include "mainwindow.h"
+#include "mapwidget.h"
 #include "palette.h"
 #include "stateexport.h"
 #include "stateimport.h"
-#include "mapwidget.h"
 #include "tilesetwidget.h"
 
 constexpr int State::CHAR_BUFFER_SIZE;
@@ -413,7 +413,6 @@ bool State::exportPNG(const QString& filename, TilesetWidget* tilesetWidget, Map
 
     return ret;
 }
-
 
 bool State::saveProject(const QString& filename)
 {
@@ -1529,7 +1528,7 @@ BigCharWidget* State::getBigCharWidget() const
 void State::setupDefaultMap()
 {
     std::fill(std::begin(_map), std::end(_map), 0x20);
-    //1234567890123456789012345678901234567890
+    // 1234567890123456789012345678901234567890
     const char hello64[] = "                                        "
                            "    **** COMMODORE 64 BASIC V2 ****     "
                            "                                        "

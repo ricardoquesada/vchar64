@@ -33,7 +33,6 @@ class BigCharWidget;
 class MapWidget;
 class TilesetWidget;
 
-
 class State : public QObject {
     Q_OBJECT
 
