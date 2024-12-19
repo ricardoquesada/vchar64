@@ -61,9 +61,7 @@ void ImportKoalaCharsetWidget::clean()
 void ImportKoalaCharsetWidget::populateScreenAndColorRAM(
     const std::vector<std::pair<int, int>>& coords, quint8 screenRAM, quint8 colorRAM)
 {
-    for (const auto& pair : coords) {
-        int x = pair.first;
-        int y = pair.second;
+    for (const auto& [x, y]: coords) {
         _screenRAM[y * 40 + x] = screenRAM;
     }
 
@@ -96,7 +94,7 @@ void ImportKoalaCharsetWidget::paintEvent(QPaintEvent* event)
             quint8* chardef = &_charset[c * 8];
 
             for (int i = 0; i < 8; ++i) {
-                static const quint8 masks[] = { 192, 48, 12, 3 };
+                static constexpr quint8 masks[] = { 192, 48, 12, 3 };
                 auto byte = chardef[i];
 
                 for (int j = 0; j < 4; ++j) {

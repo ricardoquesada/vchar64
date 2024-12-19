@@ -182,7 +182,7 @@ void ImportKoalaBitmapWidget::loadKoala(const QString& koalaFilepath)
 
     QFile file(koalaFilepath);
     file.open(QIODevice::ReadOnly);
-    file.read((char*)&_koala, sizeof(_koala));
+    file.read(reinterpret_cast<char*>(&_koala), sizeof(_koala));
 
     toFrameBuffer();
 
@@ -243,7 +243,7 @@ void ImportKoalaBitmapWidget::resetColors()
 
 void ImportKoalaBitmapWidget::findUniqueCells()
 {
-    static const char hex[] = "0123456789ABCDEF";
+    static constexpr char hex[] = "0123456789ABCDEF";
 
     auto region = getSelectedRegion();
 
@@ -289,7 +289,7 @@ void ImportKoalaBitmapWidget::toFrameBuffer()
             for (int i = 0; i < 8; ++i) {
                 quint8 byte = _koala.bitmap[(y * COLUMNS + x) * 8 + i];
 
-                static const quint8 masks[] = { 192, 48, 12, 3 };
+                static constexpr quint8 masks[] = { 192, 48, 12, 3 };
                 // 4 wide-pixels X
                 for (int j = 0; j < 4; ++j) {
                     quint8 colorIndex = 0;
@@ -367,11 +367,11 @@ void ImportKoalaBitmapWidget::reportResults()
 
         if (keyIsValid) {
             // it->second is the vector<pair<int,int>>
-            validCells += (int)_uniqueCell.second.size();
+            validCells += static_cast<int>(_uniqueCell.second.size());
             validUniqueCells++;
         } else {
             // it->second is the vector<pair<int,int>>
-            invalidCells += (int)_uniqueCell.second.size();
+            invalidCells += static_cast<int>(_uniqueCell.second.size());
             invalidUniqueCells++;
         }
     }
@@ -391,7 +391,7 @@ void ImportKoalaBitmapWidget::strategyD02xAbove8()
     // if can't find 3 colors, list is completed with most used colors whose value is < 8
 
     // colors are already sorted: use most used colors whose values is >= 8
-    // values < 8 are reserved screen color
+    // values < 8 are reserved screen colors
 
     int found = 0;
     for (auto& color : _colorsUsed) {
@@ -403,7 +403,7 @@ void ImportKoalaBitmapWidget::strategyD02xAbove8()
     }
 
     // make sure that 3 colors where selected.
-    // if not complete the list with most used colors where color < 8
+    // if not, complete the list with most used colors where color < 8
     for (int j = 0, i = 0; i < 3 - found; ++i, ++j) {
         if (_colorsUsed[j].second < 8 && _colorsUsed[j].first > 0) {
             _d02xColors[found++] = _colorsUsed[j].second;

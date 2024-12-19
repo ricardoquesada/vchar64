@@ -1529,12 +1529,12 @@ void State::setupDefaultMap()
 {
     std::fill(std::begin(_map), std::end(_map), 0x20);
     // 1234567890123456789012345678901234567890
-    const char hello64[] = "                                        "
+    constexpr char hello64[] = "                                        "
                            "    **** COMMODORE 64 BASIC V2 ****     "
                            "                                        "
                            " 64K RAM SYSTEM  38911 BASIC BYTES FREE ";
 
-    const char hello128[] = "                                        "
+    constexpr char hello128[] = "                                        "
                             " COMMODORE BASIC V7.0 122365 BYTES FREE "
                             "   (C)1986 COMMODORE ELECTRONICS, LTD.  "
                             "         (C)1977 MICROSOFT CORP.        "

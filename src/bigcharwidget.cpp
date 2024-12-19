@@ -85,12 +85,12 @@ void BigCharWidget::cyclePixel(int x, int y)
 {
     int pen = _state->tileGetPen(_tileIndex, QPoint(x, y));
 
-    const int nextPenMC[] = { State::PEN_FOREGROUND,
+    constexpr int nextPenMC[] = { State::PEN_FOREGROUND,
         State::PEN_MULTICOLOR2,
         State::PEN_BACKGROUND,
         State::PEN_MULTICOLOR1 };
 
-    const int nextPenHR[] = { State::PEN_FOREGROUND,
+    constexpr int nextPenHR[] = { State::PEN_FOREGROUND,
         State::PEN_BACKGROUND };
 
     if (_state->shouldBeDisplayedInMulticolor2(_tileIndex))
@@ -222,8 +222,8 @@ void BigCharWidget::keyPressEvent(QKeyEvent* event)
         update();
 
         MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2")
-                                                              .arg(_cursorPos.x())
-                                                              .arg(_cursorPos.y()));
+                .arg(_cursorPos.x())
+                .arg(_cursorPos.y()));
     }
 }
 

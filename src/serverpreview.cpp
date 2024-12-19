@@ -167,8 +167,8 @@ void ServerPreview::updateForegroundColorForCharset()
     struct vchar64d_proto_header* header;
     struct vchar64d_proto_set_mem* payload;
 
-    static const quint16 CHARS_TO_COPY = 40 * 8;
-    static const quint16 COLOR_RAM = 0xd800;
+    static constexpr quint16 CHARS_TO_COPY = 40 * 8;
+    static constexpr quint16 COLOR_RAM = 0xd800;
     auto tileColors = state->getTileColors();
 
     int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
@@ -200,8 +200,8 @@ void ServerPreview::updateForegroundColorForTileset()
     struct vchar64d_proto_header* header;
     struct vchar64d_proto_set_mem* payload;
 
-    static const quint16 CHARS_TO_COPY = 40 * 10;
-    static const quint16 COLOR_RAM = 0xd800 + 12 * 40;
+    static constexpr quint16 CHARS_TO_COPY = 40 * 10;
+    static constexpr quint16 COLOR_RAM = 0xd800 + 12 * 40;
     auto tileColors = state->getTileColors();
     auto currentTileProperties = state->getTileProperties();
 
@@ -320,12 +320,12 @@ void ServerPreview::updateTiles()
         struct vchar64d_proto_header* header;
         struct vchar64d_proto_set_mem* payload;
 
-        static const quint16 CHARS_TO_COPY = 40 * 10;
+        static constexpr quint16 CHARS_TO_COPY = 40 * 10;
 
         // FIXME: Fragile. Both in the c64 and c128 the screen memory
         // was remapped to a400, but the best way to do it,
         // is to query the server.
-        static const quint16 SCREEN_MEMORY = 0xa400 + 12 * 40;
+        static constexpr quint16 SCREEN_MEMORY = 0xa400 + 12 * 40;
 
         int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
         char* data = (char*)std::malloc(size);

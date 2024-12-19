@@ -338,12 +338,12 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     struct VICESnapshoptC64Mem c64mem;
     struct VICESnapshoptC128Mem c128mem;
 
-    static const char VICE_HEADER_MAGIC[] = "VICE Snapshot File\032";
-    static const char VICE_VERSION_MAGIC[] = "VICE Version\032";
-    static const char VICE_C64MEM[] = "C64MEM";
-    static const char VICE_C128MEM[] = "C128MEM";
-    static const char VICE_VICII[] = "VIC-II";
-    static const char VICE_CIA2[] = "CIA2";
+    static constexpr char VICE_HEADER_MAGIC[] = "VICE Snapshot File\032";
+    static constexpr char VICE_VERSION_MAGIC[] = "VICE Version\032";
+    static constexpr char VICE_C64MEM[] = "C64MEM";
+    static constexpr char VICE_C128MEM[] = "C128MEM";
+    static constexpr char VICE_VICII[] = "VIC-II";
+    static constexpr char VICE_CIA2[] = "CIA2";
 
     auto mainwindow = MainWindow::getInstance();
 
@@ -481,7 +481,7 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
             return -1;
         }
 
-        static const char seuck_signature[] = "PRESS FIRE TO COMMENCE SUPADEATH";
+        static constexpr char seuck_signature[] = "PRESS FIRE TO COMMENCE SUPADEATH";
 
         if (memcmp(seuck_signature, &buffer64k[0x3fdc], sizeof(seuck_signature) - 1) == 0) {
             *outCharsetAddress = 0xf800;

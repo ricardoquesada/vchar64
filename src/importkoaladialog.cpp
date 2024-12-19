@@ -177,7 +177,7 @@ bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int h
         { 0, -1 }, // bottom
         { 1, -1 }, // bottom-right;
     };
-    const int totalMasks = sizeof(masks) / sizeof(masks[0]);
+    constexpr int totalMasks = sizeof(masks) / sizeof(masks[0]);
 
     // find invalid colors
     int colorIndex = getValueFromKey(x, y, key);
@@ -295,19 +295,19 @@ int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vec
     // cycle colors taken from:
     // http://codebase64.org/doku.php?id=base:vic-ii_color_cheatsheet
     int cycle1[] = { 0, 6, 0xb, 4, 0xe, 5, 3, 0xd, 1 };
-    const int cycle1Max = sizeof(cycle1) / sizeof(cycle1[0]);
+    constexpr int cycle1Max = sizeof(cycle1) / sizeof(cycle1[0]);
 
     int cycle2[] = { 0, 9, 2, 8, 0xc, 0xa, 0xf, 1 };
-    const int cycle2Max = sizeof(cycle2) / sizeof(cycle2[0]);
+    constexpr int cycle2Max = sizeof(cycle2) / sizeof(cycle2[0]);
 
     int cycle3[] = { 0, 6, 0xc, 0xf, 1 };
-    const int cycle3Max = sizeof(cycle3) / sizeof(cycle3[0]);
+    constexpr int cycle3Max = sizeof(cycle3) / sizeof(cycle3[0]);
 
     int cycle4[] = { 9, 6, 8, 0xc, 0xa, 0xf, 0xd };
-    const int cycle4Max = sizeof(cycle4) / sizeof(cycle4[0]);
+    constexpr int cycle4Max = sizeof(cycle4) / sizeof(cycle4[0]);
 
     int cycle5[] = { 0, 6, 2, 4, 0xe, 5, 3, 7, 1 };
-    const int cycle5Max = sizeof(cycle5) / sizeof(cycle5[0]);
+    constexpr int cycle5Max = sizeof(cycle5) / sizeof(cycle5[0]);
 
     std::vector<std::pair<int, int>> usedColors = {
         { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 }, { 0, 5 }, { 0, 6 }, { 0, 7 },
@@ -447,10 +447,7 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
 
         bool error = false;
         // by now, all invalid colors should have valid ones in the key
-        for (auto& coord : invalidCoords) {
-            auto x = coord.first;
-            auto y = coord.second;
-
+        for (auto& [x, y] : invalidCoords) {
             int colorIndex = getValueFromKey(x, y, copyKey);
 
             if (colorIndex == ui->widgetKoala->_d02xColors[0])
@@ -537,8 +534,7 @@ bool ImportKoalaDialog::convert()
     // find uniqueChars, which could be smaller than bitmap->_uniqueCells
     _uniqueChars.clear();
     for (auto it = std::begin(bitmap->_uniqueCells); it != std::end(bitmap->_uniqueCells); ++it) {
-        quint8 chardef[8];
-        memset(chardef, 0, sizeof(chardef));
+        quint8 chardef[8] = {0};
 
         quint8 colorRAM;
         // it->first: key

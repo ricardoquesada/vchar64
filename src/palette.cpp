@@ -132,7 +132,7 @@ static const QColor Palettes[][16] = {
         { 0xB1, 0xB1, 0xB1 },
     },
 };
-static const int MAX_PALETTES = sizeof(Palettes) / sizeof(Palettes[0]);
+static constexpr int MAX_PALETTES = sizeof(Palettes) / sizeof(Palettes[0]);
 
 // Default is Pepto
 int Palette::_paletteIndex = 0;
@@ -163,7 +163,7 @@ const QColor& Palette::getColorForPen(State* state, int pen)
 
     // default colors are used when no state is present.
     // Import from VICE might use it if no tabs are open
-    const int defaultColors[] = { 1, 5, 7, 11 };
+    constexpr int defaultColors[] = { 1, 5, 7, 11 };
     int colorIndex = defaultColors[pen];
 
     // state could be nill if no States (documents) are open

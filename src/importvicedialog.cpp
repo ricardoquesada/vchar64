@@ -215,7 +215,7 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
         &charsetAddress,
         &screenRAMOAddress,
         _colorRAM,
-        (quint8*)&VICRegisters);
+        reinterpret_cast<quint8*>(&VICRegisters));
 
     if (ret >= 0) {
         // colors d021, d022, d023
