@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "autoupdater.h"
 
+#include <QDateTime>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QVersionNumber>

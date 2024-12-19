@@ -16,7 +16,6 @@ limitations under the License.
 
 #pragma once
 
-#include <QDateTime>
 #include <QNetworkAccessManager>
 #include <QObject>
 #include <QUrl>
@@ -31,7 +30,6 @@ public:
 
     void checkUpdate();
     void cancelDownload();
-    QDateTime getLastUpdateCheckDate();
 
 signals:
     void updateCheckFinished();

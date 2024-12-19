@@ -44,7 +44,7 @@ public:
     void setColorIndex(int colorIndex);
     int getColorIndex() const;
 
-    // when selected draws a rect around it
+    // when selected, draws a rect around it
     void setSelected(bool selected);
 
 signals:

@@ -20,7 +20,6 @@ limitations under the License.
 #include <QDebug>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QStatusBar>
 #include <QWidget>
 
 #include "mainwindow.h"
@@ -37,15 +36,13 @@ ExportImageDialog::ExportImageDialog(State* state, QWidget* parent)
 
     const auto lastDir = Preferences::getInstance().getLastUsedDirectory();
 
-    // set correct extension
-    const auto exportProperties = _state->getExportProperties();
-    const int format = exportProperties.format;
+    // set the correct extension
 
     auto fn = _state->getExportedFilename();
     if (fn.length() == 0) {
         fn = state->getLoadedFilename();
 
-        // if getExportedFilename() == 0 then getLoadedFilename() will have the .vcharproj extension.
+        // If getExportedFilename() == 0 then getLoadedFilename() will have the .vcharproj extension.
         // Replace it with .png
         if (fn.length() != 0) {
             QFileInfo fileInfo(fn);
@@ -91,8 +88,6 @@ void ExportImageDialog::accept()
     TilesetWidget* tilesetWidget = nullptr;
     auto filename = ui->editFilename->text();
     auto mainWindow = qobject_cast<MainWindow*>(parent());
-
-    auto properties = _state->getExportProperties();
 
     if (ui->checkBox_map->isChecked())
         mapWidget = mainWindow->getUi()->mapWidget;

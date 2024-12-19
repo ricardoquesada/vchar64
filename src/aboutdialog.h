@@ -22,7 +22,7 @@ namespace Ui {
 class AboutDialog;
 }
 
-class AboutDialog : public QDialog {
+class AboutDialog final : public QDialog {
     Q_OBJECT
 
 public:

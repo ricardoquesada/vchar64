@@ -38,7 +38,7 @@ ExportDialog::ExportDialog(State* state, QWidget* parent)
 
     const auto lastDir = Preferences::getInstance().getLastUsedDirectory();
 
-    // set correct extension
+    // set the correct extension
     const auto exportProperties = _state->getExportProperties();
     const int format = exportProperties.format;
 

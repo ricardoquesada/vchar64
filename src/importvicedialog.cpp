@@ -293,7 +293,7 @@ void ImportVICEDialog::on_checkBoxGuessColors_toggled(bool checked)
         _tmpState->_penColors[0] = 1; // white
         _tmpState->_penColors[1] = 5; // green
         _tmpState->_penColors[2] = 7; // yellow
-        _tmpState->_penColors[3] = 11; // dark grey
+        _tmpState->_penColors[3] = 11; // dark gray
     }
 
     updateTileImages();

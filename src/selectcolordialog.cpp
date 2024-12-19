@@ -43,7 +43,7 @@ SelectColorDialog::SelectColorDialog(QWidget* parent)
     _widgets[14] = ui->widget_15;
     _widgets[15] = ui->widget_16;
 
-    constexpr int TOTAL_WIDGETS = sizeof(_widgets) / sizeof(_widgets[0]);
+    const int TOTAL_WIDGETS = std::size(_widgets);
 
     for (int i = 0; i < TOTAL_WIDGETS; ++i)
         _widgets[i]->setColorIndex(i);

@@ -107,8 +107,8 @@ void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int
 {
     Q_ASSERT(charIdx >= 0 && charIdx < 256 && "Invalid charIdx");
 
-    static const quint8 mc_masks[] = { 192, 48, 12, 3 };
-    static const quint8 hr_masks[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
+    static constexpr quint8 mc_masks[] = { 192, 48, 12, 3 };
+    static constexpr quint8 hr_masks[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 
     const auto& charset = state->getCharsetBuffer();
     auto tileColors = state->getTileColors();

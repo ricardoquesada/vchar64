@@ -189,8 +189,8 @@ void MainWindow::onColorPropertiesUpdated(int pen)
         if (multicolorEnabled && pen == State::PEN_FOREGROUND)
             color = color % 8;
         _labelSelectedColor->setText(QString("Color: %1 (%2)")
-                                         .arg(Palette::color_names[color])
-                                         .arg(number));
+                .arg(Palette::color_names[color])
+                .arg(number));
 
         // update radio foreground mode
         auto foregroundColorMode = state->getForegroundColorMode();
@@ -704,12 +704,12 @@ void MainWindow::onCharIndexUpdated(int charIndex)
     auto state = getState();
 
     _labelCharIdx->setText(tr("Char: %1")
-                               .arg(charIndex, 3, 10, QLatin1Char(' ')));
+            .arg(charIndex, 3, 10, QLatin1Char(' ')));
 
     int tileIndex = state->getTileIndexFromCharIndex(charIndex);
 
     _labelTileIdx->setText(tr("Tile: %1")
-                               .arg(tileIndex, 3, 10, QLatin1Char(' ')));
+            .arg(tileIndex, 3, 10, QLatin1Char(' ')));
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -1078,7 +1078,6 @@ bool MainWindow::on_actionSaveAs_triggered()
         tr("VChar64 project(*.vchar64proj)"));
 
     if (filename.length() > 0) {
-        auto state = getState();
         if ((ret = state->saveProject(filename))) {
             QFileInfo fi(filename);
             setWindowFilePath(fi.filePath());
@@ -1569,7 +1568,7 @@ State* MainWindow::getState() const
 
 State::CopyRange MainWindow::bufferToClipboard(State* state) const
 {
-    State::CopyRange copyRange;
+    State::CopyRange copyRange = {};
     if (_ui->charsetWidget->hasFocus()) {
         _ui->charsetWidget->getSelectionRange(&copyRange);
     } else if (_ui->tilesetWidget->hasFocus()) {

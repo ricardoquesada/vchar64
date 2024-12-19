@@ -16,8 +16,6 @@ limitations under the License.
 
 #include "bigcharwidget.h"
 
-#include <algorithm>
-
 #include <QDebug>
 #include <QMessageBox>
 #include <QPaintEvent>
@@ -107,8 +105,8 @@ void BigCharWidget::mousePressEvent(QMouseEvent* event)
 
     const auto pos = event->pos();
 
-    const int x = int(pos.x()) / _pixelSize.width();
-    const int y = int(pos.y()) / _pixelSize.height();
+    const int x = pos.x() / _pixelSize.width();
+    const int y = pos.y() / _pixelSize.height();
     if (x >= 8 * _tileProperties.size.width() || y >= 8 * _tileProperties.size.height())
         return;
 
@@ -130,8 +128,8 @@ void BigCharWidget::mouseMoveEvent(QMouseEvent* event)
 
     const auto pos = event->pos();
 
-    int x = int(pos.x()) / _pixelSize.width();
-    int y = int(pos.y()) / _pixelSize.height();
+    int x = pos.x() / _pixelSize.width();
+    int y = pos.y() / _pixelSize.height();
 
     x = qBound(0, x, 8 * _tileProperties.size.width() - 1);
     y = qBound(0, y, 8 * _tileProperties.size.height() - 1);
@@ -333,8 +331,7 @@ void BigCharWidget::paintFocus(QPainter& painter)
 bool BigCharWidget::maybeSave()
 {
     if (_state->isModified()) {
-        QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(this, tr("Application"),
+        QMessageBox::StandardButton ret = QMessageBox::warning(this, tr("Application"),
             tr("There are unsaved changes.\n"
                "Do you want to save your changes?"),
             QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);

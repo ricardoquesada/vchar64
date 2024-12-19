@@ -27,7 +27,7 @@ limitations under the License.
  * @brief The BigCharWidget class
  * It is the "Document" class. It contains a `State`
  * object, which could be seen as the Document object.
- * `BigCharWidget` could be seen a the "view" of the `State`.
+ * `BigCharWidget` could be seen as the "view" of the `State`.
  */
 class BigCharWidget : public QWidget {
     Q_OBJECT

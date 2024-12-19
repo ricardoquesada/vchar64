@@ -372,9 +372,9 @@ SetTilePropertiesCommand::SetTilePropertiesCommand(State* state, const State::Ti
     , _new(properties)
 {
     setText(QObject::tr("Tile Properties %1x%2 - %3")
-                .arg(properties.size.width())
-                .arg(properties.size.height())
-                .arg(properties.interleaved));
+            .arg(properties.size.width())
+            .arg(properties.size.height())
+            .arg(properties.interleaved));
 }
 
 void SetTilePropertiesCommand::undo()
@@ -443,8 +443,8 @@ SetColorCommand::SetColorCommand(State* state, int color, int pen, int tileIdx, 
     , _tileIdx(tileIdx)
 {
     setText(QObject::tr("Color[%1] = %2")
-                .arg(pen)
-                .arg(color));
+            .arg(pen)
+            .arg(color));
 }
 
 void SetColorCommand::undo()
@@ -466,7 +466,7 @@ SetForegroundColorMode::SetForegroundColorMode(State* state, State::ForegroundCo
     , _mode(mode)
 {
     setText(QObject::tr("Foreground Mode = %1")
-                .arg(mode));
+            .arg(mode));
 }
 
 void SetForegroundColorMode::undo()
@@ -491,8 +491,8 @@ SetMapSizeCommand::SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCo
     _oldMap = _state->getMapBuffer();
 
     setText(QObject::tr("Map Size %1x%2")
-                .arg(mapSize.width())
-                .arg(mapSize.height()));
+            .arg(mapSize.width())
+            .arg(mapSize.height()));
 }
 
 void SetMapSizeCommand::undo()

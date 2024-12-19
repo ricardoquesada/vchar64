@@ -132,7 +132,7 @@ static const QColor Palettes[][16] = {
         { 0xB1, 0xB1, 0xB1 },
     },
 };
-static constexpr int MAX_PALETTES = sizeof(Palettes) / sizeof(Palettes[0]);
+static constexpr int MAX_PALETTES = std::size(Palettes);
 
 // Default is Pepto
 int Palette::_paletteIndex = 0;

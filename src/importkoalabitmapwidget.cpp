@@ -293,7 +293,7 @@ void ImportKoalaBitmapWidget::toFrameBuffer()
                 // 4 wide-pixels X
                 for (int j = 0; j < 4; ++j) {
                     quint8 colorIndex = 0;
-                    // get the two bits that reprent the color
+                    // get the two bits that represent the color
                     quint8 color = byte & masks[j];
                     color >>= 6 - j * 2;
 
@@ -343,8 +343,7 @@ void ImportKoalaBitmapWidget::reportResults()
     for (auto& _uniqueCell : _uniqueCells) {
         bool keyIsValid = true;
         auto key = _uniqueCell.first;
-        // key is 4 * 32 bytes long. Each element of
-        // the key, is a pixel
+        // Key is 4 * 32 bytes long. Each element of the key is a pixel
         for (char i : key) {
             // convert Hex to int
             char c = i - '0';
@@ -353,7 +352,7 @@ void ImportKoalaBitmapWidget::reportResults()
 
             int color = c;
 
-            // determine whether or not the char can be drawn with current selected colors
+            // determine whether the char can be drawn with current selected colors
 
             // c in d021/d022/d023?
             if (std::find(std::begin(_d02xColors), std::end(_d02xColors), color) != std::end(_d02xColors))

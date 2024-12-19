@@ -1356,11 +1356,11 @@ void State::_tileShiftUp(int tileIndex)
     for (int x = 0; x < _tileProperties.size.width(); x++) {
 
         // bottom byte of bottom
-        qint8 topByte, prevTopByte = 0;
+        qint8 prevTopByte = 0;
 
         for (int y = _tileProperties.size.height() - 1; y >= 0; y--) {
 
-            topByte = charPtr[0 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
+            qint8 topByte = charPtr[0 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
 
             for (int i = 0; i < 7; i++) {
                 charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = charPtr[i + 1 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
@@ -1390,11 +1390,11 @@ void State::_tileShiftDown(int tileIndex)
     for (int x = 0; x < _tileProperties.size.width(); x++) {
 
         // bottom byte of bottom
-        qint8 bottomByte, prevBottomByte = 0;
+        qint8 prevBottomByte = 0;
 
         for (int y = 0; y < _tileProperties.size.height(); y++) {
 
-            bottomByte = charPtr[7 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
+            qint8 bottomByte = charPtr[7 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
 
             for (int i = 6; i >= 0; i--) {
                 charPtr[i + 1 + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved] = charPtr[i + (x + y * _tileProperties.size.width()) * 8 * _tileProperties.interleaved];
@@ -1530,15 +1530,15 @@ void State::setupDefaultMap()
     std::fill(std::begin(_map), std::end(_map), 0x20);
     // 1234567890123456789012345678901234567890
     constexpr char hello64[] = "                                        "
-                           "    **** COMMODORE 64 BASIC V2 ****     "
-                           "                                        "
-                           " 64K RAM SYSTEM  38911 BASIC BYTES FREE ";
+                               "    **** COMMODORE 64 BASIC V2 ****     "
+                               "                                        "
+                               " 64K RAM SYSTEM  38911 BASIC BYTES FREE ";
 
     constexpr char hello128[] = "                                        "
-                            " COMMODORE BASIC V7.0 122365 BYTES FREE "
-                            "   (C)1986 COMMODORE ELECTRONICS, LTD.  "
-                            "         (C)1977 MICROSOFT CORP.        "
-                            "           ALL RIGHTS RESERVED          ";
+                                " COMMODORE BASIC V7.0 122365 BYTES FREE "
+                                "   (C)1986 COMMODORE ELECTRONICS, LTD.  "
+                                "         (C)1977 MICROSOFT CORP.        "
+                                "           ALL RIGHTS RESERVED          ";
     struct {
         const char* hello;
         int helloSize;

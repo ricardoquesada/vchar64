@@ -21,7 +21,6 @@ limitations under the License.
 
 #include "mainwindow.h"
 #include "palette.h"
-#include "selectcolordialog.h"
 #include "state.h"
 
 ColorRectWidget::ColorRectWidget(QWidget* parent)

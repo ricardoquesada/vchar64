@@ -16,8 +16,6 @@ limitations under the License.
 
 #include "palettewidget.h"
 
-#include <algorithm>
-
 #include <QColor>
 #include <QDebug>
 #include <QPaintEvent>
@@ -47,8 +45,8 @@ void PaletteWidget::mousePressEvent(QMouseEvent* event)
 
     auto pos = event->pos();
 
-    int x = static_cast<int>(pos.x() / _pixelSize.width());
-    int y = static_cast<int>(pos.y() / _pixelSize.height());
+    int x = pos.x() / _pixelSize.width();
+    int y = pos.y() / _pixelSize.height();
 
     x = qBound(0, x, COLUMNS - 1);
     y = qBound(0, y, ROWS - 1);
@@ -75,8 +73,8 @@ void PaletteWidget::mouseMoveEvent(QMouseEvent* event)
     if (event->buttons() == Qt::NoButton) {
         auto pos = event->pos();
 
-        int x = static_cast<int>(pos.x() / _pixelSize.width());
-        int y = static_cast<int>(pos.y() / _pixelSize.height());
+        int x = pos.x() / _pixelSize.width();
+        int y = pos.y() / _pixelSize.height();
 
         x = qBound(0, x, COLUMNS - 1);
         y = qBound(0, y, ROWS - 1);
@@ -118,7 +116,7 @@ void PaletteWidget::paintEvent(QPaintEvent* event)
                 painter.setPen(Qt::PenStyle::NoPen);
             }
 
-            if (selectedPen == State::PEN_FOREGROUND && state->isMulticolorMode())
+            if (selectedPen == State::PEN_FOREGROUND && state && state->isMulticolorMode())
                 c %= 8;
             painter.setBrush(Palette::getColor(c));
 
