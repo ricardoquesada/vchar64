@@ -1,4 +1,4 @@
-/* VChar64 server. 
+/* VChar64 server.
  * Based on the Telnet server from Contiki
  *
  * Copyright (c) 2015 Ricardo Quesada
@@ -40,8 +40,8 @@ PROCESS(vchar64d_process, "VChar64 server");
 
 #if defined(__C64__) || defined(__C128__)
 // peek and poke
-#define outb(addr,val)        (*(addr) = (val))
-#define inb(addr)             (*(addr))
+#define outb(addr, val) (*(addr) = (val))
+#define inb(addr) (*(addr))
 
 // addresses
 #if defined(__C64__)
@@ -80,12 +80,11 @@ enum {
     STATE_INITED
 };
 
-
 /*---------------------------------------------------------------------------*/
 static void init_vic()
 {
     uint8_t old;
-    uint8_t i,j,k;
+    uint8_t i, j, k;
 
     __asm__("sei");
 
@@ -102,55 +101,51 @@ static void init_vic()
 #endif
 
     // clear screen
-    memset(SCREEN, 0x20, 40*25);
+    memset(SCREEN, 0x20, 40 * 25);
 
     // chars
     i = 0;
-    for (j=0; j<8; ++j)
-    {
-        for (k=0; k<32; ++k)
-        {
+    for (j = 0; j < 8; ++j) {
+        for (k = 0; k < 32; ++k) {
             // charset at the top
-            outb(&SCREEN[j*40+k], i);
+            outb(&SCREEN[j * 40 + k], i);
 
             // tileset at the middle
-            outb(&SCREEN[40*12+j*40+k], i);
+            outb(&SCREEN[40 * 12 + j * 40 + k], i);
             ++i;
         }
     }
 
     // VIC Bank 2: $8000 - $bfff
-    old = inb (&CIA2.pra);
-    outb (&CIA2.pra, (old & 0xfc) | 1);
+    old = inb(&CIA2.pra);
+    outb(&CIA2.pra, (old & 0xfc) | 1);
 
     // enable CHARSET at 0xa800: XXXX101X
     //         SCREEN at 0xa400: 1001XXXX
     // bin: %10011010
-    outb (&VIC.addr, 0x9a);
+    outb(&VIC.addr, 0x9a);
 
     // MMU: out BASIC, in CHARSET, in KERNAL
-    old = inb (&MMU_ADDR[0]);
-    outb (&MMU_ADDR[0], OUTBASIC_INKERNAL_INCHARSET);
+    old = inb(&MMU_ADDR[0]);
+    outb(&MMU_ADDR[0], OUTBASIC_INKERNAL_INCHARSET);
 
     // copy new charset
-    memcpy(NEW_CHARSET, OLD_CHARSET, 8*256);
+    memcpy(NEW_CHARSET, OLD_CHARSET, 8 * 256);
 
     // restore old MMU: No BASIC, IO, KERNAL
-    outb (&MMU_ADDR[0], old);
-
-
+    outb(&MMU_ADDR[0], old);
 
     __asm__("cli");
 }
 
 /*---------------------------------------------------------------------------*/
-static void buf_init(struct vchar64d_buf *buf)
+static void buf_init(struct vchar64d_buf* buf)
 {
     buf->ptr = 0;
     buf->size = BUF_MAX_SIZE;
 }
 /*---------------------------------------------------------------------------*/
-static int buf_append(struct vchar64d_buf *buf, const char *data, int len)
+static int buf_append(struct vchar64d_buf* buf, const char* data, int len)
 {
     int copylen;
 
@@ -161,12 +156,12 @@ static int buf_append(struct vchar64d_buf *buf, const char *data, int len)
     return copylen;
 }
 /*---------------------------------------------------------------------------*/
-static void buf_copyto(struct vchar64d_buf *buf, char *to, int len)
+static void buf_copyto(struct vchar64d_buf* buf, char* to, int len)
 {
     memcpy(to, &buf->bufmem[0], len);
 }
 /*---------------------------------------------------------------------------*/
-static void buf_pop(struct vchar64d_buf *buf, int len)
+static void buf_pop(struct vchar64d_buf* buf, int len)
 {
     int poplen;
 
@@ -176,7 +171,7 @@ static void buf_pop(struct vchar64d_buf *buf, int len)
 }
 
 /*---------------------------------------------------------------------------*/
-static int buf_len(struct vchar64d_buf *buf)
+static int buf_len(struct vchar64d_buf* buf)
 {
     return buf->ptr;
 }
@@ -200,7 +195,7 @@ static void senddata(void)
 
 uint16_t proto_hello(struct vchar64d_proto_hello* data)
 {
-//    printf("hello: %d\n", len);
+    //    printf("hello: %d\n", len);
     return sizeof(*data);
 }
 
@@ -233,15 +228,15 @@ uint16_t proto_set_byte(struct vchar64d_proto_set_byte* data)
 
 uint16_t proto_set_char(struct vchar64d_proto_set_char* data)
 {
-//    printf("set_char: %d\n", len);
-    memcpy(&NEW_CHARSET[data->idx*8], &data->chardata, sizeof(data->chardata));
+    //    printf("set_char: %d\n", len);
+    memcpy(&NEW_CHARSET[data->idx * 8], &data->chardata, sizeof(data->chardata));
     return sizeof(*data);
 }
 
 uint16_t proto_set_chars(struct vchar64d_proto_set_chars* data)
 {
-//    printf("proto_set_chars: %d\n", len);
-    memcpy(&NEW_CHARSET[data->idx*8], &data->charsdata, data->count*8);
+    //    printf("proto_set_chars: %d\n", len);
+    memcpy(&NEW_CHARSET[data->idx * 8], &data->charsdata, data->count * 8);
     // don't include the pointer
     return sizeof(*data) + data->count * 8 - sizeof(data->charsdata);
 }
@@ -284,74 +279,73 @@ static void newdata(void)
     count = 0;
     len = uip_datalen();
 
-    while (count < len)
-    {
+    while (count < len) {
         header = &((struct vchar64d_proto_header*)uip_appdata)[count];
         payload = &((uint8_t*)uip_appdata)[++count];
 
         switch (header->type) {
-                // charset related
-            case TYPE_SET_BYTE_FOR_CHAR:
-                count += proto_set_byte(payload);
-                break;
-            case TYPE_SET_CHAR:
-                count += proto_set_char(payload);
-                break;
-            case TYPE_SET_CHARS:
-                count += proto_set_chars(payload);
-                break;
-                // generic
-            case TYPE_HELLO:
-                count += proto_hello(payload);
-                break;
-            case TYPE_POKE:
-                count += proto_poke(payload);
-                break;
-            case TYPE_FILL:
-                count += proto_fill(payload);
-                break;
-            case TYPE_SET_MEM:
-                count += proto_set_mem(payload);
-                break;
-            case TYPE_PING:
-                count += proto_ping(payload);
-                break;
-            case TYPE_BYEBYE:
-                count += proto_close();
-                break;
-            default:
-                __asm__("inc $d020");
-                count = len;
-                break;
+            // charset related
+        case TYPE_SET_BYTE_FOR_CHAR:
+            count += proto_set_byte(payload);
+            break;
+        case TYPE_SET_CHAR:
+            count += proto_set_char(payload);
+            break;
+        case TYPE_SET_CHARS:
+            count += proto_set_chars(payload);
+            break;
+            // generic
+        case TYPE_HELLO:
+            count += proto_hello(payload);
+            break;
+        case TYPE_POKE:
+            count += proto_poke(payload);
+            break;
+        case TYPE_FILL:
+            count += proto_fill(payload);
+            break;
+        case TYPE_SET_MEM:
+            count += proto_set_mem(payload);
+            break;
+        case TYPE_PING:
+            count += proto_ping(payload);
+            break;
+        case TYPE_BYEBYE:
+            count += proto_close();
+            break;
+        default:
+            __asm__("inc $d020");
+            count = len;
+            break;
         }
     }
 }
 
-void vchar64d_appcall(void *ts)
+void vchar64d_appcall(void* ts)
 {
-    if(uip_connected()) {
-        if(s.state == STATE_CLOSED) {
+    if (uip_connected()) {
+        if (s.state == STATE_CLOSED) {
             buf_init(&buf);
             s.state = STATE_CONNECTED;
-            ts = (char *)0;
+            ts = (char*)0;
         } else {
             uip_send("bye bye", 7);
-            ts = (char *)1;
+            ts = (char*)1;
         }
         tcp_markconn(uip_conn, ts);
     }
 
-    if(!ts) {
-        if(uip_closed() || uip_aborted() || uip_timedout()) {
+    if (!ts) {
+        if (uip_closed() || uip_aborted() || uip_timedout()) {
             s.state = STATE_CLOSED;
         }
-        if(uip_acked()) {
+        if (uip_acked()) {
             acked();
         }
-        if(uip_newdata()) {
+        if (uip_newdata()) {
             newdata();
         }
-        if(uip_rexmit() || uip_newdata() || uip_acked() || uip_connected() || uip_poll()) {
+        if (uip_rexmit() || uip_newdata() || uip_acked() || uip_connected() || uip_poll()) {
             senddata();
         }
     }
@@ -371,7 +365,7 @@ PROCESS_THREAD(vchar64d_process, ev, data)
     printf("\nListening in port: %d\n", VCHAR64_SERVER_LISTEN_PORT);
     printf("Press any key to start servrer");
     while (!kbhit()) {
-/*        __asm__("inc $d020"); */
+        /*        __asm__("inc $d020"); */
     }
 
     init_vic();
@@ -379,11 +373,11 @@ PROCESS_THREAD(vchar64d_process, ev, data)
     // server port
     tcp_listen(UIP_HTONS(VCHAR64_SERVER_LISTEN_PORT));
 
-    while(1) {
+    while (1) {
         PROCESS_WAIT_EVENT();
-        if(ev == tcpip_event) {
+        if (ev == tcpip_event) {
             vchar64d_appcall(data);
-        } else if(ev == PROCESS_EVENT_EXIT) {
+        } else if (ev == PROCESS_EVENT_EXIT) {
             vchar64d_quit();
         } else {
         }
@@ -394,5 +388,3 @@ PROCESS_THREAD(vchar64d_process, ev, data)
 /*---------------------------------------------------------------------------*/
 AUTOSTART_PROCESSES(&vchar64d_process);
 /*---------------------------------------------------------------------------*/
-
-

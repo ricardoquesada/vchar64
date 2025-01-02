@@ -190,8 +190,8 @@ void CharsetWidget::keyPressEvent(QKeyEvent* event)
             updateCharIndex(charIndex);
 
             MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2")
-                                                                  .arg(_cursorPos.x())
-                                                                  .arg(_cursorPos.y()));
+                    .arg(_cursorPos.x())
+                    .arg(_cursorPos.y()));
         }
     }
 

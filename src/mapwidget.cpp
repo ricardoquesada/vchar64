@@ -396,8 +396,8 @@ void MapWidget::keyPressEvent(QKeyEvent* event)
                 qBound(0, _cursorPos.y(), _mapSize.height() - 1) };
 
             MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2")
-                                                                  .arg(_cursorPos.x())
-                                                                  .arg(_cursorPos.y()));
+                    .arg(_cursorPos.x())
+                    .arg(_cursorPos.y()));
         }
     }
     _selecting = selecting;

@@ -61,7 +61,7 @@ void ImportKoalaCharsetWidget::clean()
 void ImportKoalaCharsetWidget::populateScreenAndColorRAM(
     const std::vector<std::pair<int, int>>& coords, quint8 screenRAM, quint8 colorRAM)
 {
-    for (const auto& [x, y]: coords) {
+    for (const auto& [x, y] : coords) {
         _screenRAM[y * 40 + x] = screenRAM;
     }
 
