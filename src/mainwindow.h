@@ -52,7 +52,7 @@ public:
 
     /**
      * @brief getCurrentState returns the current State
-     * @return nullptr if none are present. Otherwise it will return the current State
+     * @return nullptr if none are present. Otherwise, it will return the current State
      */
     static State* getCurrentState();
 

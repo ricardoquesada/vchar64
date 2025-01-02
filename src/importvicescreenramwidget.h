@@ -15,7 +15,6 @@ public:
 protected:
     void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
 
-    void updateTileImages();
     ImportVICEDialog* _parentDialog; // weak ref
     bool _displayGrid;
 };

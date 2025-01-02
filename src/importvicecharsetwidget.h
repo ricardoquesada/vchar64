@@ -25,7 +25,7 @@ class ImportVICECharsetWidget : public QWidget {
     Q_OBJECT
 
 public:
-    ImportVICECharsetWidget(QWidget* parent = nullptr);
+    explicit ImportVICECharsetWidget(QWidget* parent = nullptr);
     void setParentDialog(ImportVICEDialog* parentDialog) { _parentDialog = parentDialog; }
     void setDisplayGrid(bool enabled);
 

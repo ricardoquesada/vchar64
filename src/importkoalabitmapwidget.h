@@ -43,7 +43,6 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
     void resetColors();
-    void resetOffset();
     void toFrameBuffer();
     void findUniqueCells();
     QRect getSelectedRegion() const;
