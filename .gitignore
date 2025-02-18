@@ -37,3 +37,6 @@ Makefile*
 # vim
 *.swp
 *~
+
+# Clion
+*.idea
