@@ -30,7 +30,11 @@ int main(int argc, char* argv[])
     // translation code
     QTranslator qtTranslator;
     if (qtTranslator.load("qt_" + QLocale::system().name(),
+#if QT_VERSION_MAJOR >= 6
+            QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+#else
             QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+#endif
         app.installTranslator(&qtTranslator);
 
     auto translationDir = QCoreApplication::applicationDirPath();

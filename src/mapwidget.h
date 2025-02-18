@@ -66,7 +66,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
     void keyReleaseEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
-    [[nondiscard]] QSize sizeHint() const Q_DECL_OVERRIDE;
+    [[nodiscard]] QSize sizeHint() const Q_DECL_OVERRIDE;
 
     void updateTileImages();
 

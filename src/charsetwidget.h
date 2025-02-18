@@ -48,7 +48,7 @@ protected:
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
-    [[nondiscard]] QSize sizeHint() const Q_DECL_OVERRIDE;
+    [[nodiscard]] QSize sizeHint() const Q_DECL_OVERRIDE;
 
     void updateCharIndex(int charIndex);
     void paintFocus(QPainter& painter);

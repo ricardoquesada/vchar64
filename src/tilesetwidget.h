@@ -51,7 +51,7 @@ protected:
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
-    [[nondiscard]] QSize sizeHint() const Q_DECL_OVERRIDE;
+    [[nodiscard]] QSize sizeHint() const Q_DECL_OVERRIDE;
 
     void paintFocus(QPainter& painter);
     void paintPixel(QPainter& painter, int width, int height, quint8* charPtr);
