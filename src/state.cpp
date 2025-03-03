@@ -418,7 +418,7 @@ bool State::saveProject(const QString& filename)
 {
     bool ret = false;
 
-    // don't save it nothing has changed. Same behavior as Qt Creator
+    // don't save if nothing has changed. Same behavior as Qt Creator
     if (getUndoStack()->isClean() && _savedFilename == filename) {
         // clean, nothing to save
         QApplication::beep();
