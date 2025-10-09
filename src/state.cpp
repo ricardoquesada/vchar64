@@ -35,9 +35,6 @@ limitations under the License.
 #include "stateimport.h"
 #include "tilesetwidget.h"
 
-constexpr int State::CHAR_BUFFER_SIZE;
-constexpr quint8 State::TILE_COLORS_DEFAULT;
-
 // target constructor
 State::State(const QString& filename,
     const QSize& mapSize)
