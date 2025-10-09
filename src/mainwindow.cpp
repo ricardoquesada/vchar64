@@ -24,6 +24,7 @@ limitations under the License.
 #include <QDebug>
 #include <QDesktopServices>
 #include <QDir>
+#include <QDockWidget>
 #include <QErrorMessage>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -32,9 +33,13 @@ limitations under the License.
 #include <QMdiSubWindow>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QRadioButton>
 #include <QScreen>
+#include <QSpinBox>
+#include <QStyle>
 #include <QToolBar>
 #include <QToolButton>
+#include <QUndoStack>
 #include <QUndoView>
 #include <QWindow>
 
