@@ -16,16 +16,24 @@ limitations under the License.
 
 #include "importkoalabitmapwidget.h"
 
+#include <algorithm>
 #include <cstring>
 #include <functional>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include <QDebug>
-#include <QFile>
-#include <QGuiApplication>
-#include <QPaintEvent>
-#include <QPainter>
+#include <QtCore/QDebug>
+#include <QtCore/QFile>
+#include <QtCore/QIODevice>
+#include <QtCore/QRect>
+#include <QtCore/qalgorithms.h>
+#include <QtGui/QGuiApplication>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QPaintEvent>
+#include <QtGui/QPainter>
+#include <QtWidgets/QWidget>
 
-#include "mainwindow.h"
 #include "palette.h"
 #include "state.h"
 
@@ -36,12 +44,13 @@ constexpr int OFFSET = 0;
 
 ImportKoalaBitmapWidget::ImportKoalaBitmapWidget(QWidget* parent)
     : QWidget(parent)
+    , _framebuffer {}
+    , _d02xColors {}
     , _displayGrid(false)
     , _selecting(false)
     , _selectingSize({ 0, 0 })
     , _cursorPos({ 0, 0 })
 {
-    std::memset(_framebuffer, 0, sizeof(_framebuffer));
     setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
         PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
 }
@@ -181,7 +190,10 @@ void ImportKoalaBitmapWidget::loadKoala(const QString& koalaFilepath)
     std::memset(&_koala, 0, sizeof(_koala));
 
     QFile file(koalaFilepath);
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly)) {
+        // TODO: Report error
+        return;
+    }
     file.read(reinterpret_cast<char*>(&_koala), sizeof(_koala));
 
     toFrameBuffer();
@@ -205,25 +217,10 @@ void ImportKoalaBitmapWidget::enableGrid(bool enabled)
 
 QRect ImportKoalaBitmapWidget::getSelectedRegion() const
 {
-    QRect region = { 0, 0, COLUMNS, ROWS };
-    if (_selecting) {
-        if (_selectingSize.width() < 0) {
-            region.setX(_cursorPos.x() + _selectingSize.width());
-            region.setWidth(-_selectingSize.width());
-        } else {
-            region.setX(_cursorPos.x());
-            region.setWidth(_selectingSize.width());
-        }
+    if (!_selecting)
+        return { 0, 0, COLUMNS, ROWS };
 
-        if (_selectingSize.height() < 0) {
-            region.setY(_cursorPos.y() + _selectingSize.height());
-            region.setHeight(-_selectingSize.height());
-        } else {
-            region.setY(_cursorPos.y());
-            region.setHeight(_selectingSize.height());
-        }
-    }
-    return region;
+    return QRect(_cursorPos, _selectingSize).normalized();
 }
 
 //
@@ -269,7 +266,7 @@ void ImportKoalaBitmapWidget::findUniqueCells()
                 v.emplace_back(x, y);
                 _uniqueCells[skey] = v;
             } else {
-                _uniqueCells[skey].push_back(std::make_pair(x, y));
+                _uniqueCells[skey].emplace_back(x, y);
             }
         }
     }
@@ -346,7 +343,7 @@ void ImportKoalaBitmapWidget::reportResults()
         // Key is 4 * 32 bytes long. Each element of the key is a pixel
         for (char i : key) {
             // convert Hex to int
-            char c = i - '0';
+            int c = i - '0';
             if (c > 9)
                 c -= 7; // 'A' - '9'
 

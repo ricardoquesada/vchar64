@@ -347,8 +347,12 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
 
     auto mainwindow = MainWindow::getInstance();
 
-    if (!file.isOpen())
-        file.open(QIODevice::ReadOnly);
+    if (!file.isOpen()) {
+        if (!file.open(QIODevice::ReadOnly)) {
+            mainwindow->showMessageOnStatusBar(QObject::tr("Error: Failed to open file"));
+            return -1;
+        }
+    }
 
     auto size = file.size();
     if (size < (qint64)sizeof(VICESnapshotHeader)) {
