@@ -17,24 +17,20 @@ limitations under the License.
 #include "state.h"
 
 #include <algorithm>
-#include <cstring>
-#include <utility>
 #include <vector>
 
-#include <QApplication>
-#include <QDebug>
-#include <QFile>
-#include <QFileInfo>
-#include <QPainter>
-#include <QPixmap>
-#include <QRandomGenerator>
-#include <QTime>
-#include <QtGlobal>
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
+#include <QtCore/QRandomGenerator>
+#include <QtCore/QTime>
+#include <QtCore/QtGlobal>
+#include <QtGui/QPainter>
+#include <QtWidgets/QApplication>
+#include <qlogging.h>
 
 #include "commands.h"
 #include "mainwindow.h"
 #include "mapwidget.h"
-#include "palette.h"
 #include "stateexport.h"
 #include "stateimport.h"
 #include "tilesetwidget.h"
@@ -185,7 +181,7 @@ bool State::openFile(const QString& filename)
             qDebug() << "FNT extension. Assuming it uses Atari 8-bit keyboard mappings";
             _keyboardMapping = KEYBOARD_MAPPING_ATARI8;
         } else {
-            qDebug() << "Unkwnow file extension: " << suffix << ". Treating it as binary.";
+            qDebug() << "Unknown file extension: " << suffix << ". Treating it as binary.";
         }
         length = StateImport::loadRaw(this, file);
         filetype = FILETYPE_RAW;
