@@ -40,3 +40,7 @@ Makefile*
 
 # Clion
 *.idea
+
+build/
+build_cmake/
+CMakeLists.txt.user
