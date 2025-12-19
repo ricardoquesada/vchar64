@@ -32,7 +32,7 @@ class ImportVICEDialog : public QDialog {
 
 public:
     explicit ImportVICEDialog(QWidget* parent = nullptr);
-    virtual ~ImportVICEDialog() Q_DECL_OVERRIDE;
+    virtual ~ImportVICEDialog() override;
 
     const QString& getFilepath() const;
 

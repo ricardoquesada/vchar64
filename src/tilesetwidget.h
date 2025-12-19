@@ -47,11 +47,11 @@ public slots:
     void onFileLoaded();
 
 protected:
-    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
-    [[nodiscard]] QSize sizeHint() const Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    [[nodiscard]] QSize sizeHint() const override;
 
     void paintFocus(QPainter& painter);
     void paintPixel(QPainter& painter, int width, int height, quint8* charPtr);

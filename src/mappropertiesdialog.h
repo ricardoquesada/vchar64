@@ -12,7 +12,7 @@ class MapPropertiesDialog : public QDialog {
 
 public:
     explicit MapPropertiesDialog(State* state, QWidget* parent = nullptr);
-    virtual ~MapPropertiesDialog() Q_DECL_OVERRIDE;
+    virtual ~MapPropertiesDialog() override;
 
 private slots:
     void on_buttonBox_accepted();

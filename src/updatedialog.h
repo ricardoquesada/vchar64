@@ -28,7 +28,7 @@ class UpdateDialog : public QDialog {
 
 public:
     explicit UpdateDialog(QWidget* parent = nullptr);
-    virtual ~UpdateDialog() Q_DECL_OVERRIDE;
+    virtual ~UpdateDialog() override;
 
     void setChanges(const QString& changes);
     void setNewVersion(const QString& newVersion);

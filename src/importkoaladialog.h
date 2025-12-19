@@ -30,12 +30,12 @@ class ImportKoalaDialog : public QDialog {
 
 public:
     explicit ImportKoalaDialog(QWidget* parent = nullptr);
-    virtual ~ImportKoalaDialog() Q_DECL_OVERRIDE;
+    virtual ~ImportKoalaDialog() override;
 
     const QString& getFilepath() const;
 
 protected:
-    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent* event) override;
 
     void validateKoalaFile(const QString& filepath);
     bool processChardef(const std::string& key, std::array<quint8, 8>& outKey, quint8& outColorRAM);

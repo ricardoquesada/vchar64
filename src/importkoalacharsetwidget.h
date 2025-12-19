@@ -30,7 +30,7 @@ class ImportKoalaCharsetWidget : public QWidget {
 public:
     explicit ImportKoalaCharsetWidget(QWidget* parent = nullptr);
 
-    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) override;
 
     void populateScreenAndColorRAM(const std::vector<std::pair<int, int>>& coords, quint8 screenRAM, quint8 colorRAM);
     void setCharset(int charIndex, const quint8* chardef);

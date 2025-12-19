@@ -24,7 +24,7 @@ public:
     explicit VChar64Application(int& argc, char** argv);
 
 protected:
-    bool event(QEvent* event) Q_DECL_OVERRIDE;
+    bool event(QEvent* event) override;
 
 signals:
     void fileOpenRequest(const QString& file);

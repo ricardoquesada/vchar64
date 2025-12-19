@@ -27,7 +27,7 @@ class AboutDialog final : public QDialog {
 
 public:
     explicit AboutDialog(QWidget* parent = nullptr);
-    virtual ~AboutDialog() Q_DECL_OVERRIDE;
+    virtual ~AboutDialog() override;
 
 private slots:
 

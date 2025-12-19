@@ -34,7 +34,7 @@ class BigCharWidget : public QWidget {
 
 public:
     BigCharWidget(State* state, QWidget* parent = nullptr);
-    virtual ~BigCharWidget() Q_DECL_OVERRIDE;
+    virtual ~BigCharWidget() override;
 
     int getTileIndex() const;
     QSize getTileSize() const;
@@ -50,13 +50,13 @@ public slots:
     void onFileLoaded();
 
 protected:
-    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
-    void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
+    void closeEvent(QCloseEvent* event) override;
 
     void paintCursor(QPainter& painter);
     void paintSeparators(QPainter& painter);

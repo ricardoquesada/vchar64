@@ -13,7 +13,7 @@ public:
     void setDisplayGrid(bool enabled);
 
 protected:
-    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) override;
 
     ImportVICEDialog* _parentDialog; // weak ref
     bool _displayGrid;

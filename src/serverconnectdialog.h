@@ -27,7 +27,7 @@ class ServerConnectDialog : public QDialog {
 
 public:
     explicit ServerConnectDialog(QWidget* parent = nullptr);
-    virtual ~ServerConnectDialog() Q_DECL_OVERRIDE;
+    virtual ~ServerConnectDialog() override;
 
     QString getIPAddress() const;
 

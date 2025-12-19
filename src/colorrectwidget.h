@@ -34,7 +34,7 @@ public:
     };
 
     explicit ColorRectWidget(QWidget* parent = nullptr);
-    virtual ~ColorRectWidget() Q_DECL_OVERRIDE;
+    virtual ~ColorRectWidget() override;
 
     // Pen mode
     void setPen(int pen);
@@ -52,7 +52,7 @@ signals:
 public slots:
 
 protected:
-    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) override;
 
     // PEN or COLOR
     int _mode;

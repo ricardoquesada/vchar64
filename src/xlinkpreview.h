@@ -21,16 +21,16 @@ limitations under the License.
 
 #include "state.h"
 
-typedef bool (*xlink_ping_t)(void);
-typedef bool (*xlink_load_t)(uchar, uchar, ushort, const uchar*, int);
-typedef bool (*xlink_peek_t)(uchar, uchar, ushort, uchar*);
-typedef bool (*xlink_poke_t)(uchar, uchar, ushort, uchar);
-typedef bool (*xlink_fill_t)(uchar, uchar, ushort, uchar, uint);
+using xlink_ping_t = bool (*)(void);
+using xlink_load_t = bool (*)(uchar, uchar, ushort, const uchar*, int);
+using xlink_peek_t = bool (*)(uchar, uchar, ushort, uchar*);
+using xlink_poke_t = bool (*)(uchar, uchar, ushort, uchar);
+using xlink_fill_t = bool (*)(uchar, uchar, ushort, uchar, uint);
 
 class XlinkPreview : public QObject {
     Q_OBJECT
 
-    virtual ~XlinkPreview() Q_DECL_OVERRIDE;
+    virtual ~XlinkPreview() override;
 
     bool _available;
     bool _connected;

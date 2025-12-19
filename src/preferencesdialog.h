@@ -28,7 +28,7 @@ class PreferencesDialog : public QDialog {
 
 public:
     explicit PreferencesDialog(QWidget* parent = nullptr);
-    virtual ~PreferencesDialog() Q_DECL_OVERRIDE;
+    virtual ~PreferencesDialog() override;
 
 private slots:
     void onSelectColor();

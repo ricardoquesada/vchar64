@@ -29,13 +29,13 @@ class ExportImageDialog : public QDialog {
 
 public:
     explicit ExportImageDialog(State* state, QWidget* parent = nullptr);
-    ~ExportImageDialog() Q_DECL_OVERRIDE;
+    ~ExportImageDialog() override;
 
 private slots:
     void on_pushBrowse_clicked();
 
 private:
-    void accept() Q_DECL_OVERRIDE;
+    void accept() override;
 
     Ui::ExportImageDialog* ui;
     State* _state; // weak ref

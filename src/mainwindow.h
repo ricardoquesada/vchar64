@@ -96,7 +96,7 @@ public slots:
 
 protected:
     explicit MainWindow(QWidget* parent = nullptr);
-    virtual ~MainWindow() Q_DECL_OVERRIDE;
+    virtual ~MainWindow() override;
 
     bool _openFile(const QString& fileName);
     bool activateIfAlreadyOpen(const QString& fileName);
@@ -121,7 +121,7 @@ protected:
 
     void updateMenus();
 
-    void closeEvent(QCloseEvent* event) Q_DECL_OVERRIDE;
+    void closeEvent(QCloseEvent* event) override;
 
     BigCharWidget* getBigcharWidget() const;
     State* getState() const;

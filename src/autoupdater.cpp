@@ -77,21 +77,21 @@ void AutoUpdater::httpFinished()
 
     if (_httpRequestAborted) {
         _reply->deleteLater();
-        _reply = Q_NULLPTR;
+        _reply = nullptr;
         return;
     }
 
     if (_reply->error()) {
         qDebug() << _reply->errorString();
         _reply->deleteLater();
-        _reply = Q_NULLPTR;
+        _reply = nullptr;
         return;
     }
 
     const QVariant redirectionTarget = _reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
 
     _reply->deleteLater();
-    _reply = Q_NULLPTR;
+    _reply = nullptr;
 
     if (!redirectionTarget.isNull()) {
         const QUrl redirectedUrl = _url.resolved(redirectionTarget.toUrl());

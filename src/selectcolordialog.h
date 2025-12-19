@@ -14,7 +14,7 @@ class SelectColorDialog : public QDialog {
 
 public:
     explicit SelectColorDialog(QWidget* parent = nullptr);
-    virtual ~SelectColorDialog() Q_DECL_OVERRIDE;
+    virtual ~SelectColorDialog() override;
 
     void setCurrentColor(int colorIndex);
     int getSelectedColor() const;
@@ -23,7 +23,7 @@ signals:
     void colorSelected(int colorIndex);
 
 protected:
-    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void mousePressEvent(QMouseEvent* event) override;
 
 private:
     Ui::SelectColorDialog* ui;

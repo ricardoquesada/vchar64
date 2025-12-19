@@ -34,10 +34,10 @@ enum UndoCommands {
 class PaintTileCommand : public QUndoCommand {
 public:
     PaintTileCommand(State* state, int tileIndex, const QPoint& position, int pen, bool mergeable, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
-    int id() const Q_DECL_OVERRIDE { return Cmd_PaintTile; }
-    bool mergeWith(const QUndoCommand* other) Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
+    int id() const override { return Cmd_PaintTile; }
+    bool mergeWith(const QUndoCommand* other) override;
 
 private:
     State* _state;
@@ -52,8 +52,8 @@ private:
 //{
 // public:
 //     PasteTileCommand(State *state, int tileIndex, QUndoCommand *parent = nullptr);
-//     void undo() Q_DECL_OVERRIDE;
-//     void redo() Q_DECL_OVERRIDE;
+//     void undo() override;
+//     void redo() override;
 
 // private:
 //     State* _state;
@@ -64,8 +64,8 @@ private:
 class PasteCommand : public QUndoCommand {
 public:
     PasteCommand(State* state, int charIndex, const State::CopyRange& copyRange, const quint8* buffer, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -79,8 +79,8 @@ private:
 class CutCommand : public QUndoCommand {
 public:
     CutCommand(State* state, const State::CopyRange& copyRange, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -94,8 +94,8 @@ private:
 class FlipTileHCommand : public QUndoCommand {
 public:
     FlipTileHCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -105,8 +105,8 @@ private:
 class FlipTileVCommand : public QUndoCommand {
 public:
     FlipTileVCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -116,8 +116,8 @@ private:
 class ShiftLeftTileCommand : public QUndoCommand {
 public:
     ShiftLeftTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -127,8 +127,8 @@ private:
 class ShiftRightTileCommand : public QUndoCommand {
 public:
     ShiftRightTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -138,8 +138,8 @@ private:
 class ShiftUpTileCommand : public QUndoCommand {
 public:
     ShiftUpTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -149,8 +149,8 @@ private:
 class ShiftDownTileCommand : public QUndoCommand {
 public:
     ShiftDownTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -160,8 +160,8 @@ private:
 class RotateTileCommand : public QUndoCommand {
 public:
     RotateTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -171,8 +171,8 @@ private:
 class InvertTileCommand : public QUndoCommand {
 public:
     InvertTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -182,8 +182,8 @@ private:
 class ClearTileCommand : public QUndoCommand {
 public:
     ClearTileCommand(State* state, int tileIndex, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -194,8 +194,8 @@ private:
 class SetTilePropertiesCommand : public QUndoCommand {
 public:
     SetTilePropertiesCommand(State* state, const State::TileProperties& properties, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -206,8 +206,8 @@ private:
 class SetExportPropertiesCommand : public QUndoCommand {
 public:
     SetExportPropertiesCommand(State* state, const State::ExportProperties& properties, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -219,8 +219,8 @@ private:
 class SetMulticolorModeCommand : public QUndoCommand {
 public:
     SetMulticolorModeCommand(State* state, bool multicolorEnabled, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -232,8 +232,8 @@ private:
 class SetColorCommand : public QUndoCommand {
 public:
     SetColorCommand(State* state, int color, int pen, int tileIdx, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -247,8 +247,8 @@ private:
 class SetForegroundColorMode : public QUndoCommand {
 public:
     SetForegroundColorMode(State* state, State::ForegroundColorMode mode, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -260,8 +260,8 @@ class SetMapSizeCommand : public QUndoCommand {
 public:
     SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCommand* parent = nullptr);
 
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -274,8 +274,8 @@ private:
 class FillMapCommand : public QUndoCommand {
 public:
     FillMapCommand(State* state, const QPoint& coord, int tileIdx, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;
@@ -289,10 +289,10 @@ private:
 class PaintMapCommand : public QUndoCommand {
 public:
     PaintMapCommand(State* state, const QPoint& position, int tileIdx, bool mergeable, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
-    int id() const Q_DECL_OVERRIDE { return Cmd_PaintMap; }
-    bool mergeWith(const QUndoCommand* other) Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
+    int id() const override { return Cmd_PaintMap; }
+    bool mergeWith(const QUndoCommand* other) override;
 
 private:
     State* _state;
@@ -307,8 +307,8 @@ private:
 class ClearMapCommand : public QUndoCommand {
 public:
     ClearMapCommand(State* state, int tileIdx, QUndoCommand* parent = nullptr);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+    void undo() override;
+    void redo() override;
 
 private:
     State* _state;

@@ -25,12 +25,12 @@ public:
     explicit PaletteWidget(QWidget* parent);
 
 protected:
-    void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+    void paintEvent(QPaintEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
 
-    [[nodiscard]] QSize sizeHint() const Q_DECL_OVERRIDE;
-    void resizeEvent(QResizeEvent* event) Q_DECL_OVERRIDE;
+    [[nodiscard]] QSize sizeHint() const override;
+    void resizeEvent(QResizeEvent* event) override;
 
     QSize _pixelSize;
     QSize _sizeHint;

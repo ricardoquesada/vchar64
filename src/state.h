@@ -83,9 +83,9 @@ public:
     constexpr static int MAX_TILE_WIDTH = 8;
     constexpr static int MAX_TILE_HEIGHT = 8;
 
-    typedef quint8 charset_t[CHAR_BUFFER_SIZE];
-    typedef quint8 tileColors_t[TILE_COLORS_BUFFER_SIZE];
-    typedef std::vector<quint8> map_t;
+    using charset_t = quint8[CHAR_BUFFER_SIZE];
+    using tileColors_t = quint8[TILE_COLORS_BUFFER_SIZE];
+    using map_t = std::vector<quint8>;
 
     enum Pen {
         PEN_BACKGROUND, /* $d021 */
@@ -179,7 +179,7 @@ public:
     /**
      * @brief ~State destructor
      */
-    virtual ~State() Q_DECL_OVERRIDE;
+    virtual ~State() override;
 
     /**
      * @brief Copy the state from orig to self.

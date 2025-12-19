@@ -40,7 +40,7 @@ private slots:
 
 private:
     AutoUpdater();
-    virtual ~AutoUpdater() Q_DECL_OVERRIDE;
+    virtual ~AutoUpdater() override;
 
     void startRequest(const QUrl& requestedUrl);
 
