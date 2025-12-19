@@ -184,21 +184,22 @@ void ImportKoalaBitmapWidget::mouseMoveEvent(QMouseEvent* event)
 //
 // public
 //
-void ImportKoalaBitmapWidget::loadKoala(const QString& koalaFilepath)
+bool ImportKoalaBitmapWidget::loadKoala(const QString& koalaFilepath)
 {
     // in case the loaded file has less bytes than required, fill the buffer with zeroes
     std::memset(&_koala, 0, sizeof(_koala));
 
     QFile file(koalaFilepath);
     if (!file.open(QIODevice::ReadOnly)) {
-        // TODO: Report error
-        return;
+        return false;
     }
     file.read(reinterpret_cast<char*>(&_koala), sizeof(_koala));
 
     toFrameBuffer();
 
     parseKoala();
+
+    return true;
 }
 
 void ImportKoalaBitmapWidget::parseKoala()

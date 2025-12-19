@@ -105,9 +105,12 @@ void ImportKoalaDialog::validateKoalaFile(const QString& filepath)
     QFileInfo info(filepath);
 
     if (info.exists() && info.isFile() && (info.size() == 10003 || info.size() == 10002)) {
-        ui->widgetKoala->loadKoala(filepath);
-        _validKoalaFile = convert();
-        _koaLoaded = true;
+        if (ui->widgetKoala->loadKoala(filepath)) {
+            _validKoalaFile = convert();
+            _koaLoaded = true;
+        } else {
+            _koaLoaded = _validKoalaFile = false;
+        }
     } else {
         _koaLoaded = _validKoalaFile = false;
     }

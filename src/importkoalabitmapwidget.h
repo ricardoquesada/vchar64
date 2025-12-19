@@ -30,7 +30,7 @@ class ImportKoalaBitmapWidget : public QWidget {
 
 public:
     ImportKoalaBitmapWidget(QWidget* parent = nullptr);
-    void loadKoala(const QString& koalaFilepath);
+    bool loadKoala(const QString& koalaFilepath);
     void enableGrid(bool enabled);
     void parseKoala();
 
