@@ -443,8 +443,12 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
 
     if (!invalidCoords.empty()) {
         char copyKey[8 * 4 + 1];
-        memcpy(copyKey, key.c_str(), sizeof(copyKey));
-        copyKey[8 * 4] = 0; // used when printing the key
+        if (key.size() < sizeof(copyKey)) {
+            strcpy(copyKey, key.c_str());
+        } else {
+            memcpy(copyKey, key.c_str(), sizeof(copyKey) - 1);
+            copyKey[sizeof(copyKey) - 1] = 0;
+        }
 
         normalizeKey(copyKey, hiColorRAM);
 
