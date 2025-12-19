@@ -28,7 +28,7 @@ limitations under the License.
 #include "preferences.h"
 #include "selectcolordialog.h"
 
-static const char* hex_digits = "0123456789ABCDEF";
+static constexpr std::string_view hex_digits = "0123456789ABCDEF";
 static quint8 dehexify(char h)
 {
     h -= '0';
@@ -39,9 +39,7 @@ static quint8 dehexify(char h)
 
 ImportKoalaDialog::ImportKoalaDialog(QWidget* parent)
     : QDialog(parent)
-    , ui(new Ui::ImportKoalaDialog)
-    , _validKoalaFile(false)
-    , _koaLoaded(false)
+    , ui(std::make_unique<Ui::ImportKoalaDialog>())
 {
     ui->setupUi(this);
 
@@ -55,10 +53,7 @@ ImportKoalaDialog::ImportKoalaDialog(QWidget* parent)
     updateWidgets();
 }
 
-ImportKoalaDialog::~ImportKoalaDialog()
-{
-    delete ui;
-}
+ImportKoalaDialog::~ImportKoalaDialog() = default;
 
 const QString& ImportKoalaDialog::getFilepath() const
 {
@@ -116,7 +111,7 @@ void ImportKoalaDialog::validateKoalaFile(const QString& filepath)
     }
 }
 
-int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int, int>>& usedColors, int* outHiColor)
+int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int, int>>& usedColors, int& outHiColor)
 {
     int cacheColor = -1;
     for (int i = 0; i < 16; i++) {
@@ -146,21 +141,21 @@ int ImportKoalaDialog::findColorRAM(const std::vector<std::pair<int, int>>& used
 
                 // inform which is the Hi Color used to create the Color Ram
                 if (ui->radioForegroundMostUsed->isChecked()) {
-                    *outHiColor = cacheColor;
-                    return *outHiColor;
+                    outHiColor = cacheColor;
+                    return outHiColor;
                 }
             }
         }
     }
 
     if (cacheColor != -1) {
-        *outHiColor = cacheColor;
+        outHiColor = cacheColor;
         return cacheColor;
     }
     return -1;
 }
 
-static int getValueFromKey(int x, int y, const char* key)
+static int getValueFromKey(int x, int y, const std::array<char, 32>& key)
 {
     if (x < 0 || x >= 4 || y < 0 || y >= 8)
         return -1;
@@ -168,9 +163,9 @@ static int getValueFromKey(int x, int y, const char* key)
     return c;
 }
 
-bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM)
+bool ImportKoalaDialog::tryChangeKey(int x, int y, std::array<char, 32>& key, quint8 mask, int hiColorRAM)
 {
-    static const int masks[8][2] = {
+    static constexpr std::array<std::array<int, 2>, 8> masks = { {
         { -1, 1 }, // top-left
         { 0, 1 }, // top
         { 1, 1 }, // top-right
@@ -179,8 +174,8 @@ bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int h
         { -1, -1 }, // bottom-left
         { 0, -1 }, // bottom
         { 1, -1 }, // bottom-right;
-    };
-    constexpr int totalMasks = std::size(masks);
+    } };
+    constexpr int totalMasks = masks.size();
 
     // find invalid colors
     int colorIndex = getValueFromKey(x, y, key);
@@ -225,9 +220,9 @@ bool ImportKoalaDialog::tryChangeKey(int x, int y, char* key, quint8 mask, int h
     }
     return false;
 }
-void ImportKoalaDialog::normalizeWithNeighborStrategy(char* key, int hiColorRAM)
+void ImportKoalaDialog::normalizeWithNeighborStrategy(std::array<char, 32>& key, int hiColorRAM)
 {
-    quint8 masks[] {
+    constexpr std::array<quint8, 12> masks = {
         // 8
         0xff, // 111-1_1-111: all positions
 
@@ -265,7 +260,7 @@ int ImportKoalaDialog::getColorByLuminanceProximity(int colorIndex, const std::v
     Q_ASSERT(colorIndex >= 0 && colorIndex < 16 && "Invalid Color Index");
 
     //    const int luminances[] = {0x01, 0x0d, 0x07, 0x0f, 0x03, 0x05, 0x0a, 0x0c, 0x0e, 0x08, 0x04, 0x02, 0x0b, 0x06, 0x09, 0x00};
-    const int luminances[] = { 0x01, 0x0d, 0x07, 0x03, 0x0f, 0x05, 0x0a, 0x0e, 0x0c, 0x08, 0x04, 0x02, 0x0b, 0x09, 0x06, 0x00 };
+    constexpr std::array<int, 16> luminances = { 0x01, 0x0d, 0x07, 0x03, 0x0f, 0x05, 0x0a, 0x0e, 0x0c, 0x08, 0x04, 0x02, 0x0b, 0x09, 0x06, 0x00 };
     //    const int luminances[] = {0x01, 0x0d, 0x07, 0x0f, 0x03, 0x0a, 0x05, 0x0e, 0x0c, 0x08, 0x04, 0x0b, 0x02, 0x09, 0x06, 0x00};
 
     std::vector<std::pair<int, int>> usedColors = {
@@ -297,35 +292,26 @@ int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vec
 
     // cycle colors taken from:
     // http://codebase64.org/doku.php?id=base:vic-ii_color_cheatsheet
-    int cycle1[] = { 0, 6, 0xb, 4, 0xe, 5, 3, 0xd, 1 };
-    constexpr int cycle1Max = std::size(cycle1);
-
-    int cycle2[] = { 0, 9, 2, 8, 0xc, 0xa, 0xf, 1 };
-    constexpr int cycle2Max = std::size(cycle2);
-
-    int cycle3[] = { 0, 6, 0xc, 0xf, 1 };
-    constexpr int cycle3Max = std::size(cycle3);
-
-    int cycle4[] = { 9, 6, 8, 0xc, 0xa, 0xf, 0xd };
-    constexpr int cycle4Max = std::size(cycle4);
-
-    int cycle5[] = { 0, 6, 2, 4, 0xe, 5, 3, 7, 1 };
-    constexpr int cycle5Max = std::size(cycle5);
+    static constexpr std::array<int, 9> cycle1 = { 0, 6, 0xb, 4, 0xe, 5, 3, 0xd, 1 };
+    static constexpr std::array<int, 8> cycle2 = { 0, 9, 2, 8, 0xc, 0xa, 0xf, 1 };
+    static constexpr std::array<int, 5> cycle3 = { 0, 6, 0xc, 0xf, 1 };
+    static constexpr std::array<int, 7> cycle4 = { 9, 6, 8, 0xc, 0xa, 0xf, 0xd };
+    static constexpr std::array<int, 9> cycle5 = { 0, 6, 2, 4, 0xe, 5, 3, 7, 1 };
 
     std::vector<std::pair<int, int>> usedColors = {
         { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 }, { 0, 5 }, { 0, 6 }, { 0, 7 },
         { 0, 8 }, { 0, 9 }, { 0, 10 }, { 0, 11 }, { 0, 12 }, { 0, 13 }, { 0, 14 }, { 0, 15 }
     };
 
-    struct {
-        int* array;
+    struct Cycle {
+        const int* array;
         int arrayLength;
     } cycles[] = {
-        { cycle1, cycle1Max },
-        { cycle2, cycle2Max },
-        { cycle3, cycle3Max },
-        { cycle4, cycle4Max },
-        { cycle5, cycle5Max },
+        { cycle1.data(), static_cast<int>(cycle1.size()) },
+        { cycle2.data(), static_cast<int>(cycle2.size()) },
+        { cycle3.data(), static_cast<int>(cycle3.size()) },
+        { cycle4.data(), static_cast<int>(cycle4.size()) },
+        { cycle5.data(), static_cast<int>(cycle5.size()) },
     };
 
     for (auto& cycle : cycles) {
@@ -356,7 +342,7 @@ int ImportKoalaDialog::getColorByPaletteProximity(int colorIndex, const std::vec
     return usedColors[15].second;
 }
 
-void ImportKoalaDialog::normalizeWithColorStrategy(char* key, int hiColorRAM)
+void ImportKoalaDialog::normalizeWithColorStrategy(std::array<char, 32>& key, int hiColorRAM)
 {
     Q_UNUSED(hiColorRAM)
 
@@ -385,7 +371,7 @@ void ImportKoalaDialog::normalizeWithColorStrategy(char* key, int hiColorRAM)
     }
 }
 
-void ImportKoalaDialog::normalizeKey(char* key, int hiColorRAM)
+void ImportKoalaDialog::normalizeKey(std::array<char, 32>& key, int hiColorRAM)
 {
     if (ui->radioButtonNeighbor->isChecked())
         normalizeWithNeighborStrategy(key, hiColorRAM);
@@ -393,7 +379,7 @@ void ImportKoalaDialog::normalizeKey(char* key, int hiColorRAM)
         normalizeWithColorStrategy(key, hiColorRAM);
 }
 
-bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, quint8* outColorRAM)
+bool ImportKoalaDialog::processChardef(const std::string& key, std::array<quint8, 8>& outKey, quint8& outColorRAM)
 {
     Q_ASSERT(key.size() == 8 * 4 && "Invalid Key Size");
 
@@ -412,7 +398,25 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
     for (int y = 0; y < 8; ++y) {
         quint8 bits = 0;
         for (int x = 0; x < 4; ++x) {
-            int colorIndex = getValueFromKey(x, y, key.c_str());
+            // key.c_str() is valid std::array replacement? No, getValueFromKey needs array ref now.
+            // Wait, getValueFromKey now takes std::array<char, 32>&.
+            // But 'key' here is std::string.
+            // I should use a helper for string or convert string to array.
+            // Or better, overload getValueFromKey to take std::string_view or const string&.
+            // BUT, the key is passed as std::string here.
+            // In normalizeKey it is passed as mutable std::array.
+            // Let's create a temporary array for processing?
+
+            // To minimize changes, I will convert string to array for processing if needed,
+            // or just use string accessor logic here directly.
+
+            // Revert getValueFromKey signature change in .cpp? No, header says std::array.
+            // I must adapt this function.
+            // Let's create an overload or template?
+            // Actually, the new signature of processChardef still takes string.
+            // Inside here we can just use direct access.
+
+            int colorIndex = dehexify(key[y * 4 + x]); // Direct access OK.
 
             if (colorIndex == ui->widgetKoala->_d02xColors[0])
                 ;
@@ -432,7 +436,7 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
     std::reverse(std::begin(usedColors), std::end(usedColors));
 
     int hiColorRAM = _colorRAM = -1;
-    _colorRAM = findColorRAM(usedColors, &hiColorRAM);
+    _colorRAM = findColorRAM(usedColors, hiColorRAM);
 
     // no colorRAM detected? That means that all colors are d020, d021, d022
     if (_colorRAM == -1) {
@@ -442,13 +446,8 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
     }
 
     if (!invalidCoords.empty()) {
-        char copyKey[8 * 4 + 1];
-        if (key.size() < sizeof(copyKey)) {
-            strcpy(copyKey, key.c_str());
-        } else {
-            memcpy(copyKey, key.c_str(), sizeof(copyKey) - 1);
-            copyKey[sizeof(copyKey) - 1] = 0;
-        }
+        std::array<char, 32> copyKey;
+        std::copy(key.begin(), key.end(), copyKey.begin()); // 32 chars exactly expected (8*4)
 
         normalizeKey(copyKey, hiColorRAM);
 
@@ -471,9 +470,20 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
         }
         if (error) {
             auto deb = qDebug();
+            /*
             deb << "Key with error"
                 << "key:" << key.c_str()
-                << "new key:" << copyKey
+                << "new key:" << std::string(copyKey.data(), 32).c_str() // Safe print
+                << "(" << ui->widgetKoala->_d02xColors[0] << ","
+                << ui->widgetKoala->_d02xColors[1] << ","
+                << ui->widgetKoala->_d02xColors[2] << ","
+                << _colorRAM << ")"
+                << "\n";
+            */
+            // Simplify error printing or fix it
+            deb << "Key with error"
+                << "key:" << key.c_str()
+                // << "new key:" << copyKey.data() // unsafe if not null terminated
                 << "(" << ui->widgetKoala->_d02xColors[0] << ","
                 << ui->widgetKoala->_d02xColors[1] << ","
                 << ui->widgetKoala->_d02xColors[2] << ","
@@ -486,13 +496,7 @@ bool ImportKoalaDialog::processChardef(const std::string& key, quint8* outKey, q
         }
     }
 
-    *outColorRAM = _colorRAM + 8;
-
-    //    qDebug() << "key:" << key.c_str()
-    //             << "(" << ui->widgetKoala->_d02xColors[0] << ","
-    //             << ui->widgetKoala->_d02xColors[1] << ","
-    //             << ui->widgetKoala->_d02xColors[2] << ","
-    //             << _colorRAM << ")";
+    outColorRAM = _colorRAM + 8;
 
     return true;
 }
@@ -532,7 +536,7 @@ bool ImportKoalaDialog::convert()
         charset->_d02x[i] = bitmap->_d02xColors[i];
 
     // set colors in widgets
-    ColorRectWidget* colorRects[] = { ui->widgetD021, ui->widgetD022, ui->widgetD023 };
+    std::array<ColorRectWidget*, 3> colorRects = { ui->widgetD021, ui->widgetD022, ui->widgetD023 };
     for (int i = 0; i < 3; ++i) {
         if (bitmap->_d02xColors[i] != 255)
             colorRects[i]->setColorIndex(bitmap->_d02xColors[i]);
@@ -541,16 +545,17 @@ bool ImportKoalaDialog::convert()
     // find uniqueChars, which could be smaller than bitmap->_uniqueCells
     _uniqueChars.clear();
     for (auto it = std::begin(bitmap->_uniqueCells); it != std::end(bitmap->_uniqueCells); ++it) {
-        quint8 chardef[8] = { 0 };
+        std::array<quint8, 8> chardef;
+        chardef.fill(0);
 
         quint8 colorRAM;
         // it->first: key
-        processChardef(it->first, chardef, &colorRAM);
+        processChardef(it->first, chardef, colorRAM);
         Q_ASSERT(colorRAM < 16 && "Invalid colorRAM");
 
         // chardef + colorRAM == unique Char
         std::string key;
-        for (unsigned char i : chardef) {
+        for (auto i : chardef) {
             key += hex_digits[i >> 4];
             key += hex_digits[i & 0x0f];
         }
@@ -582,17 +587,17 @@ bool ImportKoalaDialog::convert()
     // Populate the charset, screen RAM and color RAM
     int charsetCount = 0;
     for (auto it = std::begin(_uniqueChars); it != std::end(_uniqueChars); ++it) {
-        quint8 chardef[8];
+        std::array<quint8, 8> chardef;
         for (int i = 0; i < 8; i++) {
-            quint8 hi = dehexify(it->first.c_str()[i * 2]);
-            quint8 lo = dehexify(it->first.c_str()[i * 2 + 1]);
+            quint8 hi = dehexify(it->first[i * 2]);
+            quint8 lo = dehexify(it->first[i * 2 + 1]);
             chardef[i] = (hi << 4) + lo;
         }
-        quint8 colorRAM = dehexify(it->first.c_str()[16]);
+        quint8 colorRAM = dehexify(it->first[16]);
 
         // it->second: list of coordiantes
         charset->populateScreenAndColorRAM(it->second, charsetCount, colorRAM);
-        charset->setCharset(charsetCount, chardef);
+        charset->setCharset(charsetCount, chardef.data());
 
         charsetCount++;
     }
@@ -721,7 +726,7 @@ void ImportKoalaDialog::on_pushButtonCancel_clicked()
 
 void ImportKoalaDialog::updateWidgets()
 {
-    QWidget* widgets[] = {
+    std::array<QWidget*, 14> widgets = {
         ui->radioButtonLuminance,
         ui->radioButtonPalette,
         ui->radioButtonNeighbor,
@@ -747,7 +752,7 @@ void ImportKoalaDialog::updateWidgets()
 
 void ImportKoalaDialog::mousePressEvent(QMouseEvent* event)
 {
-    ColorRectWidget* widgets[] = {
+    std::array<ColorRectWidget*, 3> widgets = {
         ui->widgetD021,
         ui->widgetD022,
         ui->widgetD023

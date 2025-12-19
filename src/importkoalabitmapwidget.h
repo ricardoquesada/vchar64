@@ -16,6 +16,7 @@ limitations under the License.
 
 #pragma once
 
+#include <array>
 #include <unordered_map>
 
 #include <QRect>
@@ -67,7 +68,7 @@ protected:
     // one byte per pixel, although only the
     // 4 LSB will be used. Bits 7-4 are ignored
     // Bits 0-3 contains the C64 colors
-    quint8 _framebuffer[160 * 200];
+    std::array<quint8, 160 * 200> _framebuffer;
 
     // key: color sequence
     // data: positions in screen ram
@@ -77,7 +78,7 @@ protected:
     std::vector<std::pair<int, int>> _colorsUsed;
 
     // colors to be used for d021, d022 and d023
-    quint8 _d02xColors[3];
+    std::array<quint8, 3> _d02xColors;
 
     bool _displayGrid;
 

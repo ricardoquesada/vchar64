@@ -17,6 +17,8 @@ limitations under the License.
 #pragma once
 
 #include <QDialog>
+#include <array>
+#include <memory>
 #include <unordered_map>
 
 namespace Ui {
@@ -36,14 +38,14 @@ protected:
     void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
     void validateKoalaFile(const QString& filepath);
-    bool processChardef(const std::string& key, quint8* outKey, quint8* outColorRAM);
+    bool processChardef(const std::string& key, std::array<quint8, 8>& outKey, quint8& outColorRAM);
 
-    int findColorRAM(const std::vector<std::pair<int, int>>& usedColors, int* outHiColor);
+    int findColorRAM(const std::vector<std::pair<int, int>>& usedColors, int& outHiColor);
 
-    void normalizeKey(char* key, int hiColorRAM);
-    void normalizeWithColorStrategy(char* key, int hiColorRAM);
-    void normalizeWithNeighborStrategy(char* key, int hiColorRAM);
-    bool tryChangeKey(int x, int y, char* key, quint8 mask, int hiColorRAM);
+    void normalizeKey(std::array<char, 32>& key, int hiColorRAM);
+    void normalizeWithColorStrategy(std::array<char, 32>& key, int hiColorRAM);
+    void normalizeWithNeighborStrategy(std::array<char, 32>& key, int hiColorRAM);
+    bool tryChangeKey(int x, int y, std::array<char, 32>& key, quint8 mask, int hiColorRAM);
     int getColorByLuminanceProximity(int colorIndex, const std::vector<int>& colorsToFind);
     int getColorByPaletteProximity(int colorIndex, const std::vector<int>& colorsToFind);
 
@@ -72,10 +74,10 @@ private slots:
     void onSelectedRegionUpdated(const QRect& region);
 
 private:
-    int _colorRAM;
-    Ui::ImportKoalaDialog* ui;
-    bool _validKoalaFile;
-    bool _koaLoaded;
+    int _colorRAM = -1;
+    std::unique_ptr<Ui::ImportKoalaDialog> ui;
+    bool _validKoalaFile = false;
+    bool _koaLoaded = false;
     QString _filepath;
 
     // the difference between bitmap->uniqueCells and this one

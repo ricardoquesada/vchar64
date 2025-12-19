@@ -45,7 +45,7 @@ constexpr int OFFSET = 0;
 ImportKoalaBitmapWidget::ImportKoalaBitmapWidget(QWidget* parent)
     : QWidget(parent)
     , _framebuffer {}
-    , _d02xColors {}
+    , _d02xColors()
     , _displayGrid(false)
     , _selecting(false)
     , _selectingSize({ 0, 0 })
@@ -235,20 +235,19 @@ void ImportKoalaBitmapWidget::resetColors()
         _colorsUsed.emplace_back(0, i);
     _uniqueCells.clear();
 
-    for (auto& d02xColor : _d02xColors)
-        d02xColor = 0xff;
+    _d02xColors.fill(0xff);
 }
 
 void ImportKoalaBitmapWidget::findUniqueCells()
 {
-    static constexpr char hex[] = "0123456789ABCDEF";
+    static constexpr std::string_view hex = "0123456789ABCDEF";
 
     auto region = getSelectedRegion();
 
     for (int y = region.y(); y < region.y() + region.height(); ++y) {
         for (int x = region.x(); x < region.x() + region.width(); ++x) {
             // 8 * 4
-            char key[33];
+            std::array<char, 33> key;
             key[32] = 0;
 
             for (int i = 0; i < 8; ++i) {
@@ -259,7 +258,7 @@ void ImportKoalaBitmapWidget::findUniqueCells()
                     _colorsUsed[colorIndex].first++;
                 }
             }
-            std::string skey(key);
+            std::string skey(key.data());
             Q_ASSERT(skey.size() == 8 * 4 && "Invalid Key");
 
             if (_uniqueCells.find(skey) == std::end(_uniqueCells)) {
@@ -287,7 +286,7 @@ void ImportKoalaBitmapWidget::toFrameBuffer()
             for (int i = 0; i < 8; ++i) {
                 quint8 byte = _koala.bitmap[(y * COLUMNS + x) * 8 + i];
 
-                static constexpr quint8 masks[] = { 192, 48, 12, 3 };
+                static constexpr std::array<quint8, 4> masks = { 192, 48, 12, 3 };
                 // 4 wide-pixels X
                 for (int j = 0; j < 4; ++j) {
                     quint8 colorIndex = 0;
