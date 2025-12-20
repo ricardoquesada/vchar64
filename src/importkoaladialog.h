@@ -17,9 +17,15 @@ limitations under the License.
 #pragma once
 
 #include <QDialog>
+#include <QMouseEvent>
+#include <QString>
+#include <QWidget>
+#include <qtypes.h>
+
 #include <array>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace Ui {
 class ImportKoalaDialog;
