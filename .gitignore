@@ -46,3 +46,4 @@ build_cmake/
 build_verification/
 CMakeLists.txt.user
 CMakePresets.json
+.cache/
