@@ -111,6 +111,21 @@ public:
         _map.resize(size.width() * size.height());
     }
 
+    int getColorForPen(int pen, int tileIndex) const
+    {
+        return 0; // Mock return
+    }
+
+    int getTileIndex() const
+    {
+        return 0;
+    }
+
+    bool shouldBeDisplayedInMulticolor2(int tileIndex) const
+    {
+        return false;
+    }
+
     // Add explicit mock methods for accessors if needed by StateImport
     // StateImport accesses members directly via friend, but here they are public.
 };

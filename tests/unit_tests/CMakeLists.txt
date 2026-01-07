@@ -20,6 +20,10 @@ set(TEST_SOURCES
     
     # Stubs
     src/stateexport_stub.cpp
+    
+    # Dependencies for ImportKoalaBitmapWidget
+    ${VCHAR64_SRC_DIR}/importkoalabitmapwidget.cpp
+    ${VCHAR64_SRC_DIR}/palette.cpp
 )
 
 # Resources

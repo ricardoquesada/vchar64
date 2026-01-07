@@ -30,6 +30,10 @@ class BigCharWidget;
 class MapWidget;
 class TilesetWidget;
 
+#ifdef UNIT_TEST
+#include "../tests/unit_tests/src/mock_state.h"
+#else
+
 class State : public QObject {
     Q_OBJECT
 
@@ -617,3 +621,4 @@ protected:
 
     KeyboardMapping _keyboardMapping;
 };
+#endif

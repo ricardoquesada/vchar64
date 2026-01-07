@@ -1,5 +1,7 @@
+#include "importkoalabitmapwidget.h"
 #include "mock_state.h"
 #include "stateimport.h"
+
 #include <QFile>
 #include <QTemporaryDir>
 #include <QTest>
@@ -15,6 +17,10 @@ private slots:
     void testLoadInvalidVSF();
     void testLoadValidVChar64Proj();
     void testLoadInvalidVChar64Proj();
+    void testLoadValidPRG();
+    void testLoadInvalidPRG();
+    void testLoadValidKoala();
+    void testLoadInvalidKoala();
 
 private:
     QString m_validVSFPath;
@@ -192,6 +198,79 @@ void StateImportTest::testLoadInvalidVChar64Proj()
         QVERIFY(file.open(QIODevice::ReadOnly));
         QCOMPARE(StateImport::loadVChar64(&state, file), -1);
     }
+}
+
+void StateImportTest::testLoadValidPRG()
+{
+    QTemporaryDir tempDir;
+    State state;
+    quint16 loadAddress = 0;
+
+    QString path = tempDir.filePath("test.prg");
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+
+    // Create a valid PRG: 2 bytes address (0x1000) + 10 bytes data
+    // 0x00, 0x10 (Little Endian for 0x1000)
+    QByteArray data;
+    data.append((char)0x00);
+    data.append((char)0x10);
+    data.append("0123456789"); // 10 bytes of content
+
+    file.write(data);
+    file.close();
+
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    qint64 bytesRead = StateImport::loadPRG(&state, file, &loadAddress);
+
+    QCOMPARE(bytesRead, 10); // Should read 10 bytes (excluding payload)
+    QCOMPARE(loadAddress, 0x1000);
+}
+
+void StateImportTest::testLoadInvalidPRG()
+{
+    QTemporaryDir tempDir;
+    State state;
+    quint16 loadAddress = 0;
+
+    // Case 1: File too small (less than 10 bytes is considered error by loadPRG check)
+    {
+        QString path = tempDir.filePath("small.prg");
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        // Write only address + 1 byte = 3 bytes total.
+        // loadPRG expects size >= 10.
+        file.write("\x00\x10\x01", 3);
+        file.close();
+
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        QCOMPARE(StateImport::loadPRG(&state, file, &loadAddress), -1);
+    }
+}
+
+void StateImportTest::testLoadValidKoala()
+{
+    QTemporaryDir tempDir;
+    QString path = tempDir.filePath("valid.koa");
+
+    // Create valid Koala file (10003 bytes)
+    // 2 bytes load address + 8000 bitmap + 1000 screen + 1000 color + 1 d021
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    QByteArray data(10003, 0);
+    file.write(data);
+    file.close();
+
+    ImportKoalaBitmapWidget widget;
+    QVERIFY(widget.loadKoala(path));
+}
+
+void StateImportTest::testLoadInvalidKoala()
+{
+    ImportKoalaBitmapWidget widget;
+
+    // Non-existent file
+    QVERIFY(!widget.loadKoala("non_existent.koa"));
 }
 
 QTEST_MAIN(StateImportTest)
