@@ -37,18 +37,8 @@ int main(int argc, char* argv[])
 #endif
         app.installTranslator(&qtTranslator);
 
-    auto translationDir = QCoreApplication::applicationDirPath();
-#ifdef Q_OS_WIN32
-    translationDir += QLatin1String("/translations");
-#elif defined(Q_OS_MAC)
-    translationDir += QLatin1String("/../Translations");
-#else
-    translationDir += QLatin1String("/../share/tiled/translations");
-#endif
-
     QTranslator myappTranslator;
-    if (myappTranslator.load("vchar64_" + QLocale::system().name(),
-            translationDir))
+    if (myappTranslator.load(":/i18n/vchar64_" + QLocale::system().name()))
         app.installTranslator(&myappTranslator);
 
     // name code

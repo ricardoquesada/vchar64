@@ -15,10 +15,14 @@ qt_standard_project_setup(
     I18N_SOURCE_LANGUAGE en
     I18N_TRANSLATED_LANGUAGES es
 )
-qt_add_translations(${PROJECT_NAME})
+
+qt_add_translations(${PROJECT_NAME}
+    TS_FILES translations/vchar64_es.ts
+    RESOURCE_PREFIX "/i18n"
+)
 
 add_subdirectory(src)
-add_subdirectory(translations)
+# add_subdirectory(translations)
 
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION "${INSTALL_DIR}"
