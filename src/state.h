@@ -16,7 +16,6 @@ limitations under the License.
 
 #pragma once
 
-#include <array>
 #include <vector>
 
 #include <QObject>
@@ -26,8 +25,6 @@ limitations under the License.
 #include <QUndoStack>
 
 #include "stateimport.h"
-
-#include <string>
 
 class BigCharWidget;
 class MapWidget;
@@ -225,8 +222,8 @@ public:
      * @param tileIdx the tile to obtaion the color from, in case the color is associated to the tile
      * @return the color being used by the pen
      */
-    int getColorForPen(int pen, int tileIdx) const;
-    int getColorForPen(int pen) const;
+    [[nodiscard]] int getColorForPen(int pen, int tileIdx) const;
+    [[nodiscard]] int getColorForPen(int pen) const;
 
     /**
      * @brief setColorForPen set a color for a pen
@@ -241,7 +238,7 @@ public:
      * @brief getCurrentColor
      * @return the color being used by the selected pen
      */
-    int getCurrentColor() const;
+    [[nodiscard]] int getCurrentColor() const;
 
     /**
      * @brief setSelectedPen sets pen as the selected one
@@ -253,7 +250,7 @@ public:
      * @brief getSelectedPen
      * @return the selected pen: PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1, PEN_MULTICOLOR2
      */
-    int getSelectedPen() const;
+    [[nodiscard]] int getSelectedPen() const;
 
     /**
      * @brief setMulticolorMode enable/display multicolor mode
@@ -265,7 +262,7 @@ public:
      * @brief isMulticolorMode
      * @return whether or not multicolor mode is enabled
      */
-    bool isMulticolorMode() const;
+    [[nodiscard]] bool isMulticolorMode() const;
 
     /**
      * @brief setForegroundColorMode sets FOREGROUND_COLOR_GLOBAL or FOREGROUND_COLOR_PER_TILE.
@@ -279,7 +276,7 @@ public:
      * @brief getForegroundColorMode
      * @return
      */
-    ForegroundColorMode getForegroundColorMode() const;
+    [[nodiscard]] ForegroundColorMode getForegroundColorMode() const;
 
     /**
      * @brief shouldBeDisplayedInMulticolor whether or not the char should be displayed as multicolor.
@@ -287,7 +284,7 @@ public:
      * displayed in multicolor mode
      * @return whether or not the char/tile should be displayed in multicolor mode
      */
-    bool shouldBeDisplayedInMulticolor() const;
+    [[nodiscard]] bool shouldBeDisplayedInMulticolor() const;
 
     /**
      * @brief shouldBeDisplayedInMulticolor whether or not the char should be displayed as multicolor.
@@ -295,9 +292,9 @@ public:
      * displayed in multicolor mode
      * @return whether or not the tile should be displayed in multicolor mode
      */
-    bool shouldBeDisplayedInMulticolor2(int tileIdx) const;
+    [[nodiscard]] bool shouldBeDisplayedInMulticolor2(int tileIdx) const;
 
-    QString getLoadedFilename() const
+    [[nodiscard]] QString getLoadedFilename() const
     {
         return _loadedFilename;
     }
@@ -322,7 +319,7 @@ public:
      * @brief getTileProperties
      * @return the TileProperties being used
      */
-    TileProperties getTileProperties() const;
+    [[nodiscard]] TileProperties getTileProperties() const;
 
     /**
      * @brief setExportProperties changes the export properties
@@ -333,7 +330,7 @@ public:
      * @brief getExportProperties
      * @return the ExportProperties being used
      */
-    ExportProperties getExportProperties() const;
+    [[nodiscard]] ExportProperties getExportProperties() const;
 
     /**
      * @brief seMapSize changes the map size
@@ -376,7 +373,7 @@ public:
     void mapClear(int tileIdx);
 
     // is the state "dirty" ?
-    bool isModified() const;
+    [[nodiscard]] bool isModified() const;
 
     /**
      * @brief undo undoes the last change to the state

@@ -15,7 +15,6 @@ limitations under the License.
 ****************************************************************************/
 
 #include <cstring>
-#include <new>
 
 #include <QDebug>
 #include <QObject>
@@ -110,7 +109,7 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
         _origBuffer.resize(sizeToCopy);
     }
 
-    std::memcpy(_copyBuffer.data(), buffer, copyRange.bufferSize);
+    std::copy_n(buffer, copyRange.bufferSize, _copyBuffer.data());
 
     static const QString types[] = {
         QObject::tr("Chars"),

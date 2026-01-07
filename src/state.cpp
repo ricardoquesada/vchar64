@@ -17,6 +17,7 @@ limitations under the License.
 #include "state.h"
 
 #include <algorithm>
+
 #include <vector>
 
 #include <QtCore/QFile>
@@ -91,10 +92,10 @@ void State::copyState(const State& copyFromMe)
     _exportProperties = copyFromMe._exportProperties;
     _keyboardMapping = copyFromMe._keyboardMapping;
 
-    std::memcpy(_penColors, copyFromMe._penColors, std::size(_penColors));
+    std::copy(std::begin(copyFromMe._penColors), std::end(copyFromMe._penColors), std::begin(_penColors));
 
-    std::memcpy(_charset, copyFromMe._charset, std::size(_charset));
-    std::memcpy(_tileColors, copyFromMe._tileColors, std::size(_tileColors));
+    std::copy(std::begin(copyFromMe._charset), std::end(copyFromMe._charset), std::begin(_charset));
+    std::copy(std::begin(copyFromMe._tileColors), std::end(copyFromMe._tileColors), std::begin(_tileColors));
     _map = copyFromMe._map;
 }
 
@@ -734,8 +735,8 @@ void State::_setMapSize(const QSize& mapSize)
                 break;
 
             // bytes to copy per row
-            int toCopy = qMin(mapSize.width(), _mapSize.width());
-            std::memcpy(&newMap[mapSize.width() * row], &_map[_mapSize.width() * row], toCopy);
+            int toCopy = std::min(mapSize.width(), _mapSize.width());
+            std::copy_n(&_map[_mapSize.width() * row], toCopy, &newMap[mapSize.width() * row]);
         }
 
         _map = newMap;
@@ -757,7 +758,7 @@ int State::getTileIndexFromMap(const QPoint& mapCoord) const
     int tileIndex = _map[_mapSize.width() * mapCoord.y() + mapCoord.x()];
 
     // safety check: map could have tiles bigger than the maximum supported if the tiles were resized.
-    tileIndex = qBound(0, tileIndex, 256 / (_tileProperties.size.width() * _tileProperties.size.height()) - 1);
+    tileIndex = std::clamp(tileIndex, 0, 256 / (_tileProperties.size.width() * _tileProperties.size.height()) - 1);
     return tileIndex;
 }
 
@@ -876,7 +877,7 @@ void State::copyTileFromIndex(int tileIndex, quint8* buffer, int bufferSize)
     Q_ASSERT(tileIndex >= 0 && tileIndex <= getTileIndexFromCharIndex(255) && "invalid index value");
 
     if (_tileProperties.interleaved == 1) {
-        std::memcpy(buffer, &_charset[tileIndex * tileSize * 8], qMin(tileSize * 8, bufferSize));
+        std::copy_n(&_charset[tileIndex * tileSize * 8], std::min(tileSize * 8, bufferSize), buffer);
     } else {
         for (int i = 0; i < tileSize; i++) {
             std::memcpy(&buffer[i * 8], &_charset[(tileIndex + i * _tileProperties.interleaved) * 8], 8);
@@ -892,7 +893,7 @@ void State::copyTileToIndex(int tileIndex, quint8* buffer, int bufferSize)
     Q_ASSERT(tileIndex >= 0 && tileIndex <= getTileIndexFromCharIndex(255) && "invalid index value");
 
     if (_tileProperties.interleaved == 1) {
-        std::memcpy(&_charset[tileIndex * tileSize * 8], buffer, qMin(tileSize * 8, bufferSize));
+        std::copy_n(buffer, std::min(tileSize * 8, bufferSize), &_charset[tileIndex * tileSize * 8]);
     } else {
         for (int i = 0; i < tileSize; i++) {
             std::memcpy(&_charset[(tileIndex + i * _tileProperties.interleaved) * 8], &buffer[i * 8], 8);
@@ -960,7 +961,7 @@ void State::_pasteChars(int charIndex, const CopyRange& copyRange, const quint8*
 
     while (count > 0) {
         const quint8* lastByte = &_charset[std::size(_charset)];
-        int bytesToCopy = qMin((qint64)copyRange.blockSize * 8, (qint64)(lastByte - chrdst));
+        int bytesToCopy = std::min((qint64)copyRange.blockSize * 8, (qint64)(lastByte - chrdst));
         if (bytesToCopy < 0)
             break;
         std::memcpy(chrdst, chrsrc, bytesToCopy);
@@ -1042,7 +1043,7 @@ void State::_pasteMap(int charIndex, const CopyRange& copyRange, const quint8* o
 
     while (count > 0) {
         const auto lastByte = &_map[_mapSize.width() * _mapSize.height()];
-        int bytesToCopy = qMin((qint64)copyRange.blockSize, (qint64)(lastByte - dst));
+        int bytesToCopy = std::min((qint64)copyRange.blockSize, (qint64)(lastByte - dst));
         if (bytesToCopy < 0)
             break;
         std::memcpy(dst, src, bytesToCopy);

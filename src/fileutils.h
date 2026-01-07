@@ -20,5 +20,5 @@ limitations under the License.
 
 class FileUtils {
 public:
-    static QString getShortNativePath(const QString& filename);
+    [[nodiscard]] static QString getShortNativePath(const QString& filename);
 };

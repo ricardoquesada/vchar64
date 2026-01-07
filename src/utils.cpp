@@ -20,7 +20,7 @@ limitations under the License.
 #include <QPainter>
 #include <QPoint>
 #include <QSize>
-#include <QtCore/qmath.h>
+#include <cmath>
 
 #include "palette.h"
 #include "state.h"
@@ -97,8 +97,8 @@ void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixel
             painter->setBrush(Palette::getColor(colorIndex));
             painter->drawRect((orig.x() * 8 + j * bit_width) * pixelSize.width() + offset.x(),
                 (orig.y() * 8 + i) * pixelSize.height() + offset.y(),
-                qCeil(pixelSize.width() * bit_width),
-                qCeil(pixelSize.height()));
+                std::ceil(pixelSize.width() * bit_width),
+                std::ceil(pixelSize.height()));
         }
     }
 }
@@ -186,7 +186,7 @@ void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int
 // Table taken from Contiki OS
 // https://github.com/contiki-os/contiki/blob/master/core/lib/petsciiconv.c
 // clang-format off
-static unsigned char ascii2petscii[128] = {
+static constexpr unsigned char ascii2petscii[128] = {
     0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,
     0x14,0x09,0x0d,0x11,0x93,0x0a,0x0e,0x0f,
     0x10,0x0b,0x12,0x13,0x08,0x15,0x16,0x17,
