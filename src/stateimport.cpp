@@ -24,8 +24,12 @@ limitations under the License.
 #include <QDebug>
 #include <QtEndian>
 
+#ifdef UNIT_TEST
+#include "mock_state.h"
+#else
 #include "mainwindow.h"
 #include "state.h"
+#endif
 
 qint64 StateImport::loadRaw(State* state, QFile& file)
 {
@@ -349,14 +353,18 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
 
     if (!file.isOpen()) {
         if (!file.open(QIODevice::ReadOnly)) {
-            mainwindow->showMessageOnStatusBar(QObject::tr("Error: Failed to open file"));
+            if (mainwindow)
+                mainwindow->showMessageOnStatusBar(QObject::tr("Error: Failed to open file"));
+            else
+                qDebug() << "Error: Failed to open file";
             return -1;
         }
     }
 
     auto size = file.size();
     if (size < (qint64)sizeof(VICESnapshotHeader)) {
-        mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE file too small"));
+        if (mainwindow)
+            mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE file too small"));
         return -1;
     }
 
@@ -367,12 +375,14 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     //
     size = file.read((char*)&header, sizeof(header));
     if (size != sizeof(header)) {
-        mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE header too small"));
+        if (mainwindow)
+            mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE header too small"));
         return -1;
     }
 
     if (memcmp(header.id, VICE_HEADER_MAGIC, sizeof(header.id)) != 0) {
-        mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE header Id"));
+        if (mainwindow)
+            mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE header Id"));
         return -1;
     }
 
@@ -387,7 +397,8 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
     auto currentPos = file.pos();
     size = file.read((char*)&version, sizeof(version));
     if (size != sizeof(version)) {
-        mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE header too small"));
+        if (mainwindow)
+            mainwindow->showMessageOnStatusBar(QObject::tr("Error: VICE header too small"));
         return -1;
     }
 
@@ -450,7 +461,8 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
             file.seek(c64memoffset);
             size = file.read((char*)&c64mem, sizeof(c64mem));
             if (size != sizeof(c64mem)) {
-                mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE C64MEM segment"));
+                if (mainwindow)
+                    mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE C64MEM segment"));
                 return -1;
             }
             std::memcpy(buffer64k, c64mem.ram, sizeof(c64mem.ram));
@@ -460,7 +472,8 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
             file.seek(c128memoffset);
             size = file.read((char*)&c128mem, sizeof(c128mem));
             if (size != sizeof(c128mem)) {
-                mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE C128MEM segment"));
+                if (mainwindow)
+                    mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE C128MEM segment"));
                 return -1;
             }
             // FIXME: copy only first 64k
@@ -472,7 +485,8 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
         struct VICESnapshoptCIA2 cia2;
         size = file.read((char*)&cia2, sizeof(cia2));
         if (size != sizeof(cia2)) {
-            mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE CIA2 segment"));
+            if (mainwindow)
+                mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE CIA2 segment"));
             return -1;
         }
         int bank_addr = (3 - (cia2.ora & 0x03)) * 16384; // $dd00
@@ -481,7 +495,8 @@ qint64 StateImport::parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* o
         struct VICESnapshoptVICII vic2;
         size = file.read((char*)&vic2, sizeof(vic2));
         if (size != sizeof(vic2)) {
-            mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE VIC-II segment"));
+            if (mainwindow)
+                mainwindow->showMessageOnStatusBar(QObject::tr("Error: Invalid VICE VIC-II segment"));
             return -1;
         }
 

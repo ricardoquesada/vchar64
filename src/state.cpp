@@ -30,7 +30,9 @@ limitations under the License.
 #include <qlogging.h>
 
 #include "commands.h"
+
 #include "mainwindow.h"
+
 #include "mapwidget.h"
 #include "stateexport.h"
 #include "stateimport.h"

@@ -24,6 +24,9 @@ qt_add_translations(${PROJECT_NAME}
 add_subdirectory(src)
 # add_subdirectory(translations)
 
+enable_testing()
+add_subdirectory(tests/unit_tests)
+
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION "${INSTALL_DIR}"
     BUNDLE DESTINATION "${INSTALL_DIR}"
