@@ -3,3 +3,10 @@ repos:
     rev: v21.1.8
     hooks:
     -   id: clang-format
+-   repo: local
+    hooks:
+    -   id: unit-tests
+        name: unit tests
+        entry: tools/cmake_run_tests.sh
+        language: script
+        pass_filenames: false
