@@ -43,6 +43,7 @@ Makefile*
 
 build/
 build_cmake/
+build_test/
 build_verification/
 CMakeLists.txt.user
 CMakePresets.json
