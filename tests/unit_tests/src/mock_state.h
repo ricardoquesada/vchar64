@@ -42,6 +42,14 @@ public:
         EXPORT_FORMAT_C,
     };
 
+    enum ExportFeature {
+        EXPORT_FEATURE_NONE = 0,
+        EXPORT_FEATURE_CHARSET = 1 << 0,
+        EXPORT_FEATURE_MAP = 1 << 1,
+        EXPORT_FEATURE_COLORS = 1 << 2,
+        EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_COLORS)
+    };
+
     enum KeyboardMapping {
         KEYBOARD_MAPPING_C64, // Commodore 8-bit screen code. Not PETSCII
         KEYBOARD_MAPPING_ATARI8, // Atari 8-bit
@@ -68,10 +76,23 @@ public:
     TileProperties _tileProperties;
     ExportProperties _exportProperties;
     KeyboardMapping _keyboardMapping;
+    quint8 _penColors[PEN_MAX];
 
     State()
     {
         resetCharsetBuffer();
+        // Initialize default pen colors matching State.cpp
+        _penColors[PEN_BACKGROUND] = 1;
+        _penColors[PEN_MULTICOLOR1] = 5;
+        _penColors[PEN_MULTICOLOR2] = 7;
+        _penColors[PEN_FOREGROUND] = 11;
+
+        // Initialize export properties
+        _exportProperties.addresses[0] = 0x3800;
+        _exportProperties.addresses[1] = 0x4000;
+        _exportProperties.addresses[2] = 0x4400;
+        _exportProperties.format = EXPORT_FORMAT_RAW;
+        _exportProperties.features = EXPORT_FEATURE_CHARSET;
     }
 
     void resetCharsetBuffer()
@@ -80,9 +101,27 @@ public:
             _charset[i] = 0;
     }
 
+    using charset_t = quint8[CHAR_BUFFER_SIZE];
+    using tileColors_t = quint8[TILE_COLORS_BUFFER_SIZE];
+
+    // Accessors needed by StateExport
+    const charset_t& getCharsetBuffer() const { return _charset; }
+    const tileColors_t& getTileColors() const { return _tileColors; }
+    const std::vector<quint8>& getMapBuffer() const { return _map; }
+    const QSize& getMapSize() const { return _mapSize; }
+    TileProperties getTileProperties() const { return _tileProperties; }
+    ExportProperties getExportProperties() const { return _exportProperties; }
+    bool isMulticolorMode() const { return _multicolorMode; }
+    ForegroundColorMode getForegroundColorMode() const { return _foregroundColorMode; }
+
+    // Non-const accessors for setting up state in tests
+    charset_t& getCharsetBuffer() { return _charset; }
+
     void _setColorForPen(int index, int color, int)
     {
         // Mock implementation
+        if (index >= 0 && index < PEN_MAX)
+            _penColors[index] = color;
     }
 
     void _setMulticolorMode(bool mode)
@@ -113,7 +152,9 @@ public:
 
     int getColorForPen(int pen, int tileIndex) const
     {
-        return 0; // Mock return
+        if (pen >= 0 && pen < PEN_MAX)
+            return _penColors[pen];
+        return 0;
     }
 
     int getTileIndex() const

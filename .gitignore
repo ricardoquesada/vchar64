@@ -48,3 +48,15 @@ build_verification/
 CMakeLists.txt.user
 CMakePresets.json
 .cache/
+
+# Unit Test Build Artifacts (In-source)
+tests/unit_tests/CMakeCache.txt
+tests/unit_tests/CMakeFiles/
+tests/unit_tests/cmake_install.cmake
+tests/unit_tests/test_stateimport
+tests/unit_tests/test_stateexport
+tests/unit_tests/*_autogen/
+tests/unit_tests/.qt/
+
+# Unit Test Outputs
+test_export.*
