@@ -23,6 +23,7 @@ jobs:
           host: 'linux'
           target: 'desktop'
           arch: 'gcc_64'
+          modules: 'qttools'
 
       - name: Install dependencies
         run: |
@@ -65,6 +66,7 @@ jobs:
           host: 'windows'
           target: 'desktop'
           arch: 'win64_msvc2019_64'
+          modules: 'qttools'
 
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR
@@ -103,6 +105,7 @@ jobs:
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
+          modules: 'qttools'
 
       - name: Install Ninja
         run: brew install ninja
