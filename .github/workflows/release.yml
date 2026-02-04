@@ -22,7 +22,7 @@ jobs:
           version: '6.8'
           host: 'linux'
           target: 'desktop'
-          arch: 'gcc_64'
+          arch: 'linux_gcc_64'
 
       - name: Install dependencies
         run: |
@@ -75,14 +75,14 @@ jobs:
       - name: Run windeployqt
         shell: cmd
         run: |
-          cd build\src\Release
+          cd build\Release
           windeployqt vchar64.exe
 
       - name: Pack
         shell: pwsh
         run: |
-          cd build/src/Release
-          Compress-Archive -Path * -DestinationPath ../../../vchar64-windows.zip
+          cd build/Release
+          Compress-Archive -Path * -DestinationPath ../../vchar64-windows.zip
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
