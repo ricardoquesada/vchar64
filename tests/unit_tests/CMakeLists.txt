@@ -38,7 +38,7 @@ target_include_directories(test_stateimport PRIVATE
 
 target_compile_definitions(test_stateimport PRIVATE 
     SOURCE_DIR="${CMAKE_SOURCE_DIR}"
-    VERSION="0.2.5"
+    VERSION="0.99.0"
     GIT_VERSION="n/a"
     UNIT_TEST
 )
@@ -67,7 +67,7 @@ target_include_directories(test_stateexport PRIVATE
 
 target_compile_definitions(test_stateexport PRIVATE 
     SOURCE_DIR="${CMAKE_SOURCE_DIR}"
-    VERSION="0.2.5"
+    VERSION="0.99.0"
     GIT_VERSION="n/a"
     UNIT_TEST
 )

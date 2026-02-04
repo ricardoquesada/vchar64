@@ -90,9 +90,9 @@ $ cmake --build . --target release_translations
 
 ## Download binaries
 
-* [vchar64-v0.2.4 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.2.4/vchar64-0.2.4.win32.zip)
-* [vchar64-v0.2.4 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.2.4/vchar64-0.2.4.mac.dmg)
-* [vchar64-v0.2.4 for OpenPandora](https://github.com/ricardoquesada/vchar64/releases/download/0.2.4/vchar64-0.2.4.pnd)
+* [vchar64-v0.99.0 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.99.0/vchar64-0.99.0.win32.zip)
+* [vchar64-v0.99.0 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.99.0/vchar64-0.99.0.mac.dmg)
+* [vchar64-v0.99.0 for OpenPandora](https://github.com/ricardoquesada/vchar64/releases/download/0.99.0/vchar64-0.99.0.pnd)
 
 ## License
 

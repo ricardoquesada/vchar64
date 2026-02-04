@@ -1,4 +1,4 @@
-add_compile_definitions(VERSION="0.2.5")
+add_compile_definitions(VERSION="0.99.0")
 add_compile_definitions(GIT_VERSION="n/a")
 
 set(SOURCES

@@ -1,4 +1,4 @@
-[Unreleased]
+0.99.0 (3 February 2026)
 * [NEW] Possibility to load file from command line
 * [NEW] Export: support for C language export
 * [NEW] Export As Image: PNG for map and tileset
