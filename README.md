@@ -1,7 +1,6 @@
 # VChar64
 
 [![discord](https://img.shields.io/discord/775177861665521725.svg)](https://discord.gg/r5aMn6Cw5q)
-[![Build status](https://ci.appveyor.com/api/projects/status/q5euvgygdmqf67oj/branch/master?svg=true)](https://ci.appveyor.com/project/ricardoquesada/vchar64/branch/master)
 
 <img src="https://lh3.googleusercontent.com/-iE0eqQymBDk/Vl9f_NOGrII/AAAAAAABcow/0sRHClMkr4U/s400-Ic42/Screen%252520Shot%2525202015-12-02%252520at%2525201.16.32%252520PM.png">
 
@@ -53,7 +52,7 @@ In no particular order:
 
 ### Install Qt
 
-* Download [Qt Creator Community Edition 5.6](http://www.qt.io/download/) or newer (doesn't work with older versions)
+* Download [Qt Creator Community Edition 6.8](http://www.qt.io/download/) or newer (doesn't work with older versions)
 
 ### Command Line
 
@@ -84,15 +83,13 @@ $ cmake --build . --target release_translations
 
 ## Supported platforms
 
-* Linux (tested on Ubuntu 16.04)
-* Mac (tested on v10.11)
-* Windows (tested on Windows XP and 10)
+* Linux (tested on Linux Arch)
+* Mac (tested on v26.2)
+* Windows (tested on Windows 10)
 
 ## Download binaries
 
-* [vchar64-v0.99.0 for win32](https://github.com/ricardoquesada/vchar64/releases/download/0.99.0/vchar64-0.99.0.win32.zip)
-* [vchar64-v0.99.0 for mac](https://github.com/ricardoquesada/vchar64/releases/download/0.99.0/vchar64-0.99.0.mac.dmg)
-* [vchar64-v0.99.0 for OpenPandora](https://github.com/ricardoquesada/vchar64/releases/download/0.99.0/vchar64-0.99.0.pnd)
+* <https://github.com/ricardoquesada/vchar64/releases>
 
 ## License
 
