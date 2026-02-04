@@ -62,3 +62,5 @@ tests/unit_tests/.qt/
 test_export.*
 
 .DS_Store
+build_ci/
+build_make/

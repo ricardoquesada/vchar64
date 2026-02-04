@@ -1,6 +1,8 @@
 # VChar64
 
 [![discord](https://img.shields.io/discord/775177861665521725.svg)](https://discord.gg/r5aMn6Cw5q)
+[![CI](https://github.com/ricardoq/vchar64/actions/workflows/ci.yml/badge.svg)](https://github.com/ricardoq/vchar64/actions/workflows/ci.yml)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ricardoq/vchar64)](https://github.com/ricardoq/vchar64/releases)
 
 ![screenshot](docs/vchar64_screenshot.png)
 
