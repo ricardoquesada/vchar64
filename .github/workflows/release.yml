@@ -17,13 +17,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
-          version: '6.6.3'
+          version: '6.8.3'
           host: 'linux'
           target: 'desktop'
           arch: 'gcc_64'
-          modules: 'qttools'
+          install-deps: 'true'
 
       - name: Install dependencies
         run: |
@@ -60,13 +60,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
-          version: '6.6.3'
+          version: '6.8.3'
           host: 'windows'
           target: 'desktop'
-          arch: 'win64_msvc2019_64'
-          modules: 'qttools'
+          arch: 'win64_msvc2022_64'
 
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR
@@ -99,13 +98,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
-          version: '6.6.3'
+          version: '6.8.3'
           host: 'mac'
           target: 'desktop'
           arch: 'clang_64'
-          modules: 'qttools'
 
       - name: Install Ninja
         run: brew install ninja
