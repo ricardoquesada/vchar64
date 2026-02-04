@@ -60,3 +60,5 @@ tests/unit_tests/.qt/
 
 # Unit Test Outputs
 test_export.*
+
+.DS_Store
