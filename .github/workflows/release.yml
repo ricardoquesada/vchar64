@@ -60,7 +60,7 @@ jobs:
           
           # Use linuxdeployqt to build AppImage
           # -unsupported-allow-new-glibc is needed because we are running on Ubuntu 22.04
-          ./linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/vchar64.desktop -appimage -unsupported-allow-new-glibc
+          ./linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/vchar64.desktop -appimage -qmake=$QT_ROOT_DIR/bin/qmake -verbose=2
 
           # Rename the output AppImage
           mv VChar64-*-x86_64.AppImage vchar64-linux-x86_64.AppImage
