@@ -25,13 +25,13 @@ jobs:
             libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev \
             libxcb-randr0-dev libxcb-render-util0-dev libxcb-xinerama0-dev \
             libxcb-xinput-dev libxcb-xfixes0-dev libxcb-shape0-dev \
-            libxcb-cursor-dev libxcb-util-dev ninja-build
+            libxcb-cursor-dev libxcb-util-dev ninja-build xvfb
       - name: Configure CMake
         run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR
       - name: Build
         run: cmake --build build
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        run: xvfb-run ctest --test-dir build --output-on-failure
 
   build-windows:
     runs-on: windows-latest
