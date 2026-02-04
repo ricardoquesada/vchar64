@@ -35,7 +35,7 @@ jobs:
             libxcb-cursor-dev libxcb-util-dev ninja-build
 
       - name: Configure CMake
-        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR
 
       - name: Build
         run: cmake --build build
@@ -67,7 +67,7 @@ jobs:
           arch: 'win64_msvc2019_64'
 
       - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR
 
       - name: Build
         run: cmake --build build --config Release
@@ -108,7 +108,7 @@ jobs:
         run: brew install ninja
 
       - name: Configure CMake
-        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+        run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DCMAKE_PREFIX_PATH=$QT_ROOT_DIR
 
       - name: Build
         run: cmake --build build --config Release
