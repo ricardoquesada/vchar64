@@ -41,17 +41,35 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - name: Pack
+      - name: Install linuxdeployqt
         run: |
-          cd build/src
-          tar -czvf vchar64-linux.tar.gz vchar64
-          mv vchar64-linux.tar.gz ../../
+          wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod +x linuxdeployqt-continuous-x86_64.AppImage
+
+      - name: Create AppImage
+        run: |
+          # Create staging directory
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/share/applications
+          mkdir -p AppDir/usr/share/icons/hicolor/512x512/apps
+
+          # Copy binaries and resources
+          cp build/src/vchar64 AppDir/usr/bin/
+          cp moe.retro.vchar64.desktop AppDir/usr/share/applications/vchar64.desktop
+          cp src/res/logo512.png AppDir/usr/share/icons/hicolor/512x512/apps/vchar64.png
+          
+          # Use linuxdeployqt to build AppImage
+          # -unsupported-allow-new-glibc is needed because we are running on Ubuntu 22.04
+          ./linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/vchar64.desktop -appimage -unsupported-allow-new-glibc
+
+          # Rename the output AppImage
+          mv VChar64-*-x86_64.AppImage vchar64-linux-x86_64.AppImage
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: vchar64-linux.tar.gz
+          files: vchar64-linux-x86_64.AppImage
 
   build-windows:
     runs-on: windows-latest
