@@ -58,9 +58,17 @@ jobs:
           cp moe.retro.vchar64.desktop AppDir/usr/share/applications/vchar64.desktop
           cp src/res/logo512.png AppDir/usr/share/icons/hicolor/512x512/apps/vchar64.png
           
+          # Copy libxcb-cursor0 manually as it's required by Qt 6.5+ but often missing from older distros/linuxdeployqt bundles
+          mkdir -p AppDir/usr/lib
+          find /usr/lib -name "libxcb-cursor.so.0*" -exec cp {} AppDir/usr/lib/ \;
+
           # Use linuxdeployqt to build AppImage
           # -unsupported-allow-new-glibc is needed because we are running on Ubuntu 22.04
-          ./linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/vchar64.desktop -appimage -qmake=$QT_ROOT_DIR/bin/qmake -verbose=2
+          # We explicitly add Wayland plugins to ensure they are bundled.
+          ./linuxdeployqt-continuous-x86_64.AppImage AppDir/usr/share/applications/vchar64.desktop \
+            -appimage -qmake=$QT_ROOT_DIR/bin/qmake \
+            -extra-plugins=platforms/libqwayland-generic.so,platforms/libqwayland-egl.so \
+            -verbose=2
 
           # Rename the output AppImage
           mv VChar64-*-x86_64.AppImage vchar64-linux-x86_64.AppImage
