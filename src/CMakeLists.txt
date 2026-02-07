@@ -1,5 +1,21 @@
+find_package(Git)
+if(GIT_FOUND)
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        OUTPUT_VARIABLE GIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+else()
+    set(GIT_HASH "n/a")
+endif()
+
+if(NOT GIT_HASH)
+    set(GIT_HASH "n/a")
+endif()
+
 add_compile_definitions(VERSION="0.99.0")
-add_compile_definitions(GIT_VERSION="n/a")
+add_compile_definitions(GIT_VERSION="${GIT_HASH}")
 
 set(SOURCES
     aboutdialog.cpp aboutdialog.h
