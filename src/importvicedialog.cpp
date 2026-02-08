@@ -84,7 +84,8 @@ void ImportVICEDialog::updateTileImages()
 //
 void ImportVICEDialog::on_pushButtonImport_clicked()
 {
-    _tmpState->_loadedFilename = _filepath;
+    // Imported files should not set _loadedFilename - they are treated as new unsaved documents
+    // Store the import source path for reference only if needed in the future
     MainWindow::getInstance()->createDocument(_tmpState);
     QFileInfo info(ui->lineEdit->text());
     Preferences::getInstance().setLastUsedDirectory(info.absolutePath());

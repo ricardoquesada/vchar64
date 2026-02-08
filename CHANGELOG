@@ -1,3 +1,13 @@
+1.0.0 (7 February 2026)
+* [FIX] Tile copy/paste now works correctly when copying between documents with different tile properties
+* [FIX] Tile indices > 255 in imported CharPad files now generate warnings instead of silently truncating
+* [FIX] Imported KOA/KLA/VSF files no longer incorrectly saved as part of session state
+* [FIX] Enabled compiler warnings (-Wall -Wextra) and fixed critical warnings
+* [BREAKING] Dropped Qt 5 support - Qt 6.8+ is now required
+* [DEPRECATED] qmake build system - use CMake instead
+* [INFO] First stable 1.0 release after 10 years of development
+* [INFO] Focus on stability and critical bug fixes
+
 0.99.0 (3 February 2026)
 * [NEW] Possibility to load file from command line
 * [NEW] Export: support for C language export

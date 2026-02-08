@@ -94,6 +94,7 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
     , _state(state)
     , _charIndex(charIndex)
     , _copyRange(copyRange)
+    , _origTileProperties(copyRange.tileProperties)
 {
 
     int sizeToCopy = -1;
@@ -124,9 +125,10 @@ void PasteCommand::undo()
 {
     State::CopyRange reversedCopyRange = _copyRange;
 
-    // FIXME: doesn't work when tiles are copied/paste to/from different tile properties
-    if (_copyRange.type == State::CopyRange::TILES && reversedCopyRange.tileProperties.interleaved == 1)
-        reversedCopyRange.offset = _charIndex / (reversedCopyRange.tileProperties.size.width() * reversedCopyRange.tileProperties.size.height());
+    // Use the original tile properties from when the copy was made
+    reversedCopyRange.tileProperties = _origTileProperties;
+    if (_copyRange.type == State::CopyRange::TILES && _origTileProperties.interleaved == 1)
+        reversedCopyRange.offset = _charIndex / (_origTileProperties.size.width() * _origTileProperties.size.height());
     else
         reversedCopyRange.offset = _charIndex;
 
@@ -151,6 +153,7 @@ CutCommand::CutCommand(State* state, const State::CopyRange& copyRange, QUndoCom
     : QUndoCommand(parent)
     , _state(state)
     , _copyRange(copyRange)
+    , _origTileProperties(copyRange.tileProperties)
 {
     int sizeToCopy = -1;
     if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
@@ -181,9 +184,10 @@ void CutCommand::undo()
 {
     State::CopyRange reversedCopyRange = _copyRange;
 
-    // FIXME: doesn't work when tiles are copied/paste to/from different tile properties
-    if (_copyRange.type == State::CopyRange::TILES && reversedCopyRange.tileProperties.interleaved == 1)
-        reversedCopyRange.offset = _charIndex / (reversedCopyRange.tileProperties.size.width() * reversedCopyRange.tileProperties.size.height());
+    // Use the original tile properties from when the copy was made
+    reversedCopyRange.tileProperties = _origTileProperties;
+    if (_copyRange.type == State::CopyRange::TILES && _origTileProperties.interleaved == 1)
+        reversedCopyRange.offset = _charIndex / (_origTileProperties.size.width() * _origTileProperties.size.height());
     else
         reversedCopyRange.offset = _charIndex;
 

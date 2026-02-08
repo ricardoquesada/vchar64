@@ -14,8 +14,15 @@ if(NOT GIT_HASH)
     set(GIT_HASH "n/a")
 endif()
 
-add_compile_definitions(VERSION="0.99.0")
+add_compile_definitions(VERSION="1.0.0")
 add_compile_definitions(GIT_VERSION="${GIT_HASH}")
+
+# Enable compiler warnings for better code quality
+if(MSVC)
+    add_compile_options(/W3)
+else()
+    add_compile_options(-Wall -Wextra -Wno-unused-parameter)
+endif()
 
 set(SOURCES
     aboutdialog.cpp aboutdialog.h

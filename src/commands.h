@@ -74,6 +74,7 @@ private:
     std::vector<quint8> _copyBuffer;
     std::vector<quint8> _origBuffer;
     State::CopyRange _copyRange;
+    State::TileProperties _origTileProperties;
 };
 
 class CutCommand : public QUndoCommand {
@@ -89,6 +90,7 @@ private:
     std::vector<quint8> _zeroBuffer;
     std::vector<quint8> _origBuffer;
     State::CopyRange _copyRange;
+    State::TileProperties _origTileProperties;
 };
 
 class FlipTileHCommand : public QUndoCommand {

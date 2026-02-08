@@ -678,18 +678,14 @@ void MainWindow::setRecentFile(const QString& fileName)
 void MainWindow::setSessionFiles()
 {
     QStringList fileList;
-    const QVector<QString> suffixList = { QString("vsf"), QString("koa"), QString("kla") };
     auto mdiList = _ui->mdiArea->subWindowList(QMdiArea::WindowOrder::StackingOrder);
     for (auto item : mdiList) {
         auto bigchar = qobject_cast<BigCharWidget*>(item->widget());
         auto bigcharState = bigchar->getState();
         auto filename = bigcharState->getLoadedFilename();
-        // FIXME: Imported files are using getLoadedFilename(). Instead, they should use
-        // getImportedFilename(), and the LoadedFilename should be empty.
-        // skip .koa, kla, and .vsf files, otherwise VChar64 will try to "open" them instead
-        // of "import" them
-        auto fileSuffix = QFileInfo(filename).suffix();
-        if (!suffixList.contains(fileSuffix))
+        // Only include files that were actually opened (have a saved filename)
+        // Imported files and new documents have empty or "untitled" loadedFilename and should be skipped
+        if (!filename.isEmpty() && filename != "untitled")
             fileList.append(filename);
     }
 

@@ -216,8 +216,12 @@ qint64 StateImport::loadCTM5(State* state, QFile& file, struct CTMHeader5* v5hea
     // read map
     file.read((char*)tmpBuffer.data(), mapInBytes * 2);
     for (int i = 0; i < mapInBytes; i++) {
-        // FIXME: what happens with tiles bigger than 255?
-        state->_map[i] = tmpBuffer[i] & 0xff;
+        quint16 tileIndex = tmpBuffer[i];
+        if (tileIndex > 255) {
+            qWarning() << "Tile index" << tileIndex << "at position" << i
+                       << "exceeds maximum (255). Truncating to" << (tileIndex & 0xff);
+        }
+        state->_map[i] = tileIndex & 0xff;
     }
 
     return total;

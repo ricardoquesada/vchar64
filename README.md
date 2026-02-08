@@ -50,6 +50,12 @@ In no particular order:
    * Sprite animation
 * Level editor
 
+## Requirements
+
+* **Qt 6.8 or later** (Qt 5 is no longer supported as of version 1.0)
+* CMake 3.16+
+* C++17 compatible compiler
+
 ## How to compile it
 
 ### Install Qt
@@ -79,7 +85,7 @@ $ cmake --build . --target release_translations
 
 ### Using Qt Creator
 
-* Open `vchar64.pro` file with Qt Creator
+* Open `CMakeLists.txt` file with Qt Creator (qmake/`.pro` build is deprecated as of v1.0)
 * Configure the project for "Desktop"
 * Build & Run
 

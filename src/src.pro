@@ -1,5 +1,9 @@
 #-------------------------------------------------
 #
+# DEPRECATED: This qmake build is deprecated as of VChar64 1.0
+# Use CMake instead: cmake -B build -G Ninja
+# This file is kept for Qt Creator IDE compatibility only
+#
 # Project created by QtCreator 2015-01-19T09:26:40
 #
 #-------------------------------------------------
