@@ -63,7 +63,7 @@ State::State(const QString& filename,
     Q_ASSERT(_mapSize.width() > 0 && _mapSize.height() > 0 && "Invalid size");
     _map.resize(_mapSize.width() * _mapSize.height());
     setupDefaultMap();
-    Q_ASSERT(std::size(_map) == _mapSize.width() * _mapSize.height());
+    Q_ASSERT(std::size(_map) == static_cast<std::size_t>(_mapSize.width() * _mapSize.height()));
 
     std::fill_n(std::begin(_charset), std::size(_charset), 0);
     std::fill_n(std::begin(_tileColors), std::size(_tileColors), TILE_COLORS_DEFAULT);
