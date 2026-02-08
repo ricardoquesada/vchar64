@@ -5,9 +5,5 @@ stable_version: 1.0.0
 stable_url: https://github.com/ricardoquesada/vchar64/releases/tag/v1.0.0
 changes:
 <ul>
-<li>[NEW] Possibility to load file from command line</li>
-<li>[NEW] Export: support for C language export</li>
-<li>[NEW] Export As Image: PNG for map and tileset</li>
-<li>[NEW] Issue #53: Right-click select char in Map</li>
-<li>[FIX] Compiles under Qt6. Qt5 is still supported</li>
+<li>[NEW] Many bug fixes and improvements since last release, which was in 2017</li>
 </ul>
