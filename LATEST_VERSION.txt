@@ -2,7 +2,7 @@
 # Update it anytime a new stable version is released, but not before!
 # after "changes:" is met, no more tags can be added
 stable_version: 1.0.0
-stable_url: https://github.com/ricardoquesada/vchar64/releases/tag/1.0.0
+stable_url: https://github.com/ricardoquesada/vchar64/releases/tag/v1.0.0
 changes:
 <ul>
 <li>[NEW] Possibility to load file from command line</li>
