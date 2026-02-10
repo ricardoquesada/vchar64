@@ -1,4 +1,4 @@
-1.0.0 (7 February 2026)
+1.0.0 (10 February 2026)
 * [FIX] Tile copy/paste now works correctly when copying between documents with different tile properties
 * [FIX] Tile indices > 255 in imported CharPad files now generate warnings instead of silently truncating
 * [FIX] Imported KOA/KLA/VSF files no longer incorrectly saved as part of session state
