@@ -153,11 +153,21 @@ jobs:
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PWD" build.keychain
 
-      - name: Run macdeployqt and Sign
+      - name: Run macdeployqt, Sign and Pack
         run: |
           cd build/src
+
+          # Initialize Identity
           IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | awk '{print $2}')
-          macdeployqt vchar64.app -dmg -sign="$IDENTITY"
+
+          # 1. Prepare Bundle (copy frameworks etc)
+          macdeployqt vchar64.app
+
+          # 2. Sign Bundle (Deep sign with Hardened Runtime and Timestamp)
+          codesign --deep --force --verbose --options runtime --timestamp --sign "$IDENTITY" vchar64.app
+
+          # 3. Create DMG manually
+          hdiutil create -volname "VChar64" -srcfolder vchar64.app -ov -format UDZO vchar64.dmg
 
       - name: Notarize DMG
         env:
