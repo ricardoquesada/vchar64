@@ -1,3 +1,6 @@
+1.0.1 (10 February 2026)
+* [FIX] macOS binary is signed
+
 1.0.0 (10 February 2026)
 * [FIX] Tile copy/paste now works correctly when copying between documents with different tile properties
 * [FIX] Tile indices > 255 in imported CharPad files now generate warnings instead of silently truncating
