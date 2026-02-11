@@ -3,8 +3,8 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'
-      - '[0-9]*'
+      - "v*"
+      - "[0-9]*"
   workflow_dispatch:
 
 permissions:
@@ -20,10 +20,10 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.8'
-          host: 'linux'
-          target: 'desktop'
-          arch: 'linux_gcc_64'
+          version: "6.8"
+          host: "linux"
+          target: "desktop"
+          arch: "linux_gcc_64"
 
       - name: Install dependencies
         run: |
@@ -57,7 +57,7 @@ jobs:
           cp build/src/vchar64 AppDir/usr/bin/
           cp moe.retro.vchar64.desktop AppDir/usr/share/applications/vchar64.desktop
           cp src/res/logo512.png AppDir/usr/share/icons/hicolor/512x512/apps/vchar64.png
-          
+
           # Copy libxcb-cursor0 manually as it's required by Qt 6.5+ but often missing from older distros/linuxdeployqt bundles
           mkdir -p AppDir/usr/lib
           find /usr/lib -name "libxcb-cursor.so.0*" -exec cp {} AppDir/usr/lib/ \;
@@ -88,10 +88,10 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.8'
-          host: 'windows'
-          target: 'desktop'
-          arch: 'win64_msvc2022_64'
+          version: "6.8"
+          host: "windows"
+          target: "desktop"
+          arch: "win64_msvc2022_64"
 
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:QT_ROOT_DIR
@@ -126,10 +126,10 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.8'
-          host: 'mac'
-          target: 'desktop'
-          arch: 'clang_64'
+          version: "6.8"
+          host: "mac"
+          target: "desktop"
+          arch: "clang_64"
 
       - name: Install Ninja
         run: brew install ninja
@@ -140,10 +140,33 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Run macdeployqt
+      - name: Import Signing Certificate
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          KEYCHAIN_PWD: ${{ secrets.KEYCHAIN_PWD }}
+        run: |
+          echo "$MACOS_CERTIFICATE" | base64 --decode > certificate.p12
+          security create-keychain -p "$KEYCHAIN_PWD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PWD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PWD" build.keychain
+
+      - name: Run macdeployqt and Sign
         run: |
           cd build/src
-          macdeployqt vchar64.app -dmg
+          IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | cut -d '"' -f 2)
+          macdeployqt vchar64.app -dmg -sign="$IDENTITY"
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcrun notarytool submit build/src/vchar64.dmg --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+          xcrun stapler staple build/src/vchar64.dmg
 
       - name: Rename and Move DMG
         run: |
