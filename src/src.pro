@@ -69,6 +69,7 @@ SOURCES += \
     importkoalabitmapwidget.cpp \
     importkoalacharsetwidget.cpp \
     importkoaladialog.cpp \
+    importbinarydialog.cpp \
     importvicecharsetwidget.cpp \
     importvicedialog.cpp \
     importvicescreenramwidget.cpp \
@@ -106,6 +107,7 @@ HEADERS  += \
     importkoalabitmapwidget.h \
     importkoalacharsetwidget.h \
     importkoaladialog.h \
+    importbinarydialog.h \
     importvicecharsetwidget.h \
     importvicedialog.h \
     importvicescreenramwidget.h \

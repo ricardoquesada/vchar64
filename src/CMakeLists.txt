@@ -37,6 +37,7 @@ set(SOURCES
     importkoalabitmapwidget.cpp importkoalabitmapwidget.h
     importkoalacharsetwidget.cpp importkoalacharsetwidget.h
     importkoaladialog.cpp importkoaladialog.h
+    importbinarydialog.cpp importbinarydialog.h
     importvicecharsetwidget.cpp importvicecharsetwidget.h
     importvicedialog.cpp importvicedialog.h
     importvicescreenramwidget.cpp importvicescreenramwidget.h

@@ -185,6 +185,7 @@ private slots:
     void on_actionServerConnection_triggered();
 
     void on_actionImportKoalaImage_triggered();
+    void on_actionImportBinary_triggered();
 
     void on_radioButton_charColorGlobal_toggled(bool checked);
     void on_radioButton_charColorPerChar_toggled(bool checked);

@@ -49,6 +49,7 @@ limitations under the License.
 #include "exportdialog.h"
 #include "exportimagedialog.h"
 #include "fileutils.h"
+#include "importbinarydialog.h"
 #include "importkoaladialog.h"
 #include "importvicedialog.h"
 #include "mappropertiesdialog.h"
@@ -1054,6 +1055,14 @@ void MainWindow::on_actionImportKoalaImage_triggered()
         _ui->mdiArea->currentSubWindow()->setWindowFilePath(dialog.getFilepath());
         _ui->mdiArea->currentSubWindow()->setWindowTitle(QFileInfo(dialog.getFilepath()).baseName());
         setWindowFilePath(dialog.getFilepath());
+    }
+}
+
+void MainWindow::on_actionImportBinary_triggered()
+{
+    ImportBinaryDialog dialog(this);
+    if (dialog.exec()) {
+        // No filepath returned by binary dialog, it creates its own new document
     }
 }
 

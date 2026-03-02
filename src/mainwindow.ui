@@ -79,6 +79,8 @@
     <addaction name="actionCloneCurrentProject"/>
     <addaction name="actionImportVICESnapshot"/>
     <addaction name="actionImportKoalaImage"/>
+    <addaction name="actionImportBinary"/>
+
     <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
@@ -985,6 +987,11 @@
   <action name="actionImportKoalaImage">
    <property name="text">
     <string>Import Koala Image...</string>
+   </property>
+  </action>
+  <action name="actionImportBinary">
+   <property name="text">
+    <string>Import Binary...</string>
    </property>
   </action>
   <action name="actionMap_Properties">
