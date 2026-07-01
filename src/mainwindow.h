@@ -26,9 +26,10 @@ QT_BEGIN_NAMESPACE
 class QUndoView;
 class QLabel;
 class QMdiSubWindow;
-class QUndoView;
 class QSpinBox;
 class QComboBox;
+class QEvent;
+class QCloseEvent;
 QT_END_NAMESPACE
 
 namespace Ui {
@@ -122,6 +123,7 @@ protected:
     void updateMenus();
 
     void closeEvent(QCloseEvent* event) override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
     BigCharWidget* getBigcharWidget() const;
     State* getState() const;
@@ -235,4 +237,9 @@ private:
 
     // FIXME: Should be moved to the "charset dock" once it is implemented
     QComboBox* _comboBoxTilesetZoom;
+
+    // Tracks whichever of charsetWidget/tilesetWidget/mapWidget last had keyboard focus.
+    // Needed because triggering Copy/Paste from the Edit menu momentarily steals focus
+    // away from these widgets, so a plain hasFocus() check fails at that point.
+    QWidget* _lastFocusedEditorWidget = nullptr;
 };

@@ -26,6 +26,7 @@ limitations under the License.
 #include <QDir>
 #include <QDockWidget>
 #include <QErrorMessage>
+#include <QEvent>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGuiApplication>
@@ -98,6 +99,12 @@ MainWindow::MainWindow(QWidget* parent)
     setupMapDock();
     setupStatusBar();
     checkForUpdates();
+
+    // needed so Copy/Paste (triggered from the Edit menu) know which widget
+    // was last being edited, since opening the menu steals keyboard focus
+    _ui->charsetWidget->installEventFilter(this);
+    _ui->tilesetWidget->installEventFilter(this);
+    _ui->mapWidget->installEventFilter(this);
 }
 
 MainWindow::~MainWindow()
@@ -244,6 +251,15 @@ void MainWindow::closeEvent(QCloseEvent* event)
         event->accept();
         saveSettings();
     }
+}
+
+bool MainWindow::eventFilter(QObject* watched, QEvent* event)
+{
+    if (event->type() == QEvent::FocusIn
+        && (watched == _ui->charsetWidget || watched == _ui->tilesetWidget || watched == _ui->mapWidget)) {
+        _lastFocusedEditorWidget = qobject_cast<QWidget*>(watched);
+    }
+    return QMainWindow::eventFilter(watched, event);
 }
 
 void MainWindow::createUndoView()
@@ -1268,8 +1284,8 @@ void MainWindow::on_actionPaste_triggered()
         // src: TILES  dst: Charset / Tileset
         // src: MAP    dst: Map
         if (!(((range->type == State::CopyRange::CHARS || range->type == State::CopyRange::TILES)
-                  && (_ui->charsetWidget->hasFocus() || _ui->tilesetWidget->hasFocus()))
-                || (range->type == State::CopyRange::MAP && _ui->mapWidget->hasFocus()))) {
+                  && (_lastFocusedEditorWidget == _ui->charsetWidget || _lastFocusedEditorWidget == _ui->tilesetWidget))
+                || (range->type == State::CopyRange::MAP && _lastFocusedEditorWidget == _ui->mapWidget))) {
             QApplication::beep();
             return;
         }
@@ -1579,11 +1595,11 @@ State* MainWindow::getState() const
 State::CopyRange MainWindow::bufferToClipboard(State* state) const
 {
     State::CopyRange copyRange = {};
-    if (_ui->charsetWidget->hasFocus()) {
+    if (_lastFocusedEditorWidget == _ui->charsetWidget) {
         _ui->charsetWidget->getSelectionRange(&copyRange);
-    } else if (_ui->tilesetWidget->hasFocus()) {
+    } else if (_lastFocusedEditorWidget == _ui->tilesetWidget) {
         _ui->tilesetWidget->getSelectionRange(&copyRange);
-    } else if (_ui->mapWidget->hasFocus()) {
+    } else if (_lastFocusedEditorWidget == _ui->mapWidget) {
         _ui->mapWidget->getSelectionRange(&copyRange);
     } else {
         copyRange.offset = -1;
