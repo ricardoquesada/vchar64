@@ -1044,7 +1044,7 @@ void State::_pasteMap(int charIndex, const CopyRange& copyRange, const quint8* o
     const quint8* src = origBuffer + copyRange.offset;
 
     while (count > 0) {
-        const auto lastByte = &_map[_mapSize.width() * _mapSize.height()];
+        const auto lastByte = _map.data() + _mapSize.width() * _mapSize.height();
         int bytesToCopy = std::min((qint64)copyRange.blockSize, (qint64)(lastByte - dst));
         if (bytesToCopy < 0)
             break;
