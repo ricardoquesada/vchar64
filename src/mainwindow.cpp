@@ -36,6 +36,7 @@ limitations under the License.
 #include <QMimeData>
 #include <QRadioButton>
 #include <QScreen>
+#include <QSignalBlocker>
 #include <QSpinBox>
 #include <QStyle>
 #include <QToolBar>
@@ -393,7 +394,13 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::tileIndexUpdated, _ui->tilesetWidget, &TilesetWidget::onTileIndexUpdated);
     connect(state, &State::tileIndexUpdated, bigcharWidget, &BigCharWidget::onTileIndexUpdated);
     connect(state, &State::charIndexUpdated, _ui->charsetWidget, &CharsetWidget::onCharIndexUpdated);
-    connect(state, &State::tileIndexUpdated, _ui->spinBox_tileIndex, &QSpinBox::setValue);
+    connect(state, &State::tileIndexUpdated, this, [this](int tileIndex) {
+        // Block signals: this is a read-only sync (e.g. clicking a tile/map cell) and must not
+        // re-trigger onSpinBoxValueChanged(), which would otherwise treat it as a user edit and
+        // paint the current map selection with its own unchanged value.
+        const QSignalBlocker blocker(_ui->spinBox_tileIndex);
+        _ui->spinBox_tileIndex->setValue(tileIndex);
+    });
 
     connect(state->getUndoStack(), &QUndoStack::indexChanged, this, &MainWindow::documentWasModified);
     connect(state->getUndoStack(), &QUndoStack::cleanChanged, this, &MainWindow::documentWasModified);
@@ -1513,6 +1520,12 @@ void MainWindow::onSpinBoxValueChanged(int tileIndex)
     auto state = getState();
     if (state) {
         state->setTileIndex(tileIndex);
+
+        // If a map cell is currently selected, editing the tile index should replace that
+        // cell's tile too, mirroring what typing a character directly on the map does.
+        if (_lastFocusedEditorWidget == _ui->mapWidget && _ui->mapWidget->getMode() == MapWidget::SELECT_MODE) {
+            state->mapPaint(_ui->mapWidget->getCursorCoord(), tileIndex, false);
+        }
     }
 }
 

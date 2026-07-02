@@ -40,10 +40,12 @@ public:
 
     void enableGrid(bool enabled);
     void setMode(MapMode mode);
+    MapMode getMode() const { return _mode; }
     void setZoomLevel(int zoomLevel);
 
     void getSelectionRange(State::CopyRange* copyRange) const;
     int getCursorPos() const;
+    QPoint getCursorCoord() const { return _cursorPos; }
 
     std::unique_ptr<QImage> renderToQImage();
 
