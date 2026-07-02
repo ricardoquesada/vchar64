@@ -84,6 +84,29 @@ find_package(Qt6
     REQUIRED
 )
 
+# Fix macOS CI build failure due to AGL framework removal in macOS 14+ SDK
+if(APPLE)
+    foreach(_target WrapOpenGL::WrapOpenGL Qt6::Gui Qt::Gui Qt6::Gui_private Qt::Gui_private)
+        if(TARGET ${_target})
+            get_target_property(_libs ${_target} INTERFACE_LINK_LIBRARIES)
+            if(_libs)
+                set(_new_libs "")
+                set(_changed FALSE)
+                foreach(_lib ${_libs})
+                    if(_lib MATCHES "AGL" OR _lib STREQUAL "AGL")
+                        set(_changed TRUE)
+                    else()
+                        list(APPEND _new_libs "${_lib}")
+                    endif()
+                endforeach()
+                if(_changed)
+                    set_target_properties(${_target} PROPERTIES INTERFACE_LINK_LIBRARIES "${_new_libs}")
+                endif()
+            endif()
+        endif()
+    endforeach()
+endif()
+
 qt_add_big_resources(RESOURCES
     resources.qrc
 )
