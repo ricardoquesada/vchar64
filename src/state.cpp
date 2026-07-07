@@ -1251,21 +1251,31 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
 
 void State::_pasteMap(int charIndex, const CopyRange& copyRange, const quint8* origBuffer)
 {
-    int count = copyRange.count;
-    quint8* dst = _currentMap().data() + charIndex;
-    const quint8* src = origBuffer + copyRange.offset;
+    auto pastePlane = [&](quint8* dstPlane, const quint8* srcPlane) {
+        int count = copyRange.count;
+        quint8* dst = dstPlane + charIndex;
+        const quint8* src = srcPlane + copyRange.offset;
+        const auto lastByte = dstPlane + _mapSize.width() * _mapSize.height();
 
-    while (count > 0) {
-        const auto lastByte = _currentMap().data() + _mapSize.width() * _mapSize.height();
-        int bytesToCopy = std::min((qint64)copyRange.blockSize, (qint64)(lastByte - dst));
-        if (bytesToCopy < 0)
-            break;
-        std::memcpy(dst, src, bytesToCopy);
+        while (count > 0) {
+            int bytesToCopy = std::min((qint64)copyRange.blockSize, (qint64)(lastByte - dst));
+            if (bytesToCopy < 0)
+                break;
+            std::memcpy(dst, src, bytesToCopy);
 
-        dst += copyRange.blockSize + copyRange.skip;
-        src += copyRange.blockSize + copyRange.skip;
-        count--;
-    }
+            dst += copyRange.blockSize + copyRange.skip;
+            src += copyRange.blockSize + copyRange.skip;
+            count--;
+        }
+    };
+
+    pastePlane(_currentMap().data(), origBuffer);
+
+    // buffers that carry the color area paste it too, keeping per-char colors
+    // together with their tiles (data is kept in every color mode)
+    if (copyRange.tileProperties.interleaved == CopyRange::MAP_BUFFER_WITH_COLORS)
+        pastePlane(_currentColorMap().data(), origBuffer + copyRange.bufferSize / 2);
+
     emit mapContentUpdated();
 }
 

@@ -1810,7 +1810,9 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
     } else {
         /* MAP */
         const auto& map = state->getMapBuffer();
+        const auto& colorMap = state->getColorMapBuffer();
         array.append((const char*)map.data(), std::size(map));
+        array.append((const char*)colorMap.data(), std::size(colorMap));
     }
 
     mimeData->setData("vchar64/range", array);

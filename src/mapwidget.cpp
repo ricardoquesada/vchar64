@@ -481,9 +481,10 @@ void MapWidget::getSelectionRange(State::CopyRange* copyRange) const
 
     copyRange->type = State::CopyRange::MAP;
     copyRange->tileProperties.size = { -1, -1 };
-    copyRange->tileProperties.interleaved = -1;
+    // the copied buffer carries the color area after the map data
+    copyRange->tileProperties.interleaved = State::CopyRange::MAP_BUFFER_WITH_COLORS;
 
-    copyRange->bufferSize = _mapSize.width() * _mapSize.height();
+    copyRange->bufferSize = 2 * _mapSize.width() * _mapSize.height();
 }
 
 int MapWidget::getCursorPos() const

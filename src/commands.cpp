@@ -106,7 +106,8 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
         _origBuffer.resize(sizeToCopy);
     } else {
         /* MAP */
-        sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
+        // the undo snapshot holds the map and its color area
+        sizeToCopy = 2 * state->getMapSize().width() * state->getMapSize().height();
         _copyBuffer.resize(copyRange.bufferSize);
         _origBuffer.resize(sizeToCopy);
     }
@@ -136,6 +137,13 @@ void PasteCommand::undo()
     else
         reversedCopyRange.offset = _charIndex;
 
+    if (_copyRange.type == State::CopyRange::MAP) {
+        // the snapshot always carries the color area, even when the pasted
+        // buffer did not (restoring unchanged colors is harmless)
+        reversedCopyRange.tileProperties.interleaved = State::CopyRange::MAP_BUFFER_WITH_COLORS;
+        reversedCopyRange.bufferSize = static_cast<int>(_origBuffer.size());
+    }
+
     _state->_paste(_charIndex, reversedCopyRange, _origBuffer.data());
 }
 
@@ -148,6 +156,8 @@ void PasteCommand::redo()
         /* MAP */
         _state->_setMapIndex(_mapIdx);
         _origBuffer = _state->getMapBuffer();
+        const auto& colorMap = _state->getColorMapBuffer();
+        _origBuffer.insert(_origBuffer.end(), colorMap.begin(), colorMap.end());
     }
     _state->_paste(_charIndex, _copyRange, _copyBuffer.data());
 }
@@ -164,11 +174,15 @@ CutCommand::CutCommand(State* state, const State::CopyRange& copyRange, QUndoCom
     int sizeToCopy = -1;
     if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
         sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
+        _zeroBuffer.resize(sizeToCopy);
     } else {
         /* MAP */
-        sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
+        // map and color area: cut clears tiles to 0 and colors to the default
+        const int mapInBytes = state->getMapSize().width() * state->getMapSize().height();
+        sizeToCopy = 2 * mapInBytes;
+        _zeroBuffer.resize(sizeToCopy);
+        std::fill(_zeroBuffer.begin() + mapInBytes, _zeroBuffer.end(), State::TILE_COLORS_DEFAULT);
     }
-    _zeroBuffer.resize(sizeToCopy);
     _origBuffer.resize(sizeToCopy);
 
     // _charIndex: offset to be used for cut
@@ -200,6 +214,11 @@ void CutCommand::undo()
     else
         reversedCopyRange.offset = _charIndex;
 
+    if (_copyRange.type == State::CopyRange::MAP) {
+        reversedCopyRange.tileProperties.interleaved = State::CopyRange::MAP_BUFFER_WITH_COLORS;
+        reversedCopyRange.bufferSize = static_cast<int>(_origBuffer.size());
+    }
+
     _state->_paste(_charIndex, reversedCopyRange, _origBuffer.data());
 }
 
@@ -212,6 +231,8 @@ void CutCommand::redo()
         /* MAP */
         _state->_setMapIndex(_mapIdx);
         _origBuffer = _state->getMapBuffer();
+        const auto& colorMap = _state->getColorMapBuffer();
+        _origBuffer.insert(_origBuffer.end(), colorMap.begin(), colorMap.end());
     }
     _state->_paste(_charIndex, _copyRange, _zeroBuffer.data());
 }

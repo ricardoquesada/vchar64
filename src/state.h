@@ -160,6 +160,12 @@ public:
             MAP
         };
 
+        // sentinel for tileProperties.interleaved (unused in MAP ranges):
+        // marks a MAP buffer that carries the color area appended after the
+        // map data (both bufferSize/2 bytes long). Buffers without the marker
+        // (e.g. from older versions) paste tiles only
+        static constexpr int MAP_BUFFER_WITH_COLORS = -2;
+
         /** @brief offset in chars or tiles in the buffer */
         int offset;
         /** @brief blockSize in chars or tiles */
