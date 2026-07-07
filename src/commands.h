@@ -70,6 +70,7 @@ public:
 private:
     State* _state;
     int _charIndex;
+    int _mapIdx;
 
     std::vector<quint8> _copyBuffer;
     std::vector<quint8> _origBuffer;
@@ -86,6 +87,7 @@ public:
 private:
     State* _state;
     int _charIndex;
+    int _mapIdx;
 
     std::vector<quint8> _zeroBuffer;
     std::vector<quint8> _origBuffer;
@@ -269,7 +271,7 @@ private:
     State* _state;
     QSize _new;
     QSize _old;
-    std::vector<quint8> _oldMap;
+    std::vector<State::map_t> _oldMaps;
 };
 
 // FillMapCommand
@@ -283,6 +285,7 @@ private:
     State* _state;
     QPoint _coord;
     int _tileIdx;
+    int _mapIdx;
     std::vector<quint8> _oldMap;
     QSize _mapSize;
 };
@@ -299,6 +302,7 @@ public:
 private:
     State* _state;
     int _tileIdx;
+    int _mapIdx;
     bool _mergeable;
     QList<QPoint> _points;
     std::vector<quint8> _oldMap;
@@ -315,6 +319,31 @@ public:
 private:
     State* _state;
     int _tileIdx;
+    int _mapIdx;
     std::vector<quint8> _oldMap;
     QSize _mapSize;
+};
+
+// AddMapCommand
+class AddMapCommand : public QUndoCommand {
+public:
+    AddMapCommand(State* state, QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+
+private:
+    State* _state;
+};
+
+// DeleteMapCommand
+class DeleteMapCommand : public QUndoCommand {
+public:
+    DeleteMapCommand(State* state, QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+
+private:
+    State* _state;
+    int _mapIdx;
+    std::vector<quint8> _oldMap;
 };

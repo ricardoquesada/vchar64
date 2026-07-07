@@ -69,7 +69,8 @@ public:
     // Public members for easy access in tests
     quint8 _charset[CHAR_BUFFER_SIZE];
     quint8 _tileColors[TILE_COLORS_BUFFER_SIZE];
-    std::vector<quint8> _map;
+    std::vector<std::vector<quint8>> _maps;
+    int _mapIndex = 0;
     QSize _mapSize;
     bool _multicolorMode;
     ForegroundColorMode _foregroundColorMode;
@@ -80,6 +81,7 @@ public:
 
     State()
     {
+        _maps.resize(1);
         resetCharsetBuffer();
         // Initialize default pen colors matching State.cpp
         _penColors[PEN_BACKGROUND] = 1;
@@ -103,12 +105,16 @@ public:
 
     using charset_t = quint8[CHAR_BUFFER_SIZE];
     using tileColors_t = quint8[TILE_COLORS_BUFFER_SIZE];
+    using map_t = std::vector<quint8>;
 
     // Accessors needed by StateExport
     const charset_t& getCharsetBuffer() const { return _charset; }
     const tileColors_t& getTileColors() const { return _tileColors; }
-    const std::vector<quint8>& getMapBuffer() const { return _map; }
+    const std::vector<quint8>& getMapBuffer() const { return _maps[_mapIndex]; }
+    std::vector<quint8>& getMapBuffer() { return _maps[_mapIndex]; }
     const QSize& getMapSize() const { return _mapSize; }
+    int getMapIndex() const { return _mapIndex; }
+    int getMapCount() const { return static_cast<int>(_maps.size()); }
     TileProperties getTileProperties() const { return _tileProperties; }
     ExportProperties getExportProperties() const { return _exportProperties; }
     bool isMulticolorMode() const { return _multicolorMode; }
@@ -147,7 +153,8 @@ public:
     void _setMapSize(const QSize& size)
     {
         _mapSize = size;
-        _map.resize(size.width() * size.height());
+        for (auto& map : _maps)
+            map.resize(size.width() * size.height());
     }
 
     int getColorForPen(int pen, int tileIndex) const

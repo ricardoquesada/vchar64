@@ -233,6 +233,7 @@ void MainWindow::refresh()
 
     onMulticolorModeToggled(state->isMulticolorMode());
     onMapSizeUpdated();
+    updateMapActions();
 
     _undoView->setStack(state->getUndoStack());
 
@@ -368,6 +369,7 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::mapSizeUpdated, _ui->mapWidget, &MapWidget::onMapSizeUpdated);
     connect(state, &State::mapSizeUpdated, this, &MainWindow::onMapSizeUpdated);
     connect(state, &State::mapContentUpdated, _ui->mapWidget, &MapWidget::onMapContentUpdated);
+    connect(state, &State::mapIndexUpdated, this, &MainWindow::onMapIndexUpdated);
 
     connect(state, &State::tileUpdated, bigcharWidget, &BigCharWidget::onTileUpdated);
     connect(state, &State::tileUpdated, _ui->charsetWidget, &CharsetWidget::onTileUpdated);
@@ -660,6 +662,20 @@ void MainWindow::updateMenus()
     };
     for (auto& action : actions)
         action->setEnabled(withDocuments);
+
+    updateMapActions();
+}
+
+void MainWindow::updateMapActions()
+{
+    auto state = getState();
+    const int mapCount = state ? state->getMapCount() : 0;
+    const bool multipleMaps = mapCount > 1;
+
+    _ui->actionAdd_Map->setEnabled(state && mapCount < State::MAX_MAPS);
+    _ui->actionDelete_Map->setEnabled(multipleMaps);
+    _ui->actionNext_Map->setEnabled(multipleMaps);
+    _ui->actionPrevious_Map->setEnabled(multipleMaps);
 }
 
 void MainWindow::updateRecentFiles()
@@ -1394,6 +1410,42 @@ void MainWindow::on_actionMap_Properties_triggered()
 {
     MapPropertiesDialog dialog(getState(), this);
     dialog.exec();
+}
+
+void MainWindow::on_actionAdd_Map_triggered()
+{
+    auto state = getState();
+    if (state)
+        state->mapAdd();
+}
+
+void MainWindow::on_actionDelete_Map_triggered()
+{
+    auto state = getState();
+    if (state)
+        state->mapDelete();
+}
+
+void MainWindow::on_actionNext_Map_triggered()
+{
+    auto state = getState();
+    if (state)
+        state->setMapIndex((state->getMapIndex() + 1) % state->getMapCount());
+}
+
+void MainWindow::on_actionPrevious_Map_triggered()
+{
+    auto state = getState();
+    if (state)
+        state->setMapIndex((state->getMapIndex() + state->getMapCount() - 1) % state->getMapCount());
+}
+
+void MainWindow::onMapIndexUpdated(int mapIndex)
+{
+    auto state = getState();
+    if (state)
+        showMessageOnStatusBar(tr("Map %1 of %2").arg(mapIndex + 1).arg(state->getMapCount()));
+    updateMapActions();
 }
 
 void MainWindow::onSpinBoxMapSizeX_valueChanged(int newValue)

@@ -23,6 +23,7 @@ limitations under the License.
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QRandomGenerator>
+#include <QtCore/QRegularExpression>
 #include <QtCore/QTime>
 #include <QtCore/QtGlobal>
 #include <QtGui/QPainter>
@@ -42,6 +43,7 @@ limitations under the License.
 State::State(const QString& filename,
     const QSize& mapSize)
     : _totalChars(0)
+    , _mapIndex(0)
     , _mapSize(mapSize)
     , _multicolorMode(false)
     , _foregroundColorMode(FOREGROUND_COLOR_GLOBAL)
@@ -61,9 +63,10 @@ State::State(const QString& filename,
     _undoStack = new QUndoStack;
 
     Q_ASSERT(_mapSize.width() > 0 && _mapSize.height() > 0 && "Invalid size");
-    _map.resize(_mapSize.width() * _mapSize.height());
+    _maps.resize(1);
+    _currentMap().resize(_mapSize.width() * _mapSize.height());
     setupDefaultMap();
-    Q_ASSERT(std::size(_map) == static_cast<std::size_t>(_mapSize.width() * _mapSize.height()));
+    Q_ASSERT(std::size(_currentMap()) == static_cast<std::size_t>(_mapSize.width() * _mapSize.height()));
 
     std::fill_n(std::begin(_charset), std::size(_charset), 0);
     std::fill_n(std::begin(_tileColors), std::size(_tileColors), TILE_COLORS_DEFAULT);
@@ -98,7 +101,8 @@ void State::copyState(const State& copyFromMe)
 
     std::copy(std::begin(copyFromMe._charset), std::end(copyFromMe._charset), std::begin(_charset));
     std::copy(std::begin(copyFromMe._tileColors), std::end(copyFromMe._tileColors), std::begin(_tileColors));
-    _map = copyFromMe._map;
+    _maps = copyFromMe._maps;
+    _mapIndex = copyFromMe._mapIndex;
 }
 
 State::~State()
@@ -130,7 +134,9 @@ void State::reset()
 
     std::fill_n(std::begin(_charset), std::size(_charset), 0);
     std::fill_n(std::begin(_tileColors), std::size(_tileColors), TILE_COLORS_DEFAULT);
-    std::fill_n(std::begin(_map), std::size(_map), 0);
+    _maps.resize(1);
+    _mapIndex = 0;
+    std::fill_n(std::begin(_currentMap()), std::size(_currentMap()), 0);
 }
 
 void State::emitNewState()
@@ -226,13 +232,8 @@ static QString filenameFixSuffix(const QString& filename, State::ExportFeature s
     auto filepath = info.path();
     auto name = info.baseName();
 
-    // remove possible suffix
-    for (const auto& validDescription : validDescriptions) {
-        if (name.endsWith(validDescription)) {
-            name = name.left(name.length() - validDescription.length());
-            break;
-        }
-    }
+    // remove possible suffix, including numbered map suffixes like "-map01"
+    name.remove(QRegularExpression("(-charset|-map\\d*|-colors)$"));
 
     // add suffix
     if (suffix == State::EXPORT_FEATURE_CHARSET)
@@ -243,6 +244,26 @@ static QString filenameFixSuffix(const QString& filename, State::ExportFeature s
         name.append(validDescriptions[2]);
 
     return filepath + "/" + name + "." + extension;
+}
+
+// "-map" when the project has one map, "-map01", "-map02", ... when it has more
+static QString mapFilenameFixSuffix(const QString& filename, int mapIndex, int mapCount)
+{
+    auto fixed = filenameFixSuffix(filename, State::EXPORT_FEATURE_MAP);
+    if (mapCount <= 1)
+        return fixed;
+
+    QFileInfo info(fixed);
+    return info.path() + "/" + info.baseName()
+        + QString("%1").arg(mapIndex + 1, 2, 10, QChar('0'))
+        + "." + info.suffix();
+}
+
+static QString mapExportLabel(int mapIndex, int mapCount)
+{
+    if (mapCount <= 1)
+        return QStringLiteral("map");
+    return QStringLiteral("map%1").arg(mapIndex + 1, 2, 10, QChar('0'));
 }
 
 bool State::export_()
@@ -286,11 +307,13 @@ bool State::exportRaw(const QString& filename, const ExportProperties& propertie
     }
 
     if (properties.features & EXPORT_FEATURE_MAP) {
-        bytesWritten = StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-            _map.data(), std::size(_map));
-        if (bytesWritten <= 0) {
-            qDebug() << "Failed to export Map to Raw";
-            return false;
+        for (int i = 0; i < getMapCount(); ++i) {
+            bytesWritten = StateExport::saveRaw(mapFilenameFixSuffix(filename, i, getMapCount()),
+                _maps[i].data(), std::size(_maps[i]));
+            if (bytesWritten <= 0) {
+                qDebug() << "Failed to export Map to Raw";
+                return false;
+            }
         }
     }
 
@@ -320,10 +343,12 @@ bool State::exportPRG(const QString& filename, const ExportProperties& propertie
                     _charset, std::size(_charset), properties.addresses[0])
             > 0);
 
-    if (ret && (properties.features & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map.data(), std::size(_map), properties.addresses[1])
-            > 0);
+    if (ret && (properties.features & EXPORT_FEATURE_MAP)) {
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::savePRG(mapFilenameFixSuffix(filename, i, getMapCount()),
+                        _maps[i].data(), std::size(_maps[i]), properties.addresses[1])
+                > 0);
+    }
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
@@ -348,10 +373,12 @@ bool State::exportAsm(const QString& filename, const ExportProperties& propertie
                     _charset, std::size(_charset), "charset")
             > 0);
 
-    if (ret && (properties.features & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map.data(), std::size(_map), "map")
-            > 0);
+    if (ret && (properties.features & EXPORT_FEATURE_MAP)) {
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::saveAsm(mapFilenameFixSuffix(filename, i, getMapCount()),
+                        _maps[i].data(), std::size(_maps[i]), mapExportLabel(i, getMapCount()))
+                > 0);
+    }
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
@@ -375,10 +402,12 @@ bool State::exportC(const QString& filename, const ExportProperties& properties)
                     _charset, std::size(_charset), "charset")
             > 0);
 
-    if (ret && (properties.features & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map.data(), std::size(_map), "map")
-            > 0);
+    if (ret && (properties.features & EXPORT_FEATURE_MAP)) {
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::saveC(mapFilenameFixSuffix(filename, i, getMapCount()),
+                        _maps[i].data(), std::size(_maps[i]), mapExportLabel(i, getMapCount()))
+                > 0);
+    }
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
@@ -726,27 +755,101 @@ void State::_setMapSize(const QSize& mapSize)
 {
     if (_mapSize != mapSize) {
         const int newSizeInBytes = mapSize.width() * mapSize.height();
-        std::vector<quint8> newMap(newSizeInBytes);
 
-        for (int i = 0; i < newSizeInBytes; ++i)
-            newMap[i] = _tileIndex;
+        // all maps share the same size
+        for (auto& map : _maps) {
+            std::vector<quint8> newMap(newSizeInBytes);
 
-        for (int row = 0; row < mapSize.height(); ++row) {
-            // no more rows to copy
-            if (row >= _mapSize.height())
-                break;
+            for (int i = 0; i < newSizeInBytes; ++i)
+                newMap[i] = _tileIndex;
 
-            // bytes to copy per row
-            int toCopy = std::min(mapSize.width(), _mapSize.width());
-            std::copy_n(&_map[_mapSize.width() * row], toCopy, &newMap[mapSize.width() * row]);
+            for (int row = 0; row < mapSize.height(); ++row) {
+                // no more rows to copy
+                if (row >= _mapSize.height())
+                    break;
+
+                // bytes to copy per row
+                int toCopy = std::min(mapSize.width(), _mapSize.width());
+                std::copy_n(&map[_mapSize.width() * row], toCopy, &newMap[mapSize.width() * row]);
+            }
+
+            map = newMap;
         }
-
-        _map = newMap;
         _mapSize = mapSize;
 
         emit mapSizeUpdated();
         emit contentsChanged();
     }
+}
+
+void State::setMapIndex(int mapIndex)
+{
+    _setMapIndex(mapIndex);
+}
+
+void State::_setMapIndex(int mapIndex)
+{
+    mapIndex = std::clamp(mapIndex, 0, getMapCount() - 1);
+    if (mapIndex != _mapIndex) {
+        _mapIndex = mapIndex;
+
+        emit mapIndexUpdated(_mapIndex);
+        emit mapContentUpdated();
+    }
+}
+
+int State::getMapIndex() const
+{
+    return _mapIndex;
+}
+
+int State::getMapCount() const
+{
+    return static_cast<int>(_maps.size());
+}
+
+void State::mapAdd()
+{
+    if (getMapCount() < MAX_MAPS)
+        getUndoStack()->push(new AddMapCommand(this));
+}
+
+void State::mapDelete()
+{
+    if (getMapCount() > 1)
+        getUndoStack()->push(new DeleteMapCommand(this));
+}
+
+void State::_mapAdd()
+{
+    _maps.emplace_back(_mapSize.width() * _mapSize.height(), 0);
+    _mapIndex = getMapCount() - 1;
+
+    // emitted even though the index might be unchanged: the map count changed
+    emit mapIndexUpdated(_mapIndex);
+    emit mapContentUpdated();
+    emit contentsChanged();
+}
+
+void State::_mapDelete(int mapIndex)
+{
+    Q_ASSERT(getMapCount() > 1 && "Cannot delete the last map");
+    _maps.erase(_maps.begin() + mapIndex);
+    _mapIndex = std::min(mapIndex, getMapCount() - 1);
+
+    emit mapIndexUpdated(_mapIndex);
+    emit mapContentUpdated();
+    emit contentsChanged();
+}
+
+void State::_mapInsert(int mapIndex, const map_t& map)
+{
+    _maps.insert(_maps.begin() + mapIndex, map);
+    _mapIndex = mapIndex;
+
+    emit mapIndexUpdated(_mapIndex);
+    emit mapContentUpdated();
+    emit contentsChanged();
 }
 
 const QSize& State::getMapSize() const
@@ -757,7 +860,7 @@ const QSize& State::getMapSize() const
 int State::getTileIndexFromMap(const QPoint& mapCoord) const
 {
     Q_ASSERT(mapCoord.x() < _mapSize.width() && mapCoord.y() < _mapSize.height() && "Invalid map size");
-    int tileIndex = _map[_mapSize.width() * mapCoord.y() + mapCoord.x()];
+    int tileIndex = _currentMap()[_mapSize.width() * mapCoord.y() + mapCoord.x()];
 
     // safety check: map could have tiles bigger than the maximum supported if the tiles were resized.
     tileIndex = std::clamp(tileIndex, 0, 256 / (_tileProperties.size.width() * _tileProperties.size.height()) - 1);
@@ -770,10 +873,10 @@ void State::floodFillImpl(const QPoint& coord, int targetTile, int newTile)
         return;
     if (coord.y() < 0 || coord.y() >= _mapSize.height())
         return;
-    if (_map[coord.y() * _mapSize.width() + coord.x()] != targetTile)
+    if (_currentMap()[coord.y() * _mapSize.width() + coord.x()] != targetTile)
         return;
 
-    _map[coord.y() * _mapSize.width() + coord.x()] = newTile;
+    _currentMap()[coord.y() * _mapSize.width() + coord.x()] = newTile;
 
     floodFillImpl(QPoint(coord.x() - 1, coord.y()), targetTile, newTile);
     floodFillImpl(QPoint(coord.x() + 1, coord.y()), targetTile, newTile);
@@ -789,7 +892,7 @@ void State::mapFill(const QPoint& coord, int tileIdx)
 void State::_mapFill(const QPoint& coord, int tileIdx)
 {
     if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height()) {
-        int targetTile = _map[coord.y() * _mapSize.width() + coord.x()];
+        int targetTile = _currentMap()[coord.y() * _mapSize.width() + coord.x()];
 
         if (targetTile != tileIdx) {
             floodFillImpl(coord, targetTile, tileIdx);
@@ -807,7 +910,7 @@ void State::mapPaint(const QPoint& coord, int tileIdx, bool mergeable)
 void State::_mapPaint(const QPoint& coord, int tileIdx)
 {
     if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height()) {
-        _map[coord.y() * _mapSize.width() + coord.x()] = tileIdx;
+        _currentMap()[coord.y() * _mapSize.width() + coord.x()] = tileIdx;
         emit mapContentUpdated();
         emit contentsChanged();
     }
@@ -820,7 +923,7 @@ void State::mapClear(int tileIdx)
 
 void State::_mapClear(int tileIdx)
 {
-    std::fill(std::begin(_map), std::end(_map), tileIdx);
+    std::fill(std::begin(_currentMap()), std::end(_currentMap()), tileIdx);
 
     emit mapContentUpdated();
     emit contentsChanged();
@@ -829,8 +932,20 @@ void State::_mapClear(int tileIdx)
 void State::_setMap(const std::vector<quint8>& map, const QSize& mapSize)
 {
     Q_ASSERT(_mapSize == mapSize && "Invalid map size");
-    _map = map;
+    _currentMap() = map;
 
+    emit mapContentUpdated();
+    emit contentsChanged();
+}
+
+void State::_setMaps(const std::vector<map_t>& maps, const QSize& mapSize)
+{
+    Q_ASSERT(_mapSize == mapSize && "Invalid map size");
+    Q_ASSERT(!maps.empty() && "At least one map is required");
+    _maps = maps;
+    _mapIndex = std::min(_mapIndex, getMapCount() - 1);
+
+    emit mapIndexUpdated(_mapIndex);
     emit mapContentUpdated();
     emit contentsChanged();
 }
@@ -843,7 +958,7 @@ const State::charset_t& State::getCharsetBuffer() const
 
 const State::map_t& State::getMapBuffer() const
 {
-    return _map;
+    return _currentMap();
 }
 
 const State::tileColors_t& State::getTileColors() const
@@ -858,7 +973,7 @@ State::charset_t& State::getCharsetBuffer()
 
 State::map_t& State::getMapBuffer()
 {
-    return _map;
+    return _currentMap();
 }
 
 State::tileColors_t& State::getTileColors()
@@ -1040,11 +1155,11 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
 void State::_pasteMap(int charIndex, const CopyRange& copyRange, const quint8* origBuffer)
 {
     int count = copyRange.count;
-    quint8* dst = _map.data() + charIndex;
+    quint8* dst = _currentMap().data() + charIndex;
     const quint8* src = origBuffer + copyRange.offset;
 
     while (count > 0) {
-        const auto lastByte = _map.data() + _mapSize.width() * _mapSize.height();
+        const auto lastByte = _currentMap().data() + _mapSize.width() * _mapSize.height();
         int bytesToCopy = std::min((qint64)copyRange.blockSize, (qint64)(lastByte - dst));
         if (bytesToCopy < 0)
             break;
@@ -1523,7 +1638,7 @@ BigCharWidget* State::getBigCharWidget() const
 
 void State::setupDefaultMap()
 {
-    std::fill(std::begin(_map), std::end(_map), 0x20);
+    std::fill(std::begin(_currentMap()), std::end(_currentMap()), 0x20);
     // 1234567890123456789012345678901234567890
     constexpr char hello64[] = "                                        "
                                "    **** COMMODORE 64 BASIC V2 ****     "
@@ -1547,5 +1662,5 @@ void State::setupDefaultMap()
     int helloidx = prng.generate() % 2;
     // ASCII to PETSCII screen codes
     for (int i = 0; i < hellos[helloidx].helloSize; ++i)
-        _map[i] = hellos[helloidx].hello[i] & ~0x40;
+        _currentMap()[i] = hellos[helloidx].hello[i] & ~0x40;
 }

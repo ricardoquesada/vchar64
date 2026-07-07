@@ -121,6 +121,7 @@ protected:
     void activatePalette(int paletteIndex);
 
     void updateMenus();
+    void updateMapActions();
 
     void closeEvent(QCloseEvent* event) override;
     bool eventFilter(QObject* watched, QEvent* event) override;
@@ -193,6 +194,12 @@ private slots:
     void on_radioButton_charColorPerChar_toggled(bool checked);
 
     void on_actionMap_Properties_triggered();
+
+    void on_actionAdd_Map_triggered();
+    void on_actionDelete_Map_triggered();
+    void on_actionNext_Map_triggered();
+    void on_actionPrevious_Map_triggered();
+    void onMapIndexUpdated(int mapIndex);
 
     void onSpinBoxMapSizeX_valueChanged(int newValue);
     void onSpinBoxMapSizeY_valueChanged(int newValue);

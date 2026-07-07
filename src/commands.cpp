@@ -93,6 +93,7 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
     : QUndoCommand(parent)
     , _state(state)
     , _charIndex(charIndex)
+    , _mapIdx(state->getMapIndex())
     , _copyRange(copyRange)
     , _origTileProperties(copyRange.tileProperties)
 {
@@ -123,6 +124,9 @@ PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& 
 
 void PasteCommand::undo()
 {
+    if (_copyRange.type == State::CopyRange::MAP)
+        _state->_setMapIndex(_mapIdx);
+
     State::CopyRange reversedCopyRange = _copyRange;
 
     // Use the original tile properties from when the copy was made
@@ -142,6 +146,7 @@ void PasteCommand::redo()
         std::copy_n(std::begin(_state->getTileColors()), State::TILE_COLORS_BUFFER_SIZE, std::back_inserter(_origBuffer));
     } else {
         /* MAP */
+        _state->_setMapIndex(_mapIdx);
         _origBuffer = _state->getMapBuffer();
     }
     _state->_paste(_charIndex, _copyRange, _copyBuffer.data());
@@ -152,6 +157,7 @@ void PasteCommand::redo()
 CutCommand::CutCommand(State* state, const State::CopyRange& copyRange, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
+    , _mapIdx(state->getMapIndex())
     , _copyRange(copyRange)
     , _origTileProperties(copyRange.tileProperties)
 {
@@ -182,6 +188,9 @@ CutCommand::CutCommand(State* state, const State::CopyRange& copyRange, QUndoCom
 
 void CutCommand::undo()
 {
+    if (_copyRange.type == State::CopyRange::MAP)
+        _state->_setMapIndex(_mapIdx);
+
     State::CopyRange reversedCopyRange = _copyRange;
 
     // Use the original tile properties from when the copy was made
@@ -201,6 +210,7 @@ void CutCommand::redo()
         std::copy_n(std::begin(_state->getTileColors()), State::TILE_COLORS_BUFFER_SIZE, std::back_inserter(_origBuffer));
     } else {
         /* MAP */
+        _state->_setMapIndex(_mapIdx);
         _origBuffer = _state->getMapBuffer();
     }
     _state->_paste(_charIndex, _copyRange, _zeroBuffer.data());
@@ -491,7 +501,8 @@ SetMapSizeCommand::SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCo
     , _new(mapSize)
 {
     _old = _state->getMapSize();
-    _oldMap = _state->getMapBuffer();
+    // resizing affects all maps, so all of them must be restored on undo
+    _oldMaps = _state->_maps;
 
     setText(QObject::tr("Map Size %1x%2")
             .arg(mapSize.width())
@@ -501,7 +512,7 @@ SetMapSizeCommand::SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCo
 void SetMapSizeCommand::undo()
 {
     _state->_setMapSize(_old);
-    _state->_setMap(_oldMap, _old);
+    _state->_setMaps(_oldMaps, _old);
 }
 
 void SetMapSizeCommand::redo()
@@ -515,20 +526,23 @@ FillMapCommand::FillMapCommand(State* state, const QPoint& coord, int tileIdx, Q
     , _state(state)
     , _coord(coord)
     , _tileIdx(tileIdx)
+    , _mapIdx(state->getMapIndex())
 {
     setText(QObject::tr("Map Fill"));
 }
 
 void FillMapCommand::undo()
 {
+    _state->_setMapIndex(_mapIdx);
     _state->_setMap(_oldMap, _mapSize);
 }
 
 void FillMapCommand::redo()
 {
+    _state->_setMapIndex(_mapIdx);
     if (_oldMap.empty()) {
         _mapSize = _state->getMapSize();
-        _oldMap = _state->_map;
+        _oldMap = _state->getMapBuffer();
     }
     _state->_mapFill(_coord, _tileIdx);
 }
@@ -538,20 +552,23 @@ ClearMapCommand::ClearMapCommand(State* state, int tileIdx, QUndoCommand* parent
     : QUndoCommand(parent)
     , _state(state)
     , _tileIdx(tileIdx)
+    , _mapIdx(state->getMapIndex())
 {
     setText(QObject::tr("Map Clear"));
 }
 
 void ClearMapCommand::undo()
 {
+    _state->_setMapIndex(_mapIdx);
     _state->_setMap(_oldMap, _mapSize);
 }
 
 void ClearMapCommand::redo()
 {
+    _state->_setMapIndex(_mapIdx);
     if (_oldMap.empty()) {
         _mapSize = _state->getMapSize();
-        _oldMap = _state->_map;
+        _oldMap = _state->getMapBuffer();
     }
     _state->_mapClear(_tileIdx);
 }
@@ -561,6 +578,7 @@ PaintMapCommand::PaintMapCommand(State* state, const QPoint& position, int tileI
     : QUndoCommand(parent)
     , _state(state)
     , _tileIdx(tileIdx)
+    , _mapIdx(state->getMapIndex())
     , _mergeable(mergeable)
 {
     _points.append(position);
@@ -570,14 +588,16 @@ PaintMapCommand::PaintMapCommand(State* state, const QPoint& position, int tileI
 
 void PaintMapCommand::undo()
 {
+    _state->_setMapIndex(_mapIdx);
     _state->_setMap(_oldMap, _mapSize);
 }
 
 void PaintMapCommand::redo()
 {
+    _state->_setMapIndex(_mapIdx);
     if (_oldMap.empty())
         _mapSize = _state->getMapSize();
-    _oldMap = _state->_map;
+    _oldMap = _state->getMapBuffer();
 
     for (auto _point : _points) {
         _state->_mapPaint(_point, _tileIdx);
@@ -591,10 +611,50 @@ bool PaintMapCommand::mergeWith(const QUndoCommand* other)
 
     auto p = dynamic_cast<const PaintMapCommand*>(other);
 
-    if (_tileIdx != p->_tileIdx || !p->_mergeable)
+    if (_tileIdx != p->_tileIdx || _mapIdx != p->_mapIdx || !p->_mergeable)
         return false;
 
     _points.append(p->_points);
 
     return true;
+}
+
+// AddMapCommand
+AddMapCommand::AddMapCommand(State* state, QUndoCommand* parent)
+    : QUndoCommand(parent)
+    , _state(state)
+{
+    setText(QObject::tr("Add Map"));
+}
+
+void AddMapCommand::undo()
+{
+    // the added map is always the last one
+    _state->_mapDelete(_state->getMapCount() - 1);
+}
+
+void AddMapCommand::redo()
+{
+    _state->_mapAdd();
+}
+
+// DeleteMapCommand
+DeleteMapCommand::DeleteMapCommand(State* state, QUndoCommand* parent)
+    : QUndoCommand(parent)
+    , _state(state)
+    , _mapIdx(state->getMapIndex())
+{
+    _oldMap = state->getMapBuffer();
+
+    setText(QObject::tr("Delete Map #%1").arg(_mapIdx + 1));
+}
+
+void DeleteMapCommand::undo()
+{
+    _state->_mapInsert(_mapIdx, _oldMap);
+}
+
+void DeleteMapCommand::redo()
+{
+    _state->_mapDelete(_mapIdx);
 }

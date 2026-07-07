@@ -305,7 +305,7 @@ public:
 #pragma pack(1)
     struct VChar64Header {
         char id[5]; // must be VChar
-        char version; // must be 3
+        char version; // 1-4. Version 4 adds multiple maps (num_maps)
         char colors[4]; // BGR, MC1, MC2, RAM.
         char vic_res; // 0 = Hi Resolution, 1 = Multicolour.
 
@@ -329,12 +329,16 @@ public:
         quint8 export_format; // 8 bits: export type: 0: RAW, 1:PRG, 2:ASM, 3:C
         quint8 keyboard_mapping; // 8 bits: 0: PETSCII, 1: Atari 8-bit
 
-        char reserved[2]; // Must be 32 bytes in total
+        // number of maps stored in the file. Only meaningful in version >= 4
+        // (version <= 3 saved this byte uninitialized); 0 must be treated as 1
+        quint8 num_maps;
+
+        char reserved[1]; // Must be 32 bytes in total
 
         // after the header comes:
         //  - charset[256 * 8]
         //  - tile_colors[256]
-        //  - map_data[map_width * map_height bytes]
+        //  - map_data[map_width * map_height bytes] * num_maps (one map in version <= 3)
     };
 #pragma pack(pop)
     static_assert(sizeof(VChar64Header) == 32, "Size is not correct");
