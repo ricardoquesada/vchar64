@@ -151,6 +151,7 @@ qint64 StateImport::loadCTM4(State* state, QFile& file, struct CTMHeader4* v4hea
 
     // CTM files hold exactly one map
     state->_maps.assign(1, State::map_t(map_size.width() * map_size.height(), 0));
+    state->_colorMaps.assign(1, State::map_t(map_size.width() * map_size.height(), State::TILE_COLORS_DEFAULT));
     state->_mapIndex = 0;
 
     int mapInBytes = map_size.width() * map_size.height();
@@ -217,6 +218,7 @@ qint64 StateImport::loadCTM5(State* state, QFile& file, struct CTMHeader5* v5hea
 
     // CTM files hold exactly one map
     state->_maps.assign(1, State::map_t(map_size.width() * map_size.height(), 0));
+    state->_colorMaps.assign(1, State::map_t(map_size.width() * map_size.height(), State::TILE_COLORS_DEFAULT));
     state->_mapIndex = 0;
 
     int mapInBytes = map_size.width() * map_size.height();
@@ -290,7 +292,7 @@ qint64 StateImport::loadVChar64(State* state, QFile& file)
         return -1;
     }
 
-    if (header.version > 4) {
+    if (header.version > 5) {
         MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("VChar version not supported"));
         qDebug() << "VChar version not supported";
         return -1;
@@ -331,11 +333,18 @@ qint64 StateImport::loadVChar64(State* state, QFile& file)
             num_maps = std::max(1, static_cast<int>(header.num_maps));
 
         state->_maps.assign(num_maps, State::map_t(map_width * map_height, 0));
+        state->_colorMaps.assign(num_maps, State::map_t(map_width * map_height, State::TILE_COLORS_DEFAULT));
         state->_mapIndex = 0;
 
         file.read((char*)state->_tileColors, std::size(state->_tileColors));
         for (auto& map : state->_maps)
             file.read((char*)map.data(), map_width * map_height);
+
+        // version 5: per-char color areas, only stored when color_mode == Per Char
+        if (header.version >= 5 && color_mode == State::FOREGROUND_COLOR_PER_CHAR) {
+            for (auto& colorMap : state->_colorMaps)
+                file.read((char*)colorMap.data(), map_width * map_height);
+        }
     }
 
     // version 3 and newer

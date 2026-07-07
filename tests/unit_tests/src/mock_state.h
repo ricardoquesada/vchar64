@@ -32,7 +32,8 @@ public:
 
     enum ForegroundColorMode {
         FOREGROUND_COLOR_GLOBAL,
-        FOREGROUND_COLOR_PER_TILE
+        FOREGROUND_COLOR_PER_TILE,
+        FOREGROUND_COLOR_PER_CHAR
     };
 
     enum ExportFormat {
@@ -70,6 +71,7 @@ public:
     quint8 _charset[CHAR_BUFFER_SIZE];
     quint8 _tileColors[TILE_COLORS_BUFFER_SIZE];
     std::vector<std::vector<quint8>> _maps;
+    std::vector<std::vector<quint8>> _colorMaps;
     int _mapIndex = 0;
     QSize _mapSize;
     bool _multicolorMode;
@@ -82,6 +84,7 @@ public:
     State()
     {
         _maps.resize(1);
+        _colorMaps.resize(1);
         resetCharsetBuffer();
         // Initialize default pen colors matching State.cpp
         _penColors[PEN_BACKGROUND] = 1;
@@ -112,6 +115,8 @@ public:
     const tileColors_t& getTileColors() const { return _tileColors; }
     const std::vector<quint8>& getMapBuffer() const { return _maps[_mapIndex]; }
     std::vector<quint8>& getMapBuffer() { return _maps[_mapIndex]; }
+    const std::vector<quint8>& getColorMapBuffer() const { return _colorMaps[_mapIndex]; }
+    std::vector<quint8>& getColorMapBuffer() { return _colorMaps[_mapIndex]; }
     const QSize& getMapSize() const { return _mapSize; }
     int getMapIndex() const { return _mapIndex; }
     int getMapCount() const { return static_cast<int>(_maps.size()); }
@@ -155,6 +160,8 @@ public:
         _mapSize = size;
         for (auto& map : _maps)
             map.resize(size.width() * size.height());
+        for (auto& colorMap : _colorMaps)
+            colorMap.resize(size.width() * size.height());
     }
 
     int getColorForPen(int pen, int tileIndex) const

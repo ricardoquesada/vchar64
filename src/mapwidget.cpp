@@ -92,12 +92,17 @@ void MapWidget::paintEvent(QPaintEvent* event)
     const int tw = _tileSize.width();
     const int th = _tileSize.height();
 
+    const bool perCharColor = (state->getForegroundColorMode() == State::FOREGROUND_COLOR_PER_CHAR);
+
     for (int y = 0; y < mapSize.height(); y++) {
         for (int x = 0; x < mapSize.width(); ++x) {
             auto tileIdx = state->getTileIndexFromMap(QPoint(x, y));
             QRectF target(x * _tileSize.width() * 8, y * _tileSize.height() * 8,
                 _tileSize.width() * 8, _tileSize.height() * 8);
-            painter.drawImage(target, *_tileImages[tileIdx], _tileImages[tileIdx]->rect());
+            QImage* image = perCharColor
+                ? coloredTileImage(state, tileIdx, state->getColorFromMap(QPoint(x, y)))
+                : _tileImages[tileIdx];
+            painter.drawImage(target, *image, image->rect());
         }
     }
 
@@ -171,12 +176,17 @@ std::unique_ptr<QImage> MapWidget::renderToQImage()
     auto tileProperties = state->getTileProperties();
     _tileSize = tileProperties.size;
 
+    const bool perCharColor = (state->getForegroundColorMode() == State::FOREGROUND_COLOR_PER_CHAR);
+
     for (int y = 0; y < mapSize.height(); y++) {
         for (int x = 0; x < mapSize.width(); ++x) {
             auto tileIdx = state->getTileIndexFromMap(QPoint(x, y));
             QRectF target(x * _tileSize.width() * 8, y * _tileSize.height() * 8,
                 _tileSize.width() * 8, _tileSize.height() * 8);
-            painter.drawImage(target, *_tileImages[tileIdx], _tileImages[tileIdx]->rect());
+            QImage* tileImage = perCharColor
+                ? coloredTileImage(state, tileIdx, state->getColorFromMap(QPoint(x, y)))
+                : _tileImages[tileIdx];
+            painter.drawImage(target, *tileImage, tileImage->rect());
         }
     }
 
@@ -597,4 +607,35 @@ void MapWidget::updateTileImages()
             charIdx += tileProperties.interleaved;
         }
     }
+
+    // the per-color variants are rebuilt lazily as cells are painted
+    qDeleteAll(_coloredTileImages);
+    _coloredTileImages.clear();
+}
+
+QImage* MapWidget::coloredTileImage(State* state, int tileIdx, int color)
+{
+    const int key = (tileIdx << 4) | (color & 0xf);
+    auto it = _coloredTileImages.constFind(key);
+    if (it != _coloredTileImages.constEnd())
+        return it.value();
+
+    const auto tileProperties = state->getTileProperties();
+    const int tw = tileProperties.size.width();
+    const int th = tileProperties.size.height();
+
+    auto image = new QImage(tileProperties.size * 8, QImage::Format_RGB888);
+
+    int charIdx = tileProperties.interleaved == 1 ? tileIdx * tw * th : tileIdx;
+    for (int char_quadrant = 0; char_quadrant < (tw * th); char_quadrant++) {
+        int offset_x = (char_quadrant % tw) * 8;
+        int offset_y = (char_quadrant / tw) * 8;
+
+        utilsDrawCharInImage(state, image, QPoint(offset_x, offset_y), charIdx, color & 0xf);
+
+        charIdx += tileProperties.interleaved;
+    }
+
+    _coloredTileImages.insert(key, image);
+    return image;
 }

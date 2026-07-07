@@ -349,6 +349,16 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_charColorPerMapCell">
+          <property name="text">
+           <string>One Per Char</string>
+          </property>
+          <property name="toolTip">
+           <string>Each map cell has its own color, like the C64 color RAM ($d800)</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>

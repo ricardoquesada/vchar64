@@ -126,6 +126,15 @@ protected:
     void updateMapActions();
     void syncMapDocks(bool raiseCurrent);
 
+public:
+    /**
+     * @brief paintSelectedMapCellColor called when a pen color is picked.
+     * In FOREGROUND_COLOR_PER_CHAR mode, when the map is the active editor
+     * widget and a cell is selected, paints that cell's color area
+     */
+    void paintSelectedMapCellColor(int pen, int color);
+
+protected:
     void closeEvent(QCloseEvent* event) override;
     bool eventFilter(QObject* watched, QEvent* event) override;
 
@@ -195,6 +204,7 @@ private slots:
 
     void on_radioButton_charColorGlobal_toggled(bool checked);
     void on_radioButton_charColorPerChar_toggled(bool checked);
+    void on_radioButton_charColorPerMapCell_toggled(bool checked);
 
     void on_actionMap_Properties_triggered();
 

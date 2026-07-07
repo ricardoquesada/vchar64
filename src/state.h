@@ -72,6 +72,7 @@ class State : public QObject {
     friend class FillMapCommand;
     friend class AddMapCommand;
     friend class DeleteMapCommand;
+    friend class PaintColorMapCommand;
 
 public:
     // only 256 chars at the time
@@ -104,7 +105,10 @@ public:
 
     enum ForegroundColorMode {
         FOREGROUND_COLOR_GLOBAL,
-        FOREGROUND_COLOR_PER_TILE
+        FOREGROUND_COLOR_PER_TILE,
+        // one color per map cell, like the C64 color RAM at $d800.
+        // Values match the color_mode byte in the .vchar64proj format
+        FOREGROUND_COLOR_PER_CHAR
     };
 
     // what to export
@@ -408,6 +412,19 @@ public:
      */
     void mapClear(int tileIdx);
 
+    /**
+     * @brief colorMapPaint paints one cell of the color area of the current map.
+     * Only meaningful in FOREGROUND_COLOR_PER_CHAR mode
+     * @param coord the position of the map cell
+     * @param color a color between 0 and 15
+     */
+    void colorMapPaint(const QPoint& coord, int color);
+
+    /**
+     * @brief getColorFromMap returns the color-area color at mapCoord (current map)
+     */
+    int getColorFromMap(const QPoint& mapCoord) const;
+
     // is the state "dirty" ?
     [[nodiscard]] bool isModified() const;
 
@@ -449,10 +466,12 @@ public:
     //
     const charset_t& getCharsetBuffer() const;
     const map_t& getMapBuffer() const;
+    const map_t& getColorMapBuffer() const;
     const tileColors_t& getTileColors() const;
 
     charset_t& getCharsetBuffer();
     map_t& getMapBuffer();
+    map_t& getColorMapBuffer();
     tileColors_t& getTileColors();
 
     void resetCharsetBuffer();
@@ -608,17 +627,21 @@ protected:
 
     void _setMapSize(const QSize& mapSize);
     void _setMap(const std::vector<quint8>& map, const QSize& mapSize);
-    void _setMaps(const std::vector<map_t>& maps, const QSize& mapSize);
+    void _setMaps(const std::vector<map_t>& maps, const std::vector<map_t>& colorMaps, const QSize& mapSize);
+    void _setColorMap(const std::vector<quint8>& colorMap, const QSize& mapSize);
     void _mapClear(int tileIdx);
     void _mapPaint(const QPoint& coord, int tileIdx);
     void _mapFill(const QPoint& coord, int tileIdx);
+    void _colorMapPaint(const QPoint& coord, int color);
     void _setMapIndex(int mapIndex);
     void _mapAdd();
     void _mapDelete(int mapIndex);
-    void _mapInsert(int mapIndex, const map_t& map);
+    void _mapInsert(int mapIndex, const map_t& map, const map_t& colorMap);
 
     map_t& _currentMap() { return _maps[_mapIndex]; }
     const map_t& _currentMap() const { return _maps[_mapIndex]; }
+    map_t& _currentColorMap() { return _colorMaps[_mapIndex]; }
+    const map_t& _currentColorMap() const { return _colorMaps[_mapIndex]; }
 
     int _totalChars;
 
@@ -626,6 +649,10 @@ protected:
     tileColors_t _tileColors;
     // all maps share the same size (_mapSize). Always holds at least one map
     std::vector<map_t> _maps;
+    // per-map color areas (one color per map cell, like the C64 color RAM at
+    // $d800). Always kept parallel to _maps and sized like them; only *used*
+    // when _foregroundColorMode == FOREGROUND_COLOR_PER_CHAR
+    std::vector<map_t> _colorMaps;
     int _mapIndex;
     QSize _mapSize;
 

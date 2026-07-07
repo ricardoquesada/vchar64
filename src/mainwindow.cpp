@@ -224,6 +224,8 @@ void MainWindow::onColorPropertiesUpdated(int pen)
         auto foregroundColorMode = state->getForegroundColorMode();
         if (foregroundColorMode == State::FOREGROUND_COLOR_PER_TILE)
             _ui->radioButton_charColorPerChar->setChecked(true);
+        else if (foregroundColorMode == State::FOREGROUND_COLOR_PER_CHAR)
+            _ui->radioButton_charColorPerMapCell->setChecked(true);
         else
             _ui->radioButton_charColorGlobal->setChecked(true);
 
@@ -1025,6 +1027,16 @@ void MainWindow::on_radioButton_charColorPerChar_toggled(bool checked)
         state->setForegroundColorMode(State::FOREGROUND_COLOR_PER_TILE);
 }
 
+void MainWindow::on_radioButton_charColorPerMapCell_toggled(bool checked)
+{
+    if (!checked)
+        return;
+
+    auto state = getState();
+    if (state)
+        state->setForegroundColorMode(State::FOREGROUND_COLOR_PER_CHAR);
+}
+
 void MainWindow::activatePalette(int paletteIndex)
 {
     QAction* actions[] = {
@@ -1536,6 +1548,23 @@ void MainWindow::on_actionPrevious_Map_triggered()
     auto state = getState();
     if (state)
         state->setMapIndex((state->getMapIndex() + state->getMapCount() - 1) % state->getMapCount());
+}
+
+void MainWindow::paintSelectedMapCellColor(int pen, int color)
+{
+    auto state = getState();
+    if (!state || pen != State::PEN_FOREGROUND)
+        return;
+    if (state->getForegroundColorMode() != State::FOREGROUND_COLOR_PER_CHAR)
+        return;
+    // same idea as onSpinBoxValueChanged(): the palette steals focus, so use
+    // the last-focused editor widget to know whether a map cell is selected
+    if (_lastFocusedEditorWidget != _ui->mapWidget || _ui->mapWidget->getMode() != MapWidget::SELECT_MODE)
+        return;
+
+    const auto coord = _ui->mapWidget->getCursorCoord();
+    if (state->getColorFromMap(coord) != color)
+        state->colorMapPaint(coord, color);
 }
 
 void MainWindow::onMapIndexUpdated(int mapIndex)

@@ -305,7 +305,8 @@ public:
 #pragma pack(1)
     struct VChar64Header {
         char id[5]; // must be VChar
-        char version; // 1-4. Version 4 adds multiple maps (num_maps)
+        char version; // 1-5. Version 4 adds multiple maps (num_maps),
+                      // version 5 adds per-char color areas (color_mode == 2)
         char colors[4]; // BGR, MC1, MC2, RAM.
         char vic_res; // 0 = Hi Resolution, 1 = Multicolour.
 
@@ -317,7 +318,7 @@ public:
 
         // until here, it shares same structure as version 1
 
-        char color_mode; // 0 = Global, 1 = Per Tile
+        char color_mode; // 0 = Global, 1 = Per Tile, 2 = Per Char (one color per map cell, version >= 5)
 
         quint16 map_width; // 16-bit Map width (low, high).
         quint16 map_height; // 16-bit Map height (low, high).
@@ -339,6 +340,8 @@ public:
         //  - charset[256 * 8]
         //  - tile_colors[256]
         //  - map_data[map_width * map_height bytes] * num_maps (one map in version <= 3)
+        //  - color_map_data[map_width * map_height bytes] * num_maps
+        //    (version >= 5 only, and only present when color_mode == 2)
     };
 #pragma pack(pop)
     static_assert(sizeof(VChar64Header) == 32, "Size is not correct");

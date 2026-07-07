@@ -38,10 +38,12 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
 
     std::memcpy(header.id, "VChar", 5);
 
-    // version 4 is only needed for multiple maps. Single-map projects keep
-    // version 3 so they stay loadable by older VChar64 releases
+    // write the lowest version that can represent the project, so files stay
+    // loadable by older VChar64 releases whenever possible: version 5 is only
+    // needed for per-char color areas, version 4 only for multiple maps
     const int num_maps = state->getMapCount();
-    header.version = (num_maps > 1) ? 4 : 3;
+    const bool perCharColors = (state->getForegroundColorMode() == State::FOREGROUND_COLOR_PER_CHAR);
+    header.version = perCharColors ? 5 : ((num_maps > 1) ? 4 : 3);
     header.num_maps = static_cast<quint8>(num_maps);
 
     for (int i = 0; i < 4; i++)
@@ -92,6 +94,16 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
         for (const auto c : map) {
             out << c;
             total++;
+        }
+    }
+
+    // per-char color areas, one per map (version 5, color_mode == Per Char only)
+    if (perCharColors) {
+        for (const auto& colorMap : state->_colorMaps) {
+            for (const auto c : colorMap) {
+                out << c;
+                total++;
+            }
         }
     }
 

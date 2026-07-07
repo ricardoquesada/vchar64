@@ -63,6 +63,10 @@ void PaletteWidget::mousePressEvent(QMouseEvent* event)
             state->setColorForPen(pen, color, tileIndex);
             update();
         }
+
+        // in per-char mode, picking a foreground color also paints the color
+        // area of the currently selected map cell
+        MainWindow::getInstance()->paintSelectedMapCellColor(pen, color);
     }
 }
 

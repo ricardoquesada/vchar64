@@ -28,7 +28,10 @@ QT_END_NAMESPACE
 class State;
 
 void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixelSize, const QPoint& offset, const QPoint& orig, int charIdx);
-void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int charIdx);
+// forcedColorRAM: when >= 0, use that value as the char's color-RAM color
+// (FOREGROUND_COLOR_PER_CHAR rendering) instead of the tile/global color;
+// it also decides multicolor rendering (multicolor mode and color >= 8)
+void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int charIdx, int forcedColorRAM = -1);
 [[nodiscard]] quint8 utilsAsciiToScreenCode(State* state, quint8 ascii);
 [[nodiscard]] quint8 utilsAsciiToCommodore8Bit(quint8 ascii);
 [[nodiscard]] quint8 utilsAsciiToAtari8Bit(quint8 ascii);

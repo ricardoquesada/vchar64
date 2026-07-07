@@ -503,6 +503,7 @@ SetMapSizeCommand::SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCo
     _old = _state->getMapSize();
     // resizing affects all maps, so all of them must be restored on undo
     _oldMaps = _state->_maps;
+    _oldColorMaps = _state->_colorMaps;
 
     setText(QObject::tr("Map Size %1x%2")
             .arg(mapSize.width())
@@ -512,7 +513,7 @@ SetMapSizeCommand::SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCo
 void SetMapSizeCommand::undo()
 {
     _state->_setMapSize(_old);
-    _state->_setMaps(_oldMaps, _old);
+    _state->_setMaps(_oldMaps, _oldColorMaps, _old);
 }
 
 void SetMapSizeCommand::redo()
@@ -535,6 +536,7 @@ void FillMapCommand::undo()
 {
     _state->_setMapIndex(_mapIdx);
     _state->_setMap(_oldMap, _mapSize);
+    _state->_setColorMap(_oldColorMap, _mapSize);
 }
 
 void FillMapCommand::redo()
@@ -543,6 +545,7 @@ void FillMapCommand::redo()
     if (_oldMap.empty()) {
         _mapSize = _state->getMapSize();
         _oldMap = _state->getMapBuffer();
+        _oldColorMap = _state->getColorMapBuffer();
     }
     _state->_mapFill(_coord, _tileIdx);
 }
@@ -561,6 +564,7 @@ void ClearMapCommand::undo()
 {
     _state->_setMapIndex(_mapIdx);
     _state->_setMap(_oldMap, _mapSize);
+    _state->_setColorMap(_oldColorMap, _mapSize);
 }
 
 void ClearMapCommand::redo()
@@ -569,6 +573,7 @@ void ClearMapCommand::redo()
     if (_oldMap.empty()) {
         _mapSize = _state->getMapSize();
         _oldMap = _state->getMapBuffer();
+        _oldColorMap = _state->getColorMapBuffer();
     }
     _state->_mapClear(_tileIdx);
 }
@@ -590,6 +595,7 @@ void PaintMapCommand::undo()
 {
     _state->_setMapIndex(_mapIdx);
     _state->_setMap(_oldMap, _mapSize);
+    _state->_setColorMap(_oldColorMap, _mapSize);
 }
 
 void PaintMapCommand::redo()
@@ -598,6 +604,7 @@ void PaintMapCommand::redo()
     if (_oldMap.empty())
         _mapSize = _state->getMapSize();
     _oldMap = _state->getMapBuffer();
+    _oldColorMap = _state->getColorMapBuffer();
 
     for (auto _point : _points) {
         _state->_mapPaint(_point, _tileIdx);
@@ -617,6 +624,31 @@ bool PaintMapCommand::mergeWith(const QUndoCommand* other)
     _points.append(p->_points);
 
     return true;
+}
+
+// PaintColorMapCommand
+PaintColorMapCommand::PaintColorMapCommand(State* state, const QPoint& position, int color, QUndoCommand* parent)
+    : QUndoCommand(parent)
+    , _state(state)
+    , _coord(position)
+    , _color(color)
+    , _mapIdx(state->getMapIndex())
+{
+    _oldColor = state->getColorFromMap(position);
+
+    setText(QObject::tr("Paint Color #%1").arg(_color));
+}
+
+void PaintColorMapCommand::undo()
+{
+    _state->_setMapIndex(_mapIdx);
+    _state->_colorMapPaint(_coord, _oldColor);
+}
+
+void PaintColorMapCommand::redo()
+{
+    _state->_setMapIndex(_mapIdx);
+    _state->_colorMapPaint(_coord, _color);
 }
 
 // AddMapCommand
@@ -645,13 +677,14 @@ DeleteMapCommand::DeleteMapCommand(State* state, QUndoCommand* parent)
     , _mapIdx(state->getMapIndex())
 {
     _oldMap = state->getMapBuffer();
+    _oldColorMap = state->getColorMapBuffer();
 
     setText(QObject::tr("Delete Map #%1").arg(_mapIdx + 1));
 }
 
 void DeleteMapCommand::undo()
 {
-    _state->_mapInsert(_mapIdx, _oldMap);
+    _state->_mapInsert(_mapIdx, _oldMap, _oldColorMap);
 }
 
 void DeleteMapCommand::redo()
