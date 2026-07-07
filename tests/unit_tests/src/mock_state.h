@@ -47,8 +47,9 @@ public:
         EXPORT_FEATURE_NONE = 0,
         EXPORT_FEATURE_CHARSET = 1 << 0,
         EXPORT_FEATURE_MAP = 1 << 1,
-        EXPORT_FEATURE_COLORS = 1 << 2,
-        EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_COLORS)
+        EXPORT_FEATURE_COLORS = 1 << 2, // the 256-byte per-tile colors
+        EXPORT_FEATURE_CHAR_COLORS = 1 << 3, // the per-map color areas ($d800 layout)
+        EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_COLORS | EXPORT_FEATURE_CHAR_COLORS)
     };
 
     enum KeyboardMapping {

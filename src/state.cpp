@@ -223,34 +223,32 @@ bool State::openFile(const QString& filename)
 
 static QString filenameFixSuffix(const QString& filename, State::ExportFeature suffix)
 {
-    QString validDescriptions[] = {
-        "-charset",
-        "-map",
-        "-colors"
-    };
-
     QFileInfo info(filename);
 
     auto extension = info.suffix();
     auto filepath = info.path();
     auto name = info.baseName();
 
-    // remove possible suffix, including numbered suffixes like "-map01"/"-colors01"
-    name.remove(QRegularExpression("(-charset|-map\\d*|-colors\\d*)$"));
+    // remove possible suffix, including numbered suffixes like "-map01" /
+    // "-char-colors01", and the legacy "-colors" one. Longer alternatives
+    // must come before "-colors" so "-tile-colors" is stripped whole
+    name.remove(QRegularExpression("(-charset|-map\\d*|-tile-colors|-char-colors\\d*|-colors\\d*)$"));
 
     // add suffix
     if (suffix == State::EXPORT_FEATURE_CHARSET)
-        name.append(validDescriptions[0]);
+        name.append("-charset");
     else if (suffix == State::EXPORT_FEATURE_MAP)
-        name.append(validDescriptions[1]);
-    else /* map */
-        name.append(validDescriptions[2]);
+        name.append("-map");
+    else if (suffix == State::EXPORT_FEATURE_CHAR_COLORS)
+        name.append("-char-colors");
+    else /* tile colors */
+        name.append("-tile-colors");
 
     return filepath + "/" + name + "." + extension;
 }
 
-// per-map files: "-map"/"-colors" when the project has one map,
-// "-map01", "-map02"/"-colors01", "-colors02", ... when it has more
+// per-map files: "-map"/"-char-colors" when the project has one map,
+// "-map01", "-map02"/"-char-colors01", "-char-colors02", ... when it has more
 static QString indexedFilenameFixSuffix(const QString& filename, State::ExportFeature feature, int mapIndex, int mapCount)
 {
     auto fixed = filenameFixSuffix(filename, feature);
@@ -322,21 +320,21 @@ bool State::exportRaw(const QString& filename, const ExportProperties& propertie
     }
 
     if (properties.features & EXPORT_FEATURE_COLORS) {
-        if (_foregroundColorMode == FOREGROUND_COLOR_PER_CHAR) {
-            // per-char mode: the color data is the per-map color areas ($d800 layout)
-            for (int i = 0; i < getMapCount(); ++i) {
-                bytesWritten = StateExport::saveRaw(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_COLORS, i, getMapCount()),
-                    _colorMaps[i].data(), std::size(_colorMaps[i]));
-                if (bytesWritten <= 0) {
-                    qDebug() << "Failed to export Colors to Raw";
-                    return false;
-                }
-            }
-        } else {
-            bytesWritten = StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                _tileColors, std::size(_tileColors));
+        bytesWritten = StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
+            _tileColors, std::size(_tileColors));
+        if (bytesWritten <= 0) {
+            qDebug() << "Failed to export Tile Colors to Raw";
+            return false;
+        }
+    }
+
+    if (properties.features & EXPORT_FEATURE_CHAR_COLORS) {
+        // the per-map color areas ($d800 layout), one file per map
+        for (int i = 0; i < getMapCount(); ++i) {
+            bytesWritten = StateExport::saveRaw(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_CHAR_COLORS, i, getMapCount()),
+                _colorMaps[i].data(), std::size(_colorMaps[i]));
             if (bytesWritten <= 0) {
-                qDebug() << "Failed to export Colors to Raw";
+                qDebug() << "Failed to export Char Colors to Raw";
                 return false;
             }
         }
@@ -366,17 +364,17 @@ bool State::exportPRG(const QString& filename, const ExportProperties& propertie
                 > 0);
     }
 
-    if (ret && (properties.features & EXPORT_FEATURE_COLORS)) {
-        if (_foregroundColorMode == FOREGROUND_COLOR_PER_CHAR) {
-            for (int i = 0; ret && i < getMapCount(); ++i)
-                ret &= (StateExport::savePRG(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_COLORS, i, getMapCount()),
-                            _colorMaps[i].data(), std::size(_colorMaps[i]), properties.addresses[2])
-                    > 0);
-        } else {
-            ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                        _tileColors, std::size(_tileColors), properties.addresses[2])
+    if (ret && (properties.features & EXPORT_FEATURE_COLORS))
+        ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
+                    _tileColors, std::size(_tileColors), properties.addresses[2])
+            > 0);
+
+    if (ret && (properties.features & EXPORT_FEATURE_CHAR_COLORS)) {
+        // char colors share the Tile Colors address (both target $d800)
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::savePRG(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_CHAR_COLORS, i, getMapCount()),
+                        _colorMaps[i].data(), std::size(_colorMaps[i]), properties.addresses[2])
                 > 0);
-        }
     }
 
     if (ret) {
@@ -404,17 +402,16 @@ bool State::exportAsm(const QString& filename, const ExportProperties& propertie
                 > 0);
     }
 
-    if (ret && (properties.features & EXPORT_FEATURE_COLORS)) {
-        if (_foregroundColorMode == FOREGROUND_COLOR_PER_CHAR) {
-            for (int i = 0; ret && i < getMapCount(); ++i)
-                ret &= (StateExport::saveAsm(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_COLORS, i, getMapCount()),
-                            _colorMaps[i].data(), std::size(_colorMaps[i]), indexedExportLabel(QStringLiteral("colors"), i, getMapCount()))
-                    > 0);
-        } else {
-            ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                        _tileColors, std::size(_tileColors), "colors")
+    if (ret && (properties.features & EXPORT_FEATURE_COLORS))
+        ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
+                    _tileColors, std::size(_tileColors), "colors")
+            > 0);
+
+    if (ret && (properties.features & EXPORT_FEATURE_CHAR_COLORS)) {
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::saveAsm(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_CHAR_COLORS, i, getMapCount()),
+                        _colorMaps[i].data(), std::size(_colorMaps[i]), indexedExportLabel(QStringLiteral("char_colors"), i, getMapCount()))
                 > 0);
-        }
     }
 
     if (ret) {
@@ -441,17 +438,16 @@ bool State::exportC(const QString& filename, const ExportProperties& properties)
                 > 0);
     }
 
-    if (ret && (properties.features & EXPORT_FEATURE_COLORS)) {
-        if (_foregroundColorMode == FOREGROUND_COLOR_PER_CHAR) {
-            for (int i = 0; ret && i < getMapCount(); ++i)
-                ret &= (StateExport::saveC(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_COLORS, i, getMapCount()),
-                            _colorMaps[i].data(), std::size(_colorMaps[i]), indexedExportLabel(QStringLiteral("colors"), i, getMapCount()))
-                    > 0);
-        } else {
-            ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
-                        _tileColors, std::size(_tileColors), "colors")
+    if (ret && (properties.features & EXPORT_FEATURE_COLORS))
+        ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
+                    _tileColors, std::size(_tileColors), "colors")
+            > 0);
+
+    if (ret && (properties.features & EXPORT_FEATURE_CHAR_COLORS)) {
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::saveC(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_CHAR_COLORS, i, getMapCount()),
+                        _colorMaps[i].data(), std::size(_colorMaps[i]), indexedExportLabel(QStringLiteral("char_colors"), i, getMapCount()))
                 > 0);
-        }
     }
 
     if (ret) {

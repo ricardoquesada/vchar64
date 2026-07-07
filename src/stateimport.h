@@ -326,7 +326,7 @@ public:
         quint16 address_charset; // 16-bit for the Charset export address
         quint16 address_map; // 16-bit for the Map export address
         quint16 address_attribs; // 16-bit for the Attribs/Colors export address
-        quint8 export_features; // 8 bits. what features should be exported: charset(1<<0), map(1<<1), color(1<<2)
+        quint8 export_features; // 8 bits. what features should be exported: charset(1<<0), map(1<<1), tile colors(1<<2), char colors(1<<3)
         quint8 export_format; // 8 bits: export type: 0: RAW, 1:PRG, 2:ASM, 3:C
         quint8 keyboard_mapping; // 8 bits: 0: PETSCII, 1: Atari 8-bit
 

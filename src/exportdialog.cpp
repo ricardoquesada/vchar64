@@ -89,6 +89,7 @@ ExportDialog::ExportDialog(State* state, QWidget* parent)
     ui->checkBox_charset->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_CHARSET);
     ui->checkBox_map->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_MAP);
     ui->checkBox_tileColors->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_COLORS);
+    ui->checkBox_charColors->setChecked(_checkBox_clicked & State::EXPORT_FEATURE_CHAR_COLORS);
 
     // Don't change the order, must honor the order from State::ExportFormat
     QRadioButton* radios[] = {
@@ -153,6 +154,8 @@ void ExportDialog::accept()
         properties.features |= State::EXPORT_FEATURE_MAP;
     if (ui->checkBox_tileColors->isChecked())
         properties.features |= State::EXPORT_FEATURE_COLORS;
+    if (ui->checkBox_charColors->isChecked())
+        properties.features |= State::EXPORT_FEATURE_CHAR_COLORS;
     if (ui->checkBox_charset->isChecked())
         properties.features |= State::EXPORT_FEATURE_CHARSET;
 
@@ -267,6 +270,15 @@ void ExportDialog::on_checkBox_tileColors_toggled(bool checked)
         _checkBox_clicked |= State::EXPORT_FEATURE_COLORS;
     else
         _checkBox_clicked &= ~State::EXPORT_FEATURE_COLORS;
+    updateButtons();
+}
+
+void ExportDialog::on_checkBox_charColors_toggled(bool checked)
+{
+    if (checked)
+        _checkBox_clicked |= State::EXPORT_FEATURE_CHAR_COLORS;
+    else
+        _checkBox_clicked &= ~State::EXPORT_FEATURE_CHAR_COLORS;
     updateButtons();
 }
 

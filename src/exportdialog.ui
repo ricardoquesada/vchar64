@@ -73,6 +73,16 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_charColors">
+        <property name="text">
+         <string>Char Colors</string>
+        </property>
+        <property name="toolTip">
+         <string>The per-map color areas (one color per map cell, like the C64 color RAM)</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -228,6 +238,7 @@
   <tabstop>checkBox_charset</tabstop>
   <tabstop>checkBox_map</tabstop>
   <tabstop>checkBox_tileColors</tabstop>
+  <tabstop>checkBox_charColors</tabstop>
   <tabstop>radioButton_asm</tabstop>
   <tabstop>radioButton_c</tabstop>
   <tabstop>radioButton_raw</tabstop>
