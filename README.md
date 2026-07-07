@@ -27,6 +27,7 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
     * From 1x1 to 8x8
     * Custom Distance in chars between tiles
 * Map support
+    * Multiple maps (levels/rooms) per project, sharing one charset
 * Imports CharPad 1.8 and 2.0 projects
 * Imports Koala image files: [Demo Video](https://www.youtube.com/watch?v=wIBTINBCngs)
 * Imports VICE snapshot images
