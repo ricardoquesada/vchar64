@@ -305,7 +305,8 @@ public:
 #pragma pack(1)
     struct VChar64Header {
         char id[5]; // must be VChar
-        char version; // must be 3
+        char version; // 1-5. Version 4 adds multiple maps (num_maps),
+                      // version 5 adds per-char color areas (color_mode == 2)
         char colors[4]; // BGR, MC1, MC2, RAM.
         char vic_res; // 0 = Hi Resolution, 1 = Multicolour.
 
@@ -317,7 +318,7 @@ public:
 
         // until here, it shares same structure as version 1
 
-        char color_mode; // 0 = Global, 1 = Per Tile
+        char color_mode; // 0 = Global, 1 = Per Tile, 2 = Per Char (one color per map cell, version >= 5)
 
         quint16 map_width; // 16-bit Map width (low, high).
         quint16 map_height; // 16-bit Map height (low, high).
@@ -325,16 +326,22 @@ public:
         quint16 address_charset; // 16-bit for the Charset export address
         quint16 address_map; // 16-bit for the Map export address
         quint16 address_attribs; // 16-bit for the Attribs/Colors export address
-        quint8 export_features; // 8 bits. what features should be exported: charset(1<<0), map(1<<1), color(1<<2)
+        quint8 export_features; // 8 bits. what features should be exported: charset(1<<0), map(1<<1), tile colors(1<<2), char colors(1<<3)
         quint8 export_format; // 8 bits: export type: 0: RAW, 1:PRG, 2:ASM, 3:C
         quint8 keyboard_mapping; // 8 bits: 0: PETSCII, 1: Atari 8-bit
 
-        char reserved[2]; // Must be 32 bytes in total
+        // number of maps stored in the file. Only meaningful in version >= 4
+        // (version <= 3 saved this byte uninitialized); 0 must be treated as 1
+        quint8 num_maps;
+
+        char reserved[1]; // Must be 32 bytes in total
 
         // after the header comes:
         //  - charset[256 * 8]
         //  - tile_colors[256]
-        //  - map_data[map_width * map_height bytes]
+        //  - map_data[map_width * map_height bytes] * num_maps (one map in version <= 3)
+        //  - color_map_data[map_width * map_height bytes] * num_maps
+        //    (version >= 5 only, and only present when color_mode == 2)
     };
 #pragma pack(pop)
     static_assert(sizeof(VChar64Header) == 32, "Size is not correct");

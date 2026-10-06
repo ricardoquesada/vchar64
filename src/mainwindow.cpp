@@ -17,6 +17,9 @@ limitations under the License.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <algorithm>
+#include <utility>
+
 #include <QApplication>
 #include <QClipboard>
 #include <QCloseEvent>
@@ -106,6 +109,17 @@ MainWindow::MainWindow(QWidget* parent)
     _ui->charsetWidget->installEventFilter(this);
     _ui->tilesetWidget->installEventFilter(this);
     _ui->mapWidget->installEventFilter(this);
+
+    // dockWidget_map doubles as the tab of the first map; more docks are
+    // created/removed by syncMapDocks() as maps are added/deleted
+    _mapDocks.append(_ui->dockWidget_map);
+    connect(_ui->dockWidget_map, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (visible && !_syncingMapDocks) {
+            auto state = getState();
+            if (state)
+                state->setMapIndex(0);
+        }
+    });
 }
 
 MainWindow::~MainWindow()
@@ -210,6 +224,8 @@ void MainWindow::onColorPropertiesUpdated(int pen)
         auto foregroundColorMode = state->getForegroundColorMode();
         if (foregroundColorMode == State::FOREGROUND_COLOR_PER_TILE)
             _ui->radioButton_charColorPerChar->setChecked(true);
+        else if (foregroundColorMode == State::FOREGROUND_COLOR_PER_CHAR)
+            _ui->radioButton_charColorPerMapCell->setChecked(true);
         else
             _ui->radioButton_charColorGlobal->setChecked(true);
 
@@ -233,6 +249,8 @@ void MainWindow::refresh()
 
     onMulticolorModeToggled(state->isMulticolorMode());
     onMapSizeUpdated();
+    updateMapActions();
+    syncMapDocks(false);
 
     _undoView->setStack(state->getUndoStack());
 
@@ -368,6 +386,7 @@ BigCharWidget* MainWindow::createDocument(State* state)
     connect(state, &State::mapSizeUpdated, _ui->mapWidget, &MapWidget::onMapSizeUpdated);
     connect(state, &State::mapSizeUpdated, this, &MainWindow::onMapSizeUpdated);
     connect(state, &State::mapContentUpdated, _ui->mapWidget, &MapWidget::onMapContentUpdated);
+    connect(state, &State::mapIndexUpdated, this, &MainWindow::onMapIndexUpdated);
 
     connect(state, &State::tileUpdated, bigcharWidget, &BigCharWidget::onTileUpdated);
     connect(state, &State::tileUpdated, _ui->charsetWidget, &CharsetWidget::onTileUpdated);
@@ -660,6 +679,103 @@ void MainWindow::updateMenus()
     };
     for (auto& action : actions)
         action->setEnabled(withDocuments);
+
+    updateMapActions();
+    syncMapDocks(false);
+}
+
+void MainWindow::updateMapActions()
+{
+    auto state = getState();
+    const int mapCount = state ? state->getMapCount() : 0;
+    const bool multipleMaps = mapCount > 1;
+
+    _ui->actionAdd_Map->setEnabled(state && mapCount < State::MAX_MAPS);
+    _ui->actionDelete_Map->setEnabled(multipleMaps);
+    _ui->actionNext_Map->setEnabled(multipleMaps);
+    _ui->actionPrevious_Map->setEnabled(multipleMaps);
+}
+
+void MainWindow::syncMapDocks(bool raiseCurrent)
+{
+    auto state = getState();
+    const int mapCount = state ? state->getMapCount() : 1;
+    const int mapIndex = state ? state->getMapIndex() : 0;
+    auto mapPanel = _ui->dockWidgetContents_map;
+
+    _syncingMapDocks = true;
+
+    // whether one of the map tabs (rather than Charset/Tileset) is the current one.
+    // Computed before any tabify/remove below disturbs visibility
+    const bool mapDockActive = std::any_of(_mapDocks.cbegin(), _mapDocks.cend(),
+        [](const QDockWidget* dock) { return dock->isVisible(); });
+    // remember the current non-map tab: creating docks re-tabifies Charset/Tileset,
+    // which would otherwise steal the current tab
+    QDockWidget* activeOtherDock = nullptr;
+    if (_ui->dockWidget_charset->isVisible())
+        activeOtherDock = _ui->dockWidget_charset;
+    else if (_ui->dockWidget_tileset->isVisible())
+        activeOtherDock = _ui->dockWidget_tileset;
+
+    // create missing map docks
+    while (_mapDocks.size() < mapCount) {
+        auto dock = new QDockWidget(this);
+        dock->setObjectName(QStringLiteral("dockWidget_map%1").arg(_mapDocks.size() + 1));
+        // plain tab: the extra docks cannot be closed, floated or moved individually
+        dock->setFeatures(QDockWidget::NoDockWidgetFeatures);
+        const int dockMapIdx = static_cast<int>(_mapDocks.size());
+        connect(dock, &QDockWidget::visibilityChanged, this, [this, dockMapIdx](bool visible) {
+            if (visible && !_syncingMapDocks) {
+                auto currentState = getState();
+                if (currentState)
+                    currentState->setMapIndex(dockMapIdx);
+            }
+        });
+        tabifyDockWidget(_mapDocks.last(), dock);
+        _mapDocks.append(dock);
+
+        // new docks are appended to the tab group, which would leave the new map
+        // after Charset/Tileset. Re-append those two so the maps stay together:
+        // Map 1, Map 2, ..., Charset, Tileset
+        tabifyDockWidget(dock, _ui->dockWidget_charset);
+        tabifyDockWidget(_ui->dockWidget_charset, _ui->dockWidget_tileset);
+    }
+
+    // move the shared map panel into the dock of the current map
+    for (auto* dock : std::as_const(_mapDocks)) {
+        if (dock->widget() == mapPanel && dock != _mapDocks[mapIndex]) {
+            dock->setWidget(nullptr);
+            break;
+        }
+    }
+    if (_mapDocks[mapIndex]->widget() != mapPanel) {
+        _mapDocks[mapIndex]->setWidget(mapPanel);
+        mapPanel->show();
+    }
+
+    // remove surplus docks (the panel never lives in them at this point)
+    while (_mapDocks.size() > std::max(1, mapCount)) {
+        auto dock = _mapDocks.takeLast();
+        removeDockWidget(dock);
+        dock->deleteLater();
+    }
+
+    if (_mapDocks.size() == 1)
+        _mapDocks[0]->setWindowTitle(tr("Map"));
+    else
+        for (qsizetype i = 0; i < _mapDocks.size(); ++i)
+            _mapDocks[i]->setWindowTitle(tr("Map %1").arg(i + 1));
+
+    // don't steal the tab away from Charset/Tileset unless the map switch was explicit
+    if (raiseCurrent || mapDockActive) {
+        // a freshly created dock must be shown before raise() can make its tab current
+        _mapDocks[mapIndex]->show();
+        _mapDocks[mapIndex]->raise();
+    } else if (activeOtherDock) {
+        activeOtherDock->raise();
+    }
+
+    _syncingMapDocks = false;
 }
 
 void MainWindow::updateRecentFiles()
@@ -909,6 +1025,16 @@ void MainWindow::on_radioButton_charColorPerChar_toggled(bool checked)
     auto state = getState();
     if (state)
         state->setForegroundColorMode(State::FOREGROUND_COLOR_PER_TILE);
+}
+
+void MainWindow::on_radioButton_charColorPerMapCell_toggled(bool checked)
+{
+    if (!checked)
+        return;
+
+    auto state = getState();
+    if (state)
+        state->setForegroundColorMode(State::FOREGROUND_COLOR_PER_CHAR);
 }
 
 void MainWindow::activatePalette(int paletteIndex)
@@ -1396,6 +1522,60 @@ void MainWindow::on_actionMap_Properties_triggered()
     dialog.exec();
 }
 
+void MainWindow::on_actionAdd_Map_triggered()
+{
+    auto state = getState();
+    if (state)
+        state->mapAdd();
+}
+
+void MainWindow::on_actionDelete_Map_triggered()
+{
+    auto state = getState();
+    if (state)
+        state->mapDelete();
+}
+
+void MainWindow::on_actionNext_Map_triggered()
+{
+    auto state = getState();
+    if (state)
+        state->setMapIndex((state->getMapIndex() + 1) % state->getMapCount());
+}
+
+void MainWindow::on_actionPrevious_Map_triggered()
+{
+    auto state = getState();
+    if (state)
+        state->setMapIndex((state->getMapIndex() + state->getMapCount() - 1) % state->getMapCount());
+}
+
+void MainWindow::paintSelectedMapCellColor(int pen, int color)
+{
+    auto state = getState();
+    if (!state || pen != State::PEN_FOREGROUND)
+        return;
+    if (state->getForegroundColorMode() != State::FOREGROUND_COLOR_PER_CHAR)
+        return;
+    // same idea as onSpinBoxValueChanged(): the palette steals focus, so use
+    // the last-focused editor widget to know whether a map cell is selected
+    if (_lastFocusedEditorWidget != _ui->mapWidget || _ui->mapWidget->getMode() != MapWidget::SELECT_MODE)
+        return;
+
+    const auto coord = _ui->mapWidget->getCursorCoord();
+    if (state->getColorFromMap(coord) != color)
+        state->colorMapPaint(coord, color);
+}
+
+void MainWindow::onMapIndexUpdated(int mapIndex)
+{
+    auto state = getState();
+    if (state)
+        showMessageOnStatusBar(tr("Map %1 of %2").arg(mapIndex + 1).arg(state->getMapCount()));
+    updateMapActions();
+    syncMapDocks(true);
+}
+
 void MainWindow::onSpinBoxMapSizeX_valueChanged(int newValue)
 {
     auto state = getState();
@@ -1630,7 +1810,9 @@ State::CopyRange MainWindow::bufferToClipboard(State* state) const
     } else {
         /* MAP */
         const auto& map = state->getMapBuffer();
+        const auto& colorMap = state->getColorMapBuffer();
         array.append((const char*)map.data(), std::size(map));
+        array.append((const char*)colorMap.data(), std::size(colorMap));
     }
 
     mimeData->setData("vchar64/range", array);

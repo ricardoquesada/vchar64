@@ -69,10 +69,10 @@ void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixel
                 if (ismc)
                     colorIndex = state->getColorForPen(State::PEN_MULTICOLOR1);
                 else {
-                    if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
-                        colorIndex = state->getColorForPen(State::PEN_FOREGROUND);
-                    else
+                    if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_PER_TILE)
                         colorIndex = tileColors[tileIdx];
+                    else
+                        colorIndex = state->getColorForPen(State::PEN_FOREGROUND);
                 }
                 break;
 
@@ -85,10 +85,10 @@ void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixel
             // bitmask 11: color RAM
             case 0x3:
                 Q_ASSERT(ismc && "error in logic");
-                if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
-                    colorIndex = state->getColorForPen(State::PEN_FOREGROUND) - 8;
-                else
+                if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_PER_TILE)
                     colorIndex = tileColors[tileIdx] - 8;
+                else
+                    colorIndex = state->getColorForPen(State::PEN_FOREGROUND) - 8;
                 break;
             default:
                 qDebug() << "utilsDrawCharInPainter: Invalid color: " << color << " at x,y=" << orig;
@@ -103,7 +103,7 @@ void utilsDrawCharInPainter(State* state, QPainter* painter, const QSizeF& pixel
     }
 }
 
-void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int charIdx)
+void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int charIdx, int forcedColorRAM)
 {
     Q_ASSERT(charIdx >= 0 && charIdx < 256 && "Invalid charIdx");
 
@@ -113,7 +113,9 @@ void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int
     const auto& charset = state->getCharsetBuffer();
     auto tileColors = state->getTileColors();
     int tileIdx = state->getTileIndexFromCharIndex(charIdx);
-    auto ismc = state->shouldBeDisplayedInMulticolor2(tileIdx);
+    auto ismc = (forcedColorRAM >= 0)
+        ? (state->isMulticolorMode() && forcedColorRAM >= 8)
+        : state->shouldBeDisplayedInMulticolor2(tileIdx);
 
     auto chardef = &charset[charIdx * 8];
 
@@ -147,10 +149,12 @@ void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int
                 if (ismc)
                     colorIndex = state->getColorForPen(State::PEN_MULTICOLOR1);
                 else {
-                    if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
-                        colorIndex = state->getColorForPen(State::PEN_FOREGROUND);
-                    else
+                    if (forcedColorRAM >= 0)
+                        colorIndex = forcedColorRAM;
+                    else if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_PER_TILE)
                         colorIndex = tileColors[tileIdx];
+                    else
+                        colorIndex = state->getColorForPen(State::PEN_FOREGROUND);
                 }
                 break;
 
@@ -163,10 +167,12 @@ void utilsDrawCharInImage(State* state, QImage* image, const QPoint& offset, int
             // bitmask 11: color RAM
             case 0x3:
                 Q_ASSERT(ismc && "error in logic");
-                if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL)
-                    colorIndex = state->getColorForPen(State::PEN_FOREGROUND) - 8;
-                else
+                if (forcedColorRAM >= 0)
+                    colorIndex = forcedColorRAM - 8;
+                else if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_PER_TILE)
                     colorIndex = tileColors[tileIdx] - 8;
+                else
+                    colorIndex = state->getColorForPen(State::PEN_FOREGROUND) - 8;
                 break;
             default:
                 qDebug() << "utilsDrawCharInImage: Invalid color: " << color;

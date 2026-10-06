@@ -70,6 +70,7 @@ public:
 private:
     State* _state;
     int _charIndex;
+    int _mapIdx;
 
     std::vector<quint8> _copyBuffer;
     std::vector<quint8> _origBuffer;
@@ -86,6 +87,7 @@ public:
 private:
     State* _state;
     int _charIndex;
+    int _mapIdx;
 
     std::vector<quint8> _zeroBuffer;
     std::vector<quint8> _origBuffer;
@@ -269,7 +271,8 @@ private:
     State* _state;
     QSize _new;
     QSize _old;
-    std::vector<quint8> _oldMap;
+    std::vector<State::map_t> _oldMaps;
+    std::vector<State::map_t> _oldColorMaps;
 };
 
 // FillMapCommand
@@ -283,7 +286,9 @@ private:
     State* _state;
     QPoint _coord;
     int _tileIdx;
+    int _mapIdx;
     std::vector<quint8> _oldMap;
+    std::vector<quint8> _oldColorMap;
     QSize _mapSize;
 };
 
@@ -299,9 +304,11 @@ public:
 private:
     State* _state;
     int _tileIdx;
+    int _mapIdx;
     bool _mergeable;
     QList<QPoint> _points;
     std::vector<quint8> _oldMap;
+    std::vector<quint8> _oldColorMap;
     QSize _mapSize;
 };
 
@@ -315,6 +322,48 @@ public:
 private:
     State* _state;
     int _tileIdx;
+    int _mapIdx;
     std::vector<quint8> _oldMap;
+    std::vector<quint8> _oldColorMap;
     QSize _mapSize;
+};
+
+// PaintColorMapCommand
+class PaintColorMapCommand : public QUndoCommand {
+public:
+    PaintColorMapCommand(State* state, const QPoint& position, int color, QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+
+private:
+    State* _state;
+    QPoint _coord;
+    int _color;
+    int _oldColor;
+    int _mapIdx;
+};
+
+// AddMapCommand
+class AddMapCommand : public QUndoCommand {
+public:
+    AddMapCommand(State* state, QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+
+private:
+    State* _state;
+};
+
+// DeleteMapCommand
+class DeleteMapCommand : public QUndoCommand {
+public:
+    DeleteMapCommand(State* state, QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+
+private:
+    State* _state;
+    int _mapIdx;
+    std::vector<quint8> _oldMap;
+    std::vector<quint8> _oldColorMap;
 };

@@ -149,9 +149,14 @@ qint64 StateImport::loadCTM4(State* state, QFile& file, struct CTMHeader4* v4hea
         /* no tile attribs */
     }
 
+    // CTM files hold exactly one map
+    state->_maps.assign(1, State::map_t(map_size.width() * map_size.height(), 0));
+    state->_colorMaps.assign(1, State::map_t(map_size.width() * map_size.height(), State::TILE_COLORS_DEFAULT));
+    state->_mapIndex = 0;
+
     int mapInBytes = map_size.width() * map_size.height();
     // read map
-    total += file.read((char*)state->_map.data(), mapInBytes);
+    total += file.read((char*)state->_maps[0].data(), mapInBytes);
 
     return total;
 }
@@ -211,6 +216,11 @@ qint64 StateImport::loadCTM5(State* state, QFile& file, struct CTMHeader5* v5hea
 
     // since it is expanded, there are no tile_data
 
+    // CTM files hold exactly one map
+    state->_maps.assign(1, State::map_t(map_size.width() * map_size.height(), 0));
+    state->_colorMaps.assign(1, State::map_t(map_size.width() * map_size.height(), State::TILE_COLORS_DEFAULT));
+    state->_mapIndex = 0;
+
     int mapInBytes = map_size.width() * map_size.height();
     std::vector<quint16> tmpBuffer(mapInBytes * 2);
     // read map
@@ -221,7 +231,7 @@ qint64 StateImport::loadCTM5(State* state, QFile& file, struct CTMHeader5* v5hea
             qWarning() << "Tile index" << tileIndex << "at position" << i
                        << "exceeds maximum (255). Truncating to" << (tileIndex & 0xff);
         }
-        state->_map[i] = tileIndex & 0xff;
+        state->_maps[0][i] = tileIndex & 0xff;
     }
 
     return total;
@@ -282,13 +292,13 @@ qint64 StateImport::loadVChar64(State* state, QFile& file)
         return -1;
     }
 
-    if (header.version > 3) {
+    if (header.version > 5) {
         MainWindow::getInstance()->showMessageOnStatusBar(QObject::tr("VChar version not supported"));
         qDebug() << "VChar version not supported";
         return -1;
     }
 
-    // common for version 1, 2 and 3
+    // common for all versions
 
     int num_chars = qFromLittleEndian((int)header.num_chars);
     int toRead = std::min(num_chars * 8, State::CHAR_BUFFER_SIZE);
@@ -307,8 +317,8 @@ qint64 StateImport::loadVChar64(State* state, QFile& file)
     properties.interleaved = header.char_interleaved;
     state->_setTileProperties(properties);
 
-    // version 2 and 3 only
-    if (header.version == 2 || header.version == 3) {
+    // version 2 and newer
+    if (header.version >= 2) {
         int color_mode = header.color_mode;
         state->_setForegroundColorMode(static_cast<State::ForegroundColorMode>(color_mode));
 
@@ -316,12 +326,29 @@ qint64 StateImport::loadVChar64(State* state, QFile& file)
         int map_height = qFromLittleEndian((int)header.map_height);
         state->_setMapSize(QSize(map_width, map_height));
 
+        // multiple maps were added in version 4. Older versions saved the
+        // num_maps byte uninitialized, so it must be ignored there
+        int num_maps = 1;
+        if (header.version >= 4)
+            num_maps = std::max(1, static_cast<int>(header.num_maps));
+
+        state->_maps.assign(num_maps, State::map_t(map_width * map_height, 0));
+        state->_colorMaps.assign(num_maps, State::map_t(map_width * map_height, State::TILE_COLORS_DEFAULT));
+        state->_mapIndex = 0;
+
         file.read((char*)state->_tileColors, std::size(state->_tileColors));
-        file.read((char*)state->_map.data(), map_width * map_height);
+        for (auto& map : state->_maps)
+            file.read((char*)map.data(), map_width * map_height);
+
+        // version 5: per-char color areas, only stored when color_mode == Per Char
+        if (header.version >= 5 && color_mode == State::FOREGROUND_COLOR_PER_CHAR) {
+            for (auto& colorMap : state->_colorMaps)
+                file.read((char*)colorMap.data(), map_width * map_height);
+        }
     }
 
-    // version 3 only
-    if (header.version == 3) {
+    // version 3 and newer
+    if (header.version >= 3) {
         quint16 charset_addr = qFromLittleEndian(header.address_charset);
         quint16 map_addr = qFromLittleEndian(header.address_map);
         quint16 color_addr = qFromLittleEndian(header.address_attribs);

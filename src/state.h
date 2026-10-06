@@ -70,6 +70,9 @@ class State : public QObject {
     friend class ClearMapCommand;
     friend class PaintMapCommand;
     friend class FillMapCommand;
+    friend class AddMapCommand;
+    friend class DeleteMapCommand;
+    friend class PaintColorMapCommand;
 
 public:
     // only 256 chars at the time
@@ -83,6 +86,9 @@ public:
     // Max Tile size: 8x8
     constexpr static int MAX_TILE_WIDTH = 8;
     constexpr static int MAX_TILE_HEIGHT = 8;
+
+    // Max number of maps per project (num_maps is stored in one byte)
+    constexpr static int MAX_MAPS = 255;
 
     using charset_t = quint8[CHAR_BUFFER_SIZE];
     using tileColors_t = quint8[TILE_COLORS_BUFFER_SIZE];
@@ -99,7 +105,10 @@ public:
 
     enum ForegroundColorMode {
         FOREGROUND_COLOR_GLOBAL,
-        FOREGROUND_COLOR_PER_TILE
+        FOREGROUND_COLOR_PER_TILE,
+        // one color per map cell, like the C64 color RAM at $d800.
+        // Values match the color_mode byte in the .vchar64proj format
+        FOREGROUND_COLOR_PER_CHAR
     };
 
     // what to export
@@ -107,9 +116,10 @@ public:
         EXPORT_FEATURE_NONE = 0,
         EXPORT_FEATURE_CHARSET = 1 << 0,
         EXPORT_FEATURE_MAP = 1 << 1,
-        EXPORT_FEATURE_COLORS = 1 << 2,
+        EXPORT_FEATURE_COLORS = 1 << 2, // the 256-byte per-tile colors
+        EXPORT_FEATURE_CHAR_COLORS = 1 << 3, // the per-map color areas ($d800 layout)
 
-        EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_COLORS)
+        EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_COLORS | EXPORT_FEATURE_CHAR_COLORS)
     };
 
     // format to export
@@ -150,6 +160,12 @@ public:
             TILES,
             MAP
         };
+
+        // sentinel for tileProperties.interleaved (unused in MAP ranges):
+        // marks a MAP buffer that carries the color area appended after the
+        // map data (both bufferSize/2 bytes long). Buffers without the marker
+        // (e.g. from older versions) paste tiles only
+        static constexpr int MAP_BUFFER_WITH_COLORS = -2;
 
         /** @brief offset in chars or tiles in the buffer */
         int offset;
@@ -349,6 +365,33 @@ public:
     const QSize& getMapSize() const;
 
     /**
+     * @brief setMapIndex selects which map is the current one.
+     * Not undoable: like selecting a tile, it is view state, not document data.
+     * @param mapIndex value between 0 and getMapCount()-1 (clamped)
+     */
+    void setMapIndex(int mapIndex);
+
+    /**
+     * @brief getMapIndex returns the index of the current map
+     */
+    int getMapIndex() const;
+
+    /**
+     * @brief getMapCount returns how many maps the project has. Always >= 1
+     */
+    int getMapCount() const;
+
+    /**
+     * @brief mapAdd appends a new empty map (same size as the others) and selects it
+     */
+    void mapAdd();
+
+    /**
+     * @brief mapDelete deletes the current map. At least one map always remains
+     */
+    void mapDelete();
+
+    /**
      * @brief getTileIndexFromMap returns the tiled index at mapPosition.
      * @param mapPosition position in the map
      * @return a tile index
@@ -375,6 +418,19 @@ public:
      * @param tileIdx the tile that will be used to clear the map
      */
     void mapClear(int tileIdx);
+
+    /**
+     * @brief colorMapPaint paints one cell of the color area of the current map.
+     * Only meaningful in FOREGROUND_COLOR_PER_CHAR mode
+     * @param coord the position of the map cell
+     * @param color a color between 0 and 15
+     */
+    void colorMapPaint(const QPoint& coord, int color);
+
+    /**
+     * @brief getColorFromMap returns the color-area color at mapCoord (current map)
+     */
+    int getColorFromMap(const QPoint& mapCoord) const;
 
     // is the state "dirty" ?
     [[nodiscard]] bool isModified() const;
@@ -417,10 +473,12 @@ public:
     //
     const charset_t& getCharsetBuffer() const;
     const map_t& getMapBuffer() const;
+    const map_t& getColorMapBuffer() const;
     const tileColors_t& getTileColors() const;
 
     charset_t& getCharsetBuffer();
     map_t& getMapBuffer();
+    map_t& getColorMapBuffer();
     tileColors_t& getTileColors();
 
     void resetCharsetBuffer();
@@ -491,6 +549,9 @@ signals:
 
     // when the map content is updated
     void mapContentUpdated();
+
+    // when another map is selected, or maps are added/removed
+    void mapIndexUpdated(int);
 
     // when a range of bytes in the charset changes (e.g. due to a paste)
     void bytesUpdated(int pos, int count);
@@ -573,15 +634,33 @@ protected:
 
     void _setMapSize(const QSize& mapSize);
     void _setMap(const std::vector<quint8>& map, const QSize& mapSize);
+    void _setMaps(const std::vector<map_t>& maps, const std::vector<map_t>& colorMaps, const QSize& mapSize);
+    void _setColorMap(const std::vector<quint8>& colorMap, const QSize& mapSize);
     void _mapClear(int tileIdx);
     void _mapPaint(const QPoint& coord, int tileIdx);
     void _mapFill(const QPoint& coord, int tileIdx);
+    void _colorMapPaint(const QPoint& coord, int color);
+    void _setMapIndex(int mapIndex);
+    void _mapAdd();
+    void _mapDelete(int mapIndex);
+    void _mapInsert(int mapIndex, const map_t& map, const map_t& colorMap);
+
+    map_t& _currentMap() { return _maps[_mapIndex]; }
+    const map_t& _currentMap() const { return _maps[_mapIndex]; }
+    map_t& _currentColorMap() { return _colorMaps[_mapIndex]; }
+    const map_t& _currentColorMap() const { return _colorMaps[_mapIndex]; }
 
     int _totalChars;
 
     charset_t _charset;
     tileColors_t _tileColors;
-    map_t _map;
+    // all maps share the same size (_mapSize). Always holds at least one map
+    std::vector<map_t> _maps;
+    // per-map color areas (one color per map cell, like the C64 color RAM at
+    // $d800). Always kept parallel to _maps and sized like them; only *used*
+    // when _foregroundColorMode == FOREGROUND_COLOR_PER_CHAR
+    std::vector<map_t> _colorMaps;
+    int _mapIndex;
     QSize _mapSize;
 
     bool _multicolorMode;

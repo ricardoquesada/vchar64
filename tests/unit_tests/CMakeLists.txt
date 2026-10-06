@@ -77,9 +77,11 @@ target_link_libraries(test_stateimport PRIVATE
 add_test(NAME test_stateimport COMMAND test_stateimport)
 
 # Test StateExport
+# stateimport.cpp is included so the .vchar64proj save/load round-trip can be tested
 qt_add_executable(test_stateexport
     src/tst_stateexport.cpp
     ${VCHAR64_SRC_DIR}/stateexport.cpp
+    ${VCHAR64_SRC_DIR}/stateimport.cpp
     ${COMMON_SOURCES}
 )
 

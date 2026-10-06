@@ -23,6 +23,7 @@ limitations under the License.
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QRandomGenerator>
+#include <QtCore/QRegularExpression>
 #include <QtCore/QTime>
 #include <QtCore/QtGlobal>
 #include <QtGui/QPainter>
@@ -42,6 +43,7 @@ limitations under the License.
 State::State(const QString& filename,
     const QSize& mapSize)
     : _totalChars(0)
+    , _mapIndex(0)
     , _mapSize(mapSize)
     , _multicolorMode(false)
     , _foregroundColorMode(FOREGROUND_COLOR_GLOBAL)
@@ -61,9 +63,11 @@ State::State(const QString& filename,
     _undoStack = new QUndoStack;
 
     Q_ASSERT(_mapSize.width() > 0 && _mapSize.height() > 0 && "Invalid size");
-    _map.resize(_mapSize.width() * _mapSize.height());
+    _maps.resize(1);
+    _currentMap().resize(_mapSize.width() * _mapSize.height());
+    _colorMaps.assign(1, map_t(_mapSize.width() * _mapSize.height(), TILE_COLORS_DEFAULT));
     setupDefaultMap();
-    Q_ASSERT(std::size(_map) == static_cast<std::size_t>(_mapSize.width() * _mapSize.height()));
+    Q_ASSERT(std::size(_currentMap()) == static_cast<std::size_t>(_mapSize.width() * _mapSize.height()));
 
     std::fill_n(std::begin(_charset), std::size(_charset), 0);
     std::fill_n(std::begin(_tileColors), std::size(_tileColors), TILE_COLORS_DEFAULT);
@@ -98,7 +102,9 @@ void State::copyState(const State& copyFromMe)
 
     std::copy(std::begin(copyFromMe._charset), std::end(copyFromMe._charset), std::begin(_charset));
     std::copy(std::begin(copyFromMe._tileColors), std::end(copyFromMe._tileColors), std::begin(_tileColors));
-    _map = copyFromMe._map;
+    _maps = copyFromMe._maps;
+    _colorMaps = copyFromMe._colorMaps;
+    _mapIndex = copyFromMe._mapIndex;
 }
 
 State::~State()
@@ -130,7 +136,10 @@ void State::reset()
 
     std::fill_n(std::begin(_charset), std::size(_charset), 0);
     std::fill_n(std::begin(_tileColors), std::size(_tileColors), TILE_COLORS_DEFAULT);
-    std::fill_n(std::begin(_map), std::size(_map), 0);
+    _maps.resize(1);
+    _colorMaps.assign(1, map_t(std::size(_maps[0]), TILE_COLORS_DEFAULT));
+    _mapIndex = 0;
+    std::fill_n(std::begin(_currentMap()), std::size(_currentMap()), 0);
 }
 
 void State::emitNewState()
@@ -214,35 +223,49 @@ bool State::openFile(const QString& filename)
 
 static QString filenameFixSuffix(const QString& filename, State::ExportFeature suffix)
 {
-    QString validDescriptions[] = {
-        "-charset",
-        "-map",
-        "-colors"
-    };
-
     QFileInfo info(filename);
 
     auto extension = info.suffix();
     auto filepath = info.path();
     auto name = info.baseName();
 
-    // remove possible suffix
-    for (const auto& validDescription : validDescriptions) {
-        if (name.endsWith(validDescription)) {
-            name = name.left(name.length() - validDescription.length());
-            break;
-        }
-    }
+    // remove possible suffix, including numbered suffixes like "-map01" /
+    // "-char-colors01", and the legacy "-colors" one. Longer alternatives
+    // must come before "-colors" so "-tile-colors" is stripped whole
+    name.remove(QRegularExpression("(-charset|-map\\d*|-tile-colors|-char-colors\\d*|-colors\\d*)$"));
 
     // add suffix
     if (suffix == State::EXPORT_FEATURE_CHARSET)
-        name.append(validDescriptions[0]);
+        name.append("-charset");
     else if (suffix == State::EXPORT_FEATURE_MAP)
-        name.append(validDescriptions[1]);
-    else /* map */
-        name.append(validDescriptions[2]);
+        name.append("-map");
+    else if (suffix == State::EXPORT_FEATURE_CHAR_COLORS)
+        name.append("-char-colors");
+    else /* tile colors */
+        name.append("-tile-colors");
 
     return filepath + "/" + name + "." + extension;
+}
+
+// per-map files: "-map"/"-char-colors" when the project has one map,
+// "-map01", "-map02"/"-char-colors01", "-char-colors02", ... when it has more
+static QString indexedFilenameFixSuffix(const QString& filename, State::ExportFeature feature, int mapIndex, int mapCount)
+{
+    auto fixed = filenameFixSuffix(filename, feature);
+    if (mapCount <= 1)
+        return fixed;
+
+    QFileInfo info(fixed);
+    return info.path() + "/" + info.baseName()
+        + QString("%1").arg(mapIndex + 1, 2, 10, QChar('0'))
+        + "." + info.suffix();
+}
+
+static QString indexedExportLabel(const QString& base, int mapIndex, int mapCount)
+{
+    if (mapCount <= 1)
+        return base;
+    return QStringLiteral("%1%2").arg(base).arg(mapIndex + 1, 2, 10, QChar('0'));
 }
 
 bool State::export_()
@@ -286,11 +309,13 @@ bool State::exportRaw(const QString& filename, const ExportProperties& propertie
     }
 
     if (properties.features & EXPORT_FEATURE_MAP) {
-        bytesWritten = StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-            _map.data(), std::size(_map));
-        if (bytesWritten <= 0) {
-            qDebug() << "Failed to export Map to Raw";
-            return false;
+        for (int i = 0; i < getMapCount(); ++i) {
+            bytesWritten = StateExport::saveRaw(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_MAP, i, getMapCount()),
+                _maps[i].data(), std::size(_maps[i]));
+            if (bytesWritten <= 0) {
+                qDebug() << "Failed to export Map to Raw";
+                return false;
+            }
         }
     }
 
@@ -298,8 +323,20 @@ bool State::exportRaw(const QString& filename, const ExportProperties& propertie
         bytesWritten = StateExport::saveRaw(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
             _tileColors, std::size(_tileColors));
         if (bytesWritten <= 0) {
-            qDebug() << "Failed to export Colors to Raw";
+            qDebug() << "Failed to export Tile Colors to Raw";
             return false;
+        }
+    }
+
+    if (properties.features & EXPORT_FEATURE_CHAR_COLORS) {
+        // the per-map color areas ($d800 layout), one file per map
+        for (int i = 0; i < getMapCount(); ++i) {
+            bytesWritten = StateExport::saveRaw(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_CHAR_COLORS, i, getMapCount()),
+                _colorMaps[i].data(), std::size(_colorMaps[i]));
+            if (bytesWritten <= 0) {
+                qDebug() << "Failed to export Char Colors to Raw";
+                return false;
+            }
         }
     }
 
@@ -320,15 +357,25 @@ bool State::exportPRG(const QString& filename, const ExportProperties& propertie
                     _charset, std::size(_charset), properties.addresses[0])
             > 0);
 
-    if (ret && (properties.features & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map.data(), std::size(_map), properties.addresses[1])
-            > 0);
+    if (ret && (properties.features & EXPORT_FEATURE_MAP)) {
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::savePRG(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_MAP, i, getMapCount()),
+                        _maps[i].data(), std::size(_maps[i]), properties.addresses[1])
+                > 0);
+    }
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::savePRG(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
                     _tileColors, std::size(_tileColors), properties.addresses[2])
             > 0);
+
+    if (ret && (properties.features & EXPORT_FEATURE_CHAR_COLORS)) {
+        // char colors share the Tile Colors address (both target $d800)
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::savePRG(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_CHAR_COLORS, i, getMapCount()),
+                        _colorMaps[i].data(), std::size(_colorMaps[i]), properties.addresses[2])
+                > 0);
+    }
 
     if (ret) {
         _exportedFilename = filename;
@@ -348,15 +395,24 @@ bool State::exportAsm(const QString& filename, const ExportProperties& propertie
                     _charset, std::size(_charset), "charset")
             > 0);
 
-    if (ret && (properties.features & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map.data(), std::size(_map), "map")
-            > 0);
+    if (ret && (properties.features & EXPORT_FEATURE_MAP)) {
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::saveAsm(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_MAP, i, getMapCount()),
+                        _maps[i].data(), std::size(_maps[i]), indexedExportLabel(QStringLiteral("map"), i, getMapCount()))
+                > 0);
+    }
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveAsm(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
                     _tileColors, std::size(_tileColors), "colors")
             > 0);
+
+    if (ret && (properties.features & EXPORT_FEATURE_CHAR_COLORS)) {
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::saveAsm(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_CHAR_COLORS, i, getMapCount()),
+                        _colorMaps[i].data(), std::size(_colorMaps[i]), indexedExportLabel(QStringLiteral("char_colors"), i, getMapCount()))
+                > 0);
+    }
 
     if (ret) {
         _exportedFilename = filename;
@@ -375,15 +431,24 @@ bool State::exportC(const QString& filename, const ExportProperties& properties)
                     _charset, std::size(_charset), "charset")
             > 0);
 
-    if (ret && (properties.features & EXPORT_FEATURE_MAP))
-        ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_MAP),
-                    _map.data(), std::size(_map), "map")
-            > 0);
+    if (ret && (properties.features & EXPORT_FEATURE_MAP)) {
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::saveC(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_MAP, i, getMapCount()),
+                        _maps[i].data(), std::size(_maps[i]), indexedExportLabel(QStringLiteral("map"), i, getMapCount()))
+                > 0);
+    }
 
     if (ret && (properties.features & EXPORT_FEATURE_COLORS))
         ret &= (StateExport::saveC(filenameFixSuffix(filename, EXPORT_FEATURE_COLORS),
                     _tileColors, std::size(_tileColors), "colors")
             > 0);
+
+    if (ret && (properties.features & EXPORT_FEATURE_CHAR_COLORS)) {
+        for (int i = 0; ret && i < getMapCount(); ++i)
+            ret &= (StateExport::saveC(indexedFilenameFixSuffix(filename, EXPORT_FEATURE_CHAR_COLORS, i, getMapCount()),
+                        _colorMaps[i].data(), std::size(_colorMaps[i]), indexedExportLabel(QStringLiteral("char_colors"), i, getMapCount()))
+                > 0);
+    }
 
     if (ret) {
         _exportedFilename = filename;
@@ -460,12 +525,14 @@ bool State::shouldBeDisplayedInMulticolor() const
 
 bool State::shouldBeDisplayedInMulticolor2(int tileIdx) const
 {
-    Q_ASSERT(((tileIdx == -1 && _foregroundColorMode == FOREGROUND_COLOR_GLOBAL)
+    Q_ASSERT(((tileIdx == -1 && _foregroundColorMode != FOREGROUND_COLOR_PER_TILE)
                  || (tileIdx >= 0 && tileIdx < 256))
         && "Invalid tileIdx");
 
+    // PER_CHAR behaves like GLOBAL here: charset-level widgets use the global
+    // foreground pen; the per-cell decision is made by MapWidget per map cell
     return (_multicolorMode
-        && ((_foregroundColorMode == FOREGROUND_COLOR_GLOBAL && _penColors[PEN_FOREGROUND] >= 8)
+        && ((_foregroundColorMode != FOREGROUND_COLOR_PER_TILE && _penColors[PEN_FOREGROUND] >= 8)
             || (_foregroundColorMode == FOREGROUND_COLOR_PER_TILE && (_tileColors[tileIdx] & 0xf) >= 8)));
 }
 
@@ -726,27 +793,107 @@ void State::_setMapSize(const QSize& mapSize)
 {
     if (_mapSize != mapSize) {
         const int newSizeInBytes = mapSize.width() * mapSize.height();
-        std::vector<quint8> newMap(newSizeInBytes);
 
-        for (int i = 0; i < newSizeInBytes; ++i)
-            newMap[i] = _tileIndex;
+        auto resizeOne = [&](map_t& map, quint8 filler) {
+            std::vector<quint8> newMap(newSizeInBytes, filler);
 
-        for (int row = 0; row < mapSize.height(); ++row) {
-            // no more rows to copy
-            if (row >= _mapSize.height())
-                break;
+            for (int row = 0; row < mapSize.height(); ++row) {
+                // no more rows to copy
+                if (row >= _mapSize.height())
+                    break;
 
-            // bytes to copy per row
-            int toCopy = std::min(mapSize.width(), _mapSize.width());
-            std::copy_n(&_map[_mapSize.width() * row], toCopy, &newMap[mapSize.width() * row]);
-        }
+                // bytes to copy per row
+                int toCopy = std::min(mapSize.width(), _mapSize.width());
+                std::copy_n(&map[_mapSize.width() * row], toCopy, &newMap[mapSize.width() * row]);
+            }
 
-        _map = newMap;
+            map = newMap;
+        };
+
+        // all maps (and their color areas) share the same size
+        for (auto& map : _maps)
+            resizeOne(map, _tileIndex);
+        for (auto& colorMap : _colorMaps)
+            resizeOne(colorMap, TILE_COLORS_DEFAULT);
+
         _mapSize = mapSize;
 
         emit mapSizeUpdated();
         emit contentsChanged();
     }
+}
+
+void State::setMapIndex(int mapIndex)
+{
+    _setMapIndex(mapIndex);
+}
+
+void State::_setMapIndex(int mapIndex)
+{
+    mapIndex = std::clamp(mapIndex, 0, getMapCount() - 1);
+    if (mapIndex != _mapIndex) {
+        _mapIndex = mapIndex;
+
+        emit mapIndexUpdated(_mapIndex);
+        emit mapContentUpdated();
+    }
+}
+
+int State::getMapIndex() const
+{
+    return _mapIndex;
+}
+
+int State::getMapCount() const
+{
+    return static_cast<int>(_maps.size());
+}
+
+void State::mapAdd()
+{
+    if (getMapCount() < MAX_MAPS)
+        getUndoStack()->push(new AddMapCommand(this));
+}
+
+void State::mapDelete()
+{
+    if (getMapCount() > 1)
+        getUndoStack()->push(new DeleteMapCommand(this));
+}
+
+void State::_mapAdd()
+{
+    _maps.emplace_back(_mapSize.width() * _mapSize.height(), 0);
+    _colorMaps.emplace_back(_mapSize.width() * _mapSize.height(), TILE_COLORS_DEFAULT);
+    _mapIndex = getMapCount() - 1;
+
+    // emitted even though the index might be unchanged: the map count changed
+    emit mapIndexUpdated(_mapIndex);
+    emit mapContentUpdated();
+    emit contentsChanged();
+}
+
+void State::_mapDelete(int mapIndex)
+{
+    Q_ASSERT(getMapCount() > 1 && "Cannot delete the last map");
+    _maps.erase(_maps.begin() + mapIndex);
+    _colorMaps.erase(_colorMaps.begin() + mapIndex);
+    _mapIndex = std::min(mapIndex, getMapCount() - 1);
+
+    emit mapIndexUpdated(_mapIndex);
+    emit mapContentUpdated();
+    emit contentsChanged();
+}
+
+void State::_mapInsert(int mapIndex, const map_t& map, const map_t& colorMap)
+{
+    _maps.insert(_maps.begin() + mapIndex, map);
+    _colorMaps.insert(_colorMaps.begin() + mapIndex, colorMap);
+    _mapIndex = mapIndex;
+
+    emit mapIndexUpdated(_mapIndex);
+    emit mapContentUpdated();
+    emit contentsChanged();
 }
 
 const QSize& State::getMapSize() const
@@ -757,7 +904,7 @@ const QSize& State::getMapSize() const
 int State::getTileIndexFromMap(const QPoint& mapCoord) const
 {
     Q_ASSERT(mapCoord.x() < _mapSize.width() && mapCoord.y() < _mapSize.height() && "Invalid map size");
-    int tileIndex = _map[_mapSize.width() * mapCoord.y() + mapCoord.x()];
+    int tileIndex = _currentMap()[_mapSize.width() * mapCoord.y() + mapCoord.x()];
 
     // safety check: map could have tiles bigger than the maximum supported if the tiles were resized.
     tileIndex = std::clamp(tileIndex, 0, 256 / (_tileProperties.size.width() * _tileProperties.size.height()) - 1);
@@ -770,10 +917,12 @@ void State::floodFillImpl(const QPoint& coord, int targetTile, int newTile)
         return;
     if (coord.y() < 0 || coord.y() >= _mapSize.height())
         return;
-    if (_map[coord.y() * _mapSize.width() + coord.x()] != targetTile)
+    if (_currentMap()[coord.y() * _mapSize.width() + coord.x()] != targetTile)
         return;
 
-    _map[coord.y() * _mapSize.width() + coord.x()] = newTile;
+    _currentMap()[coord.y() * _mapSize.width() + coord.x()] = newTile;
+    if (_foregroundColorMode == FOREGROUND_COLOR_PER_CHAR)
+        _currentColorMap()[coord.y() * _mapSize.width() + coord.x()] = _penColors[PEN_FOREGROUND];
 
     floodFillImpl(QPoint(coord.x() - 1, coord.y()), targetTile, newTile);
     floodFillImpl(QPoint(coord.x() + 1, coord.y()), targetTile, newTile);
@@ -789,7 +938,7 @@ void State::mapFill(const QPoint& coord, int tileIdx)
 void State::_mapFill(const QPoint& coord, int tileIdx)
 {
     if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height()) {
-        int targetTile = _map[coord.y() * _mapSize.width() + coord.x()];
+        int targetTile = _currentMap()[coord.y() * _mapSize.width() + coord.x()];
 
         if (targetTile != tileIdx) {
             floodFillImpl(coord, targetTile, tileIdx);
@@ -807,10 +956,34 @@ void State::mapPaint(const QPoint& coord, int tileIdx, bool mergeable)
 void State::_mapPaint(const QPoint& coord, int tileIdx)
 {
     if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height()) {
-        _map[coord.y() * _mapSize.width() + coord.x()] = tileIdx;
+        _currentMap()[coord.y() * _mapSize.width() + coord.x()] = tileIdx;
+        // painting in per-char mode also stamps the current foreground color,
+        // like writing to the screen and to $d800 on a real C64
+        if (_foregroundColorMode == FOREGROUND_COLOR_PER_CHAR)
+            _currentColorMap()[coord.y() * _mapSize.width() + coord.x()] = _penColors[PEN_FOREGROUND];
         emit mapContentUpdated();
         emit contentsChanged();
     }
+}
+
+void State::colorMapPaint(const QPoint& coord, int color)
+{
+    getUndoStack()->push(new PaintColorMapCommand(this, coord, color));
+}
+
+void State::_colorMapPaint(const QPoint& coord, int color)
+{
+    if (coord.x() < _mapSize.width() && coord.y() < _mapSize.height()) {
+        _currentColorMap()[coord.y() * _mapSize.width() + coord.x()] = color;
+        emit mapContentUpdated();
+        emit contentsChanged();
+    }
+}
+
+int State::getColorFromMap(const QPoint& mapCoord) const
+{
+    Q_ASSERT(mapCoord.x() < _mapSize.width() && mapCoord.y() < _mapSize.height() && "Invalid map size");
+    return _currentColorMap()[_mapSize.width() * mapCoord.y() + mapCoord.x()];
 }
 
 void State::mapClear(int tileIdx)
@@ -820,7 +993,9 @@ void State::mapClear(int tileIdx)
 
 void State::_mapClear(int tileIdx)
 {
-    std::fill(std::begin(_map), std::end(_map), tileIdx);
+    std::fill(std::begin(_currentMap()), std::end(_currentMap()), tileIdx);
+    if (_foregroundColorMode == FOREGROUND_COLOR_PER_CHAR)
+        std::fill(std::begin(_currentColorMap()), std::end(_currentColorMap()), _penColors[PEN_FOREGROUND]);
 
     emit mapContentUpdated();
     emit contentsChanged();
@@ -829,7 +1004,30 @@ void State::_mapClear(int tileIdx)
 void State::_setMap(const std::vector<quint8>& map, const QSize& mapSize)
 {
     Q_ASSERT(_mapSize == mapSize && "Invalid map size");
-    _map = map;
+    _currentMap() = map;
+
+    emit mapContentUpdated();
+    emit contentsChanged();
+}
+
+void State::_setMaps(const std::vector<map_t>& maps, const std::vector<map_t>& colorMaps, const QSize& mapSize)
+{
+    Q_ASSERT(_mapSize == mapSize && "Invalid map size");
+    Q_ASSERT(!maps.empty() && "At least one map is required");
+    Q_ASSERT(maps.size() == colorMaps.size() && "One color area per map is required");
+    _maps = maps;
+    _colorMaps = colorMaps;
+    _mapIndex = std::min(_mapIndex, getMapCount() - 1);
+
+    emit mapIndexUpdated(_mapIndex);
+    emit mapContentUpdated();
+    emit contentsChanged();
+}
+
+void State::_setColorMap(const std::vector<quint8>& colorMap, const QSize& mapSize)
+{
+    Q_ASSERT(_mapSize == mapSize && "Invalid map size");
+    _currentColorMap() = colorMap;
 
     emit mapContentUpdated();
     emit contentsChanged();
@@ -843,7 +1041,12 @@ const State::charset_t& State::getCharsetBuffer() const
 
 const State::map_t& State::getMapBuffer() const
 {
-    return _map;
+    return _currentMap();
+}
+
+const State::map_t& State::getColorMapBuffer() const
+{
+    return _currentColorMap();
 }
 
 const State::tileColors_t& State::getTileColors() const
@@ -858,7 +1061,12 @@ State::charset_t& State::getCharsetBuffer()
 
 State::map_t& State::getMapBuffer()
 {
-    return _map;
+    return _currentMap();
+}
+
+State::map_t& State::getColorMapBuffer()
+{
+    return _currentColorMap();
 }
 
 State::tileColors_t& State::getTileColors()
@@ -1039,21 +1247,31 @@ void State::_pasteTiles(int charIndex, const CopyRange& copyRange, const quint8*
 
 void State::_pasteMap(int charIndex, const CopyRange& copyRange, const quint8* origBuffer)
 {
-    int count = copyRange.count;
-    quint8* dst = _map.data() + charIndex;
-    const quint8* src = origBuffer + copyRange.offset;
+    auto pastePlane = [&](quint8* dstPlane, const quint8* srcPlane) {
+        int count = copyRange.count;
+        quint8* dst = dstPlane + charIndex;
+        const quint8* src = srcPlane + copyRange.offset;
+        const auto lastByte = dstPlane + _mapSize.width() * _mapSize.height();
 
-    while (count > 0) {
-        const auto lastByte = _map.data() + _mapSize.width() * _mapSize.height();
-        int bytesToCopy = std::min((qint64)copyRange.blockSize, (qint64)(lastByte - dst));
-        if (bytesToCopy < 0)
-            break;
-        std::memcpy(dst, src, bytesToCopy);
+        while (count > 0) {
+            int bytesToCopy = std::min((qint64)copyRange.blockSize, (qint64)(lastByte - dst));
+            if (bytesToCopy < 0)
+                break;
+            std::memcpy(dst, src, bytesToCopy);
 
-        dst += copyRange.blockSize + copyRange.skip;
-        src += copyRange.blockSize + copyRange.skip;
-        count--;
-    }
+            dst += copyRange.blockSize + copyRange.skip;
+            src += copyRange.blockSize + copyRange.skip;
+            count--;
+        }
+    };
+
+    pastePlane(_currentMap().data(), origBuffer);
+
+    // buffers that carry the color area paste it too, keeping per-char colors
+    // together with their tiles (data is kept in every color mode)
+    if (copyRange.tileProperties.interleaved == CopyRange::MAP_BUFFER_WITH_COLORS)
+        pastePlane(_currentColorMap().data(), origBuffer + copyRange.bufferSize / 2);
+
     emit mapContentUpdated();
 }
 
@@ -1523,7 +1741,7 @@ BigCharWidget* State::getBigCharWidget() const
 
 void State::setupDefaultMap()
 {
-    std::fill(std::begin(_map), std::end(_map), 0x20);
+    std::fill(std::begin(_currentMap()), std::end(_currentMap()), 0x20);
     // 1234567890123456789012345678901234567890
     constexpr char hello64[] = "                                        "
                                "    **** COMMODORE 64 BASIC V2 ****     "
@@ -1547,5 +1765,5 @@ void State::setupDefaultMap()
     int helloidx = prng.generate() % 2;
     // ASCII to PETSCII screen codes
     for (int i = 0; i < hellos[helloidx].helloSize; ++i)
-        _map[i] = hellos[helloidx].hello[i] & ~0x40;
+        _currentMap()[i] = hellos[helloidx].hello[i] & ~0x40;
 }

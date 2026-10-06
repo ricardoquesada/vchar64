@@ -6,6 +6,7 @@
 #include "mock_state.h"
 #include "state.h"
 #include "stateexport.h"
+#include "stateimport.h"
 
 class TestStateExport : public QObject {
     Q_OBJECT
@@ -22,6 +23,9 @@ private slots:
     void testExportAsm();
     void testExportC();
     void testExportPNG();
+    void testVChar64ProjSingleMapKeepsVersion3();
+    void testVChar64ProjMultiMapRoundTrip();
+    void testVChar64ProjPerCharColorsRoundTrip();
 
 private:
     State* m_state;
@@ -160,6 +164,117 @@ void TestStateExport::testExportPNG()
 
     QVERIFY(bytes > 0);
     QVERIFY(QFile::exists(filename));
+
+    QFile::remove(filename);
+}
+
+static void setupProjectState(State& state, int numMaps, const QSize& mapSize)
+{
+    state._multicolorMode = false;
+    state._foregroundColorMode = State::FOREGROUND_COLOR_GLOBAL;
+    state._keyboardMapping = State::KEYBOARD_MAPPING_C64;
+    state._tileProperties = { QSize(1, 1), 1 };
+    state._setMapSize(mapSize);
+
+    const int mapInBytes = mapSize.width() * mapSize.height();
+    state._maps.assign(numMaps, std::vector<quint8>(mapInBytes, 0));
+    state._colorMaps.assign(numMaps, std::vector<quint8>(mapInBytes, State::TILE_COLORS_DEFAULT));
+    state._mapIndex = 0;
+    for (int m = 0; m < numMaps; ++m)
+        for (int i = 0; i < mapInBytes; ++i)
+            state._maps[m][i] = (m * 100 + i) & 0xff;
+}
+
+void TestStateExport::testVChar64ProjSingleMapKeepsVersion3()
+{
+    State state;
+    setupProjectState(state, 1, QSize(8, 4));
+
+    QString filename = "test_singlemap.vchar64proj";
+    QFile file(filename);
+    QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    QVERIFY(StateExport::saveVChar64(&state, file) > 0);
+    file.close();
+
+    // single-map projects must stay loadable by older releases: version 3
+    QFile rfile(filename);
+    QVERIFY(rfile.open(QIODevice::ReadOnly));
+    QByteArray header = rfile.read(32);
+    rfile.close();
+    QCOMPARE((quint8)header.at(5), 3);
+
+    QFile::remove(filename);
+}
+
+void TestStateExport::testVChar64ProjMultiMapRoundTrip()
+{
+    const QSize mapSize(8, 4);
+    State out;
+    setupProjectState(out, 3, mapSize);
+
+    QString filename = "test_multimap.vchar64proj";
+    QFile file(filename);
+    QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    QVERIFY(StateExport::saveVChar64(&out, file) > 0);
+    file.close();
+
+    // multi-map projects are saved as version 4, with num_maps at offset 30
+    QFile hfile(filename);
+    QVERIFY(hfile.open(QIODevice::ReadOnly));
+    QByteArray header = hfile.read(32);
+    hfile.close();
+    QCOMPARE((quint8)header.at(5), 4);
+    QCOMPARE((quint8)header.at(30), 3);
+
+    State in;
+    QFile rfile(filename);
+    QVERIFY(rfile.open(QIODevice::ReadOnly));
+    QVERIFY(StateImport::loadVChar64(&in, rfile) > 0);
+    rfile.close();
+
+    QCOMPARE(in.getMapCount(), 3);
+    QCOMPARE(in._mapSize, mapSize);
+    QCOMPARE(in._mapIndex, 0);
+    QVERIFY(in._maps == out._maps);
+
+    QFile::remove(filename);
+}
+
+void TestStateExport::testVChar64ProjPerCharColorsRoundTrip()
+{
+    const QSize mapSize(8, 4);
+    const int mapInBytes = mapSize.width() * mapSize.height();
+    State out;
+    setupProjectState(out, 2, mapSize);
+    out._foregroundColorMode = State::FOREGROUND_COLOR_PER_CHAR;
+    for (int m = 0; m < 2; ++m)
+        for (int i = 0; i < mapInBytes; ++i)
+            out._colorMaps[m][i] = (m * 7 + i) & 0xf;
+
+    QString filename = "test_percharcolors.vchar64proj";
+    QFile file(filename);
+    QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    QVERIFY(StateExport::saveVChar64(&out, file) > 0);
+    file.close();
+
+    // per-char colors require version 5
+    QFile hfile(filename);
+    QVERIFY(hfile.open(QIODevice::ReadOnly));
+    QByteArray header = hfile.read(32);
+    hfile.close();
+    QCOMPARE((quint8)header.at(5), 5);
+    QCOMPARE((quint8)header.at(16), (quint8)State::FOREGROUND_COLOR_PER_CHAR);
+
+    State in;
+    QFile rfile(filename);
+    QVERIFY(rfile.open(QIODevice::ReadOnly));
+    QVERIFY(StateImport::loadVChar64(&in, rfile) > 0);
+    rfile.close();
+
+    QCOMPARE(in.getMapCount(), 2);
+    QCOMPARE((int)in._foregroundColorMode, (int)State::FOREGROUND_COLOR_PER_CHAR);
+    QVERIFY(in._maps == out._maps);
+    QVERIFY(in._colorMaps == out._colorMaps);
 
     QFile::remove(filename);
 }

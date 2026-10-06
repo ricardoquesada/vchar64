@@ -19,6 +19,7 @@ limitations under the License.
 #include <memory>
 
 #include "state.h"
+#include <QHash>
 #include <QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -71,6 +72,7 @@ protected:
     [[nodiscard]] QSize sizeHint() const override;
 
     void updateTileImages();
+    QImage* coloredTileImage(State* state, int tileIdx, int color);
 
 private:
     bool _displayGrid;
@@ -88,4 +90,9 @@ private:
     // For gain speed, each tile will be pre-renderer in a QImage
     // a QImages will be renderer
     QImage* _tileImages[256];
+
+    // FOREGROUND_COLOR_PER_CHAR only: tiles re-rendered with a specific
+    // color-RAM color, built lazily per (tileIdx, color) pair.
+    // Key: (tileIdx << 4) | color
+    QHash<int, QImage*> _coloredTileImages;
 };

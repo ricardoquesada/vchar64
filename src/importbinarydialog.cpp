@@ -145,15 +145,27 @@ void ImportBinaryDialog::onImport()
 
     // Copy colors
     auto& targetColors = state->getTileColors();
+    std::fill(std::begin(targetColors), std::end(targetColors), State::TILE_COLORS_DEFAULT);
+
+    bool perCharColors = false;
     if (colorsData.size() > 0) {
-        int copyColors = std::min((int)colorsData.size(), State::TILE_COLORS_BUFFER_SIZE);
-        std::copy(colorsData.begin(), colorsData.begin() + copyColors, std::begin(targetColors));
-    } else {
-        std::fill(std::begin(targetColors), std::end(targetColors), State::TILE_COLORS_DEFAULT);
+        if (colorsData.size() >= mapData.size()) {
+            // the colors file covers every map cell: treat it as a color RAM
+            // dump ($d800) and import it as per-char colors. Only the low
+            // nybble is meaningful (the upper one is open bus on a C64)
+            perCharColors = true;
+            auto& targetColorMap = state->getColorMapBuffer();
+            targetColorMap.resize(size);
+            for (int i = 0; i < size; ++i)
+                targetColorMap[i] = colorsData[i] & 0x0f;
+        } else {
+            int copyColors = std::min((int)colorsData.size(), State::TILE_COLORS_BUFFER_SIZE);
+            std::copy(colorsData.begin(), colorsData.begin() + copyColors, std::begin(targetColors));
+        }
     }
 
     state->setMulticolorMode(false);
-    state->setForegroundColorMode(State::FOREGROUND_COLOR_PER_TILE);
+    state->setForegroundColorMode(perCharColors ? State::FOREGROUND_COLOR_PER_CHAR : State::FOREGROUND_COLOR_PER_TILE);
 
     MainWindow::getInstance()->createDocument(state);
     accept();
