@@ -16,6 +16,7 @@ limitations under the License.
 
 #pragma once
 
+#include <QList>
 #include <QMainWindow>
 #include <QString>
 #include <QVector>
@@ -24,6 +25,7 @@ limitations under the License.
 
 QT_BEGIN_NAMESPACE
 class QUndoView;
+class QDockWidget;
 class QLabel;
 class QMdiSubWindow;
 class QSpinBox;
@@ -121,6 +123,8 @@ protected:
     void activatePalette(int paletteIndex);
 
     void updateMenus();
+    void updateMapActions();
+    void syncMapDocks(bool raiseCurrent);
 
     void closeEvent(QCloseEvent* event) override;
     bool eventFilter(QObject* watched, QEvent* event) override;
@@ -194,6 +198,12 @@ private slots:
 
     void on_actionMap_Properties_triggered();
 
+    void on_actionAdd_Map_triggered();
+    void on_actionDelete_Map_triggered();
+    void on_actionNext_Map_triggered();
+    void on_actionPrevious_Map_triggered();
+    void onMapIndexUpdated(int mapIndex);
+
     void onSpinBoxMapSizeX_valueChanged(int newValue);
     void onSpinBoxMapSizeY_valueChanged(int newValue);
     void onMapSizeUpdated();
@@ -242,4 +252,12 @@ private:
     // Needed because triggering Copy/Paste from the Edit menu momentarily steals focus
     // away from these widgets, so a plain hasFocus() check fails at that point.
     QWidget* _lastFocusedEditorWidget = nullptr;
+
+    // One dock tab per map ("Map 1", "Map 2", ...); index 0 is dockWidget_map from the
+    // .ui file. There is only one map panel (dockWidgetContents_map) — it is moved into
+    // whichever map dock is the current tab.
+    QList<QDockWidget*> _mapDocks;
+    // Guards against visibilityChanged feedback while syncMapDocks() itself
+    // tabifies/raises/removes docks.
+    bool _syncingMapDocks = false;
 };

@@ -152,11 +152,11 @@ void ImportVICEDialog::on_spinBoxScreenRAM_valueChanged(int address)
 {
     Q_ASSERT(address <= (65536 - 1024) && "invalid address");
 
-    std::copy_n(std::begin(_memoryRAM) + address, 40 * 25, std::begin(_tmpState->_map));
+    std::copy_n(std::begin(_memoryRAM) + address, 40 * 25, std::begin(_tmpState->getMapBuffer()));
 
     for (int i = 40 * 25 - 1; i >= 0; --i) {
         quint8 tileColor = _colorRAM[i];
-        quint8 tileIdx = _tmpState->_map[i];
+        quint8 tileIdx = _tmpState->getMapBuffer()[i];
 
         _tmpState->_tileColors[tileIdx] = tileColor;
     }

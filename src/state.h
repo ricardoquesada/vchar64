@@ -70,6 +70,8 @@ class State : public QObject {
     friend class ClearMapCommand;
     friend class PaintMapCommand;
     friend class FillMapCommand;
+    friend class AddMapCommand;
+    friend class DeleteMapCommand;
 
 public:
     // only 256 chars at the time
@@ -83,6 +85,9 @@ public:
     // Max Tile size: 8x8
     constexpr static int MAX_TILE_WIDTH = 8;
     constexpr static int MAX_TILE_HEIGHT = 8;
+
+    // Max number of maps per project (num_maps is stored in one byte)
+    constexpr static int MAX_MAPS = 255;
 
     using charset_t = quint8[CHAR_BUFFER_SIZE];
     using tileColors_t = quint8[TILE_COLORS_BUFFER_SIZE];
@@ -349,6 +354,33 @@ public:
     const QSize& getMapSize() const;
 
     /**
+     * @brief setMapIndex selects which map is the current one.
+     * Not undoable: like selecting a tile, it is view state, not document data.
+     * @param mapIndex value between 0 and getMapCount()-1 (clamped)
+     */
+    void setMapIndex(int mapIndex);
+
+    /**
+     * @brief getMapIndex returns the index of the current map
+     */
+    int getMapIndex() const;
+
+    /**
+     * @brief getMapCount returns how many maps the project has. Always >= 1
+     */
+    int getMapCount() const;
+
+    /**
+     * @brief mapAdd appends a new empty map (same size as the others) and selects it
+     */
+    void mapAdd();
+
+    /**
+     * @brief mapDelete deletes the current map. At least one map always remains
+     */
+    void mapDelete();
+
+    /**
      * @brief getTileIndexFromMap returns the tiled index at mapPosition.
      * @param mapPosition position in the map
      * @return a tile index
@@ -492,6 +524,9 @@ signals:
     // when the map content is updated
     void mapContentUpdated();
 
+    // when another map is selected, or maps are added/removed
+    void mapIndexUpdated(int);
+
     // when a range of bytes in the charset changes (e.g. due to a paste)
     void bytesUpdated(int pos, int count);
 
@@ -573,15 +608,25 @@ protected:
 
     void _setMapSize(const QSize& mapSize);
     void _setMap(const std::vector<quint8>& map, const QSize& mapSize);
+    void _setMaps(const std::vector<map_t>& maps, const QSize& mapSize);
     void _mapClear(int tileIdx);
     void _mapPaint(const QPoint& coord, int tileIdx);
     void _mapFill(const QPoint& coord, int tileIdx);
+    void _setMapIndex(int mapIndex);
+    void _mapAdd();
+    void _mapDelete(int mapIndex);
+    void _mapInsert(int mapIndex, const map_t& map);
+
+    map_t& _currentMap() { return _maps[_mapIndex]; }
+    const map_t& _currentMap() const { return _maps[_mapIndex]; }
 
     int _totalChars;
 
     charset_t _charset;
     tileColors_t _tileColors;
-    map_t _map;
+    // all maps share the same size (_mapSize). Always holds at least one map
+    std::vector<map_t> _maps;
+    int _mapIndex;
     QSize _mapSize;
 
     bool _multicolorMode;

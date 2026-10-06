@@ -34,10 +34,15 @@ limitations under the License.
 qint64 StateExport::saveVChar64(State* state, QFile& file)
 {
     StateImport::VChar64Header header;
+    std::memset(&header, 0, sizeof(header));
 
     std::memcpy(header.id, "VChar", 5);
 
-    header.version = 3;
+    // version 4 is only needed for multiple maps. Single-map projects keep
+    // version 3 so they stay loadable by older VChar64 releases
+    const int num_maps = state->getMapCount();
+    header.version = (num_maps > 1) ? 4 : 3;
+    header.num_maps = static_cast<quint8>(num_maps);
 
     for (int i = 0; i < 4; i++)
         header.colors[i] = state->_penColors[i];
@@ -82,10 +87,12 @@ qint64 StateExport::saveVChar64(State* state, QFile& file)
         total++;
     }
 
-    // map
-    for (const auto c : state->getMapBuffer()) {
-        out << c;
-        total++;
+    // maps
+    for (const auto& map : state->_maps) {
+        for (const auto c : map) {
+            out << c;
+            total++;
+        }
     }
 
     file.flush();

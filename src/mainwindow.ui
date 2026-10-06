@@ -189,6 +189,12 @@
      <string>Map</string>
     </property>
     <addaction name="actionMap_Properties"/>
+    <addaction name="separator"/>
+    <addaction name="actionAdd_Map"/>
+    <addaction name="actionDelete_Map"/>
+    <addaction name="separator"/>
+    <addaction name="actionNext_Map"/>
+    <addaction name="actionPrevious_Map"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuEdit"/>
@@ -997,6 +1003,47 @@
   <action name="actionMap_Properties">
    <property name="text">
     <string>Map Properties</string>
+   </property>
+  </action>
+  <action name="actionAdd_Map">
+   <property name="text">
+    <string>Add Map</string>
+   </property>
+   <property name="toolTip">
+    <string>Add a new map</string>
+   </property>
+  </action>
+  <action name="actionDelete_Map">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Delete Map</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete the current map</string>
+   </property>
+  </action>
+  <action name="actionNext_Map">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Next Map</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+PgDown</string>
+   </property>
+  </action>
+  <action name="actionPrevious_Map">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Previous Map</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+PgUp</string>
    </property>
   </action>
   <action name="actionClear_Map">
