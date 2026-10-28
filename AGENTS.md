@@ -4,7 +4,7 @@
 VChar64 is a multiplatform (Linux, macOS, Windows) editor for creating Commodore 64 charsets. It is a desktop application built with C++ and Qt 6.
 
 ## Tech Stack
-- **Languages**: C++17
+- **Languages**: C++20
 - **Framework**: Qt 6 (Widgets)
 - **Build System**: CMake (>= 3.16)
 - **Formatting**: Clang-Format (configuration in `.clang-format`)
@@ -24,7 +24,7 @@ The project allows standard CMake build workflow.
 ### Prerequisites
 - CMake
 - Qt 6 (and `qt6-languagetools` or equivalent for translations)
-- C++ Compiler supporting C++17
+- C++ Compiler supporting C++20
 
 ### Build Steps
 ```bash

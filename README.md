@@ -30,11 +30,10 @@ Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 * Imports CharPad 1.8 and 2.0 projects
 * Imports Koala image files: [Demo Video](https://www.youtube.com/watch?v=wIBTINBCngs)
 * Imports VICE snapshot images
-* Exports to Assembly, Raw and Prg
-* Emulates different palettes: VICE, Pepto, Frodo, etc...
-* Two Live Preview modes:
+* Exports to Assembly, C (`const uint8_t[]`), Raw, PRG, and PNG
+* Emulates different palettes: Pepto, VICE, Colodore, Frodo, CCS64, etc.
+* Live Preview mode:
     * [TCP/IP server](https://github.com/ricardoquesada/vchar64/blob/master/server/README.md) support. [Demo Video](https://www.youtube.com/watch?v=yNCK_wZbo40)
-    * [xlink](http://henning-bekel.de/xlink/) support. [Demo Video](https://www.youtube.com/watch?v=ZaSR_mxRfmo)
 * Keyboard shortcuts for almost all actions
 
 ## Roadmap
@@ -54,7 +53,7 @@ In no particular order:
 
 * **Qt 6.8 or later** (Qt 5 is no longer supported as of version 1.0)
 * CMake 3.16+
-* C++17 compatible compiler
+* C++20 compatible compiler
 
 ## How to compile it
 
@@ -70,7 +69,8 @@ $ cd vchar64
 $ mkdir build
 $ cd build
 $ cmake ..
-$ make
+$ cmake --build . --parallel
+$ ctest --output-on-failure
 ```
 
 To update the translations do:
@@ -85,7 +85,7 @@ $ cmake --build . --target release_translations
 
 ### Using Qt Creator
 
-* Open `CMakeLists.txt` file with Qt Creator (qmake/`.pro` build is deprecated as of v1.0)
+* Open `CMakeLists.txt` with Qt Creator
 * Configure the project for "Desktop"
 * Build & Run
 

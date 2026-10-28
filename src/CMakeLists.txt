@@ -1,43 +1,100 @@
-find_package(Git)
-if(GIT_FOUND)
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        OUTPUT_VARIABLE GIT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-else()
-    set(GIT_HASH "n/a")
-endif()
+# Source build definition enforcing VChar64's 3-target acyclic dependency architecture:
+#
+# - `vchar64_core` (STATIC): Headless C64 domain model, QUndoCommands, QImage tile atlas,
+#   clipboard codec, and file importers/exporters. Links ONLY Qt6::Core and Qt6::Gui
+#   (CPU value types such as QUndoStack, QImage, and QColor; zero Qt6::Widgets or QPA windowing).
+# - `vchar64_net` (STATIC): Headless Contiki TCP live preview (`ServerPreview`, C89 wire
+#   protocol) and HTTPS `AutoUpdater`. Links ONLY `vchar64_core` and Qt6::Network.
+# - `vchar64` (EXECUTABLE): Desktop Qt6::Widgets MDI user interface, dock panels, and dialogs.
 
-if(NOT GIT_HASH)
-    set(GIT_HASH "n/a")
-endif()
+# ---------------------------------------------------------------------------
+# Layer 1: Headless Core Domain & Codec Library (`vchar64_core`)
+# ---------------------------------------------------------------------------
+set(VCHAR64_CORE_SOURCES
+    commands.cpp
+    commands.h
+    core/clipboardcodec.cpp
+    core/clipboardcodec.h
+    core/documentimagerenderer.cpp
+    core/documentimagerenderer.h
+    core/result.h
+    core/tileatlascache.cpp
+    core/tileatlascache.h
+    fileutils.cpp
+    fileutils.h
+    palette.cpp
+    palette.h
+    state.cpp
+    state.h
+    stateexport.cpp
+    stateexport.h
+    stateimport.cpp
+    stateimport.h
+    ui/activedocumentrelay.cpp
+    ui/activedocumentrelay.h
+)
 
-add_compile_definitions(VERSION="1.0.0")
-add_compile_definitions(GIT_VERSION="${GIT_HASH}")
+qt_add_library(vchar64_core STATIC
+    ${VCHAR64_CORE_SOURCES}
+)
 
-# Enable compiler warnings for better code quality
-if(MSVC)
-    add_compile_options(/W3)
-else()
-    add_compile_options(-Wall -Wextra -Wno-unused-parameter)
-endif()
+target_include_directories(vchar64_core
+    PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
-set(SOURCES
+target_link_libraries(vchar64_core
+    PUBLIC
+    Qt6::Core
+    Qt6::Gui
+    PRIVATE
+    vchar64_warnings
+)
+
+# ---------------------------------------------------------------------------
+# Layer 2: Headless Network Preview & Updater Library (`vchar64_net`)
+# ---------------------------------------------------------------------------
+set(VCHAR64_NET_SOURCES
+    autoupdater.cpp
+    autoupdater.h
+    preview/ilivepreviewsink.cpp
+    preview/ilivepreviewsink.h
+    serverpreview.cpp
+    serverpreview.h
+    serverprotocol.h
+)
+
+qt_add_library(vchar64_net STATIC
+    ${VCHAR64_NET_SOURCES}
+)
+
+target_include_directories(vchar64_net
+    PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+target_link_libraries(vchar64_net
+    PUBLIC
+    vchar64_core
+    Qt6::Network
+    PRIVATE
+    vchar64_warnings
+)
+
+# ---------------------------------------------------------------------------
+# Layer 3: Desktop Qt6::Widgets Application (`vchar64`)
+# ---------------------------------------------------------------------------
+set(VCHAR64_UI_SOURCES
     aboutdialog.cpp aboutdialog.h
-    autoupdater.cpp autoupdater.h
     bigcharwidget.cpp bigcharwidget.h
     charsetwidget.cpp charsetwidget.h
     colorrectwidget.cpp colorrectwidget.h
-    commands.cpp commands.h
     exportdialog.cpp exportdialog.h
     exportimagedialog.cpp exportimagedialog.h
-    fileutils.cpp fileutils.h
+    importbinarydialog.cpp importbinarydialog.h
     importkoalabitmapwidget.cpp importkoalabitmapwidget.h
     importkoalacharsetwidget.cpp importkoalacharsetwidget.h
     importkoaladialog.cpp importkoaladialog.h
-    importbinarydialog.cpp importbinarydialog.h
     importvicecharsetwidget.cpp importvicecharsetwidget.h
     importvicedialog.cpp importvicedialog.h
     importvicescreenramwidget.cpp importvicescreenramwidget.h
@@ -45,29 +102,22 @@ set(SOURCES
     mainwindow.cpp mainwindow.h
     mappropertiesdialog.cpp mappropertiesdialog.h
     mapwidget.cpp mapwidget.h
-    palette.cpp palette.h
     palettewidget.cpp palettewidget.h
     preferences.cpp preferences.h
     preferencesdialog.cpp preferencesdialog.h
     selectcolordialog.cpp selectcolordialog.h
     serverconnectdialog.cpp serverconnectdialog.h
-    serverpreview.cpp serverpreview.h
-    serverprotocol.h
-    state.cpp state.h
-    stateexport.cpp stateexport.h
-    stateimport.cpp stateimport.h
     tilepropertiesdialog.cpp tilepropertiesdialog.h
     tilesetwidget.cpp tilesetwidget.h
     updatedialog.cpp updatedialog.h
     utils.cpp utils.h
     vchar64application.cpp vchar64application.h
-    xlinkpreview.cpp xlinkpreview.h
 )
 
-set(UI_SOURCES
-    exportimagedialog.ui
+set(UI_FORMS
     aboutdialog.ui
     exportdialog.ui
+    exportimagedialog.ui
     importkoaladialog.ui
     importvicedialog.ui
     mainwindow.ui
@@ -79,65 +129,30 @@ set(UI_SOURCES
     updatedialog.ui
 )
 
-find_package(Qt6
-    COMPONENTS Core Gui Network Widgets
-    REQUIRED
-)
-
-# Fix macOS CI build failure due to AGL framework removal in macOS 14+ SDK
-if(APPLE)
-    foreach(_target WrapOpenGL::WrapOpenGL Qt6::Gui Qt::Gui Qt6::Gui_private Qt::Gui_private)
-        if(TARGET ${_target})
-            get_target_property(_libs ${_target} INTERFACE_LINK_LIBRARIES)
-            if(_libs)
-                set(_new_libs "")
-                set(_changed FALSE)
-                foreach(_lib ${_libs})
-                    if(_lib MATCHES "AGL" OR _lib STREQUAL "AGL")
-                        set(_changed TRUE)
-                    else()
-                        list(APPEND _new_libs "${_lib}")
-                    endif()
-                endforeach()
-                if(_changed)
-                    set_target_properties(${_target} PROPERTIES INTERFACE_LINK_LIBRARIES "${_new_libs}")
-                endif()
-            endif()
-        endif()
-    endforeach()
-endif()
-
-qt_add_big_resources(RESOURCES
-    resources.qrc
-)
-
-# target_sources(rcc_object_resources
-#   PRIVATE
-# )
-
-# Have big_resource.qrc treated as a source file by Qt Creator
-list(APPEND SOURCES resources.qrc)
-set_property(SOURCE resources.qrc PROPERTY SKIP_AUTORCC ON)
-
 qt_add_executable(${PROJECT_NAME}
-    ${SOURCES}
-    ${RESOURCES}
-)
-
-qt_add_ui(${PROJECT_NAME}
-    SOURCES ${UI_SOURCES}
+    ${VCHAR64_UI_SOURCES}
+    ${UI_FORMS}
+    resources.qrc
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
+    AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC
-    Qt::Core
-    Qt::Gui
-    Qt::Network
-    Qt::Widgets
+    PRIVATE
+    vchar64_core
+    vchar64_net
+    vchar64_warnings
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Network
+    Qt6::Widgets
 )
-
