@@ -1,3 +1,33 @@
+1.1.0 (28 October 2026)
+* [NEW] Drag and drop files onto the main window: projects, CharPad, PRG and raw files open directly;
+        Koala (.koa/.kla) and VICE snapshot (.vsf) files open the matching import dialog
+* [NEW] Import Binary: build a project from a charset file, a tile map file and an optional tile colors file
+* [NEW] Status bar shows the hovered char/tile index in decimal and hex, e.g. "Char: 66 ($42)"
+* [NEW] Colodore palette
+* [NEW] C export generates a flat "const uint8_t" array with "#include <stdint.h>" and a "_COUNT" define
+* [NEW] Each open document is shown in its own window; tiled windows display their own charsets side by side
+* [FIX] Crash and silent no-op when using copy/paste in the map (Edit menu copy/paste now works too)
+* [FIX] Selecting a tile with the spin box now updates the selected map cell
+* [FIX] Undo after paste/cut now restores per-tile colors
+* [FIX] Flood fill no longer crashes on large maps (up to 1024x1024)
+* [FIX] Rotate is disabled for non-square and multicolor tiles, where a 90 degree rotation is not valid
+* [FIX] Quick Export (Ctrl+E) of C exports now writes C instead of assembly
+* [FIX] Saving or exporting never truncates the existing file if the write fails
+* [FIX] Export dialog stays open and shows the error when an export fails
+* [FIX] Closing a non-active document asks to save that document, not the active one
+* [FIX] Export filenames containing several dots are no longer cut short
+* [FIX] Hardened CharPad, VICE snapshot, Koala and project importers against malformed files
+* [FIX] Live preview server: no longer freezes the UI, respects the C64 receive buffer,
+        sends all four colors, and keeps odd-sized tiles inside the 40x25 screen
+* [FIX] Auto updater only uses HTTPS and shows release notes as plain text
+* [FIX] Faster drawing of large maps, the tileset and the charset
+* [FIX] macOS build no longer fails on the removed AGL framework
+* [BREAKING] Removed Xlink live preview support; the TCP/IP live preview server remains
+* [BREAKING] Removed the deprecated qmake project files; CMake is the only build system
+* [BREAKING] A C++20 compiler is now required
+* [INFO] Core and network code no longer depend on Qt Widgets and are covered by headless unit tests
+* [INFO] CI runs the unit tests with AddressSanitizer and UndefinedBehaviorSanitizer
+
 1.0.1 (10 February 2026)
 * [FIX] macOS binary is signed
 
