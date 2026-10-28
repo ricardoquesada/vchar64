@@ -50,8 +50,8 @@ struct ClipboardPayload {
     int sourceRowWidth = 0;
     State::TileProperties tileProperties { { 1, 1 }, 1 };
 
-    State::CharsetBuffer charset {};
-    State::TileColorsBuffer tileColors {};
+    State::CharsetBuffer charset { };
+    State::TileColorsBuffer tileColors { };
     std::vector<uint8_t> mapCells;
 
     /**

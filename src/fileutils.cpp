@@ -35,7 +35,7 @@ QString FileUtils::getShortNativePath(const QString& filename)
     // after `home` so `/Users/alice_smith/foo` is never mangled into `~_smith/foo`.
     const auto tryShortenAgainstHome = [](const QString& path, const QString& home) -> QString {
         if (path.isEmpty() || home.isEmpty() || home == QStringLiteral("/")) {
-            return {};
+            return { };
         }
         if (path == home) {
             return QStringLiteral("~");
@@ -43,7 +43,7 @@ QString FileUtils::getShortNativePath(const QString& filename)
         if (path.startsWith(home + QLatin1Char('/'))) {
             return QStringLiteral("~") + QDir::toNativeSeparators(path.mid(home.size()));
         }
-        return {};
+        return { };
     };
 
     const QString cleanInput = QDir::cleanPath(filename);

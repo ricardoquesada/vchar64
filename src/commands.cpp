@@ -57,11 +57,11 @@ QRect computeClippedMapRect(
     const int mapW = mapSize.width();
     const int mapH = mapSize.height();
     if (mapW <= 0 || mapH <= 0 || linearOffset < 0 || blockWidth <= 0 || rowCount <= 0) {
-        return {};
+        return { };
     }
     const uint64_t totalCells = static_cast<uint64_t>(mapW) * static_cast<uint64_t>(mapH);
     if (static_cast<uint64_t>(linearOffset) >= totalCells) {
-        return {};
+        return { };
     }
 
     const int dstX = linearOffset % mapW;
@@ -69,7 +69,7 @@ QRect computeClippedMapRect(
     const int cols = std::clamp(blockWidth, 0, mapW - dstX);
     const int rows = std::clamp(rowCount, 0, mapH - dstY);
     if (cols <= 0 || rows <= 0) {
-        return {};
+        return { };
     }
     return QRect(dstX, dstY, cols, rows);
 }
@@ -344,7 +344,7 @@ void CutCommand::redo()
         static constexpr std::array<
             uint8_t,
             State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE>
-            kZeroCharsAndColors {};
+            kZeroCharsAndColors { };
         State::CopyRange rangeWithSize = _copyRange;
         rangeWithSize.bufferSize = static_cast<int>(kZeroCharsAndColors.size());
         _state->_paste(_offset, rangeWithSize, kZeroCharsAndColors.data());

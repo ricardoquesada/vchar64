@@ -84,7 +84,7 @@ private:
     void rasterizeTile(const State& state, int tileIndex, int tw, int th, int interleaved);
 
     QImage _atlas;
-    std::bitset<kMaxTiles> _dirtyTiles {};
+    std::bitset<kMaxTiles> _dirtyTiles { };
     bool _allDirty = true;
 
     const State* _cachedState = nullptr;

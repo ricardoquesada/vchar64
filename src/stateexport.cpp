@@ -89,7 +89,7 @@ vchar64::Result<qint64> StateExport::saveVChar64(
     }
 
     // Value-initialize to guarantee reserved[2] == {0, 0} (zero stack-padding leak).
-    StateImport::VChar64Header header {};
+    StateImport::VChar64Header header { };
     std::memcpy(header.id, "VChar", 5);
     header.version = 3U;
 
@@ -202,7 +202,7 @@ vchar64::Result<qint64> StateExport::savePRG(
                 .arg(filename, saveFile.errorString()));
     }
 
-    uint8_t leAddress[2] {};
+    uint8_t leAddress[2] { };
     qToLittleEndian<quint16>(address, leAddress);
 
     if (!writeAllBytes(saveFile, leAddress, sizeof(leAddress))

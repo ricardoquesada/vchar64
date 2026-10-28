@@ -72,7 +72,7 @@ private:
     State* _state;
     int _tileIndex;
     int _pen;
-    std::array<uint8_t, State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8> _buffer {};
+    std::array<uint8_t, State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8> _buffer { };
     QList<QPoint> _points;
     bool _mergeable;
     bool _captured = false;
@@ -102,8 +102,8 @@ private:
     int _offset;
     State::CopyRange _copyRange;
     std::vector<uint8_t> _copyBuffer;
-    CharsetColorSnapshot _beforeChars {};
-    MapRegionPatch _beforeMap {};
+    CharsetColorSnapshot _beforeChars { };
+    MapRegionPatch _beforeMap { };
     bool _captured = false;
 };
 
@@ -128,8 +128,8 @@ private:
     State* _state;
     int _offset = 0;
     State::CopyRange _copyRange;
-    CharsetColorSnapshot _beforeChars {};
-    MapRegionPatch _beforeMap {};
+    CharsetColorSnapshot _beforeChars { };
+    MapRegionPatch _beforeMap { };
     bool _captured = false;
 };
 
@@ -221,7 +221,7 @@ public:
 private:
     State* _state;
     int _tileIndex;
-    std::array<uint8_t, State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8> _buffer {};
+    std::array<uint8_t, State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8> _buffer { };
     bool _captured = false;
 };
 
@@ -247,7 +247,7 @@ public:
 private:
     State* _state;
     int _tileIndex;
-    std::array<uint8_t, State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8> _buffer {};
+    std::array<uint8_t, State::MAX_TILE_HEIGHT * State::MAX_TILE_WIDTH * 8> _buffer { };
     bool _captured = false;
 };
 
@@ -264,7 +264,7 @@ public:
 private:
     State* _state;
     State::TileProperties _new;
-    State::TileProperties _old {};
+    State::TileProperties _old { };
     bool _captured = false;
 };
 
@@ -281,7 +281,7 @@ public:
 private:
     State* _state;
     State::ExportProperties _new;
-    State::ExportProperties _old {};
+    State::ExportProperties _old { };
     bool _captured = false;
 };
 
@@ -382,10 +382,10 @@ public:
 
 private:
     State* _state;
-    QPoint _coord {};
+    QPoint _coord { };
     uint8_t _tileIdx = 0U;
-    State::FloodFillPlan _plan {};
-    MapRegionPatch _before {};
+    State::FloodFillPlan _plan { };
+    MapRegionPatch _before { };
     bool _planReady = false;
     bool _captured = false;
 };
@@ -416,8 +416,8 @@ private:
     uint8_t _tileIdx;
     bool _mergeable;
     QList<QPoint> _points;
-    MapRegionPatch _before {};
-    QSize _mapSize {};
+    MapRegionPatch _before { };
+    QSize _mapSize { };
     bool _captured = false;
 };
 
@@ -432,6 +432,6 @@ private:
     State* _state;
     int _tileIdx;
     std::vector<uint8_t> _oldMap;
-    QSize _mapSize {};
+    QSize _mapSize { };
     bool _captured = false;
 };

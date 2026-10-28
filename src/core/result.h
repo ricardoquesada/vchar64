@@ -86,7 +86,7 @@ public:
     }
 
     /** @brief Constructs a failed result with `code` and an optional diagnostic `detail`. */
-    static Result err(ErrorCode code, QString detail = {})
+    static Result err(ErrorCode code, QString detail = { })
     {
         return Result(IoError { code, std::move(detail) });
     }
@@ -129,7 +129,7 @@ public:
     /** @brief Returns `error().detail` on failure, or an empty `QString` on success. */
     [[nodiscard]] QString errorMessage() const
     {
-        return isOk() ? QString {} : std::get<IoError>(_storage).detail;
+        return isOk() ? QString { } : std::get<IoError>(_storage).detail;
     }
 
 private:
@@ -157,7 +157,7 @@ public:
         return Result(true);
     }
 
-    static Result err(ErrorCode code, QString detail = {})
+    static Result err(ErrorCode code, QString detail = { })
     {
         return Result(IoError { code, std::move(detail) });
     }
@@ -179,12 +179,12 @@ public:
 
     [[nodiscard]] QString errorMessage() const
     {
-        return isOk() ? QString {} : std::get<IoError>(_storage).detail;
+        return isOk() ? QString { } : std::get<IoError>(_storage).detail;
     }
 
 private:
     explicit Result(bool)
-        : _storage(std::monostate {})
+        : _storage(std::monostate { })
     {
     }
 

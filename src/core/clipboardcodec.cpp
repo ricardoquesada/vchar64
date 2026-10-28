@@ -48,7 +48,7 @@ constexpr uint32_t kCharsetAndColorsBytes = static_cast<uint32_t>(
 
 State::CopyRange ClipboardPayload::toCopyRange() const noexcept
 {
-    State::CopyRange range {};
+    State::CopyRange range { };
     range.offset = offset;
     range.blockSize = blockSize;
     range.skip = skip;
@@ -171,7 +171,7 @@ vchar64::Result<ClipboardPayload> ClipboardCodec::deserialize(const QByteArray& 
     stream.setVersion(QDataStream::Qt_6_0);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    std::array<char, 8> magic {};
+    std::array<char, 8> magic { };
     if (stream.readRawData(magic.data(), static_cast<int>(magic.size())) != static_cast<int>(magic.size())
         || magic != kMagic) {
         return vchar64::Result<ClipboardPayload>::err(

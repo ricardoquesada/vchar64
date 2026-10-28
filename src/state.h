@@ -247,7 +247,7 @@ public:
         int count = 0;
         int sourceRowWidth = 0;
         BufferType type = CHARS;
-        TileProperties tileProperties {};
+        TileProperties tileProperties { };
         int bufferSize = 0;
     };
 
@@ -264,8 +264,8 @@ public:
      * space without dynamic heap growth.
      */
     struct CharsetColorSnapshot {
-        CharsetBuffer charset {};
-        TileColorsBuffer tileColors {};
+        CharsetBuffer charset { };
+        TileColorsBuffer tileColors { };
     };
 
     /**
@@ -541,8 +541,8 @@ protected:
 
     int _totalChars = 0;
 
-    CharsetBuffer _charset {};
-    TileColorsBuffer _tileColors {};
+    CharsetBuffer _charset { };
+    TileColorsBuffer _tileColors { };
     MapBuffer _map;
     QSize _mapSize { 40, 25 };
 
@@ -561,7 +561,7 @@ protected:
     QString _savedFilename;
     QString _exportedFilename;
 
-    ExportProperties _exportProperties {};
+    ExportProperties _exportProperties { };
 
     std::unique_ptr<QUndoStack> _undoStack;
 

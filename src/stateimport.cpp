@@ -134,7 +134,7 @@ namespace {
     }
 
     const int stored = std::min(countInFile, State::TILE_COLORS_BUFFER_SIZE);
-    std::array<uint8_t, State::TILE_COLORS_BUFFER_SIZE> rawAttrs {};
+    std::array<uint8_t, State::TILE_COLORS_BUFFER_SIZE> rawAttrs { };
     if (!readExactBytes(device, rawAttrs.data(), static_cast<qint64>(stored))) {
         return false;
     }
@@ -195,7 +195,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadRaw(State& state, QIODev
     }
 
     const qint64 toRead = std::min<qint64>(remaining, State::CHAR_BUFFER_SIZE);
-    State::CharsetBuffer stagedCharset {};
+    State::CharsetBuffer stagedCharset { };
     if (!readExactBytes(device, stagedCharset.data(), toRead)) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::FileReadFailed,
@@ -238,7 +238,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadPRG(
             QStringLiteral("PRG file is smaller than minimum 10 bytes (%1 bytes)").arg(remaining));
     }
 
-    uint8_t addrBytes[2] {};
+    uint8_t addrBytes[2] { };
     if (!readExactBytes(device, addrBytes, 2)) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::FileReadFailed,
@@ -280,7 +280,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadCTM4(State& state, QIODe
             QStringLiteral("CTM v4 file smaller than 24-byte header"));
     }
 
-    CTMHeader4 hdr {};
+    CTMHeader4 hdr { };
     if (!readExactBytes(device, &hdr, static_cast<qint64>(sizeof(hdr)))) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::FileReadFailed,
@@ -331,14 +331,14 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadCTM4(State& state, QIODe
     vchar64::ImportReport report;
     qint64 bytesConsumed = static_cast<qint64>(sizeof(hdr));
 
-    State::CharsetBuffer stagedCharset {};
+    State::CharsetBuffer stagedCharset { };
     if (!readClampedCharset(device, numChars, stagedCharset, report, bytesConsumed)) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::FileReadFailed,
             QStringLiteral("Truncated CTM v4 character data"));
     }
 
-    State::TileColorsBuffer stagedColors {};
+    State::TileColorsBuffer stagedColors { };
     stagedColors.fill(State::TILE_COLORS_DEFAULT);
 
     const qint64 cellAttribsSize = static_cast<qint64>(numTiles)
@@ -429,7 +429,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadCTM5(State& state, QIODe
             QStringLiteral("CTM v5 file smaller than 20-byte header"));
     }
 
-    CTMHeader5 hdr {};
+    CTMHeader5 hdr { };
     if (!readExactBytes(device, &hdr, static_cast<qint64>(sizeof(hdr)))) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::FileReadFailed,
@@ -482,14 +482,14 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadCTM5(State& state, QIODe
     vchar64::ImportReport report;
     qint64 bytesConsumed = static_cast<qint64>(sizeof(hdr));
 
-    State::CharsetBuffer stagedCharset {};
+    State::CharsetBuffer stagedCharset { };
     if (!readClampedCharset(device, numChars, stagedCharset, report, bytesConsumed)) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::FileReadFailed,
             QStringLiteral("Truncated CTM v5 character data"));
     }
 
-    State::TileColorsBuffer stagedColors {};
+    State::TileColorsBuffer stagedColors { };
     stagedColors.fill(State::TILE_COLORS_DEFAULT);
 
     if (hdr.color_mode == 2U) {
@@ -587,7 +587,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadCTM(State& state, QIODev
             QStringLiteral("CTM file is smaller than minimum 20-byte header (%1 bytes)").arg(remaining));
     }
 
-    uint8_t prefix[4] {};
+    uint8_t prefix[4] { };
     if (!readExactBytes(device, prefix, 4) || !device.seek(startPos)) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::FileReadFailed,
@@ -641,7 +641,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadVChar64(State& state, QI
             QStringLiteral("VChar64 file smaller than 32-byte header (%1 bytes)").arg(remaining));
     }
 
-    VChar64Header hdr {};
+    VChar64Header hdr { };
     if (!readExactBytes(device, &hdr, static_cast<qint64>(sizeof(hdr)))) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::FileReadFailed,
@@ -681,7 +681,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadVChar64(State& state, QI
     qint64 bytesConsumed = static_cast<qint64>(sizeof(hdr));
 
     const int numChars = static_cast<int>(qFromLittleEndian<quint16>(hdr.num_chars));
-    State::CharsetBuffer stagedCharset {};
+    State::CharsetBuffer stagedCharset { };
     if (!readClampedCharset(device, numChars, stagedCharset, report, bytesConsumed)) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::FileReadFailed,
@@ -689,7 +689,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadVChar64(State& state, QI
     }
 
     State::ForegroundColorMode stagedFgMode = State::FOREGROUND_COLOR_GLOBAL;
-    State::TileColorsBuffer stagedColors {};
+    State::TileColorsBuffer stagedColors { };
     stagedColors.fill(State::TILE_COLORS_DEFAULT);
     QSize stagedMapSize(40, 25);
     std::vector<uint8_t> stagedMap = (state.mapSize() == QSize(40, 25) && state.map().size() == 40U * 25U)
@@ -742,7 +742,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadVChar64(State& state, QI
         bytesConsumed += static_cast<qint64>(mapCellCount);
     }
 
-    State::ExportProperties stagedExportProps {};
+    State::ExportProperties stagedExportProps { };
     State::KeyboardMapping stagedKeyboardMapping = State::KEYBOARD_MAPPING_C64;
 
     if (hdr.version == 3U) {
@@ -821,8 +821,8 @@ vchar64::Result<KoalaBitmapData> StateImport::loadKoala(QIODevice& device)
             QStringLiteral("Koala file exceeds 10,003 bytes (%1 bytes)").arg(remaining));
     }
 
-    KoalaBitmapData data {};
-    uint8_t addrBytes[2] {};
+    KoalaBitmapData data { };
+    uint8_t addrBytes[2] { };
     if (!readExactBytes(device, addrBytes, 2)
         || !readExactBytes(device, data.bitmap.data(), static_cast<qint64>(data.bitmap.size()))
         || !readExactBytes(device, data.screenRam.data(), static_cast<qint64>(data.screenRam.size()))
@@ -911,7 +911,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::parseVICESnapshot(
     static constexpr char kViceVicII[] = "VIC-II";
     static constexpr char kViceCia2[] = "CIA2";
 
-    VICESnapshotHeader header {};
+    VICESnapshotHeader header { };
     if (!readExactBytes(device, &header, static_cast<qint64>(sizeof(header)))) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::FileReadFailed,
@@ -927,7 +927,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::parseVICESnapshot(
     // Optional 21-byte VICE Version block immediately following the main header.
     const qint64 posAfterHeader = device.pos();
     if (fileSize - posAfterHeader >= static_cast<qint64>(sizeof(VICESnapshotVersion))) {
-        VICESnapshotVersion version {};
+        VICESnapshotVersion version { };
         if (!readExactBytes(device, &version, static_cast<qint64>(sizeof(version)))) {
             return vchar64::Result<vchar64::ImportReport>::err(
                 vchar64::ErrorCode::CorruptViceSnapshot,
@@ -962,7 +962,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::parseVICESnapshot(
                 QStringLiteral("Truncated VICE module header at offset %1").arg(moduleStartOffset));
         }
 
-        VICESnapshotModule module {};
+        VICESnapshotModule module { };
         if (!readExactBytes(device, &module, static_cast<qint64>(sizeof(module)))) {
             return vchar64::Result<vchar64::ImportReport>::err(
                 vchar64::ErrorCode::CorruptViceSnapshot,
@@ -1061,7 +1061,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::parseVICESnapshot(
             vchar64::ErrorCode::CorruptViceSnapshot,
             QStringLiteral("Truncated VICE CIA2 module"));
     }
-    VICESnapshotCIA2 cia2 {};
+    VICESnapshotCIA2 cia2 { };
     const qint64 cia2BytesToRead = std::min<qint64>(
         cia2PayloadSize,
         static_cast<qint64>(sizeof(VICESnapshotCIA2)));
@@ -1078,7 +1078,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::parseVICESnapshot(
             vchar64::ErrorCode::CorruptViceSnapshot,
             QStringLiteral("Truncated VICE VIC-II module"));
     }
-    VICESnapshotVICII vic2 {};
+    VICESnapshotVICII vic2 { };
     if (!readExactBytes(device, &vic2, static_cast<qint64>(sizeof(VICESnapshotVICII)))) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::CorruptViceSnapshot,

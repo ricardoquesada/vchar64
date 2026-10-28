@@ -55,9 +55,9 @@ struct KoalaBitmapData {
     static constexpr qint64 kSizeWithBg = kMaxFileSize;
 
     uint16_t loadAddress = 0x6000U;
-    std::array<uint8_t, kBitmapSize> bitmap {};
-    std::array<uint8_t, kScreenRamSize> screenRam {};
-    std::array<uint8_t, kColorRamSize> colorRam {};
+    std::array<uint8_t, kBitmapSize> bitmap { };
+    std::array<uint8_t, kScreenRamSize> screenRam { };
+    std::array<uint8_t, kColorRamSize> colorRam { };
     uint8_t backgroundColor = 0U;
 };
 

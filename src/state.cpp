@@ -1796,7 +1796,7 @@ void State::_tileRotate(int tileIndex)
     for (int y = 0; y < th; ++y) {
         for (int x = 0; x < tw; ++x) {
             const CharGlyph src = getCharFromTile(tileIndex, x, y);
-            CharGlyph rotated {};
+            CharGlyph rotated { };
 
             for (unsigned int row = 0U; row < 8U; ++row) {
                 for (unsigned int col = 0U; col < 8U; ++col) {
@@ -2101,7 +2101,7 @@ void State::clearUndoStack()
 
 State::CharGlyph State::getCharFromTile(int tileIndex, int x, int y) const
 {
-    CharGlyph ret {};
+    CharGlyph ret { };
     const int charIdx = getCharIndexFromTileIndex(tileIndex)
         + (x + y * _tileProperties.size.width()) * _tileProperties.interleaved;
     if (charIdx < 0 || charIdx >= 256) {
