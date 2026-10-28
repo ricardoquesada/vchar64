@@ -33,6 +33,7 @@ limitations under the License.
 #include <QRectF>
 
 #include "core/documentimagerenderer.h"
+#include "core/indexformat.h"
 #include "mainwindow.h"
 #include "preferences.h"
 #include "state.h"
@@ -43,6 +44,22 @@ constexpr int kColumns = 32;
 constexpr int kRows = 8;
 constexpr int kOffset = 2;
 constexpr qreal kBaseZoomLevel = 2.0;
+
+/**
+ * @brief Status-bar text for a tileset cell, e.g. `"x: 1, y: 0 | Tile: 17 ($11)"`.
+ *
+ * Cells beyond the last valid tile (a partially filled final row) show coordinates only.
+ */
+[[nodiscard]] QString tileCellStatusMessage(const QPoint& cell, int tileIndex, int maxTiles)
+{
+    if (tileIndex < 0 || tileIndex >= maxTiles) {
+        return TilesetWidget::tr("x: %1, y: %2").arg(cell.x()).arg(cell.y());
+    }
+    return TilesetWidget::tr("x: %1, y: %2 | Tile: %3")
+        .arg(cell.x())
+        .arg(cell.y())
+        .arg(vchar64::formatIndexDecHex(tileIndex));
+}
 
 } // namespace
 
@@ -174,7 +191,8 @@ void TilesetWidget::mouseMoveEvent(QMouseEvent* event)
     int y = cell.y();
 
     if (event->buttons() == Qt::NoButton) {
-        MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
+        MainWindow::getInstance()->showMessageOnStatusBar(
+            tileCellStatusMessage(cell, x + y * _tileColumns, _maxTiles));
     } else if (event->buttons() == Qt::LeftButton) {
         const int tileIndex = x + y * _tileColumns;
         if (tileIndex < 0 || tileIndex >= _maxTiles) {
@@ -256,7 +274,7 @@ void TilesetWidget::keyPressEvent(QKeyEvent* event)
             state->setTileIndex(tileIdx);
 
             MainWindow::getInstance()->showMessageOnStatusBar(
-                tr("x: %1, y: %2").arg(_cursorPos.x()).arg(_cursorPos.y()));
+                tileCellStatusMessage(_cursorPos, tileIdx, _maxTiles));
         }
     }
 

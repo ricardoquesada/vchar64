@@ -19,6 +19,7 @@ set(VCHAR64_CORE_SOURCES
     core/clipboardcodec.h
     core/documentimagerenderer.cpp
     core/documentimagerenderer.h
+    core/indexformat.h
     core/result.h
     core/tileatlascache.cpp
     core/tileatlascache.h

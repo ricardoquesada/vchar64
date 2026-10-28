@@ -31,6 +31,7 @@ limitations under the License.
 #include <QPainter>
 #include <QPointF>
 
+#include "core/indexformat.h"
 #include "mainwindow.h"
 #include "preferences.h"
 #include "state.h"
@@ -88,6 +89,15 @@ QPoint CharsetWidget::mapMousePositionToCell(const QPoint& pos) const noexcept
         std::clamp(rawX, 0, kColumns - 1),
         std::clamp(rawY, 0, kRows - 1)
     };
+}
+
+QString CharsetWidget::cellStatusMessage(const QPoint& cell) const
+{
+    const int charIndex = cell.y() * kColumns + cell.x();
+    return tr("x: %1, y: %2 | Char: %3")
+        .arg(cell.x())
+        .arg(cell.y())
+        .arg(vchar64::formatIndexDecHex(charIndex));
 }
 
 void CharsetWidget::updateCharIndex(int charIndex)
@@ -154,7 +164,7 @@ void CharsetWidget::mouseMoveEvent(QMouseEvent* event)
     int y = cell.y();
 
     if (event->buttons() == Qt::NoButton) {
-        MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
+        MainWindow::getInstance()->showMessageOnStatusBar(cellStatusMessage(cell));
     } else if (event->buttons() == Qt::LeftButton) {
         if (x >= _cursorPos.x()) {
             ++x;
@@ -227,8 +237,7 @@ void CharsetWidget::keyPressEvent(QKeyEvent* event)
         const int charIndex = _cursorPos.x() + _cursorPos.y() * kColumns;
         updateCharIndex(charIndex);
 
-        MainWindow::getInstance()->showMessageOnStatusBar(
-            tr("x: %1, y: %2").arg(_cursorPos.x()).arg(_cursorPos.y()));
+        MainWindow::getInstance()->showMessageOnStatusBar(cellStatusMessage(_cursorPos));
     }
 
     _selecting = selecting;

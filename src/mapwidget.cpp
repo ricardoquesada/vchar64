@@ -34,6 +34,7 @@ limitations under the License.
 #include <QRectF>
 
 #include "core/documentimagerenderer.h"
+#include "core/indexformat.h"
 #include "mainwindow.h"
 #include "preferences.h"
 #include "state.h"
@@ -43,6 +44,15 @@ namespace {
 
 constexpr qreal kBaseZoomLevel = 2.0;
 constexpr int kOffset = 0;
+
+/** @brief Status-bar text for a map cell, e.g. `"x: 12, y: 5 | Tile: 17 ($11)"`. */
+[[nodiscard]] QString mapCellStatusMessage(const State& state, const QPoint& cell)
+{
+    return MapWidget::tr("x: %1, y: %2 | Tile: %3")
+        .arg(cell.x())
+        .arg(cell.y())
+        .arg(vchar64::formatIndexDecHex(state.getTileIndexFromMap(cell)));
+}
 
 } // namespace
 
@@ -293,7 +303,7 @@ void MapWidget::mouseMoveEvent(QMouseEvent* event)
     int y = cell.y();
 
     if (event->buttons() == Qt::NoButton) {
-        MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
+        MainWindow::getInstance()->showMessageOnStatusBar(mapCellStatusMessage(*state, cell));
     } else if ((event->buttons() == Qt::LeftButton && _mode == SELECT_MODE)
         || event->buttons() == Qt::RightButton) {
         if (x >= _cursorPos.x()) {
@@ -420,8 +430,7 @@ void MapWidget::keyPressEvent(QKeyEvent* event)
             std::clamp(_cursorPos.y(), 0, std::max(0, _mapSize.height() - 1))
         };
 
-        MainWindow::getInstance()->showMessageOnStatusBar(
-            tr("x: %1, y: %2").arg(_cursorPos.x()).arg(_cursorPos.y()));
+        MainWindow::getInstance()->showMessageOnStatusBar(mapCellStatusMessage(*state, _cursorPos));
     }
     _selecting = selecting;
 

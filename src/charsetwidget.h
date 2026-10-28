@@ -72,6 +72,8 @@ protected:
 
 private:
     [[nodiscard]] QPoint mapMousePositionToCell(const QPoint& pos) const noexcept;
+    /** @brief Status-bar text for a glyph cell, e.g. `"x: 2, y: 2 | Char: 66 ($42)"`. */
+    [[nodiscard]] QString cellStatusMessage(const QPoint& cell) const;
     /** @brief Marks the cached glyph sheet stale and schedules a repaint. */
     void invalidateCharsetImage();
 

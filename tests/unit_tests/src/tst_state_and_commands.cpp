@@ -51,6 +51,7 @@ limitations under the License.
 #include "core/charsetimagecache.h"
 #include "core/clipboardcodec.h"
 #include "core/documentimagerenderer.h"
+#include "core/indexformat.h"
 #include "core/tileatlascache.h"
 #include "fileutils.h"
 #include "palette.h"
@@ -128,6 +129,7 @@ private slots:
     void testPaletteColodoreOobMaskingAndRuntimeTr();
     void testTileAtlasCacheDirtyTrackingAndFullInvalidation();
     void testCharsetImageCacheRebuildTriggersAndRendererParity();
+    void testFormatIndexDecHex();
     void testDocumentImageRendererAndExportPngSelectiveFlags();
     void testClipboardCodecRoundTripAndAdversarialRejection();
     void testActiveDocumentRelayIsolationAndLifecycle();
@@ -1247,6 +1249,16 @@ void TestStateAndCommands::testCharsetImageCacheRebuildTriggersAndRendererParity
     QVERIFY(cache.lastSyncRebuilt());
 
     Palette::setActivePalette(savedPalette);
+}
+
+void TestStateAndCommands::testFormatIndexDecHex()
+{
+    QCOMPARE(vchar64::formatIndexDecHex(0), QStringLiteral("0 ($00)"));
+    QCOMPARE(vchar64::formatIndexDecHex(9), QStringLiteral("9 ($09)"));
+    QCOMPARE(vchar64::formatIndexDecHex(66), QStringLiteral("66 ($42)"));
+    QCOMPARE(vchar64::formatIndexDecHex(255), QStringLiteral("255 ($FF)"));
+    QCOMPARE(vchar64::formatIndexDecHex(300), QStringLiteral("300 ($12C)"));
+    QCOMPARE(vchar64::formatIndexDecHex(-1), QStringLiteral("-1"));
 }
 
 void TestStateAndCommands::testDocumentImageRendererAndExportPngSelectiveFlags()

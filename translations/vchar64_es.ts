@@ -79,9 +79,8 @@ Do you want to save your changes?</source>
 <context>
     <name>CharsetWidget</name>
     <message>
-        <location filename="../src/charsetwidget.cpp" line="157"/>
-        <location filename="../src/charsetwidget.cpp" line="231"/>
-        <source>x: %1, y: %2</source>
+        <location filename="../src/charsetwidget.cpp" line="97"/>
+        <source>x: %1, y: %2 | Char: %3</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1619,9 +1618,8 @@ Do you want to save your changes?</source>
 <context>
     <name>MapWidget</name>
     <message>
-        <location filename="../src/mapwidget.cpp" line="296"/>
-        <location filename="../src/mapwidget.cpp" line="424"/>
-        <source>x: %1, y: %2</source>
+        <location filename="../src/mapwidget.cpp" line="51"/>
+        <source>x: %1, y: %2 | Tile: %3</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2137,10 +2135,14 @@ Do you want to save your changes?</source>
 <context>
     <name>TilesetWidget</name>
     <message>
-        <location filename="../src/tilesetwidget.cpp" line="177"/>
-        <location filename="../src/tilesetwidget.cpp" line="259"/>
+        <location filename="../src/tilesetwidget.cpp" line="56"/>
         <source>x: %1, y: %2</source>
         <translation></translation>
+    </message>
+    <message>
+        <location filename="../src/tilesetwidget.cpp" line="58"/>
+        <source>x: %1, y: %2 | Tile: %3</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
