@@ -48,6 +48,7 @@ limitations under the License.
 #include <QtTest>
 
 #include "commands.h"
+#include "core/charsetimagecache.h"
 #include "core/clipboardcodec.h"
 #include "core/documentimagerenderer.h"
 #include "core/tileatlascache.h"
@@ -126,6 +127,7 @@ private slots:
     void testSetColorMulticolorAndForegroundModeCommands();
     void testPaletteColodoreOobMaskingAndRuntimeTr();
     void testTileAtlasCacheDirtyTrackingAndFullInvalidation();
+    void testCharsetImageCacheRebuildTriggersAndRendererParity();
     void testDocumentImageRendererAndExportPngSelectiveFlags();
     void testClipboardCodecRoundTripAndAdversarialRejection();
     void testActiveDocumentRelayIsolationAndLifecycle();
@@ -1191,6 +1193,58 @@ void TestStateAndCommands::testTileAtlasCacheDirtyTrackingAndFullInvalidation()
     cache.sync(stateB);
     QCOMPARE(cache.lastSyncedTileCount(), 256);
     QCOMPARE(cache.atlasImage().pixelColor(tile0Rect.topLeft()), QColor(0xFE, 0xFE, 0xFE));
+
+    Palette::setActivePalette(savedPalette);
+}
+
+void TestStateAndCommands::testCharsetImageCacheRebuildTriggersAndRendererParity()
+{
+    const int savedPalette = Palette::activePalette();
+    Palette::setActivePalette(Palette::PEPTO);
+
+    State stateA;
+    stateA.resetCharsetBuffer();
+    stateA.setPenColorDirect(State::PEN_BACKGROUND, 0U); // Black
+    stateA.setPenColorDirect(State::PEN_FOREGROUND, 1U); // White (#FFFFFF in Pepto)
+
+    State stateB;
+    stateB.resetCharsetBuffer();
+
+    CharsetImageCache cache;
+
+    // First sync rasterizes and matches the PNG-export renderer pixel-for-pixel.
+    const QImage& first = cache.sync(stateA);
+    QVERIFY(cache.lastSyncRebuilt());
+    QCOMPARE(first.size(), QSize(256, 64));
+    QCOMPARE(first.format(), QImage::Format_ARGB32_Premultiplied);
+    QCOMPARE(first,
+        DocumentImageRenderer::renderCharset(stateA, false)
+            .convertToFormat(QImage::Format_ARGB32_Premultiplied));
+
+    // (1) Nothing changed -> cached image is reused.
+    (void)cache.sync(stateA);
+    QVERIFY(!cache.lastSyncRebuilt());
+
+    // (2) Charset bytes change: the cache relies on explicit invalidate() from widget slots.
+    State::CharsetBuffer buf = stateA.charset();
+    buf[0] = 0xFFU; // Char 0, row 0: all foreground pixels.
+    stateA.setCharsetBytes(buf.data(), buf.size());
+    (void)cache.sync(stateA);
+    QVERIFY(!cache.lastSyncRebuilt());
+    cache.invalidate();
+    QCOMPARE(cache.sync(stateA).pixelColor(0, 0), QColor(0xFF, 0xFF, 0xFF));
+    QVERIFY(cache.lastSyncRebuilt());
+
+    // (3) Active document switch -> automatic rebuild.
+    (void)cache.sync(stateB);
+    QVERIFY(cache.lastSyncRebuilt());
+    (void)cache.sync(stateB);
+    QVERIFY(!cache.lastSyncRebuilt());
+
+    // (4) Global palette switch -> automatic rebuild.
+    Palette::setActivePalette(Palette::COLODORE);
+    (void)cache.sync(stateB);
+    QVERIFY(cache.lastSyncRebuilt());
 
     Palette::setActivePalette(savedPalette);
 }

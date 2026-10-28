@@ -26,6 +26,7 @@ limitations under the License.
 #include <QSize>
 #include <QWidget>
 
+#include "core/charsetimagecache.h"
 #include "state.h"
 
 /**
@@ -54,6 +55,8 @@ public slots:
     void onTileUpdated(int tileIndex);
     void onBytesUpdated(int pos, int count);
     void onCharsetUpdated();
+    /** @brief Invalidates the glyph cache: tile size/interleave changes remap per-char tile colors and modes. */
+    void onTilePropertiesUpdated();
     void enableGrid(bool enabled);
     void setZoomLevel(int zoomLevel);
 
@@ -69,6 +72,8 @@ protected:
 
 private:
     [[nodiscard]] QPoint mapMousePositionToCell(const QPoint& pos) const noexcept;
+    /** @brief Marks the cached glyph sheet stale and schedules a repaint. */
+    void invalidateCharsetImage();
 
     QPointer<State> _activeState;
     QPoint _cursorPos { 0, 0 };
@@ -78,4 +83,5 @@ private:
     QSize _sizeHint { 0, 0 };
     qreal _zoomLevel = 2.0;
     bool _displayGrid = false;
+    CharsetImageCache _imageCache;
 };

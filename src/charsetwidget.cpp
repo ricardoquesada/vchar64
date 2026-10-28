@@ -34,7 +34,6 @@ limitations under the License.
 #include "mainwindow.h"
 #include "preferences.h"
 #include "state.h"
-#include "utils.h"
 
 namespace {
 
@@ -64,6 +63,7 @@ void CharsetWidget::setActiveState(State* state)
     }
 
     _activeState = state;
+    _imageCache.invalidate();
     _selecting = false;
     _selectingSize = { 1, 1 };
 
@@ -248,15 +248,14 @@ void CharsetWidget::paintEvent(QPaintEvent* event)
     }
 
     painter.scale(_zoomLevel, _zoomLevel);
+
+    // One blit of the cached 256x64 glyph sheet replaces 256 per-glyph rasterizations per repaint.
+    painter.drawImage(
+        QPointF(static_cast<qreal>(kOffset), static_cast<qreal>(kOffset)),
+        _imageCache.sync(*state));
+
     painter.setBrush(QColor(0, 0, 0));
     painter.setPen(Qt::NoPen);
-
-    for (int w = 0; w < kColumns; ++w) {
-        for (int h = 0; h < kRows; ++h) {
-            const int index = w + h * kColumns;
-            utilsDrawCharInPainter(state, &painter, QSizeF(1, 1), QPoint(kOffset, kOffset), QPoint(w, h), index);
-        }
-    }
 
     if (_displayGrid) {
         QPen gridPen = painter.pen();
@@ -342,30 +341,41 @@ void CharsetWidget::onCharIndexUpdated(int charIndex)
 void CharsetWidget::onMulticolorModeToggled(bool state)
 {
     Q_UNUSED(state)
-    update();
+    invalidateCharsetImage();
 }
 
 void CharsetWidget::onColorPropertiesUpdated(int pen)
 {
     Q_UNUSED(pen)
-    update();
+    invalidateCharsetImage();
 }
 
 void CharsetWidget::onTileUpdated(int tileIndex)
 {
     Q_UNUSED(tileIndex)
-    update();
+    invalidateCharsetImage();
 }
 
 void CharsetWidget::onBytesUpdated(int pos, int count)
 {
     Q_UNUSED(pos)
     Q_UNUSED(count)
-    update();
+    invalidateCharsetImage();
 }
 
 void CharsetWidget::onCharsetUpdated()
 {
+    invalidateCharsetImage();
+}
+
+void CharsetWidget::onTilePropertiesUpdated()
+{
+    invalidateCharsetImage();
+}
+
+void CharsetWidget::invalidateCharsetImage()
+{
+    _imageCache.invalidate();
     update();
 }
 

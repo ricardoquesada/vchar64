@@ -191,6 +191,7 @@ void MainWindow::wireActiveDocumentRelay()
     connect(relay, &ActiveDocumentRelay::tilePropertiesUpdated, this, &MainWindow::onTilePropertiesUpdated);
     connect(relay, &ActiveDocumentRelay::tilePropertiesUpdated, _ui->tilesetWidget, &TilesetWidget::onTilePropertiesUpdated);
     connect(relay, &ActiveDocumentRelay::tilePropertiesUpdated, _ui->mapWidget, &MapWidget::onTilePropertiesUpdated);
+    connect(relay, &ActiveDocumentRelay::tilePropertiesUpdated, _ui->charsetWidget, &CharsetWidget::onTilePropertiesUpdated);
 
     connect(relay, &ActiveDocumentRelay::mapSizeUpdated, _ui->mapWidget, &MapWidget::onMapSizeUpdated);
     connect(relay, &ActiveDocumentRelay::mapSizeUpdated, this, &MainWindow::onMapSizeUpdated);

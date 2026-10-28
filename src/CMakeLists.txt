@@ -13,6 +13,8 @@
 set(VCHAR64_CORE_SOURCES
     commands.cpp
     commands.h
+    core/charsetimagecache.cpp
+    core/charsetimagecache.h
     core/clipboardcodec.cpp
     core/clipboardcodec.h
     core/documentimagerenderer.cpp
