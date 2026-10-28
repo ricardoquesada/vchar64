@@ -1,5 +1,4 @@
 # C++ objects and libs
-
 *.slo
 *.lo
 *.o
@@ -10,8 +9,25 @@
 *.dll
 *.dylib
 
-# Qt-es
+# Qt & CMake build / IDE artifacts
+build*/
+cmake-build-*/
+.qt/
+.qtcreator/
+.cache/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+Makefile*
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+CMakeLists.txt.user
+CMakePresets.json
+*_autogen/
+*-build-*
 
+# Qt-es
 /.qmake.cache
 /.qmake.stash
 *.pro.user
@@ -22,45 +38,18 @@
 moc_*.cpp
 qrc_*.cpp
 ui_*.h
-Makefile*
-*-build-*
 *.qm
 
-# QtCreator
-
+# QtCreator / Qml / Editors / OS
 *.autosave
-
-#QtCtreator Qml
 *.qmlproject.user
 *.qmlproject.user.*
-
-# vim
 *.swp
 *~
-
-# Clion
 *.idea
-
-build/
-build_cmake/
-build_test/
-build_verification/
-CMakeLists.txt.user
-CMakePresets.json
-.cache/
-
-# Unit Test Build Artifacts (In-source)
-tests/unit_tests/CMakeCache.txt
-tests/unit_tests/CMakeFiles/
-tests/unit_tests/cmake_install.cmake
-tests/unit_tests/test_stateimport
-tests/unit_tests/test_stateexport
-tests/unit_tests/*_autogen/
-tests/unit_tests/.qt/
+.DS_Store
 
 # Unit Test Outputs
+tests/unit_tests/test_stateimport
+tests/unit_tests/test_stateexport
 test_export.*
-
-.DS_Store
-build_ci/
-build_make/
