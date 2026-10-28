@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,41 +14,74 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file state.h
+ * @brief Headless C64 / VIC-II document state model (`vchar64_core`).
+ *
+ * Encapsulates the three coupled asset buffers of a VChar64 project:
+ *
+ * - **Charset (`_charset`):** Fixed `2,048`-byte (`256 x 8`) 1bpp/2bpp glyph RAM.
+ * - **Tile Colors (`_tileColors`):** Fixed `256`-byte 4-bit Color RAM (`$D800`
+ *   nibble semantics where bit 3 gates per-tile Multicolor decoding).
+ * - **Map (`_map`):** Dynamically sized (`1..4096 x 1..4096`) tile-index grid.
+ *
+ * All interactive edits route through `QUndoCommand` friends onto `_undoStack`,
+ * while binary importers and preview dialogs mutate validated state directly via
+ * `*Direct`, `assignImportedBuffers()`, and `replaceMap()`.
+ */
+
 #pragma once
 
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 #include <vector>
 
+#include <QList>
 #include <QObject>
 #include <QPoint>
+#include <QRect>
 #include <QSize>
 #include <QString>
 #include <QUndoStack>
 
-#include "stateimport.h"
+#include "core/result.h"
 
-class BigCharWidget;
-class MapWidget;
-class TilesetWidget;
+class PaintTileCommand;
+class PasteCommand;
+class CutCommand;
+class FlipTileHCommand;
+class FlipTileVCommand;
+class ShiftDownTileCommand;
+class ShiftUpTileCommand;
+class ShiftLeftTileCommand;
+class ShiftRightTileCommand;
+class RotateTileCommand;
+class InvertTileCommand;
+class ClearTileCommand;
+class SetMulticolorModeCommand;
+class SetTilePropertiesCommand;
+class SetExportPropertiesCommand;
+class SetMapSizeCommand;
+class SetColorCommand;
+class SetForegroundColorMode;
+class ClearMapCommand;
+class PaintMapCommand;
+class FillMapCommand;
 
-#ifdef UNIT_TEST
-#include "../tests/unit_tests/src/mock_state.h"
-#else
-
+/**
+ * @brief Headless VIC-II / C64 character, tile, color, and map document model.
+ *
+ * Resides in `vchar64_core` (`Qt6::Core` + `Qt6::Gui` only, zero `Qt6::Widgets`
+ * coupling) so all unit tests execute directly against the production `State`
+ * and `QUndoStack` under `QTEST_GUILESS_MAIN`.
+ */
 class State : public QObject {
     Q_OBJECT
 
-    friend class StateImport;
-    friend class StateExport;
-
-    friend class BigCharWidget;
-
-    friend class ImportVICEDialog;
-
-    // yep, all the Commands are friend of State
-    // this is because State invokes the commands
-    // and then the Commands calls the protected methods
-    // that actually modify the State without calling the Commands
-    // A Command must never trigger another Command
+    // QUndoCommand subclasses invoke protected direct-mutation helpers so that
+    // undo/redo transitions never recursively push new commands onto _undoStack.
     friend class PaintTileCommand;
     friend class PasteCommand;
     friend class CutCommand;
@@ -72,37 +105,57 @@ class State : public QObject {
     friend class FillMapCommand;
 
 public:
-    // only 256 chars at the time
-    constexpr static int CHAR_BUFFER_SIZE = 8 * 256;
+    /** @brief Size in bytes of one 256-glyph C64 character set (`256 * 8 = 2,048`). */
+    static constexpr int CHAR_BUFFER_SIZE = 8 * 256;
+    /** @brief Maximum number of addressable tiles and per-tile Color RAM entries (`256`). */
+    static constexpr int TILE_COLORS_BUFFER_SIZE = 256;
+    /** @brief Default 4-bit C64 foreground color index (`11` = Dark Grey, Multicolor bit 3 set). */
+    static constexpr uint8_t TILE_COLORS_DEFAULT = 11U;
 
-    // char attributes: color (4-bit LSB)
-    constexpr static int TILE_COLORS_BUFFER_SIZE = 256;
-    // Color used to initialize the tileColors buffer
-    constexpr static quint8 TILE_COLORS_DEFAULT = 11;
+    /** @brief Maximum tile width in 8x8 characters (`8`). */
+    static constexpr int MAX_TILE_WIDTH = 8;
+    /** @brief Maximum tile height in 8x8 characters (`8`). */
+    static constexpr int MAX_TILE_HEIGHT = 8;
 
-    // Max Tile size: 8x8
-    constexpr static int MAX_TILE_WIDTH = 8;
-    constexpr static int MAX_TILE_HEIGHT = 8;
+    /** @brief Hard upper bound on map width or height (`4,096` cells) to prevent OOM allocations. */
+    static constexpr int kMaxMapDim = 4096;
+    /** @brief Maximum total map cell count (`4,096 * 4,096 = 16,777,216` bytes). */
+    static constexpr size_t kMaxMapCells = 4096ULL * 4096ULL;
+    /** @brief Maximum depth of `_undoStack` (`128` commands) to bound snapshot memory per document. */
+    static constexpr int kDefaultUndoLimit = 128;
 
-    using charset_t = quint8[CHAR_BUFFER_SIZE];
-    using tileColors_t = quint8[TILE_COLORS_BUFFER_SIZE];
-    using map_t = std::vector<quint8>;
+    using CharsetBuffer = std::array<uint8_t, CHAR_BUFFER_SIZE>;
+    using TileColorsBuffer = std::array<uint8_t, TILE_COLORS_BUFFER_SIZE>;
+    using MapBuffer = std::vector<uint8_t>;
+    using CharGlyph = std::array<uint8_t, 8>;
 
+    using charset_t = CharsetBuffer;
+    using tileColors_t = TileColorsBuffer;
+    using map_t = MapBuffer;
+
+    /**
+     * @brief Logical VIC-II color pens mapped to `$D021`–`$D023` and `$D800` Color RAM.
+     *
+     * In Multicolor mode, 2-bit pixel pairs `00`, `01`, `10`, and `11` map to
+     * `PEN_BACKGROUND`, `PEN_MULTICOLOR1`, `PEN_MULTICOLOR2`, and `PEN_FOREGROUND`
+     * (low 3 bits `0..7` of Color RAM), respectively.
+     */
     enum Pen {
-        PEN_BACKGROUND, /* $d021 */
-        PEN_MULTICOLOR1, /* $d022 */
-        PEN_MULTICOLOR2, /* $d023 */
-        PEN_FOREGROUND, /* color RAM: $d800-... */
+        PEN_BACKGROUND = 0, /* $d021 */
+        PEN_MULTICOLOR1 = 1, /* $d022 */
+        PEN_MULTICOLOR2 = 2, /* $d023 */
+        PEN_FOREGROUND = 3, /* color RAM: $d800-... */
 
-        PEN_MAX
+        PEN_MAX = 4
     };
 
+    /** @brief Selects whether `PEN_FOREGROUND` reads a single global register or per-tile Color RAM. */
     enum ForegroundColorMode {
-        FOREGROUND_COLOR_GLOBAL,
-        FOREGROUND_COLOR_PER_TILE
+        FOREGROUND_COLOR_GLOBAL = 0,
+        FOREGROUND_COLOR_PER_TILE = 1
     };
 
-    // what to export
+    /** @brief Bitmask flags selecting which asset sections an export operation writes. */
     enum ExportFeature {
         EXPORT_FEATURE_NONE = 0,
         EXPORT_FEATURE_CHARSET = 1 << 0,
@@ -112,336 +165,296 @@ public:
         EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_COLORS)
     };
 
-    // format to export
+    /** @brief Target file encoding for binary and source-code asset exports. */
     enum ExportFormat {
-        EXPORT_FORMAT_RAW,
-        EXPORT_FORMAT_PRG,
-        EXPORT_FORMAT_ASM,
-        EXPORT_FORMAT_C,
+        EXPORT_FORMAT_RAW = 0,
+        EXPORT_FORMAT_PRG = 1,
+        EXPORT_FORMAT_ASM = 2,
+        EXPORT_FORMAT_C = 3,
     };
 
+    /** @brief Screen-code keyboard layout used when typing characters into the map or charset views. */
     enum KeyboardMapping {
-        KEYBOARD_MAPPING_C64, // Commodore 8-bit screen code. Not PETSCII
-        KEYBOARD_MAPPING_ATARI8, // Atari 8-bit
-    };
-
-    union Char {
-        quint64 _char64;
-        quint8 _char8[8];
-    };
-
-    struct TileProperties {
-        QSize size;
-        int interleaved;
-    };
-
-    struct ExportProperties {
-        quint16 addresses[3]; // 0: CHARSET, 1:MAP, 2:COLORS
-        ExportFormat format; // EXPORT_FORMAT
-        quint8 features; // EXPORT_FEATURE
+        KEYBOARD_MAPPING_C64 = 0, // Commodore 8-bit screen code (not PETSCII)
+        KEYBOARD_MAPPING_ATARI8 = 1, // Atari 8-bit internal screen code
     };
 
     /**
-     * @brief The CopyRange struct
+     * @brief Multi-character tile dimensions (`1..8 x 1..8`) and character memory stride.
+     *
+     * When `interleaved == 1`, a tile's `W * H` constituent characters occupy contiguous
+     * indices `[tileIdx * W * H .. + W * H - 1]`. When `interleaved > 1` (must equal
+     * `256 / (W * H)`), constituent characters step across charset banks by `interleaved`.
+     */
+    struct TileProperties {
+        QSize size { 1, 1 };
+        int interleaved = 1;
+
+        [[nodiscard]] bool operator==(const TileProperties& other) const noexcept
+        {
+            return size == other.size && interleaved == other.interleaved;
+        }
+
+        [[nodiscard]] bool operator!=(const TileProperties& other) const noexcept
+        {
+            return !(*this == other);
+        }
+    };
+
+    /**
+     * @brief Persisted export configuration (16-bit PRG load addresses, format, and section mask).
+     *
+     * Uses explicit field-wise equality instead of `memcmp` so compiler-inserted struct
+     * padding bytes never trigger undefined behavior or spurious undo entries.
+     */
+    struct ExportProperties {
+        uint16_t addresses[3] { 0x3800U, 0x4000U, 0x4400U }; // 0: CHARSET, 1: MAP, 2: COLORS
+        ExportFormat format = EXPORT_FORMAT_RAW;
+        uint8_t features = EXPORT_FEATURE_CHARSET;
+
+        [[nodiscard]] bool operator==(const ExportProperties& other) const noexcept
+        {
+            return addresses[0] == other.addresses[0]
+                && addresses[1] == other.addresses[1]
+                && addresses[2] == other.addresses[2]
+                && format == other.format
+                && features == other.features;
+        }
+
+        [[nodiscard]] bool operator!=(const ExportProperties& other) const noexcept
+        {
+            return !(*this == other);
+        }
+    };
+
+    /**
+     * @brief Strided rectangular selection descriptor for Copy, Cut, and Paste operations.
+     *
+     * Encodes `count` rows of `blockSize` elements separated by `skip` elements in a source
+     * grid of width `sourceRowWidth`, allowing rectangular 2D selections across the 16-column
+     * charset grid, variable-width tileset grid, or `W x H` map grid.
      */
     struct CopyRange {
         enum BufferType {
-            CHARS,
-            TILES,
-            MAP
+            CHARS = 0,
+            TILES = 1,
+            MAP = 2
         };
 
-        /** @brief offset in chars or tiles in the buffer */
-        int offset;
-        /** @brief blockSize in chars or tiles */
-        int blockSize;
-        /** @brief how many chars or tiles to skip before reaching the next block */
-        int skip;
-        /** how many blocks to copy */
-        int count;
-        /** what to copy: chars or tiles */
-        BufferType type;
-        /** tileProperties, only needed when type==TILES. */
-        TileProperties tileProperties;
-        /** size of the buffer appended */
-        int bufferSize;
+        int offset = 0;
+        int blockSize = 0;
+        int skip = 0;
+        int count = 0;
+        int sourceRowWidth = 0;
+        BufferType type = CHARS;
+        TileProperties tileProperties {};
+        int bufferSize = 0;
+    };
+
+    /** @brief Pre-computed 4-connected flood-fill target coordinates and tight bounding rectangle. */
+    struct FloodFillPlan {
+        QRect bounds;
+        std::vector<QPoint> coords;
     };
 
     /**
-     * @brief State the Target constructor
-     * @param filename the loaded name. Used when save/export is called
-     * @param mapSize map size
+     * @brief Fixed-size (`2,304`-byte) pre-mutation snapshot of `_charset` and `_tileColors`.
+     *
+     * Used by `PasteCommand` and `CutCommand` to restore exact glyph and color state in `O(1)`
+     * space without dynamic heap growth.
      */
+    struct CharsetColorSnapshot {
+        CharsetBuffer charset {};
+        TileColorsBuffer tileColors {};
+    };
+
+    /**
+     * @brief Bounded rectangular map snapshot used by map undo commands.
+     *
+     * Stores the original tile indices inside `bounds` (`width * height` bytes) prior to
+     * mutation so `undo()` restores interior untouched cells (such as flood-fill obstacle
+     * islands or non-painted stroke gaps) cleanly.
+     */
+    struct MapRegionPatch {
+        QRect bounds;
+        std::vector<uint8_t> cells;
+    };
+
     State(const QString& filename, const QSize& mapSize);
-    /* delegating constructors */
-    State(const QString& filename);
+    explicit State(const QString& filename);
     State();
+    ~State() override;
 
-    /**
-     * @brief ~State destructor
-     */
-    virtual ~State() override;
-
-    /**
-     * @brief Copy the state from orig to self.
-     * CopyConstructor doesn't work since QObject doesn't have a public one.
-     * @param state the original state to copy from
-     */
+    /** @brief Deep-copies document buffers and properties from `state` and clears `_undoStack`. */
     void copyState(const State& state);
-
-    /**
-     * @brief reset resets the charsets. emits fileLoaded();
-     */
+    /** @brief Resets the document to the default C64 Upper/Graphics ROM charset and `40x25` map. */
     void reset();
-
-    /**
-     * @brief refresh resends all the signals about the current state
-     * so that consumers can update its views
-     */
-    void refresh();
-    /**
-     * @brief openFile imports a file. emits fileLoaded();
-     * @param filename
-     * @return
-     */
-    bool openFile(const QString& filename);
-    bool saveProject(const QString& filename);
-    bool exportRaw(const QString& filename, const ExportProperties& properties);
-    bool exportPRG(const QString& filename, const ExportProperties& properties);
-    bool exportAsm(const QString& filename, const ExportProperties& properties);
-    bool exportC(const QString& filename, const ExportProperties& properties);
-    bool exportPNG(const QString& filename, TilesetWidget* tilesetWidget, MapWidget* mapWidget);
-    // export is a defined keyword, so we use export_ instead
-    bool export_();
-
-    /**
-     * @brief emitNewState hackish way to notify that a new state has been created
-     * FIXME: This is a refactoring. BigCharWidget should emit this.
-     */
+    /** @brief Broadcasts `fileLoaded()` and `contentsChanged()` to synchronize attached views. */
     void emitNewState();
 
+    /** @brief Auto-detects format by extension (`.vchar64proj`, `.ctm`, `.prg`/`.64c`, or raw) and loads `filename`. */
+    vchar64::Result<vchar64::ImportReport> openFile(const QString& filename);
+    /** @brief Atomically writes a v3 `.vchar64proj` project file to `filename` and marks `_undoStack` clean. */
+    vchar64::Result<void> saveProject(const QString& filename);
+    /** @brief Exports selected sections (`CHARSET`, `MAP`, `COLORS`) as raw headerless binary files. */
+    vchar64::Result<void> exportRaw(const QString& filename, const ExportProperties& properties);
+    /** @brief Exports selected sections as 2-byte little-endian load-address `.prg` files. */
+    vchar64::Result<void> exportPRG(const QString& filename, const ExportProperties& properties);
+    /** @brief Exports selected sections as 6502 assembly `.byte` tables. */
+    vchar64::Result<void> exportAsm(const QString& filename, const ExportProperties& properties);
+    /** @brief Exports selected sections into a single ISO C17 `.c` source file (`const uint8_t <id>[<N>]`). */
+    vchar64::Result<void> exportC(const QString& filename, const ExportProperties& properties);
+    /** @brief Renders and atomically saves the tileset and/or map as PNG image(s). */
+    vchar64::Result<void> exportPNG(
+        const QString& filename,
+        bool exportTileset = true,
+        bool exportMap = true,
+        bool transparentBackground = true);
+    /** @brief Re-runs the most recent export using `_exportedFilename` and `_exportProperties`. */
+    vchar64::Result<void> export_();
+
+    /** @brief Inserts `-charset`, `-map`, or `-colors` before the file extension when exporting multi-file formats. */
+    [[nodiscard]] static QString filenameFixSuffix(const QString& filename, ExportFeature suffix);
+
     /**
-     * @brief getColorForPen
-     * @param pen PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1 or PEN_MULTICOLOR2
-     * @param tileIdx the tile to obtaion the color from, in case the color is associated to the tile
-     * @return the color being used by the pen
+     * @brief Resolves the C64 color index (`0..15`, or `0..7` for Multicolor `PEN_FOREGROUND`) for `pen` on `tileIdx`.
+     *
+     * When `pen == PEN_FOREGROUND` and Multicolor decoding is active for `tileIdx`, masks out
+     * bit 3 (`& 0x07`) to match VIC-II hardware Color RAM behavior.
      */
     [[nodiscard]] int getColorForPen(int pen, int tileIdx) const;
     [[nodiscard]] int getColorForPen(int pen) const;
-
-    /**
-     * @brief setColorForPen set a color for a pen
-     * @param pen PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1, PEN_MULTICOLOR2
-     * @param color a color between 0 and 15
-     * @param tileIdx the tile to be modified in case the color is associated to the tile
-     */
+    [[nodiscard]] int getGlobalColorForPen(int pen) const noexcept;
     void setColorForPen(int pen, int color, int tileIdx);
     void setColorForPen(int pen, int color);
-
-    /**
-     * @brief getCurrentColor
-     * @return the color being used by the selected pen
-     */
     [[nodiscard]] int getCurrentColor() const;
 
-    /**
-     * @brief setSelectedPen sets pen as the selected one
-     * @param pen PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1, PEN_MULTICOLOR2
-     */
     void setSelectedPen(int pen);
+    [[nodiscard]] int getSelectedPen() const noexcept { return _selectedPen; }
 
-    /**
-     * @brief getSelectedPen
-     * @return the selected pen: PEN_BACKGROUND, PEN_FOREGROUND, PEN_MULTICOLOR1, PEN_MULTICOLOR2
-     */
-    [[nodiscard]] int getSelectedPen() const;
-
-    /**
-     * @brief setMulticolorMode enable/display multicolor mode
-     * @param enabled whether or not multicolor mode should be enabled
-     */
     void setMulticolorMode(bool enabled);
+    [[nodiscard]] bool isMulticolorMode() const noexcept { return _multicolorMode; }
 
-    /**
-     * @brief isMulticolorMode
-     * @return whether or not multicolor mode is enabled
-     */
-    [[nodiscard]] bool isMulticolorMode() const;
-
-    /**
-     * @brief setForegroundColorMode sets FOREGROUND_COLOR_GLOBAL or FOREGROUND_COLOR_PER_TILE.
-     * In GLOBAL mode, all chars share the same "foreground" color.
-     * In PER_TILE, each tile has its own color.
-     * @param mode
-     */
     void setForegroundColorMode(ForegroundColorMode mode);
+    [[nodiscard]] ForegroundColorMode getForegroundColorMode() const noexcept { return _foregroundColorMode; }
 
+    /** @brief Checks whether the currently active `_tileIndex` decodes as `4x8` 2bpp VIC-II Multicolor. */
+    [[nodiscard]] bool shouldBeDisplayedInMulticolor() const noexcept;
     /**
-     * @brief getForegroundColorMode
-     * @return
+     * @brief Checks whether `tileIdx` decodes as `4x8` 2bpp VIC-II Multicolor (`_multicolorMode` AND foreground color `>= 8`).
+     *
+     * On the MOS 6567/6569 VIC-II, enabling `$D016` bit 4 puts characters with Color RAM bit 3
+     * cleared (`0..7`) into standard `8x8` Hi-Res mode and only decodes characters with Color RAM
+     * bit 3 set (`8..15`) as `4x8` 2-bit pixel pairs.
      */
-    [[nodiscard]] ForegroundColorMode getForegroundColorMode() const;
+    [[nodiscard]] bool shouldBeDisplayedInMulticolor2(int tileIdx) const noexcept;
 
-    /**
-     * @brief shouldBeDisplayedInMulticolor whether or not the char should be displayed as multicolor.
-     * Even if multicolor mode is enabled, if Foreground color is <= 7, then char should not be
-     * displayed in multicolor mode
-     * @return whether or not the char/tile should be displayed in multicolor mode
-     */
-    [[nodiscard]] bool shouldBeDisplayedInMulticolor() const;
+    [[nodiscard]] QString getLoadedFilename() const { return _loadedFilename; }
+    [[nodiscard]] QString getSavedFilename() const { return _savedFilename; }
+    [[nodiscard]] QString getExportedFilename() const { return _exportedFilename; }
+    void setLoadedFilenameDirect(const QString& filename) { _loadedFilename = filename; }
+    void setSavedFilenameDirect(const QString& filename) { _savedFilename = filename; }
+    void setExportedFilenameDirect(const QString& filename) { _exportedFilename = filename; }
 
-    /**
-     * @brief shouldBeDisplayedInMulticolor whether or not the char should be displayed as multicolor.
-     * Even if multicolor mode is enabled, if Foreground color is <= 7, then tile should not be
-     * displayed in multicolor mode
-     * @return whether or not the tile should be displayed in multicolor mode
-     */
-    [[nodiscard]] bool shouldBeDisplayedInMulticolor2(int tileIdx) const;
-
-    [[nodiscard]] QString getLoadedFilename() const
-    {
-        return _loadedFilename;
-    }
-
-    QString getSavedFilename() const
-    {
-        return _savedFilename;
-    }
-
-    QString getExportedFilename() const
-    {
-        return _exportedFilename;
-    }
-
-    /**
-     * @brief setTileProperties changes the tile properties
-     * emit tilePropertiesUpdated();
-     * @param properties the new TileProperties struct
-     */
     void setTileProperties(const TileProperties& properties);
-    /**
-     * @brief getTileProperties
-     * @return the TileProperties being used
-     */
-    [[nodiscard]] TileProperties getTileProperties() const;
+    [[nodiscard]] TileProperties getTileProperties() const noexcept { return _tileProperties; }
+    [[nodiscard]] TileProperties tileProperties() const noexcept { return _tileProperties; }
 
-    /**
-     * @brief setExportProperties changes the export properties
-     * @param properties the new ExportProperties struct
-     */
     void setExportProperties(const ExportProperties& properties);
-    /**
-     * @brief getExportProperties
-     * @return the ExportProperties being used
-     */
-    [[nodiscard]] ExportProperties getExportProperties() const;
+    [[nodiscard]] ExportProperties getExportProperties() const noexcept { return _exportProperties; }
+    [[nodiscard]] ExportProperties exportProperties() const noexcept { return _exportProperties; }
 
-    /**
-     * @brief seMapSize changes the map size
-     * @param mapSize
-     */
     void setMapSize(const QSize& mapSize);
+    [[nodiscard]] const QSize& getMapSize() const noexcept { return _mapSize; }
+    [[nodiscard]] const QSize& mapSize() const noexcept { return _mapSize; }
+
+    [[nodiscard]] bool isValidMapCoord(const QPoint& pt) const noexcept;
+    [[nodiscard]] int getTileIndexFromMap(const QPoint& mapCoord) const;
 
     /**
-     * @brief getMapSize returns the current map size
-     * @return
+     * @brief Computes a 4-connected flood-fill region via iterative breadth-first search (BFS).
+     *
+     * Uses an explicit `std::vector<QPoint>` queue and flat visited bitmask rather than recursion
+     * so `4096 x 4096` maps (`16.7M` cells) never overflow the call stack.
      */
-    const QSize& getMapSize() const;
+    [[nodiscard]] FloodFillPlan collectFloodFillRegion(
+        const QPoint& startCoord,
+        uint8_t targetTile,
+        uint8_t replacementTile) const;
 
-    /**
-     * @brief getTileIndexFromMap returns the tiled index at mapPosition.
-     * @param mapPosition position in the map
-     * @return a tile index
-     */
-    int getTileIndexFromMap(const QPoint& mapCoord) const;
-
-    /**
-     * @brief mapFill fills a certain region of the map
-     * @param coord coordinates of the map
-     * @param tileIdx the tile to use as filler
-     */
     void mapFill(const QPoint& coord, int tileIdx);
-
-    /**
-     * @brief mapPaint paints coord with a certain tile
-     * @param coords the position of the map to paint
-     * @param tileIdx the tile to use to paint
-     * @param mergeable whether or not this paint can be merged with other mapPaint calls
-     */
     void mapPaint(const QPoint& coord, int tileIdx, bool mergeable);
-
-    /**
-     * @brief mapPaint clears the map with a given tile
-     * @param tileIdx the tile that will be used to clear the map
-     */
     void mapClear(int tileIdx);
 
-    // is the state "dirty" ?
     [[nodiscard]] bool isModified() const;
-
-    /**
-     * @brief undo undoes the last change to the state
-     */
     void undo();
-
-    /**
-     * @brief redo redoes the previous undo
-     */
     void redo();
-
-    /**
-     * @brief getUndoStack returns the QUndoStack
-     * @return returns the QUndoStack
-     */
-    QUndoStack* getUndoStack() const;
-
-    /**
-     * @brief clearUndoStack clears the UndoStack
-     */
+    [[nodiscard]] QUndoStack* getUndoStack() const noexcept { return _undoStack.get(); }
+    [[nodiscard]] QUndoStack* undoStack() const noexcept { return _undoStack.get(); }
     void clearUndoStack();
 
-    //
-    // chars buffer manipulation
-    //
-    int getCharIndexFromTileIndex(int tileIndex) const;
-    int getTileIndexFromCharIndex(int charIndex) const;
-    quint8* getCharAtIndex(int charIndex);
+    /** @brief Returns the number of addressable tiles (`256 / (tileWidth * tileHeight)`). */
+    [[nodiscard]] int maxTiles() const noexcept;
+    [[nodiscard]] bool isValidTileIndex(int tileIndex) const noexcept;
+    [[nodiscard]] int getCharIndexFromTileIndex(int tileIndex) const noexcept;
+    [[nodiscard]] int getTileIndexFromCharIndex(int charIndex) const noexcept;
+    [[nodiscard]] const uint8_t* getCharAtIndex(int charIndex) const;
 
-    // size-of-tile chars will be copied. bufferSize must be big enough
-    void copyTileFromIndex(int tileIndex, quint8* buffer, int bufferSize);
-    // size-of-tile chars will be copied. bufferSize must be big enough
-    void copyTileToIndex(int tileIndex, quint8* buffer, int bufferSize);
+    void copyTileFromIndex(int tileIndex, uint8_t* buffer, int bufferSize) const;
+    void copyTileToIndex(int tileIndex, const uint8_t* buffer, int bufferSize);
 
-    //
-    // charset, map, and related
-    //
-    const charset_t& getCharsetBuffer() const;
-    const map_t& getMapBuffer() const;
-    const tileColors_t& getTileColors() const;
+    [[nodiscard]] const CharsetBuffer& charset() const noexcept { return _charset; }
+    [[nodiscard]] const CharsetBuffer& getCharsetBuffer() const noexcept { return _charset; }
+    [[nodiscard]] const MapBuffer& map() const noexcept { return _map; }
+    [[nodiscard]] const MapBuffer& getMapBuffer() const noexcept { return _map; }
+    [[nodiscard]] const TileColorsBuffer& tileColors() const noexcept { return _tileColors; }
+    [[nodiscard]] const TileColorsBuffer& getTileColors() const noexcept { return _tileColors; }
 
-    charset_t& getCharsetBuffer();
-    map_t& getMapBuffer();
-    tileColors_t& getTileColors();
-
-    void resetCharsetBuffer();
+    void resetCharsetBuffer() noexcept;
 
     /**
-     * @brief paste paste previously copied range starting from charIndex
-     * @param offset offset in bytes
-     * @param copyRange range to paste
-     * @param origBuffer buffer that contains the data to paste
+     * @brief Atomically replaces `_charset`, `_tileColors`, `_mapSize`, and `_map` from validated importer buffers.
+     *
+     * Rejects out-of-range dimensions (`<= 0`, `> kMaxMapDim`, or `mapCells.size() != W * H`)
+     * without mutating existing state. Masks every Color RAM entry to 4 bits (`& 0x0F`).
      */
-    void paste(int offset, const CopyRange& copyRange, const quint8* origBuffer);
+    [[nodiscard]] bool assignImportedBuffers(
+        const CharsetBuffer& charsetBuf,
+        const TileColorsBuffer& tileColorsBuf,
+        const QSize& newMapSize,
+        std::vector<uint8_t> mapCells);
+    /** @brief Replaces `_mapSize` and `_map` directly without pushing an undo command; returns `false` on dimension mismatch. */
+    [[nodiscard]] bool replaceMap(const QSize& size, std::vector<uint8_t> cells);
+    /** @brief Copies up to `CHAR_BUFFER_SIZE` bytes into `_charset` and zero-pads any trailing bytes. */
+    void setCharsetBytes(const uint8_t* data, size_t byteCount) noexcept;
+    /** @brief Copies up to `TILE_COLORS_BUFFER_SIZE` bytes into `_tileColors` (4-bit masked) and fills remainder with `TILE_COLORS_DEFAULT`. */
+    void setTileColorsDirect(const uint8_t* data, size_t count) noexcept;
+    void setTileColorDirect(int tileIdx, uint8_t color) noexcept;
+    void setPenColorDirect(int pen, uint8_t color) noexcept;
+    void setMulticolorModeDirect(bool enabled) noexcept { _multicolorMode = enabled; }
+    void setForegroundColorModeDirect(ForegroundColorMode mode) noexcept { _foregroundColorMode = mode; }
+    [[nodiscard]] bool setTilePropertiesDirect(const TileProperties& properties) noexcept;
+    void setExportPropertiesDirect(const ExportProperties& properties) noexcept { _exportProperties = properties; }
+    void setKeyboardMappingDirect(KeyboardMapping mapping) noexcept { _keyboardMapping = mapping; }
 
-    /**
-     * @brief cut cut the selected region. Region is filled with "zeroes"
-     * @param copyRange range to cut
-     */
+    void paste(int offset, const CopyRange& copyRange, const uint8_t* origBuffer);
     void cut(const CopyRange& copyRange);
 
-    //
-    // tile manipulation
-    //
+    /**
+     * @brief Checks whether `tileIndex` supports lossless 90-degree clockwise rotation.
+     *
+     * Rotation requires a square tile (`width == height`) in `8x8` Hi-Res mode. Non-square
+     * tiles and `4x8` 2bpp Multicolor tiles (non-square `2:1` pixel aspect ratio) return `false`.
+     */
+    [[nodiscard]] bool canRotateTile(int tileIndex) const noexcept;
+    /**
+     * @brief Reverses pixels horizontally across one 8-bit character row.
+     *
+     * Reverses all 8 individual bits in Hi-Res mode, or swaps the four 2-bit pixel pairs
+     * (`[7:6] <-> [1:0]`, `[5:4] <-> [3:2]`) in Multicolor mode so pen indices stay intact.
+     */
+    [[nodiscard]] static uint8_t reverseCharRowBits(uint8_t rowByte, bool isMulticolorTile) noexcept;
+
     void tilePaint(int tileIndex, const QPoint& point, int pen, bool mergeable = false);
     void tileInvert(int tileIndex);
     void tileClear(int tileIndex);
@@ -453,107 +466,53 @@ public:
     void tileShiftUp(int tileIndex);
     void tileShiftDown(int tileIndex);
 
-    /** Returns the used pen for a certain position of a tile.
-        returns 0 or 1 in normal mode
-        returns 0, 1, 2 or 3 in multicolor mode
-    */
-    int tileGetPen(int tileIndex, const QPoint& position);
+    [[nodiscard]] int tileGetPen(int tileIndex, const QPoint& position) const;
 
-    /**
-     * @brief getBigCharWidget returns the parent, the widget that owns the state
-     * @return BigCharWidget
-     */
-    BigCharWidget* getBigCharWidget() const;
+    [[nodiscard]] int getTileIndex() const noexcept { return _tileIndex; }
+    [[nodiscard]] int getCharIndex() const noexcept { return _charIndex; }
+    [[nodiscard]] KeyboardMapping getKeyboardMapping() const noexcept { return _keyboardMapping; }
 
-    /**
-     * @brief getTileIndex returns the current tile index
-     * @return the current Tile Index
-     */
-    int getTileIndex() const;
-
-    /**
-     * @brief getCharIndex returns the current char index
-     * @return the current char Index
-     */
-    int getCharIndex() const;
-
-    KeyboardMapping getKeyboardMapping() const;
+    /** @brief Captures a clamped rectangular sub-grid of `_map` for undo restoration. */
+    [[nodiscard]] MapRegionPatch captureMapPatch(const QRect& bounds) const;
+    /** @brief Writes a previously captured `MapRegionPatch` back into `_map`. */
+    void restoreMapPatch(const MapRegionPatch& patch);
+    /** @brief Restores `_charset` and 4-bit-masked `_tileColors` from a pre-mutation snapshot. */
+    void restoreCharsetAndColors(const CharsetBuffer& charsetBuf, const TileColorsBuffer& tileColorsBuf);
 
 signals:
-    // file loaded, or new project
     void fileLoaded();
-
-    // when tile size or interleaved changes
     void tilePropertiesUpdated();
-
-    // when the map sizes changes
     void mapSizeUpdated();
-
-    // when the map content is updated
     void mapContentUpdated();
-
-    // when a range of bytes in the charset changes (e.g. due to a paste)
     void bytesUpdated(int pos, int count);
-
-    // when the whole tile changes
-    void tileUpdated(int);
-
-    // when the charbuffer was updated. Probably due to a copy & paste operation
+    void tileUpdated(int tileIndex);
     void charsetUpdated();
-
-    // a color new color for a pen was selected
-    void colorPropertiesUpdated(int);
-
-    /**
-     * @brief selectedPenChaged a new pen is selected
-     */
-    void selectedPenChaged(int);
-
-    // multicolor mode was toggled
-    void multicolorModeToggled(bool);
-
-    // when the state is dirty, or non-dirty.
-    // only emmited when the dirty-state changes
+    void colorPropertiesUpdated(int pen);
+    void selectedPenChanged(int pen);
+    void multicolorModeToggled(bool enabled);
     void contentsChanged();
-
-    /**
-     * @brief charIndexUpdated emitted when the charIndex is updated. Could emit tileIndexUpdated(); as well
-     */
-    void charIndexUpdated(int);
-
-    /**
-     * @brief tileIndexUpdated emitted when the tileIndex is updated. Emits charIndexUpdated(); as well
-     */
-    void tileIndexUpdated(int);
+    void charIndexUpdated(int charIndex);
+    void tileIndexUpdated(int tileIndex);
 
 public slots:
-    /**
-     * @brief setCharIndex is called when a char is selected
-     * @param charIndex Value between 0 and 255
-     */
     void setCharIndex(int charIndex);
-    /**
-     * @brief setTileIndex is called when a tiled is selected
-     * @param tileIndex Value between 0 and tileMax
-     */
     void setTileIndex(int tileIndex);
 
 protected:
-    Char getCharFromTile(int tileIndex, int x, int y) const;
-    void setCharForTile(int tileIndex, int x, int y, const Char& chr);
+    [[nodiscard]] uint8_t* mutableCharAtIndex(int charIndex);
+    [[nodiscard]] CharGlyph getCharFromTile(int tileIndex, int x, int y) const;
+    void setCharForTile(int tileIndex, int x, int y, const CharGlyph& chr);
 
     void setupDefaultMap();
-
-    void floodFillImpl(const QPoint& coord, int targetTile, int newTile);
 
     void _setCharIndex(int charIndex);
     void _setTileIndex(int tileIndex);
 
-    void _pasteChars(int charIndex, const CopyRange& copyRange, const quint8* origBuffer);
-    void _pasteTiles(int charIndex, const CopyRange& copyRange, const quint8* origBuffer);
-    void _pasteMap(int charIndex, const CopyRange& copyRange, const quint8* origBuffer);
+    void _pasteChars(int charIndex, const CopyRange& copyRange, const uint8_t* origBuffer);
+    void _pasteTiles(int charIndex, const CopyRange& copyRange, const uint8_t* origBuffer);
+    void _pasteMap(int dstOffset, const CopyRange& copyRange, const uint8_t* origBuffer);
+    void _paste(int offset, const CopyRange& copyRange, const uint8_t* origBuffer);
 
-    void _paste(int charIndex, const CopyRange& copyRange, const quint8* origBuffer);
     void _tileInvert(int tileIndex);
     void _tileClear(int tileIndex);
     void _tileFlipHorizontally(int tileIndex);
@@ -565,6 +524,7 @@ protected:
     void _tileShiftDown(int tileIndex);
 
     void _tileSetPen(int tileIndex, const QPoint& position, int pen);
+    void _applyTilePoints(int tileIndex, const QList<QPoint>& points, int pen);
     void _setMulticolorMode(bool enabled);
     void _setForegroundColorMode(ForegroundColorMode mode);
     void _setColorForPen(int pen, int color, int tileIdx);
@@ -572,53 +532,38 @@ protected:
     void _setExportProperties(const ExportProperties& properties);
 
     void _setMapSize(const QSize& mapSize);
-    void _setMap(const std::vector<quint8>& map, const QSize& mapSize);
+    void _setMap(const std::vector<uint8_t>& mapCells, const QSize& size);
     void _mapClear(int tileIdx);
     void _mapPaint(const QPoint& coord, int tileIdx);
-    void _mapFill(const QPoint& coord, int tileIdx);
+    void _applyMapPoints(const QList<QPoint>& coords, uint8_t tileIdx);
+    void _applyFloodFillCoords(const std::vector<QPoint>& coords, uint8_t replacementTile);
+    void _fillMapRect(const QRect& bounds, uint8_t value);
 
-    int _totalChars;
+    int _totalChars = 0;
 
-    charset_t _charset;
-    tileColors_t _tileColors;
-    map_t _map;
-    QSize _mapSize;
+    CharsetBuffer _charset {};
+    TileColorsBuffer _tileColors {};
+    MapBuffer _map;
+    QSize _mapSize { 40, 25 };
 
-    bool _multicolorMode;
-    ForegroundColorMode _foregroundColorMode;
+    bool _multicolorMode = false;
+    ForegroundColorMode _foregroundColorMode = FOREGROUND_COLOR_GLOBAL;
 
-    int _selectedPen;
-    quint8 _penColors[PEN_MAX];
+    int _selectedPen = PEN_FOREGROUND;
+    std::array<uint8_t, PEN_MAX> _penColors { 1U, 5U, 7U, 11U };
 
-    TileProperties _tileProperties;
+    TileProperties _tileProperties { QSize(1, 1), 1 };
 
-    /**
-     * @brief _charIndex selected char index from the charset. Value from 0 to 255
-     */
-    int _charIndex;
+    int _charIndex = 0;
+    int _tileIndex = 0;
 
-    /**
-     * @brief _tileIndex selected tile index from the tileset. Value from 0 up to 255
-     */
-    int _tileIndex;
-
-    // filename of the loaded file
-    // each time a new file is loaded, "exported" and "saved" are reset
     QString _loadedFilename;
-
-    // filename of the saved file (.vcharproj)
     QString _savedFilename;
-
-    // filename of the exported file (.raw, .prg, .s)
     QString _exportedFilename;
 
-    // export properties
-    ExportProperties _exportProperties;
+    ExportProperties _exportProperties {};
 
-    QUndoStack* _undoStack;
+    std::unique_ptr<QUndoStack> _undoStack;
 
-    BigCharWidget* _bigCharWidget; // weak ref to parent
-
-    KeyboardMapping _keyboardMapping;
+    KeyboardMapping _keyboardMapping = KEYBOARD_MAPPING_C64;
 };
-#endif

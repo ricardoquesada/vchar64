@@ -14,13 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+#include "palette.h"
+
+/**
+ * @file palette.cpp
+ * @brief Static VIC-II RGB color tables and runtime-localized C64 color name lookup.
+ */
+
+#include <algorithm>
+#include <array>
+
 #include <QCoreApplication>
 
-#include "palette.h"
 #include "state.h"
 
-static const QColor Palettes[][16] = {
-    {
+namespace {
+
+const std::array<std::array<QColor, Palette::kColorCount>, Palette::kPaletteCount> kPalettes = { {
+    { {
         // Pepto palette. Taken from: http://www.pepto.de/projects/colorvic/
         { 0x00, 0x00, 0x00 },
         { 0xFF, 0xFF, 0xFF },
@@ -38,11 +49,9 @@ static const QColor Palettes[][16] = {
         { 0x9A, 0xD2, 0x84 },
         { 0x6C, 0x5E, 0xB5 },
         { 0x95, 0x95, 0x95 },
-    },
-    { /* VICE palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64
-       * Although VICE seems to be using the Pepto palette, so not sure
-       * from where this palette was taken
-       */
+    } },
+    { {
+        // VICE palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64
         { 0x00, 0x00, 0x00 },
         { 0xff, 0xff, 0xff },
         { 0xbd, 0x18, 0x21 },
@@ -58,8 +67,10 @@ static const QColor Palettes[][16] = {
         { 0x73, 0x73, 0x6b },
         { 0x5a, 0xff, 0x5a },
         { 0x5a, 0x52, 0xff },
-        { 0xa5, 0xa5, 0xa5 } },
-    { /* CCS64 palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64 */
+        { 0xa5, 0xa5, 0xa5 },
+    } },
+    { {
+        // CCS64 palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64
         { 0x10, 0x10, 0x10 },
         { 0xff, 0xff, 0xff },
         { 0xe0, 0x40, 0x40 },
@@ -75,8 +86,10 @@ static const QColor Palettes[][16] = {
         { 0x88, 0x88, 0x88 },
         { 0xa0, 0xff, 0xa0 },
         { 0xa0, 0xa0, 0xff },
-        { 0xc0, 0xc0, 0xc0 } },
-    { /* FRODO palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64 */
+        { 0xc0, 0xc0, 0xc0 },
+    } },
+    { {
+        // FRODO palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64
         { 0x00, 0x00, 0x00 },
         { 0xff, 0xff, 0xff },
         { 0xcc, 0x00, 0x00 },
@@ -92,8 +105,9 @@ static const QColor Palettes[][16] = {
         { 0x88, 0x88, 0x88 },
         { 0x88, 0xff, 0x88 },
         { 0x88, 0x88, 0xff },
-        { 0xcc, 0xcc, 0xcc } },
-    {
+        { 0xcc, 0xcc, 0xcc },
+    } },
+    { {
         // Pepto to grayscale using: r * 0.299 + g * 0.587 + b * 0.114
         { 0x00, 0x00, 0x00 },
         { 0xff, 0xff, 0xff },
@@ -111,8 +125,8 @@ static const QColor Palettes[][16] = {
         { 0xb8, 0xb8, 0xb8 },
         { 0x6c, 0x6c, 0x6c },
         { 0x94, 0x94, 0x94 },
-    },
-    {
+    } },
+    { {
         // Colodore 50 / 100 / 50 palette. Taken from: http://www.colodore.com
         { 0x00, 0x00, 0x00 },
         { 0xFE, 0xFE, 0xFE },
@@ -130,70 +144,83 @@ static const QColor Palettes[][16] = {
         { 0xA9, 0xFE, 0x9F },
         { 0x6F, 0x6D, 0xEB },
         { 0xB1, 0xB1, 0xB1 },
-    },
-};
-static constexpr int MAX_PALETTES = std::size(Palettes);
+    } },
+} };
 
-// Default is Pepto
-int Palette::_paletteIndex = 0;
-
-const QString Palette::color_names[] = {
-    tr("Black"),
-    tr("White"),
-    tr("Red"),
-    tr("Cyan"),
-    tr("Violet"),
-    tr("Green"),
-    tr("Blue"),
-    tr("Yellow"),
-
-    tr("Orange"),
-    tr("Brown"),
-    tr("Light red"),
-    tr("Dark grey"),
-    tr("Grey"),
-    tr("Light green"),
-    tr("Light blue"),
-    tr("Light grey")
-};
-
-const QColor& Palette::getColorForPen(State* state, int pen)
+// Cast through unsigned before `& 0x0FU` so negative signed values (such as `-1` from
+// unmasked `char` bytes) fold cleanly into `[0, 15]` without implementation-defined behavior.
+[[nodiscard]] constexpr size_t maskColorIndex(int colorIndex) noexcept
 {
-    Q_ASSERT(pen >= 0 && pen < State::PEN_MAX && "Invalid pen value");
+    return static_cast<size_t>(static_cast<unsigned int>(colorIndex) & 0x0FU);
+}
 
-    // default colors are used when no state is present.
-    // Import from VICE might use it if no tabs are open
-    constexpr int defaultColors[] = { 1, 5, 7, 11 };
-    int colorIndex = defaultColors[pen];
+} // namespace
 
-    // state could be nill if no States (documents) are open
-    if (state) {
-        colorIndex = state->getColorForPen(pen, state->getTileIndex());
+int Palette::_paletteIndex = Palette::PEPTO;
 
-        // upper colors should be the same a lower colors on multicolor mode in foreground pen
-        if (pen == State::PEN_FOREGROUND && state->shouldBeDisplayedInMulticolor2(state->getTileIndex()))
-            colorIndex -= 8;
+const QColor& Palette::getColorForPen(const State* state, int pen)
+{
+    constexpr std::array<int, 4> kDefaultColors = { 1, 5, 7, 11 };
+    const int clampedPen = std::clamp(pen, 0, State::PEN_MAX - 1);
+    int colorIndex = kDefaultColors[static_cast<size_t>(clampedPen)];
+
+    if (state != nullptr) {
+        const int tileIdx = state->getTileIndex();
+        colorIndex = state->getColorForPen(clampedPen, tileIdx);
+
+        // In VIC-II multicolor character mode, foreground Color RAM bit 3 selects
+        // multicolor mode while bits 0..2 select the displayed foreground color (0..7).
+        if (clampedPen == State::PEN_FOREGROUND && state->shouldBeDisplayedInMulticolor2(tileIdx)) {
+            colorIndex = static_cast<int>(static_cast<unsigned int>(colorIndex) & 0x07U);
+        }
     }
 
-    return Palettes[_paletteIndex][colorIndex];
+    return getColor(colorIndex);
 }
 
 const QColor& Palette::getColor(int colorIndex)
 {
-    Q_ASSERT(colorIndex >= 0 && colorIndex < 16);
-    return Palettes[_paletteIndex][colorIndex];
+    const auto activeIdx = static_cast<size_t>(std::clamp(_paletteIndex, 0, kPaletteCount - 1));
+    return kPalettes[activeIdx][maskColorIndex(colorIndex)];
 }
 
-void Palette::setActivePalette(int paletteIndex)
+QString Palette::colorName(int colorIndex)
 {
-    // to make happy the build in release mode. It will complain that MAX_PALETTES
-    // is not being used
-    Q_UNUSED(MAX_PALETTES)
-    Q_ASSERT(paletteIndex >= 0 && paletteIndex < MAX_PALETTES);
-    _paletteIndex = paletteIndex;
+    // Store raw untranslated literals via QT_TR_NOOP and invoke tr() dynamically on each call.
+    // Static QString arrays initialized with tr() before main() would freeze English strings
+    // prior to QTranslator installation.
+    static constexpr std::array<const char*, kColorCount> kColorNames = {
+        QT_TR_NOOP("Black"),
+        QT_TR_NOOP("White"),
+        QT_TR_NOOP("Red"),
+        QT_TR_NOOP("Cyan"),
+        QT_TR_NOOP("Violet"),
+        QT_TR_NOOP("Green"),
+        QT_TR_NOOP("Blue"),
+        QT_TR_NOOP("Yellow"),
+        QT_TR_NOOP("Orange"),
+        QT_TR_NOOP("Brown"),
+        QT_TR_NOOP("Light red"),
+        QT_TR_NOOP("Dark grey"),
+        QT_TR_NOOP("Grey"),
+        QT_TR_NOOP("Light green"),
+        QT_TR_NOOP("Light blue"),
+        QT_TR_NOOP("Light grey"),
+    };
+    return tr(kColorNames[maskColorIndex(colorIndex)]);
 }
 
-int Palette::getActivePalette()
+void Palette::setActivePalette(int paletteIndex) noexcept
+{
+    _paletteIndex = std::clamp(paletteIndex, 0, kPaletteCount - 1);
+}
+
+int Palette::activePalette() noexcept
+{
+    return _paletteIndex;
+}
+
+int Palette::getActivePalette() noexcept
 {
     return _paletteIndex;
 }

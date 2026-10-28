@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,54 +14,129 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include <cstring>
-
-#include <QDebug>
-#include <QObject>
+/**
+ * @file commands.cpp
+ * @brief `QUndoCommand` undo/redo snapshot capture, stroke coalescing, and restoration.
+ *
+ * Key undo invariants enforced here:
+ *
+ * - **Fixed-size charset/color snapshots:** `PasteCommand` and `CutCommand` assign
+ *   fixed `2,304`-byte buffers (`CharsetColorSnapshot`) rather than `std::back_inserter`,
+ *   preventing unbounded vector growth across repeated redo cycles.
+ * - **Pre-mutation flood-fill patches:** `FillMapCommand::redo()` captures `_before`
+ *   over `_plan.bounds` *before* writing `_plan.coords`, preserving untouched obstacle
+ *   walls and interior pockets on `undo()`.
+ * - **Earliest-first brush union:** `PaintMapCommand::mergeWith()` checks `b1` before
+ *   `b2` and `currentMap`, preserving pre-stroke cell values across self-overlapping drags.
+ */
 
 #include "commands.h"
 
-// Paint Tile
-PaintTileCommand::PaintTileCommand(State* state, int tileIndex, const QPoint& position, int pen, bool mergeable, QUndoCommand* parent)
+#include <algorithm>
+#include <array>
+#include <cstring>
+
+#include <QObject>
+#include <QRect>
+
+namespace {
+
+/**
+ * @brief Intersects a destination `[blockWidth x rowCount]` map paste/cut region at `linearOffset` with `mapSize`.
+ *
+ * Clamps horizontal and vertical extents to `[0 .. mapW - dstX]` and `[0 .. mapH - dstY]`
+ * so selections pasted near the right or bottom map edge never wrap onto the next row or
+ * read/write past `_map.size()`.
+ */
+QRect computeClippedMapRect(
+    const QSize& mapSize,
+    int linearOffset,
+    int blockWidth,
+    int rowCount) noexcept
+{
+    const int mapW = mapSize.width();
+    const int mapH = mapSize.height();
+    if (mapW <= 0 || mapH <= 0 || linearOffset < 0 || blockWidth <= 0 || rowCount <= 0) {
+        return {};
+    }
+    const uint64_t totalCells = static_cast<uint64_t>(mapW) * static_cast<uint64_t>(mapH);
+    if (static_cast<uint64_t>(linearOffset) >= totalCells) {
+        return {};
+    }
+
+    const int dstX = linearOffset % mapW;
+    const int dstY = linearOffset / mapW;
+    const int cols = std::clamp(blockWidth, 0, mapW - dstX);
+    const int rows = std::clamp(rowCount, 0, mapH - dstY);
+    if (cols <= 0 || rows <= 0) {
+        return {};
+    }
+    return QRect(dstX, dstY, cols, rows);
+}
+
+QString copyBufferTypeLabel(State::CopyRange::BufferType type)
+{
+    switch (type) {
+    case State::CopyRange::CHARS:
+        return QObject::tr("Chars");
+    case State::CopyRange::TILES:
+        return QObject::tr("Tiles");
+    case State::CopyRange::MAP:
+        return QObject::tr("Map");
+    }
+    return QObject::tr("Chars");
+}
+
+} // namespace
+
+// PaintTileCommand
+
+PaintTileCommand::PaintTileCommand(
+    State* state,
+    int tileIndex,
+    const QPoint& position,
+    int pen,
+    bool mergeable,
+    QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
     , _pen(pen)
-    , _buffer {}
     , _mergeable(mergeable)
 {
-    Q_ASSERT(position.x() < State::MAX_TILE_WIDTH * 8 && position.y() < State::MAX_TILE_HEIGHT * 8 && "Invalid position");
-
     _points.append(position);
     setText(QObject::tr("Paint Tile #%1").arg(_tileIndex));
 }
 
 void PaintTileCommand::undo()
 {
-    _state->copyTileToIndex(_tileIndex, &_buffer[0], sizeof(_buffer));
+    if (_captured) {
+        _state->copyTileToIndex(_tileIndex, _buffer.data(), static_cast<int>(_buffer.size()));
+    }
 }
 
 void PaintTileCommand::redo()
 {
-    _state->copyTileFromIndex(_tileIndex, &_buffer[0], sizeof(_buffer));
-
-    for (auto point : _points) {
-        _state->_tileSetPen(_tileIndex, point, _pen);
+    if (!_captured && _state->isValidTileIndex(_tileIndex)) {
+        _state->copyTileFromIndex(_tileIndex, _buffer.data(), static_cast<int>(_buffer.size()));
+        _captured = true;
     }
+
+    _state->_applyTilePoints(_tileIndex, _points, _pen);
 }
 
 bool PaintTileCommand::mergeWith(const QUndoCommand* other)
 {
-    if (other->id() != id())
+    if (other->id() != id()) {
         return false;
+    }
 
-    auto p = dynamic_cast<const PaintTileCommand*>(other);
-
-    if (_pen != p->_pen || _tileIndex != p->_tileIndex || !p->_mergeable)
+    const auto* p = dynamic_cast<const PaintTileCommand*>(other);
+    if (p == nullptr || _state != p->_state || _pen != p->_pen || _tileIndex != p->_tileIndex || !p->_mergeable) {
         return false;
+    }
 
     _points.append(p->_points);
-
     return true;
 }
 
@@ -71,140 +146,211 @@ ClearTileCommand::ClearTileCommand(State* state, int tileIndex, QUndoCommand* pa
     : QUndoCommand(parent)
     , _state(state)
     , _tileIndex(tileIndex)
-    , _buffer {}
 {
     setText(QObject::tr("Clear Tile #%1").arg(_tileIndex));
 }
 
 void ClearTileCommand::undo()
 {
-    _state->copyTileToIndex(_tileIndex, &_buffer[0], sizeof(_buffer));
+    if (_captured) {
+        _state->copyTileToIndex(_tileIndex, _buffer.data(), static_cast<int>(_buffer.size()));
+    }
 }
 
 void ClearTileCommand::redo()
 {
-    _state->copyTileFromIndex(_tileIndex, &_buffer[0], sizeof(_buffer));
+    if (!_captured && _state->isValidTileIndex(_tileIndex)) {
+        _state->copyTileFromIndex(_tileIndex, _buffer.data(), static_cast<int>(_buffer.size()));
+        _captured = true;
+    }
     _state->_tileClear(_tileIndex);
 }
 
 // PasteCommand
 
-PasteCommand::PasteCommand(State* state, int charIndex, const State::CopyRange& copyRange, const quint8* buffer, QUndoCommand* parent)
+PasteCommand::PasteCommand(
+    State* state,
+    int offset,
+    const State::CopyRange& copyRange,
+    const uint8_t* buffer,
+    QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
-    , _charIndex(charIndex)
+    , _offset(offset)
     , _copyRange(copyRange)
-    , _origTileProperties(copyRange.tileProperties)
 {
-
-    int sizeToCopy = -1;
     if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
-        sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
-        Q_ASSERT(copyRange.bufferSize == sizeToCopy && "Invalid bufferSize");
-        _copyBuffer.resize(sizeToCopy);
-        _origBuffer.resize(sizeToCopy);
+        constexpr size_t kTotalBytes = static_cast<size_t>(
+            State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE);
+        _copyBuffer.assign(kTotalBytes, 0U);
+        if (buffer != nullptr) {
+            const size_t avail = (copyRange.bufferSize > 0)
+                ? std::min(static_cast<size_t>(copyRange.bufferSize), kTotalBytes)
+                : kTotalBytes;
+            std::copy_n(buffer, avail, _copyBuffer.data());
+        }
+        _copyRange.bufferSize = static_cast<int>(kTotalBytes);
     } else {
-        /* MAP */
-        sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
-        _copyBuffer.resize(copyRange.bufferSize);
-        _origBuffer.resize(sizeToCopy);
+        // Normalize extracted rectangular map slice into a tight [blockSize x count] subgrid
+        // so PasteCommand never retains a whole source map copy on the undo stack.
+        if (buffer != nullptr && copyRange.offset >= 0 && copyRange.blockSize > 0 && copyRange.count > 0) {
+            const uint64_t tightCells = static_cast<uint64_t>(copyRange.blockSize)
+                * static_cast<uint64_t>(copyRange.count);
+            if (tightCells > 0ULL && tightCells <= State::kMaxMapCells) {
+                const auto tightSize = static_cast<size_t>(tightCells);
+                _copyBuffer.assign(tightSize, 0U);
+
+                const uint64_t rowWidthCells = (copyRange.sourceRowWidth >= copyRange.blockSize)
+                    ? (static_cast<uint64_t>(copyRange.sourceRowWidth)
+                          * static_cast<uint64_t>(copyRange.count))
+                    : 0ULL;
+                const bool hasExplicitRowWidth = (copyRange.offset == 0 && copyRange.skip <= 0)
+                    && (rowWidthCells > 0ULL)
+                    && (copyRange.bufferSize == static_cast<int>(rowWidthCells));
+                const bool isAlreadyTight = (copyRange.offset == 0)
+                    && ((copyRange.bufferSize == static_cast<int>(tightSize))
+                        || (copyRange.bufferSize <= 0 && copyRange.skip <= 0));
+                const int srcStride = hasExplicitRowWidth
+                    ? copyRange.sourceRowWidth
+                    : (isAlreadyTight
+                              ? copyRange.blockSize
+                              : (copyRange.blockSize + std::max(0, copyRange.skip)));
+
+                for (int row = 0; row < copyRange.count; ++row) {
+                    const uint64_t srcRowOffset = static_cast<uint64_t>(copyRange.offset)
+                        + static_cast<uint64_t>(row) * static_cast<uint64_t>(srcStride);
+                    size_t colsToRead = static_cast<size_t>(copyRange.blockSize);
+                    if (copyRange.bufferSize > 0) {
+                        if (srcRowOffset >= static_cast<uint64_t>(copyRange.bufferSize)) {
+                            break;
+                        }
+                        const size_t rem = static_cast<size_t>(
+                            static_cast<uint64_t>(copyRange.bufferSize) - srcRowOffset);
+                        colsToRead = std::min(colsToRead, rem);
+                    }
+                    std::copy_n(
+                        buffer + static_cast<size_t>(srcRowOffset),
+                        colsToRead,
+                        _copyBuffer.data() + static_cast<size_t>(row) * static_cast<size_t>(copyRange.blockSize));
+                }
+
+                _copyRange.offset = 0;
+                _copyRange.skip = 0;
+                _copyRange.sourceRowWidth = copyRange.blockSize;
+                _copyRange.bufferSize = static_cast<int>(tightSize);
+            }
+        }
     }
 
-    std::copy_n(buffer, copyRange.bufferSize, _copyBuffer.data());
-
-    static const QString types[] = {
-        QObject::tr("Chars"),
-        QObject::tr("Tiles"),
-        QObject::tr("Map")
-    };
-
-    setText(QObject::tr("Paste %1").arg(types[_copyRange.type]));
+    setText(QObject::tr("Paste %1").arg(copyBufferTypeLabel(_copyRange.type)));
 }
 
 void PasteCommand::undo()
 {
-    State::CopyRange reversedCopyRange = _copyRange;
+    if (!_captured) {
+        return;
+    }
 
-    // Use the original tile properties from when the copy was made
-    reversedCopyRange.tileProperties = _origTileProperties;
-    if (_copyRange.type == State::CopyRange::TILES && _origTileProperties.interleaved == 1)
-        reversedCopyRange.offset = _charIndex / (_origTileProperties.size.width() * _origTileProperties.size.height());
-    else
-        reversedCopyRange.offset = _charIndex;
-
-    _state->_paste(_charIndex, reversedCopyRange, _origBuffer.data());
+    if (_copyRange.type == State::CopyRange::MAP) {
+        _state->restoreMapPatch(_beforeMap);
+    } else {
+        _state->restoreCharsetAndColors(_beforeChars.charset, _beforeChars.tileColors);
+    }
 }
 
 void PasteCommand::redo()
 {
-    if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES) {
-        std::copy_n(std::begin(_state->getCharsetBuffer()), State::CHAR_BUFFER_SIZE, std::begin(_origBuffer));
-        std::copy_n(std::begin(_state->getTileColors()), State::TILE_COLORS_BUFFER_SIZE, std::back_inserter(_origBuffer));
+    if (_copyRange.type == State::CopyRange::MAP) {
+        if (!_captured) {
+            const QRect affected = computeClippedMapRect(
+                _state->mapSize(),
+                _offset,
+                _copyRange.blockSize,
+                _copyRange.count);
+            if (!affected.isEmpty()) {
+                _beforeMap = _state->captureMapPatch(affected);
+            }
+            _captured = true;
+        }
+        _state->_paste(_offset, _copyRange, _copyBuffer.data());
     } else {
-        /* MAP */
-        _origBuffer = _state->getMapBuffer();
+        if (!_captured) {
+            _beforeChars.charset = _state->charset();
+            _beforeChars.tileColors = _state->tileColors();
+            _captured = true;
+        }
+        _state->_paste(_offset, _copyRange, _copyBuffer.data());
     }
-    _state->_paste(_charIndex, _copyRange, _copyBuffer.data());
 }
 
 // CutCommand
 
-CutCommand::CutCommand(State* state, const State::CopyRange& copyRange, QUndoCommand* parent)
+CutCommand::CutCommand(
+    State* state,
+    const State::CopyRange& copyRange,
+    QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _copyRange(copyRange)
-    , _origTileProperties(copyRange.tileProperties)
 {
-    int sizeToCopy = -1;
-    if (copyRange.type == State::CopyRange::CHARS || copyRange.type == State::CopyRange::TILES) {
-        sizeToCopy = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
+    if (_copyRange.type == State::CopyRange::TILES && _copyRange.tileProperties.interleaved == 1) {
+        const int tileArea = std::max(
+            1,
+            _copyRange.tileProperties.size.width() * _copyRange.tileProperties.size.height());
+        _offset = _copyRange.offset * tileArea;
     } else {
-        /* MAP */
-        sizeToCopy = state->getMapSize().width() * state->getMapSize().height();
+        _offset = _copyRange.offset;
     }
-    _zeroBuffer.resize(sizeToCopy);
-    _origBuffer.resize(sizeToCopy);
 
-    // _charIndex: offset to be used for cut
-    if (_copyRange.type == State::CopyRange::TILES && _copyRange.tileProperties.interleaved == 1)
-        _charIndex = _copyRange.offset * (_copyRange.tileProperties.size.width() * _copyRange.tileProperties.size.height());
-    else
-        _charIndex = _copyRange.offset;
-
-    static const QString types[] = {
-        QObject::tr("Chars"),
-        QObject::tr("Tiles"),
-        QObject::tr("Map")
-    };
-
-    setText(QObject::tr("Cut %1").arg(types[_copyRange.type]));
+    setText(QObject::tr("Cut %1").arg(copyBufferTypeLabel(_copyRange.type)));
 }
 
 void CutCommand::undo()
 {
-    State::CopyRange reversedCopyRange = _copyRange;
+    if (!_captured) {
+        return;
+    }
 
-    // Use the original tile properties from when the copy was made
-    reversedCopyRange.tileProperties = _origTileProperties;
-    if (_copyRange.type == State::CopyRange::TILES && _origTileProperties.interleaved == 1)
-        reversedCopyRange.offset = _charIndex / (_origTileProperties.size.width() * _origTileProperties.size.height());
-    else
-        reversedCopyRange.offset = _charIndex;
-
-    _state->_paste(_charIndex, reversedCopyRange, _origBuffer.data());
+    if (_copyRange.type == State::CopyRange::MAP) {
+        _state->restoreMapPatch(_beforeMap);
+    } else {
+        _state->restoreCharsetAndColors(_beforeChars.charset, _beforeChars.tileColors);
+    }
 }
 
 void CutCommand::redo()
 {
-    if (_copyRange.type == State::CopyRange::CHARS || _copyRange.type == State::CopyRange::TILES) {
-        std::copy_n(std::begin(_state->getCharsetBuffer()), State::CHAR_BUFFER_SIZE, std::begin(_origBuffer));
-        std::copy_n(std::begin(_state->getTileColors()), State::TILE_COLORS_BUFFER_SIZE, std::back_inserter(_origBuffer));
+    if (_copyRange.type == State::CopyRange::MAP) {
+        const QRect affected = computeClippedMapRect(
+            _state->mapSize(),
+            _offset,
+            _copyRange.blockSize,
+            _copyRange.count);
+        if (!_captured) {
+            if (!affected.isEmpty()) {
+                _beforeMap = _state->captureMapPatch(affected);
+            }
+            _captured = true;
+        }
+        if (!affected.isEmpty()) {
+            _state->_fillMapRect(affected, 0U);
+        }
     } else {
-        /* MAP */
-        _origBuffer = _state->getMapBuffer();
+        if (!_captured) {
+            _beforeChars.charset = _state->charset();
+            _beforeChars.tileColors = _state->tileColors();
+            _captured = true;
+        }
+        static constexpr std::array<
+            uint8_t,
+            State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE>
+            kZeroCharsAndColors {};
+        State::CopyRange rangeWithSize = _copyRange;
+        rangeWithSize.bufferSize = static_cast<int>(kZeroCharsAndColors.size());
+        _state->_paste(_offset, rangeWithSize, kZeroCharsAndColors.data());
     }
-    _state->_paste(_charIndex, _copyRange, _zeroBuffer.data());
 }
+
 // FlipTileHCommand
 
 FlipTileHCommand::FlipTileHCommand(State* state, int tileIndex, QUndoCommand* parent)
@@ -257,17 +403,24 @@ RotateTileCommand::RotateTileCommand(State* state, int tileIndex, QUndoCommand* 
 
 void RotateTileCommand::undo()
 {
-    _state->_tileRotate(_tileIndex);
-    _state->_tileRotate(_tileIndex);
-    _state->_tileRotate(_tileIndex);
+    if (_captured) {
+        _state->copyTileToIndex(_tileIndex, _buffer.data(), static_cast<int>(_buffer.size()));
+    }
 }
 
 void RotateTileCommand::redo()
 {
+    if (!_state->canRotateTile(_tileIndex)) {
+        return;
+    }
+    if (!_captured) {
+        _state->copyTileFromIndex(_tileIndex, _buffer.data(), static_cast<int>(_buffer.size()));
+        _captured = true;
+    }
     _state->_tileRotate(_tileIndex);
 }
 
-// InvertTile
+// InvertTileCommand
 
 InvertTileCommand::InvertTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
@@ -287,7 +440,7 @@ void InvertTileCommand::redo()
     _state->_tileInvert(_tileIndex);
 }
 
-// Shift left
+// ShiftLeftTileCommand
 
 ShiftLeftTileCommand::ShiftLeftTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
@@ -307,7 +460,7 @@ void ShiftLeftTileCommand::redo()
     _state->_tileShiftLeft(_tileIndex);
 }
 
-// Shift Right
+// ShiftRightTileCommand
 
 ShiftRightTileCommand::ShiftRightTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
@@ -327,7 +480,7 @@ void ShiftRightTileCommand::redo()
     _state->_tileShiftRight(_tileIndex);
 }
 
-// Shift Up
+// ShiftUpTileCommand
 
 ShiftUpTileCommand::ShiftUpTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
@@ -347,7 +500,7 @@ void ShiftUpTileCommand::redo()
     _state->_tileShiftUp(_tileIndex);
 }
 
-// Shift Down
+// ShiftDownTileCommand
 
 ShiftDownTileCommand::ShiftDownTileCommand(State* state, int tileIndex, QUndoCommand* parent)
     : QUndoCommand(parent)
@@ -369,7 +522,10 @@ void ShiftDownTileCommand::redo()
 
 // SetTilePropertiesCommand
 
-SetTilePropertiesCommand::SetTilePropertiesCommand(State* state, const State::TileProperties& properties, QUndoCommand* parent)
+SetTilePropertiesCommand::SetTilePropertiesCommand(
+    State* state,
+    const State::TileProperties& properties,
+    QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _new(properties)
@@ -382,18 +538,26 @@ SetTilePropertiesCommand::SetTilePropertiesCommand(State* state, const State::Ti
 
 void SetTilePropertiesCommand::undo()
 {
-    _state->_setTileProperties(_old);
+    if (_captured) {
+        _state->_setTileProperties(_old);
+    }
 }
 
 void SetTilePropertiesCommand::redo()
 {
-    _old = _state->getTileProperties();
+    if (!_captured) {
+        _old = _state->getTileProperties();
+        _captured = true;
+    }
     _state->_setTileProperties(_new);
 }
 
 // SetExportPropertiesCommand
 
-SetExportPropertiesCommand::SetExportPropertiesCommand(State* state, const State::ExportProperties& properties, QUndoCommand* parent)
+SetExportPropertiesCommand::SetExportPropertiesCommand(
+    State* state,
+    const State::ExportProperties& properties,
+    QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _new(properties)
@@ -403,83 +567,114 @@ SetExportPropertiesCommand::SetExportPropertiesCommand(State* state, const State
 
 void SetExportPropertiesCommand::undo()
 {
-    _state->_setExportProperties(_old);
+    if (_captured) {
+        _state->_setExportProperties(_old);
+    }
 }
 
 void SetExportPropertiesCommand::redo()
 {
-    _old = _state->getExportProperties();
+    if (!_captured) {
+        _old = _state->getExportProperties();
+        _captured = true;
+    }
     _state->_setExportProperties(_new);
 }
 
 // SetMulticolorModeCommand
 
-SetMulticolorModeCommand::SetMulticolorModeCommand(State* state, bool multicolorEnabled, QUndoCommand* parent)
+SetMulticolorModeCommand::SetMulticolorModeCommand(
+    State* state,
+    bool multicolorEnabled,
+    QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _new(multicolorEnabled)
 {
-    if (_new)
+    if (_new) {
         setText(QObject::tr("Multicolor enabled"));
-    else
+    } else {
         setText(QObject::tr("Multicolor disabled"));
+    }
 }
 
 void SetMulticolorModeCommand::undo()
 {
-    _state->_setMulticolorMode(_old);
+    if (_captured) {
+        _state->_setMulticolorMode(_old);
+    }
 }
 
 void SetMulticolorModeCommand::redo()
 {
-    _old = _state->isMulticolorMode();
+    if (!_captured) {
+        _old = _state->isMulticolorMode();
+        _captured = true;
+    }
     _state->_setMulticolorMode(_new);
 }
 
 // SetColorCommand
 
-SetColorCommand::SetColorCommand(State* state, int color, int pen, int tileIdx, QUndoCommand* parent)
+SetColorCommand::SetColorCommand(
+    State* state,
+    int color,
+    int pen,
+    int tileIdx,
+    QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _pen(pen)
-    , _new(color)
+    , _new(static_cast<int>(static_cast<unsigned int>(color) & 0x0FU))
     , _tileIdx(tileIdx)
 {
     setText(QObject::tr("Color[%1] = %2")
             .arg(pen)
-            .arg(color));
+            .arg(_new));
 }
 
 void SetColorCommand::undo()
 {
-    _state->_setColorForPen(_pen, _old, _tileIdx);
+    if (_captured) {
+        _state->_setColorForPen(_pen, _old, _tileIdx);
+    }
 }
 
 void SetColorCommand::redo()
 {
-    _old = _state->getColorForPen(_pen, _tileIdx);
+    if (!_captured) {
+        _old = _state->getColorForPen(_pen, _tileIdx);
+        _captured = true;
+    }
     _state->_setColorForPen(_pen, _new, _tileIdx);
 }
 
 // SetForegroundColorMode
 
-SetForegroundColorMode::SetForegroundColorMode(State* state, State::ForegroundColorMode mode, QUndoCommand* parent)
+SetForegroundColorMode::SetForegroundColorMode(
+    State* state,
+    State::ForegroundColorMode mode,
+    QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _mode(mode)
 {
-    setText(QObject::tr("Foreground Mode = %1")
-            .arg(mode));
+    setText(QObject::tr("Foreground Mode = %1").arg(static_cast<int>(mode)));
 }
 
 void SetForegroundColorMode::undo()
 {
-    _state->_setForegroundColorMode(_oldMode);
+    if (_captured) {
+        _state->_setForegroundColorMode(_oldMode);
+    }
 }
 
 void SetForegroundColorMode::redo()
 {
-    _oldMode = _state->getForegroundColorMode();
+    if (!_captured) {
+        _oldMode = _state->getForegroundColorMode();
+        _captured = true;
+    }
     _state->_setForegroundColorMode(_mode);
 }
 
@@ -489,10 +684,9 @@ SetMapSizeCommand::SetMapSizeCommand(State* state, const QSize& mapSize, QUndoCo
     : QUndoCommand(parent)
     , _state(state)
     , _new(mapSize)
+    , _old(state->getMapSize())
+    , _oldMap(state->getMapBuffer())
 {
-    _old = _state->getMapSize();
-    _oldMap = _state->getMapBuffer();
-
     setText(QObject::tr("Map Size %1x%2")
             .arg(mapSize.width())
             .arg(mapSize.height()));
@@ -510,30 +704,71 @@ void SetMapSizeCommand::redo()
 }
 
 // FillMapCommand
-FillMapCommand::FillMapCommand(State* state, const QPoint& coord, int tileIdx, QUndoCommand* parent)
+
+FillMapCommand::FillMapCommand(
+    State* state,
+    const QPoint& coord,
+    int tileIdx,
+    QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
     , _coord(coord)
-    , _tileIdx(tileIdx)
+    , _tileIdx(static_cast<uint8_t>(static_cast<unsigned int>(tileIdx) & 0xFFU))
+{
+    setText(QObject::tr("Map Fill"));
+}
+
+FillMapCommand::FillMapCommand(
+    State* state,
+    State::FloodFillPlan plan,
+    uint8_t replacementTile,
+    QUndoCommand* parent)
+    : QUndoCommand(parent)
+    , _state(state)
+    , _tileIdx(replacementTile)
+    , _plan(std::move(plan))
+    , _planReady(true)
 {
     setText(QObject::tr("Map Fill"));
 }
 
 void FillMapCommand::undo()
 {
-    _state->_setMap(_oldMap, _mapSize);
+    if (_captured && !_before.bounds.isEmpty()) {
+        _state->restoreMapPatch(_before);
+    }
 }
 
 void FillMapCommand::redo()
 {
-    if (_oldMap.empty()) {
-        _mapSize = _state->getMapSize();
-        _oldMap = _state->_map;
+    if (!_planReady) {
+        if (_state->isValidMapCoord(_coord)) {
+            const size_t startIdx = static_cast<size_t>(_coord.y())
+                    * static_cast<size_t>(_state->mapSize().width())
+                + static_cast<size_t>(_coord.x());
+            const uint8_t targetTile = _state->map()[startIdx];
+            _plan = _state->collectFloodFillRegion(_coord, targetTile, _tileIdx);
+        }
+        _planReady = true;
     }
-    _state->_mapFill(_coord, _tileIdx);
+
+    if (_plan.coords.empty()) {
+        return;
+    }
+
+    // CRITICAL: Capture _before from the untouched _map BEFORE writing _plan.coords
+    // so pre-existing _tileIdx obstacle walls and enclosed pockets inside _plan.bounds
+    // remain bit-exact across undo()/redo().
+    if (!_captured) {
+        _before = _state->captureMapPatch(_plan.bounds);
+        _captured = true;
+    }
+
+    _state->_applyFloodFillCoords(_plan.coords, _tileIdx);
 }
 
 // ClearMapCommand
+
 ClearMapCommand::ClearMapCommand(State* state, int tileIdx, QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
@@ -544,57 +779,120 @@ ClearMapCommand::ClearMapCommand(State* state, int tileIdx, QUndoCommand* parent
 
 void ClearMapCommand::undo()
 {
-    _state->_setMap(_oldMap, _mapSize);
+    if (_captured) {
+        _state->_setMap(_oldMap, _mapSize);
+    }
 }
 
 void ClearMapCommand::redo()
 {
-    if (_oldMap.empty()) {
+    if (!_captured) {
         _mapSize = _state->getMapSize();
-        _oldMap = _state->_map;
+        _oldMap = _state->getMapBuffer();
+        _captured = true;
     }
     _state->_mapClear(_tileIdx);
 }
 
 // PaintMapCommand
-PaintMapCommand::PaintMapCommand(State* state, const QPoint& position, int tileIdx, bool mergeable, QUndoCommand* parent)
+
+PaintMapCommand::PaintMapCommand(
+    State* state,
+    const QPoint& position,
+    int tileIdx,
+    bool mergeable,
+    QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
-    , _tileIdx(tileIdx)
+    , _tileIdx(static_cast<uint8_t>(static_cast<unsigned int>(tileIdx) & 0xFFU))
     , _mergeable(mergeable)
+    , _mapSize(state->getMapSize())
 {
     _points.append(position);
-
-    setText(QObject::tr("Paint Map #%1").arg(_tileIdx));
+    setText(QObject::tr("Paint Map #%1").arg(static_cast<int>(_tileIdx)));
 }
 
 void PaintMapCommand::undo()
 {
-    _state->_setMap(_oldMap, _mapSize);
+    if (_captured && !_before.bounds.isEmpty()) {
+        _state->restoreMapPatch(_before);
+    }
 }
 
 void PaintMapCommand::redo()
 {
-    if (_oldMap.empty())
-        _mapSize = _state->getMapSize();
-    _oldMap = _state->_map;
-
-    for (auto _point : _points) {
-        _state->_mapPaint(_point, _tileIdx);
+    if (!_captured && !_points.isEmpty() && _state->isValidMapCoord(_points.first())) {
+        _before = _state->captureMapPatch(QRect(_points.first(), QSize(1, 1)));
+        _captured = true;
     }
+
+    _state->_applyMapPoints(_points, _tileIdx);
 }
 
 bool PaintMapCommand::mergeWith(const QUndoCommand* other)
 {
-    if (other->id() != id())
+    if (other->id() != id()) {
         return false;
+    }
 
-    auto p = dynamic_cast<const PaintMapCommand*>(other);
-
-    if (_tileIdx != p->_tileIdx || !p->_mergeable)
+    const auto* p = dynamic_cast<const PaintMapCommand*>(other);
+    if (p == nullptr
+        || _state != p->_state
+        || _tileIdx != p->_tileIdx
+        || !p->_mergeable
+        || _mapSize != p->_mapSize
+        || _state->mapSize() != _mapSize) {
         return false;
+    }
+
+    if (!p->_before.bounds.isEmpty()) {
+        if (_before.bounds.isEmpty()) {
+            _before = p->_before;
+            _captured = true;
+        } else {
+            const QRect b1 = _before.bounds;
+            const QRect b2 = p->_before.bounds;
+            const QRect united = b1.united(b2);
+            if (united != b1) {
+                std::vector<uint8_t> mergedCells(
+                    static_cast<size_t>(united.width()) * static_cast<size_t>(united.height()),
+                    0U);
+                const auto& currentMap = _state->map();
+                const int mapW = _mapSize.width();
+                const int mapH = _mapSize.height();
+
+                for (int y = united.top(); y <= united.bottom(); ++y) {
+                    for (int x = united.left(); x <= united.right(); ++x) {
+                        uint8_t origVal = 0U;
+                        // Prefer b1 over b2 and currentMap: cells inside b1 were already
+                        // mutated during earlier drag steps, so only b1 holds their true
+                        // pre-stroke tile indices.
+                        if (b1.contains(x, y)) {
+                            const size_t idx1 = static_cast<size_t>(y - b1.top())
+                                    * static_cast<size_t>(b1.width())
+                                + static_cast<size_t>(x - b1.left());
+                            origVal = _before.cells[idx1];
+                        } else if (b2.contains(x, y)) {
+                            const size_t idx2 = static_cast<size_t>(y - b2.top())
+                                    * static_cast<size_t>(b2.width())
+                                + static_cast<size_t>(x - b2.left());
+                            origVal = p->_before.cells[idx2];
+                        } else if (x >= 0 && x < mapW && y >= 0 && y < mapH) {
+                            origVal = currentMap[static_cast<size_t>(y) * static_cast<size_t>(mapW)
+                                + static_cast<size_t>(x)];
+                        }
+                        const size_t dstIdx = static_cast<size_t>(y - united.top())
+                                * static_cast<size_t>(united.width())
+                            + static_cast<size_t>(x - united.left());
+                        mergedCells[dstIdx] = origVal;
+                    }
+                }
+                _before.bounds = united;
+                _before.cells = std::move(mergedCells);
+            }
+        }
+    }
 
     _points.append(p->_points);
-
     return true;
 }

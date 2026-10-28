@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,426 +14,318 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file stateimport.h
+ * @brief Headless binary file parsers and packed wire headers for `vchar64_core`.
+ *
+ * Defines `KoalaBitmapData`, `StateImport`, and `#pragma pack(push, 1)` on-disk
+ * header structures for VChar64 projects (v1–v3), CharPad CTM (v4 and v5),
+ * Koala Painter multicolor bitmaps, C64 PRG/raw charsets, and VICE emulator
+ * `.vsf` machine snapshots (`C64` and `C128`).
+ */
+
 #pragma once
 
-#include <QFile>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+
+#include <QIODevice>
+#include <QString>
+
+#include "core/result.h"
 
 class State;
 
 /**
- * @brief The StateImport class
- * Provices helper functions to load different formats into VChar64
+ * @brief Decoded Koala Painter (`.koa` / `.kla`) multicolor bitmap payload.
+ *
+ * Supports both canonical `10,003`-byte Koala files (2-byte LE load address +
+ * 8,000-byte bitmap + 1,000-byte Screen RAM + 1,000-byte Color RAM + 1-byte
+ * `$D021` background color) and `10,002`-byte Koala files omitting the trailing
+ * background byte (`backgroundColor` defaults to `0`).
+ */
+struct KoalaBitmapData {
+    static constexpr size_t kBitmapSize = 8000;
+    static constexpr size_t kScreenRamSize = 1000;
+    static constexpr size_t kColorRamSize = 1000;
+    static constexpr qint64 kMinFileSize = 2 + 8000 + 1000 + 1000; // 10,002 bytes
+    static constexpr qint64 kMaxFileSize = kMinFileSize + 1; // 10,003 bytes
+    static constexpr qint64 kSizeWithoutBg = kMinFileSize;
+    static constexpr qint64 kSizeWithBg = kMaxFileSize;
+
+    uint16_t loadAddress = 0x6000U;
+    std::array<uint8_t, kBitmapSize> bitmap {};
+    std::array<uint8_t, kScreenRamSize> screenRam {};
+    std::array<uint8_t, kColorRamSize> colorRam {};
+    uint8_t backgroundColor = 0U;
+};
+
+/**
+ * @brief Headless, bounds-checked binary importers for VChar64, CharPad CTM,
+ *        PRG/64C, Raw charsets, Koala Painter bitmaps, and VICE snapshots.
+ *
+ * Every importer validates headers, dimensions, endianness, and payload sizes
+ * into local staging buffers before committing to `State` via non-undo mutators,
+ * guaranteeing zero `Qt6::Widgets` coupling and transactional failure safety.
  */
 class StateImport {
 public:
-    /**
-     * @brief loadRaw loads a raw file
-     * @param state State
-     * @param file file to load
-     * @return whether or not the loading was successful
-     */
-    static qint64 loadRaw(State* state, QFile& file);
+    using KoalaBitmap = KoalaBitmapData;
 
     /**
-     * @brief loadPRG loads a PRG / 64C file. Same a raw, but the first 2 characters are ignored
-     * @param state State
-     * @param file file to load
-     * @param outAddress address where it was loaded
-     * @return whether or not the loading was successful
+     * @brief Loads up to `2,048` raw glyph bytes from `device` into `state`.
+     *
+     * Payloads smaller than `2,048` bytes zero-pad the remaining glyphs; payloads
+     * larger than `2,048` bytes clamp to `256` characters and record a non-fatal
+     * warning in `ImportReport::warnings`.
      */
-    static qint64 loadPRG(State* state, QFile& file, quint16* outAddress);
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> loadRaw(
+        State& state,
+        QIODevice& device);
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> loadRaw(
+        State& state,
+        const QString& filename);
 
     /**
-     * @brief loadCTM loads a CharPad project file
-     * @param state State
-     * @param file file to load
-     * @return whether or not the loading was successful
+     * @brief Loads a C64 `.prg` or `.64c` file (2-byte little-endian load address + raw glyph payload).
+     *
+     * @param state Destination document state (mutated only on success).
+     * @param device Open, readable `QIODevice` containing at least 3 bytes (2-byte address + `>= 1` glyph byte).
+     * @param outAddress Optional output receiving the decoded 16-bit little-endian load address.
      */
-    static qint64 loadCTM(State* state, QFile& file);
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> loadPRG(
+        State& state,
+        QIODevice& device,
+        quint16* outAddress = nullptr);
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> loadPRG(
+        State& state,
+        const QString& filename,
+        quint16* outAddress = nullptr);
 
     /**
-     * @brief loadVChar64 loads a VChar64 project file
-     * @param state State
-     * @param file file to load
-     * @return whether or not the loading was successful
+     * @brief Loads a CharPad `.ctm` v4 (`24`-byte header) or v5 (`20`-byte header) project.
+     *
+     * Peeks only the 4-byte `"CTM"` + version prefix before dispatching to `loadCTM4()`
+     * or `loadCTM5()`, avoiding cross-struct reinterpret-cast UB across differently sized headers.
      */
-    static qint64 loadVChar64(State* state, QFile& file);
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> loadCTM(
+        State& state,
+        QIODevice& device);
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> loadCTM(
+        State& state,
+        const QString& filename);
 
     /**
-     * @brief parseVICESnapshot parses a VICE snapshot file
-     * @param file file to parse
-     * @param buffer64k "out" buffer that will have the 64k RAM memory
-     * @param outCharsetAddress "out" address that will contain where the default charset is
-     * @param outScreenRAMAddress "out" address that will contain where the default Screen RAM is
-     * @param outColorRAMBuf "out" buffer that will contain the color RAM
-     * @param outVICRegistersBuf "out" buffer that will contain the VIC registers (d000-d03f)
-     * @return
+     * @brief Loads a native `.vchar64proj` v1, v2, or v3 file into `state`.
+     *
+     * Enforces explicit `qFromLittleEndian` conversion on all 16-bit header fields,
+     * validates tile geometry (`W * H <= 256`, `interleaved == 1` or `256 / (W * H)`),
+     * and clamps character counts exceeding `256`.
      */
-    static qint64 parseVICESnapshot(QFile& file, quint8* buffer64k, quint16* outCharsetAddress, quint16* outScreenRAMAddress, quint8* outColorRAMBuf, quint8* outVICRegistersBuf);
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> loadVChar64(
+        State& state,
+        QIODevice& device);
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> loadVChar64(
+        State& state,
+        const QString& filename);
 
-    //
-    // From CharPad documentation
-    //
+    /** @brief Parses and validates a `10,002`-byte or `10,003`-byte Koala Painter multicolor bitmap. */
+    [[nodiscard]] static vchar64::Result<KoalaBitmapData> loadKoala(QIODevice& device);
+    [[nodiscard]] static vchar64::Result<KoalaBitmapData> loadKoala(const QString& filename);
 
-    /*
-    File Header, 20 bytes...
+    /**
+     * @brief Extracts 64 KiB C64 RAM, VIC-II bank/charset/screen pointers, Color RAM, and VIC registers from a VICE `.vsf` snapshot.
+     *
+     * Supports both `C64` (`C64MEM`) and `C128` (`C128MEM` Bank 0) snapshots, as well as
+     * CIA2 `$DD00` module v1.0 (`35` payload bytes) and v1.1+ (`39` payload bytes) to
+     * compute the active 16 KiB VIC-II bank (`(3 - (ora & 0x03)) * 0x4000`).
+     */
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> parseVICESnapshot(
+        QIODevice& device,
+        uint8_t* buffer64k,
+        uint16_t* outCharsetAddress,
+        uint16_t* outScreenRAMAddress,
+        uint8_t* outColorRAMBuf,
+        uint8_t* outVICRegistersBuf);
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> parseVICESnapshot(
+        const QString& filename,
+        uint8_t* buffer64k,
+        uint16_t* outCharsetAddress,
+        uint16_t* outScreenRAMAddress,
+        uint8_t* outColorRAMBuf,
+        uint8_t* outVICRegistersBuf);
 
-
-    ID          [00-02]    3 bytes  : ASCII ID string... "CTM"
-    VERSION     [03]       1 byte   : version number, currently $04.
-    COLOURS     [04-07]    4 bytes  : BGR, MC1, MC2, RAM.
-    COLOUR_MODE [08]       1 byte   : 0 = Global, 1 = Per Tile, 2 = Per Tile Cell.
-    VIC_RES     [09]       1 byte   : 0 = Hi Resolution, 1 = Multicolour.
-
-    NUM_CHARS   [10,11]    2 bytes  : 16-bits, Number of chars - 1 (low, high).
-
-    NUM_TILES   [12]       1 byte   : Number of tiles - 1.
-
-    TILE_WID    [13]       1 byte   : Tile Width
-    TILE_HEI    [14]       1 byte   : Tile Height
-
-    MAP_WID     [15,16]    2 bytes  : 16-bit Map width (low, high).
-    MAP_HEI     [17,18]    2 bytes  : 16-bit Map height (low, high).
-
-    EXPANDED    [19]       1 byte   : Boolean flag, 1 = CHAR_DATA is in "Expanded" form (CELL_DATA is unnecessary and absent).
-
-    RESERVED    [20]       1 byte
-    RESERVED    [21]       1 byte
-    RESERVED    [22]       1 byte
-    RESERVED    [23]       1 byte   : (total header size is 24 bytes)
-
-
-    File Data...
-
-
-    CHAR_DATA.      The character set. Size = NUM_CHARS * 8 bytes.
-
-                    NB. NUM_CHARS should equal NUM_TILES * TILE_SIZE * TILE_SIZE for an "Expanded" char-set.
-
-
-                    An expanded char-set is one where CHAR_DATA contains one unique (8 byte) character definition for each
-                    and every cell for each tile in the tile-set.
-
-                    In such a case the CELL_DATA would simply be an ascending series starting at 0, easily recreated, and as
-                    such it will be omitted from the file.
-
-
-
-    CHAR_ATTRIBS.   1 byte for each character in the set.
-
-                    Each byte should be interpreted as follows...
-
-                    MMMMCCCC, where M is one of 4 material bits, C is one of 4 colour bits.
-
-                    The CHAR_ATTRIBS block is new to CTM v4, CharPad generates this information when a charset is
-                    compressed from an expanded state.
-
-                    (CharPads compressor can optionally copy colour and/or material attributes from the CELL_ATTRIBS to the
-                    CHAR_ATTRIBS prior to compression to allow varying levels of compression to be achieved)
-
-                    CharPad always uses the CELL_ATTRIBS data when rendering tiles and CHAR_ATTRIBS when rendering the
-                    character set itself.
-
-                    Including CHAR_ATTRIBS in the CTM file allows a character set to be rendered correctly immediately
-                    after loading instead of having to wait for the user to expand and compress.
-
-
-
-    CELL_DATA.      Size = NUM_TILES * TILE_SIZE * TILE_SIZE bytes * 2 bytes. (only exists if CHAR_DATA is not "Expanded")
-
-                    NB. CELL_DATA is a stream of 16-bit character codes to be arranged left-to-right, top-to-bottom for each tile.
-
-                    The largest contained character code should not be greater than NUM_CHARS - 1.
-
-                    In the case that the CHAR_DATA is saved in "Expanded" form, CELL_DATA will be absent as its values would just
-                    be an ascending series starting at 0.
-
-                    NB. The format of each (16-bit) code is Low Byte, High Byte.
-
-
-
-    CELL_ATTRIBS.   Size = NUM_TILES * TILE_SIZE * TILE_SIZE bytes (exists for ALL modes)
-
-                    1 attribute byte for each cell of each tile.
-
-                    Upper 4 bits = cell Material value (0-15)
-                    Lower 4 bits = cell "Colour RAM" value (0-15)    nb. only when COLOUR_MODE = 2 (Per Tile Cell)
-
-                    NB. CELL_ATTRIBS is a stream of 8-bit attribute codes arranged left-to-right, top-to-bottom for each tile.
-
-
-    TILE_ATTRIBS.   Size = NUM_TILES bytes (1 byte per tile = "RAM colour". only exists if COLOR_MODE = 1 (Per Tile)
-
-
-    MAP_DATA.        Size =  MAP_WID x MAP_HEI bytes.
-    */
-
-#pragma pack(push)
-#pragma pack(1)
+#pragma pack(push, 1)
+    /** @brief Packed 24-byte CharPad v4 file header (`"CTM\x04"`). */
     struct CTMHeader4 {
-        char id[3]; // must be CTM
-        char version; // must be 4
-        char colors[4]; // BGR, MC1, MC2, RAM.
-        char color_mode; // 0 = Global, 1 = Per Tile, 2 = Per Tile Cell.
-        char vic_res; // 0 = Hi Resolution, 1 = Multicolour.
-
-        unsigned short num_chars; // 16-bits, Number of chars - 1 (low, high).
-
-        unsigned char num_tiles; // Number of tiles - 1.
-
-        unsigned char tile_width; // Tile Width
-        unsigned char tile_height; // Tile Height
-
-        unsigned short map_width; // 16-bit Map width (low, high).
-        unsigned short map_height; // 16-bit Map height (low, high).
-
-        char expanded; // Boolean flag, 1 = CHAR_DATA is in "Expanded" form (CELL_DATA is unnecessary and absent).
-
-        char reserved[4]; // Must be 24 bytes in total
+        char id[3]; // "CTM"
+        uint8_t version; // 4
+        uint8_t colors[4]; // BGR, MC1, MC2, RAM
+        uint8_t color_mode; // 0 = Global, 1 = Per Tile, 2 = Per Tile Cell
+        uint8_t vic_res; // 0 = Hi Resolution, 1 = Multicolour
+        uint16_t num_chars; // 16-bit LE, Number of chars - 1
+        uint8_t num_tiles; // Number of tiles - 1
+        uint8_t tile_width; // Tile Width (1-8)
+        uint8_t tile_height; // Tile Height (1-8)
+        uint16_t map_width; // 16-bit LE Map width
+        uint16_t map_height; // 16-bit LE Map height
+        uint8_t expanded; // 1 = Expanded form
+        uint8_t reserved[4]; // Total header size: 24 bytes
     };
-#pragma pack(pop)
-    static_assert(sizeof(CTMHeader4) == 24, "Size is not correct");
+    static_assert(sizeof(CTMHeader4) == 24, "Invalid CTMHeader4 size");
 
-    /*
-    CTM files begins with a 20 byte header...
-
-
-    file_id       [00-02]   3 bytes : file identification string ("CTM" in ASCII).
-    version       [03]      1 byte  : File version number (5).
-
-    colours       [04-07]   4 bytes : Project colours (only the low nybbles are of interest).
-                                      [04] = Background/transparent colour.
-                                      [05] = Character multi-colour 1.
-                                      [06] = Character multi-colour 2.
-                                      [07] = Character colour. (primarily for 'Global' colouring mode).
-
-    colour_method [08]      1 byte  : Character colouring method (values 0-2 are valid).
-                                      (0 = Global, 1 = Per Tile, 2 = Per Character).
-
-    flags         [09]      1 byte  : Various project flags:-
-
-                                      bit 0 : Tile System (1 = Enabled).
-                                      bit 1 : Expanded Data (1 = Yes).
-                                      bit 2 : Multi-colour Mode (1 = Enabled).
-
-                                      Remaining bits (3-7) are unused.
-
-    num_chars-1   [10,11]   2 bytes : Number of characters -1 (low byte, high byte).
-    num_tiles-1   [12,13]   2 bytes : Number of tiles -1 (low byte, high byte).
-    tile_wid      [14]      1 byte  : Tile width (currently values of 1-8 are valid).
-    tile_hei      [15]      1 byte  : Tile height (currently values of 1-8 are valid).
-    map_wid       [16,17]   2 bytes : Map width (low byte, high byte).
-    map_hei       [18,19]   2 bytes : Map height (low byte, high byte).
-
-
-
-
-    Then come the data blocks...
-
-
-    char_data       The character set. (size = num_chars * 8 bytes).
-
-                    Each byte in this block represents the pixels of one row (of 8) for each character
-                    definition, the sequence should be interpreted as groups of eight bytes where the
-                    first byte in a group represents the topmost row of pixels in a character with the
-                    following seven bytes representing each further row.
-
-
-
-    char_attribs    The character attributes. (size = num_chars bytes).
-
-                    Each byte should be interpreted as an "MMMMCCCC" bit pattern where 'M' is one of four
-                    material bits and 'C' is one of four colour bits.
-
-                    The colour attribute nybbles are only useful when colour_method = 2 (Per character)
-                    and they should all read zero if any other character colouring method is used.
-
-
-
-    tile_data       The tile data. (size = num_tiles * tile_wid * tile_hei bytes * 2 bytes).
-
-                    This block only exists if the 'Expanded Data' flag is clear. (see header).
-
-                    Tile_data is a stream of (16-bit) character codes to be arranged left-to-right,
-                    top-to-bottom for each tile.
-
-                    The character code values in this block should not exceed num_chars-1.
-
-                    In the case that the 'Expanded Data' flag is set, the tile_data block will be absent
-                    as it's contents would just be an ascending series starting at 0.
-
-                    The format of each (16 bit) character code is Low Byte, High Byte.
-
-
-
-    tile_colours    The tile colours. (size = num_tiles bytes).
-
-                    one byte per tile, the lower nybbles indicate "char colour" (0-15) for the whole tile
-                    and the upper nybbles are unused.
-
-                    This block only exists if colour_method = 1 (Per tile).
-
-
-    map_data        The map data. (size =  map_wid * map_hei * 2 bytes).
-
-                    Each byte in this block is a (16 bit) tile code, the sequence should be interpreted as
-                    running left-to-right for each map row starting with the topmost and moving down.
-    */
-#pragma pack(push)
-#pragma pack(1)
+    /** @brief Packed 20-byte CharPad v5 file header (`"CTM\x05"`). */
     struct CTMHeader5 {
-        char id[3]; // must be CTM
-        char version; // must be 5
-        char colors[4]; // BGR, MC1, MC2, RAM.
-        char color_mode; // 0 = Global, 1 = Per Tile, 2 = Per Tile Cell.
-        char flags; // bit 0 : Tile System (1 = Enabled), bit 1 : Expanded Data (1 = Yes), bit 2 : Multi-colour Mode (1 = Enabled).
-
-        quint16 num_chars; // 16-bits, Number of chars - 1 (low, high).
-
-        quint16 num_tiles; // Number of tiles - 1.
-
-        unsigned char tile_width; // Tile Width: 1-8
-        unsigned char tile_height; // Tile Height: 1-8
-
-        quint16 map_width; // 16-bit Map width (low, high).
-        quint16 map_height; // 16-bit Map height (low, high).
+        char id[3]; // "CTM"
+        uint8_t version; // 5
+        uint8_t colors[4]; // BGR, MC1, MC2, RAM
+        uint8_t color_mode; // 0 = Global, 1 = Per Tile, 2 = Per Character
+        uint8_t flags; // bit 0: Tile System, bit 1: Expanded, bit 2: Multicolour
+        uint16_t num_chars; // 16-bit LE, Number of chars - 1
+        uint16_t num_tiles; // 16-bit LE, Number of tiles - 1
+        uint8_t tile_width; // Tile Width (1-8, or 0 when Tile System disabled)
+        uint8_t tile_height; // Tile Height (1-8, or 0 when Tile System disabled)
+        uint16_t map_width; // 16-bit LE Map width
+        uint16_t map_height; // 16-bit LE Map height
     };
-#pragma pack(pop)
-    static_assert(sizeof(CTMHeader5) == 20, "Size is not correct");
+    static_assert(sizeof(CTMHeader5) == 20, "Invalid CTMHeader5 size");
 
-#pragma pack(push)
-#pragma pack(1)
+    /** @brief Packed 32-byte native `.vchar64proj` file header (versions 1, 2, and 3). */
     struct VChar64Header {
-        char id[5]; // must be VChar
-        char version; // must be 3
-        char colors[4]; // BGR, MC1, MC2, RAM.
-        char vic_res; // 0 = Hi Resolution, 1 = Multicolour.
+        char id[5]; // "VChar"
+        uint8_t version; // 1, 2, or 3
+        uint8_t colors[4]; // BGR, MC1, MC2, RAM
+        uint8_t vic_res; // 0 = Hi Resolution, 1 = Multicolour
+        uint16_t num_chars; // 16-bit LE number of chars (typically 256)
+        uint8_t tile_width; // 1-8
+        uint8_t tile_height; // 1-8
+        uint8_t char_interleaved; // 1-128
 
-        quint16 num_chars; // 16-bits, Number of chars - 1 (low, high).
+        // v2+ fields
+        uint8_t color_mode; // 0 = Global, 1 = Per Tile
+        uint16_t map_width; // 16-bit LE Map width
+        uint16_t map_height; // 16-bit LE Map height
 
-        quint8 tile_width; // between 1-8
-        quint8 tile_height; // between 1-8
-        quint8 char_interleaved; // between 1-128
+        // v3+ fields
+        uint16_t address_charset; // 16-bit LE Charset export address
+        uint16_t address_map; // 16-bit LE Map export address
+        uint16_t address_attribs; // 16-bit LE Attribs/Colors export address
+        uint8_t export_features; // bitmask: charset(1<<0), map(1<<1), colors(1<<2)
+        uint8_t export_format; // 0: RAW, 1: PRG, 2: ASM, 3: C
+        uint8_t keyboard_mapping; // 0: C64 screen code, 1: Atari 8-bit
 
-        // until here, it shares same structure as version 1
-
-        char color_mode; // 0 = Global, 1 = Per Tile
-
-        quint16 map_width; // 16-bit Map width (low, high).
-        quint16 map_height; // 16-bit Map height (low, high).
-
-        quint16 address_charset; // 16-bit for the Charset export address
-        quint16 address_map; // 16-bit for the Map export address
-        quint16 address_attribs; // 16-bit for the Attribs/Colors export address
-        quint8 export_features; // 8 bits. what features should be exported: charset(1<<0), map(1<<1), color(1<<2)
-        quint8 export_format; // 8 bits: export type: 0: RAW, 1:PRG, 2:ASM, 3:C
-        quint8 keyboard_mapping; // 8 bits: 0: PETSCII, 1: Atari 8-bit
-
-        char reserved[2]; // Must be 32 bytes in total
-
-        // after the header comes:
-        //  - charset[256 * 8]
-        //  - tile_colors[256]
-        //  - map_data[map_width * map_height bytes]
+        uint8_t reserved[2]; // Zeroed; 32 bytes total
     };
-#pragma pack(pop)
-    static_assert(sizeof(VChar64Header) == 32, "Size is not correct");
+    static_assert(sizeof(VChar64Header) == 32, "Invalid VChar64Header size");
 
-#pragma pack(push)
-#pragma pack(1)
+    /** @brief Packed 37-byte top-level VICE `.vsf` file header. */
     struct VICESnapshotHeader {
         char id[19]; // "VICE Snapshot File\032"
-        char major;
-        char minor;
-        char machine[16]; // "C64" or "C128" or...
+        uint8_t major;
+        uint8_t minor;
+        char machine[16]; // "C64", "C128", ...
     };
-    static_assert(sizeof(VICESnapshotHeader) == 37, "Size is not correct");
+    static_assert(sizeof(VICESnapshotHeader) == 37, "Invalid VICESnapshotHeader size");
 
+    /** @brief Packed 21-byte optional VICE 2.4.x+ `"VICE Version\032"` header extension. */
     struct VICESnapshotVersion {
         char id[13]; // "VICE Version\032"
-        char viceversion[4]; // VICE number
-        quint32 vice_svn_rev; // SVN revision, or 0
+        uint8_t viceversion[4];
+        uint32_t vice_svn_rev;
     };
-    static_assert(sizeof(VICESnapshotVersion) == 21, "Size is not correct");
+    static_assert(sizeof(VICESnapshotVersion) == 21, "Invalid VICESnapshotVersion size");
 
-    struct VICESnapshoptModule {
-        char moduleName[16]; // looking for "C64MEM"
-        char major;
-        char minor;
-        quint32 lenght; // little endian
+    /** @brief Packed 22-byte header preceding each module chunk inside a VICE `.vsf` stream. */
+    struct VICESnapshotModule {
+        char moduleName[16];
+        uint8_t major;
+        uint8_t minor;
+        uint32_t length; // 32-bit LE total module size (including this 22-byte header)
     };
+    static_assert(sizeof(VICESnapshotModule) == 22, "Invalid VICESnapshotModule size");
+    using VICESnapshoptModule = VICESnapshotModule;
 
-    struct VICESnapshoptC64Mem {
-        quint8 cpudata; // CPU port data byte
-        quint8 cpudir; // CPU port direction byte
-        quint8 exrom; // state of the EXROM line (?)
-        quint8 game; // state of the GAME line (?)
-        quint8 ram[65536]; // 64k RAM dump
+    /** @brief Packed `C64MEM` module payload (4 CPU port bytes + 64 KiB system RAM; heap-allocated during parsing). */
+    struct VICESnapshotC64Mem {
+        uint8_t cpudata;
+        uint8_t cpudir;
+        uint8_t exrom;
+        uint8_t game;
+        uint8_t ram[65536];
     };
+    using VICESnapshoptC64Mem = VICESnapshotC64Mem;
 
-    struct VICESnapshoptC128Mem {
-        quint8 mmu[11]; // MMU info
-        quint8 ram[4 * 65536]; // 256k RAM dump
+    /** @brief Packed `C128MEM` module payload (11 MMU bytes + 256 KiB RAM across 4 banks; heap-allocated during parsing). */
+    struct VICESnapshotC128Mem {
+        uint8_t mmu[11];
+        uint8_t ram[4 * 65536];
     };
+    using VICESnapshoptC128Mem = VICESnapshotC128Mem;
 
-    struct VICESnapshoptCIA2 {
-        quint8 ora; // Output register A
-        quint8 orb; // Output register B
-        quint8 ddra; // Data direction register A
-        quint8 ddrb; // Data direction register B
-        quint16 tac; // Timer A counter value
-        quint16 tbc; // Timer B counter value
-        quint8 tod_ten; // Time of Day - current tenth of second
-        quint8 tod_sec; // Time of Day - current seconds
-        quint8 tod_min; // Time of Day - current minutes
-        quint8 tod_hr; // Time of Day - current hours
-        quint8 sdr; // contents of shift register
-        quint8 ier; // mask of enabled interrupt masks
-        quint8 cra; // Control register A
-        quint8 crb; // Control register B
-        quint16 tal; // Timer A latch value
-        quint16 tbl; // Timer B latch value
-        quint8 ifr; // mask of currently active interrupts
-        quint8 pbstate; // Bit 6/7 reflect the PB6/7 toggle bit state.  Bit 2/3 reflect the corresponding port bit state.
-        quint8 srhbits; // number of half-bits to still shift in/out SDR
-        quint8 alarm_ten; // Time of Day - alarm tenth of second
-        quint8 alarm_sec; // Time of Day - alarm seconds
-        quint8 alarm_min; // Time of Day - alarm minutes
-        quint8 alarm_hr; // Time of Day - alarm hours
-        quint8 readicr; // current clock minus the clock when ICR was read last plus 128.
-        quint8 todlatched; // Bit 0: 1= latched for reading, Bit 1: 2=stopped for writing
-        quint8 todl_ten; // Time of Day - latched tenth of second
-        quint8 todl_sec; // Time of Day - latched seconds
-        quint8 todl_min; // Time of Day - latched minutes
-        quint8 todl_hr; // Time of Day - latched hours
-        quint32 tod_ticks; // clk ticks till next tenth of second
-        quint16 tastate; // (v1.1+ only) The state bits of the CIA timer A, according to ciatimer.h
-        quint16 tbstate; // (v1.1+ only) The state bits of the CIA timer B, according to ciatimer.h
+    /** @brief Packed `CIA2` module payload (`39` bytes in v1.1+; `ora & 0x03` selects the 16 KiB VIC-II bank). */
+    struct VICESnapshotCIA2 {
+        uint8_t ora;
+        uint8_t orb;
+        uint8_t ddra;
+        uint8_t ddrb;
+        uint16_t tac;
+        uint16_t tbc;
+        uint8_t tod_ten;
+        uint8_t tod_sec;
+        uint8_t tod_min;
+        uint8_t tod_hr;
+        uint8_t sdr;
+        uint8_t ier;
+        uint8_t cra;
+        uint8_t crb;
+        uint16_t tal;
+        uint16_t tbl;
+        uint8_t ifr;
+        uint8_t pbstate;
+        uint8_t srhbits;
+        uint8_t alarm_ten;
+        uint8_t alarm_sec;
+        uint8_t alarm_min;
+        uint8_t alarm_hr;
+        uint8_t readicr;
+        uint8_t todlatched;
+        uint8_t todl_ten;
+        uint8_t todl_sec;
+        uint8_t todl_min;
+        uint8_t todl_hr;
+        uint32_t tod_ticks;
+        uint16_t tastate;
+        uint16_t tbstate;
     };
-    struct VICESnapshoptVICII {
-        quint8 allow_bad_lines; // flag: if true, bad lines can happen
-        quint8 bad_line; // flag: this is a bad line
-        quint8 blank_enabled; // flag: draw lines in border color
-        quint8 color_buf[40]; // character memory buffer (loaded at bad line)
-        quint8 color_ram[1024]; // contents of color RAM
-        quint8 idle_state; // flag: idle state enabled
-        quint8 lp_trigger; // flag: light pen has been triggered
-        quint8 lp_x; // light pen X
-        quint8 lp_Y; // light pen Y
-        quint8 matrix_buf[40]; // video matrix buffer (loaded at bad line)
-        quint8 new_sprite_dma_mask; // value for SpriteDmaMask after drawing sprites
-        quint32 ram_base; // pointer to the start of RAM seen by the VIC
-        quint8 raster_cycle; // current vicii.raster cycle
-        quint16 raster_line; // current vicii.raster line
-        quint8 registers[64]; // VIC-II registers
+    using VICESnapshoptCIA2 = VICESnapshotCIA2;
 
-        // sprites data, and more should be here... too lazy to add it.
-        // wanna help? send a Pull Request with the missing data. Take it from here:
-        // https://sourceforge.net/p/vice-emu/code/HEAD/tree/trunk/vice/src/vicii/viciidtv-snapshot.c
+    /** @brief Packed `VIC-II` module payload providing 1 KiB Color RAM (`color_ram`) and 64 `$D000` registers (`registers`). */
+    struct VICESnapshotVICII {
+        uint8_t allow_bad_lines;
+        uint8_t bad_line;
+        uint8_t blank_enabled;
+        uint8_t color_buf[40];
+        uint8_t color_ram[1024];
+        uint8_t idle_state;
+        uint8_t lp_trigger;
+        uint8_t lp_x;
+        uint8_t lp_Y;
+        uint8_t matrix_buf[40];
+        uint8_t new_sprite_dma_mask;
+        uint32_t ram_base;
+        uint8_t raster_cycle;
+        uint16_t raster_line;
+        uint8_t registers[64];
     };
+    using VICESnapshoptVICII = VICESnapshotVICII;
 #pragma pack(pop)
 
-protected:
-    static qint64 loadCTM4(State* state, QFile& file, struct CTMHeader4* v5header);
-    static qint64 loadCTM5(State* state, QFile& file, struct CTMHeader5* v5header);
+private:
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> loadCTM4(
+        State& state,
+        QIODevice& device);
+    [[nodiscard]] static vchar64::Result<vchar64::ImportReport> loadCTM5(
+        State& state,
+        QIODevice& device);
 };
