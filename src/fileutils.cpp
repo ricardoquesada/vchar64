@@ -21,8 +21,11 @@ limitations under the License.
  * @brief Implementation of boundary-safe home-path shortening and multi-dot extension replacement.
  */
 
+#include <algorithm>
+
 #include <QDir>
 #include <QFileInfo>
+#include <QHash>
 
 QString FileUtils::getShortNativePath(const QString& filename)
 {
@@ -103,4 +106,50 @@ QString FileUtils::replaceExtension(const QString& filename, const QString& newE
     }
 
     return QDir(info.path()).filePath(newName);
+}
+
+QList<FileUtils::DroppedFile> FileUtils::classifyDroppedFiles(const QList<QUrl>& urls)
+{
+    // Keep in sync with the file filters of MainWindow::on_actionOpen_triggered(),
+    // ImportKoalaDialog::on_pushButtonBrowse_clicked(), and ImportVICEDialog::on_pushButtonBrowse_clicked().
+    static const QHash<QString, DropAction> kActionBySuffix = {
+        { QStringLiteral("vchar64proj"), DropAction::Open },
+        { QStringLiteral("raw"), DropAction::Open },
+        { QStringLiteral("bin"), DropAction::Open },
+        { QStringLiteral("fnt"), DropAction::Open },
+        { QStringLiteral("prg"), DropAction::Open },
+        { QStringLiteral("64c"), DropAction::Open },
+        { QStringLiteral("ctm"), DropAction::Open },
+        { QStringLiteral("koa"), DropAction::ImportKoala },
+        { QStringLiteral("kla"), DropAction::ImportKoala },
+        { QStringLiteral("vsf"), DropAction::ImportViceSnapshot },
+    };
+
+    QList<DroppedFile> files;
+    for (const QUrl& url : urls) {
+        if (!url.isLocalFile()) {
+            continue;
+        }
+        const QFileInfo info(url.toLocalFile());
+        if (!info.isFile()) {
+            continue;
+        }
+        const auto it = kActionBySuffix.constFind(info.suffix().toLower());
+        if (it == kActionBySuffix.constEnd()) {
+            continue;
+        }
+        const QString path = info.absoluteFilePath();
+        const bool duplicate = std::any_of(files.cbegin(), files.cend(), [&path](const DroppedFile& f) {
+            return f.path == path;
+        });
+        if (!duplicate) {
+            files.append({ path, it.value() });
+        }
+    }
+
+    // Non-interactive opens first, then modal import dialogs; drop order is kept within each group.
+    std::stable_partition(files.begin(), files.end(), [](const DroppedFile& f) {
+        return f.action == DropAction::Open;
+    });
+    return files;
 }

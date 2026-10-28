@@ -47,6 +47,8 @@ limitations under the License.
 #include <QDesktopServices>
 #include <QDir>
 #include <QDockWidget>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QEvent>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -62,6 +64,7 @@ limitations under the License.
 #include <QSignalBlocker>
 #include <QSpinBox>
 #include <QStyle>
+#include <QTimer>
 #include <QToolBar>
 #include <QUndoStack>
 #include <QUndoView>
@@ -118,6 +121,8 @@ MainWindow::MainWindow(QWidget* parent)
     , _ui(new Ui::MainWindow)
 {
     setUnifiedTitleAndToolBarOnMac(true);
+    // Child widgets that don't accept drops (MDI area, docks) forward drag events up to this window.
+    setAcceptDrops(true);
 
     _ui->setupUi(this);
 
@@ -593,6 +598,55 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
     event->accept();
     saveSettings();
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent* event)
+{
+    // Only show the "copy" drop cursor when at least one dragged file can be opened or imported.
+    if (event->mimeData()->hasUrls()
+        && !FileUtils::classifyDroppedFiles(event->mimeData()->urls()).isEmpty()) {
+        event->acceptProposedAction();
+        return;
+    }
+    event->ignore();
+}
+
+void MainWindow::dropEvent(QDropEvent* event)
+{
+    const QList<FileUtils::DroppedFile> files = FileUtils::classifyDroppedFiles(event->mimeData()->urls());
+    if (files.isEmpty()) {
+        event->ignore();
+        return;
+    }
+    event->acceptProposedAction();
+
+    // Defer processing until the drop completes: error boxes and import dialogs are modal, and
+    // running them inside dropEvent() blocks the drag source (Finder/Explorer) until they close.
+    QTimer::singleShot(0, this, [this, files]() {
+        processDroppedFiles(files);
+    });
+}
+
+void MainWindow::processDroppedFiles(const QList<FileUtils::DroppedFile>& files)
+{
+    // Bring the window forward so newly opened documents and import dialogs are visible.
+    raise();
+    activateWindow();
+
+    for (const FileUtils::DroppedFile& file : files) {
+        switch (file.action) {
+        case FileUtils::DropAction::Open:
+            // Activates already-open documents, reports errors, and updates recent files.
+            openFile(file.path);
+            break;
+        case FileUtils::DropAction::ImportKoala:
+            runImportKoalaDialog(file.path);
+            break;
+        case FileUtils::DropAction::ImportViceSnapshot:
+            runImportVICEDialog(file.path);
+            break;
+        }
+    }
 }
 
 bool MainWindow::eventFilter(QObject* watched, QEvent* event)
@@ -1449,7 +1503,18 @@ void MainWindow::on_actionCloneCurrentProject_triggered()
 
 void MainWindow::on_actionImportVICESnapshot_triggered()
 {
+    runImportVICEDialog(QString());
+}
+
+void MainWindow::on_actionImportKoalaImage_triggered()
+{
+    runImportKoalaDialog(QString());
+}
+
+void MainWindow::runImportVICEDialog(const QString& preselectedPath)
+{
     ImportVICEDialog dialog(this);
+    dialog.setFilepath(preselectedPath);
     if (dialog.exec() == QDialog::Accepted) {
         if (QMdiSubWindow* sub = _ui->mdiArea->currentSubWindow()) {
             sub->setWindowFilePath(dialog.getFilepath());
@@ -1459,9 +1524,10 @@ void MainWindow::on_actionImportVICESnapshot_triggered()
     }
 }
 
-void MainWindow::on_actionImportKoalaImage_triggered()
+void MainWindow::runImportKoalaDialog(const QString& preselectedPath)
 {
     ImportKoalaDialog dialog(this);
+    dialog.setFilepath(preselectedPath);
     if (dialog.exec() == QDialog::Accepted) {
         if (QMdiSubWindow* sub = _ui->mdiArea->currentSubWindow()) {
             sub->setWindowFilePath(dialog.getFilepath());

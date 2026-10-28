@@ -39,6 +39,7 @@ limitations under the License.
 #include <QCoreApplication>
 #include <QDir>
 #include <QElapsedTimer>
+#include <QFile>
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QImage>
@@ -134,6 +135,7 @@ private slots:
     void testClipboardCodecRoundTripAndAdversarialRejection();
     void testActiveDocumentRelayIsolationAndLifecycle();
     void testFileUtilsPathBoundaryAndReplaceExtension();
+    void testFileUtilsClassifyDroppedFiles();
 };
 
 void TestStateAndCommands::initTestCase()
@@ -1539,6 +1541,76 @@ void TestStateAndCommands::testFileUtilsPathBoundaryAndReplaceExtension()
     QCOMPARE(
         FileUtils::replaceExtension(QStringLiteral("hero.v2.ctm"), QStringLiteral(".h")),
         QStringLiteral("hero.v2.h"));
+}
+
+void TestStateAndCommands::testFileUtilsClassifyDroppedFiles()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+
+    const auto touch = [&dir](const QString& name) {
+        const QString path = dir.filePath(name);
+        QFile file(path);
+        if (!file.open(QIODevice::WriteOnly)) {
+            return QString();
+        }
+        file.write("x", 1);
+        return QFileInfo(path).absoluteFilePath();
+    };
+
+    const QString koala = touch(QStringLiteral("picture.koa"));
+    const QString ctm = touch(QStringLiteral("level.ctm"));
+    const QString vsf = touch(QStringLiteral("snapshot.vsf"));
+    const QString prgUpper = touch(QStringLiteral("FONT.PRG"));
+    const QString klaUpper = touch(QStringLiteral("TITLE.KLA"));
+    const QString project = touch(QStringLiteral("hero.v2.vchar64proj"));
+    const QString text = touch(QStringLiteral("notes.txt"));
+    const QString noSuffix = touch(QStringLiteral("README"));
+    for (const QString& p : { koala, ctm, vsf, prgUpper, klaUpper, project, text, noSuffix }) {
+        QVERIFY(!p.isEmpty());
+    }
+    QVERIFY(QDir(dir.path()).mkdir(QStringLiteral("folder.bin")));
+
+    const QList<QUrl> urls = {
+        QUrl::fromLocalFile(koala), // import, dropped first
+        QUrl::fromLocalFile(ctm),
+        QUrl(QStringLiteral("https://example.com/remote.prg")), // not local
+        QUrl::fromLocalFile(vsf),
+        QUrl::fromLocalFile(text), // unsupported: would load as raw bytes
+        QUrl::fromLocalFile(prgUpper), // uppercase suffix
+        QUrl::fromLocalFile(dir.filePath(QStringLiteral("missing.bin"))), // does not exist
+        QUrl::fromLocalFile(dir.filePath(QStringLiteral("folder.bin"))), // directory
+        QUrl::fromLocalFile(klaUpper), // uppercase Koala suffix
+        QUrl::fromLocalFile(noSuffix), // no suffix
+        QUrl::fromLocalFile(ctm), // duplicate
+        QUrl::fromLocalFile(project), // multi-dot stem
+    };
+
+    // Render as "action|path" strings so a failure prints a readable diff.
+    const auto describe = [](const QList<FileUtils::DroppedFile>& files) {
+        QStringList out;
+        for (const FileUtils::DroppedFile& f : files) {
+            const char* action = f.action == FileUtils::DropAction::Open ? "open"
+                : f.action == FileUtils::DropAction::ImportKoala         ? "koala"
+                                                                         : "vice";
+            out.append(QStringLiteral("%1|%2").arg(QLatin1String(action), f.path));
+        }
+        return out;
+    };
+
+    // Opens first (drop order), then imports (drop order).
+    const QStringList expected = {
+        QStringLiteral("open|") + ctm,
+        QStringLiteral("open|") + prgUpper,
+        QStringLiteral("open|") + project,
+        QStringLiteral("koala|") + koala,
+        QStringLiteral("vice|") + vsf,
+        QStringLiteral("koala|") + klaUpper,
+    };
+    QCOMPARE(describe(FileUtils::classifyDroppedFiles(urls)), expected);
+
+    QVERIFY(FileUtils::classifyDroppedFiles({ }).isEmpty());
+    QVERIFY(FileUtils::classifyDroppedFiles({ QUrl::fromLocalFile(text) }).isEmpty());
 }
 
 QTEST_GUILESS_MAIN(TestStateAndCommands)

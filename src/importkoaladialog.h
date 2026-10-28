@@ -39,6 +39,13 @@ public:
     virtual ~ImportKoalaDialog() override;
 
     const QString& getFilepath() const;
+    /**
+     * @brief Loads and validates @p filepath exactly as if it had been picked with Browse.
+     *
+     * Used by drag-and-drop to open the dialog pre-loaded; invalid files show the
+     * dialog's normal invalid-file state.
+     */
+    void setFilepath(const QString& filepath);
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;

@@ -21,7 +21,9 @@ limitations under the License.
  * @brief Cross-platform path display shortening and multi-dot extension manipulation helpers.
  */
 
+#include <QList>
 #include <QString>
+#include <QUrl>
 
 /**
  * @brief Cross-platform path display and extension-manipulation utilities.
@@ -48,4 +50,40 @@ public:
     [[nodiscard]] static QString replaceExtension(
         const QString& filename,
         const QString& newExtension);
+
+    /** @brief What `MainWindow` should do with a dropped file. */
+    enum class DropAction {
+        Open, ///< Load directly via `MainWindow::openFile()`.
+        ImportKoala, ///< Open the Koala import dialog pre-loaded with the file.
+        ImportViceSnapshot, ///< Open the VICE snapshot import dialog pre-loaded with the file.
+    };
+
+    /** @brief A dropped local file and the action chosen for it. */
+    struct DroppedFile {
+        QString path;
+        DropAction action = DropAction::Open;
+
+        bool operator==(const DroppedFile&) const = default;
+    };
+
+    /**
+     * @brief Classifies dropped URLs by extension (case-insensitive) into open or import actions.
+     *
+     * - Open: `.vchar64proj`, `.raw`, `.bin`, `.fnt`, `.prg`, `.64c`, `.ctm` (the Open dialog's formats).
+     * - ImportKoala: `.koa`, `.kla` (the Koala import dialog's formats).
+     * - ImportViceSnapshot: `.vsf` (the VICE import dialog's format).
+     *
+     * Any other extension is rejected, because `State::openFile()` would silently load it as raw
+     * bytes. Non-local URLs, directories, missing files, and duplicates are dropped too.
+     *
+     * The result is in processing order: all Open entries first, then imports, each group
+     * in drop order. Opening is non-interactive, while each import shows a modal dialog.
+     *
+     * Example: `{pic.koa, https://x/b.prg, level.ctm, notes.txt}` ->
+     * `{{level.ctm, Open}, {pic.koa, ImportKoala}}`.
+     *
+     * @param urls URLs from `QMimeData::urls()`.
+     * @return Files to process with their actions; empty if nothing in the drop is supported.
+     */
+    [[nodiscard]] static QList<DroppedFile> classifyDroppedFiles(const QList<QUrl>& urls);
 };

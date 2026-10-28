@@ -184,13 +184,20 @@ void ImportVICEDialog::on_pushButtonBrowse_clicked()
         tr("All files (*);;VICE snapshot files (*.vsf);;"),
         &filter);
 
-    if (!fn.isEmpty() && fn != _filepath) {
-        _filepath = fn;
-        ui->lineEdit->setText(fn);
+    setFilepath(fn);
+}
 
-        _validVICEFile = validateVICEFile(fn);
-        updateWidgets();
+void ImportVICEDialog::setFilepath(const QString& filepath)
+{
+    if (filepath.isEmpty() || filepath == _filepath) {
+        return;
     }
+
+    _filepath = filepath;
+    ui->lineEdit->setText(filepath);
+
+    _validVICEFile = validateVICEFile(filepath);
+    updateWidgets();
 }
 
 void ImportVICEDialog::on_lineEdit_editingFinished()

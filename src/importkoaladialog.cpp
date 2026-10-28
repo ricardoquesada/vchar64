@@ -106,14 +106,21 @@ void ImportKoalaDialog::on_pushButtonBrowse_clicked()
         tr("All files (*);;Koala files (*.koa *.kla);;"),
         &filter);
 
-    if (!fn.isEmpty() && fn != _filepath) {
-        _filepath = fn;
-        ui->lineEdit->setText(fn);
-        ui->widgetCharset->clean();
+    setFilepath(fn);
+}
 
-        validateKoalaFile(fn);
-        updateWidgets();
+void ImportKoalaDialog::setFilepath(const QString& filepath)
+{
+    if (filepath.isEmpty() || filepath == _filepath) {
+        return;
     }
+
+    _filepath = filepath;
+    ui->lineEdit->setText(filepath);
+    ui->widgetCharset->clean();
+
+    validateKoalaFile(filepath);
+    updateWidgets();
 }
 
 void ImportKoalaDialog::on_lineEdit_editingFinished()

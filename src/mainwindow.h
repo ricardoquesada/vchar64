@@ -35,6 +35,7 @@ limitations under the License.
 #include <QString>
 #include <QVector>
 
+#include "fileutils.h"
 #include "state.h"
 
 QT_BEGIN_NAMESPACE
@@ -45,6 +46,8 @@ class QSpinBox;
 class QComboBox;
 class QEvent;
 class QCloseEvent;
+class QDragEnterEvent;
+class QDropEvent;
 QT_END_NAMESPACE
 
 namespace Ui {
@@ -178,6 +181,16 @@ protected:
     void updateWindowModifiedFlag();
 
     void closeEvent(QCloseEvent* event) override;
+    /** @brief Accepts drags carrying at least one file `FileUtils::classifyDroppedFiles()` allows. */
+    void dragEnterEvent(QDragEnterEvent* event) override;
+    /** @brief Accepts the drop and queues `processDroppedFiles()` so modal UI never runs inside the drop. */
+    void dropEvent(QDropEvent* event) override;
+    /** @brief Opens or imports each classified dropped file, in order. */
+    void processDroppedFiles(const QList<FileUtils::DroppedFile>& files);
+    /** @brief Runs the VICE snapshot import dialog, pre-loaded with @p preselectedPath if non-empty. */
+    void runImportVICEDialog(const QString& preselectedPath);
+    /** @brief Runs the Koala import dialog, pre-loaded with @p preselectedPath if non-empty. */
+    void runImportKoalaDialog(const QString& preselectedPath);
     bool eventFilter(QObject* watched, QEvent* event) override;
 
     [[nodiscard]] BigCharWidget* getBigcharWidget() const;
