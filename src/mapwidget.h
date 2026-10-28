@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2016 Ricardo Quesada
+Copyright 2016-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,22 +14,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file mapwidget.h
+ * @brief Viewport-clipped, `TileAtlasCache`-backed C64 tile map dock canvas (`vchar64`).
+ */
+
 #pragma once
 
 #include <memory>
 
-#include "state.h"
+#include <QPoint>
+#include <QPointer>
+#include <QSize>
 #include <QWidget>
+
+#include "core/tileatlascache.h"
+#include "state.h"
 
 QT_BEGIN_NAMESPACE
 class QImage;
 QT_END_NAMESPACE
 
-// draws the map of the state (screen RAM + color RAM + charset)
+/**
+ * @brief Viewport-clipped, dirty-atlas-backed C64 tile map editor widget.
+ *
+ * Binds exclusively to the active document via `ActiveDocumentRelay`, synchronizes
+ * a private `TileAtlasCache` in `O(dirty_tiles)`, and restricts `paintEvent()` tile
+ * blits and grid lines to the exposed `QScrollArea` viewport (`O(visible_cells)` even
+ * on `4096 x 4096` maps).
+ */
 class MapWidget : public QWidget {
     Q_OBJECT
 
 public:
+    /** @brief Interactive mouse tool active on the map canvas. */
     enum MapMode {
         PAINT_MODE,
         SELECT_MODE,
@@ -40,24 +58,28 @@ public:
 
     void enableGrid(bool enabled);
     void setMode(MapMode mode);
-    MapMode getMode() const { return _mode; }
+    [[nodiscard]] MapMode getMode() const noexcept { return _mode; }
     void setZoomLevel(int zoomLevel);
 
+    /** @brief Populates `copyRange` (`CopyRange::MAP`) for the current cursor or rectangular selection. */
     void getSelectionRange(State::CopyRange* copyRange) const;
-    int getCursorPos() const;
-    QPoint getCursorCoord() const { return _cursorPos; }
+    /** @brief Returns the linear row-major map cell index (`y * mapWidth + x`) at the top-left of the selection. */
+    [[nodiscard]] int getCursorPos() const noexcept;
+    [[nodiscard]] QPoint getCursorCoord() const noexcept { return _cursorPos; }
 
-    std::unique_ptr<QImage> renderToQImage();
-
-signals:
+    /** @brief Renders the full active map at 1:1 pixel scale via `DocumentImageRenderer::renderMap()`. */
+    [[nodiscard]] std::unique_ptr<QImage> renderToQImage();
 
 public slots:
+    /** @brief Switches the observed `State` document (or `nullptr`) and invalidates `_atlasCache`. */
+    void setActiveState(State* state);
     void onTilePropertiesUpdated();
     void onMapSizeUpdated();
     void onMapContentUpdated();
-    void onMulticolorModeToggled(bool state);
+    void onMulticolorModeToggled(bool enabled);
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);
+    void onBytesUpdated(int pos, int count);
     void onCharsetUpdated();
     void onFileLoaded();
 
@@ -70,22 +92,22 @@ protected:
     void keyReleaseEvent(QKeyEvent* event) override;
     [[nodiscard]] QSize sizeHint() const override;
 
-    void updateTileImages();
-
 private:
-    bool _displayGrid;
-    QSize _sizeHint;
-    bool _selecting;
-    QSize _selectingSize;
-    QPoint _cursorPos;
-    QSize _mapSize;
-    QSize _tileSize;
-    MapMode _mode;
-    bool _commandMergeable;
-    qreal _zoomLevel;
-    int _altValue; // value entered pressing ALT + number
+    void updateGeometryMetrics();
+    [[nodiscard]] QPoint mapMousePositionToCell(const QPoint& pos) const noexcept;
 
-    // For gain speed, each tile will be pre-renderer in a QImage
-    // a QImages will be renderer
-    QImage* _tileImages[256];
+    QPointer<State> _activeState;
+    TileAtlasCache _atlasCache;
+
+    bool _displayGrid = false;
+    QSize _sizeHint { 640, 400 };
+    bool _selecting = false;
+    QSize _selectingSize { 1, 1 };
+    QPoint _cursorPos { 0, 0 };
+    QSize _mapSize { 40, 25 };
+    QSize _tileSize { 1, 1 };
+    MapMode _mode = SELECT_MODE;
+    bool _commandMergeable = false;
+    qreal _zoomLevel = 2.0;
+    int _altValue = -1;
 };

@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,127 +14,160 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file charsetwidget.cpp
+ * @brief Implementation of `CharsetWidget` 256-glyph rendering, zoom scaling, and selection (`vchar64`).
+ */
+
 #include "charsetwidget.h"
 
-#include <QDebug>
-#include <QMdiSubWindow>
+#include <algorithm>
+#include <cmath>
+
+#include <QGuiApplication>
+#include <QKeyEvent>
+#include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPointF>
 
-#include "bigcharwidget.h"
 #include "mainwindow.h"
-#include "palette.h"
 #include "preferences.h"
 #include "state.h"
-#include "ui_mainwindow.h"
 #include "utils.h"
 
-constexpr int COLUMNS = 32;
-constexpr int ROWS = 8;
-constexpr int OFFSET = 2;
-constexpr int ZOOM_LEVEL = 2;
+namespace {
+
+constexpr int kColumns = 32;
+constexpr int kRows = 8;
+constexpr int kOffset = 2;
+constexpr qreal kBaseZoomLevel = 2.0;
+
+} // namespace
 
 CharsetWidget::CharsetWidget(QWidget* parent)
     : QWidget(parent)
-    , _cursorPos({ 0, 0 })
-    , _selecting(false)
-    , _selectingSize({ 1, 1 })
-    , _charIndex(-1)
-    , _sizeHint({ 0, 0 })
-    , _zoomLevel(ZOOM_LEVEL)
-    , _displayGrid(false)
+    , _zoomLevel(kBaseZoomLevel)
 {
-    _sizeHint = { (COLUMNS * 8 + OFFSET) * ZOOM_LEVEL + 1,
-        (ROWS * 8 + OFFSET) * ZOOM_LEVEL + 1 };
+    _sizeHint = {
+        static_cast<int>((kColumns * 8 + kOffset) * kBaseZoomLevel + 1.0),
+        static_cast<int>((kRows * 8 + kOffset) * kBaseZoomLevel + 1.0)
+    };
     setMinimumSize(_sizeHint);
-
     setMouseTracking(true);
+}
+
+void CharsetWidget::setActiveState(State* state)
+{
+    if (_activeState == state) {
+        return;
+    }
+
+    _activeState = state;
+    _selecting = false;
+    _selectingSize = { 1, 1 };
+
+    if (state != nullptr) {
+        onCharIndexUpdated(state->getCharIndex());
+    } else {
+        _charIndex = -1;
+    }
+
+    update();
+}
+
+QPoint CharsetWidget::mapMousePositionToCell(const QPoint& pos) const noexcept
+{
+    const qreal safeZoom = (_zoomLevel > 0.0) ? _zoomLevel : 1.0;
+    const int rawX = static_cast<int>(
+        std::floor((static_cast<qreal>(pos.x()) / safeZoom - static_cast<qreal>(kOffset)) / 8.0));
+    const int rawY = static_cast<int>(
+        std::floor((static_cast<qreal>(pos.y()) / safeZoom - static_cast<qreal>(kOffset)) / 8.0));
+
+    return {
+        std::clamp(rawX, 0, kColumns - 1),
+        std::clamp(rawY, 0, kRows - 1)
+    };
 }
 
 void CharsetWidget::updateCharIndex(int charIndex)
 {
+    State* state = _activeState.data();
+    if (state == nullptr) {
+        return;
+    }
+
     if (_charIndex != charIndex && charIndex >= 0 && charIndex < 256) {
         _charIndex = charIndex;
-        auto state = MainWindow::getCurrentState();
-        if (state)
-            state->setCharIndex(charIndex);
+        state->setCharIndex(charIndex);
     }
 }
 
-//
-// Overrides
-//
 void CharsetWidget::mousePressEvent(QMouseEvent* event)
 {
     event->accept();
 
-    auto pos = event->pos();
+    if (_activeState == nullptr || event->button() != Qt::LeftButton) {
+        return;
+    }
 
-    int x = int((pos.x() / _zoomLevel - OFFSET)) / 8;
-    int y = int((pos.y() / _zoomLevel - OFFSET)) / 8;
-    int charIndex = x + y * COLUMNS;
+    const QPoint cell = mapMousePositionToCell(event->pos());
+    int x = cell.x();
+    int y = cell.y();
+    const int charIndex = x + y * kColumns;
 
-    if (event->button() == Qt::LeftButton) {
-        if (QGuiApplication::keyboardModifiers() & Qt::ShiftModifier) {
-            // Click + Shift == select mode
-            _selecting = true;
+    if ((QGuiApplication::keyboardModifiers() & Qt::ShiftModifier) != 0) {
+        _selecting = true;
 
-            if (x >= _cursorPos.x())
-                x++;
-            if (y >= _cursorPos.y())
-                y++;
-
-            _selectingSize = { x - _cursorPos.x(),
-                y - _cursorPos.y() };
-
-            // sanity check
-            _selectingSize = {
-                qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS - _cursorPos.x()),
-                qBound(-_cursorPos.y(), _selectingSize.height(), ROWS - _cursorPos.y())
-            };
-        } else {
-            // click without shift == select single char and clear select mode
-            if (_selecting) {
-                _selecting = false;
-                _selectingSize = { 1, 1 };
-            }
-            updateCharIndex(charIndex);
+        if (x >= _cursorPos.x()) {
+            ++x;
+        }
+        if (y >= _cursorPos.y()) {
+            ++y;
         }
 
-        update();
+        _selectingSize = {
+            std::clamp(x - _cursorPos.x(), -_cursorPos.x(), kColumns - _cursorPos.x()),
+            std::clamp(y - _cursorPos.y(), -_cursorPos.y(), kRows - _cursorPos.y())
+        };
+    } else {
+        if (_selecting) {
+            _selecting = false;
+            _selectingSize = { 1, 1 };
+        }
+        updateCharIndex(charIndex);
     }
+
+    update();
 }
 
 void CharsetWidget::mouseMoveEvent(QMouseEvent* event)
 {
     event->accept();
 
-    auto pos = event->pos();
-    int x = int((pos.x() / _zoomLevel - OFFSET)) / 8;
-    int y = int((pos.y() / _zoomLevel - OFFSET)) / 8;
-    x = qBound(0, x, COLUMNS - 1);
-    y = qBound(0, y, ROWS - 1);
+    if (_activeState == nullptr) {
+        return;
+    }
+
+    const QPoint cell = mapMousePositionToCell(event->pos());
+    int x = cell.x();
+    int y = cell.y();
 
     if (event->buttons() == Qt::NoButton) {
         MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
     } else if (event->buttons() == Qt::LeftButton) {
-        if (x >= _cursorPos.x())
-            x++;
-        if (y >= _cursorPos.y())
-            y++;
+        if (x >= _cursorPos.x()) {
+            ++x;
+        }
+        if (y >= _cursorPos.y()) {
+            ++y;
+        }
 
-        _selectingSize = { x - _cursorPos.x(),
-            y - _cursorPos.y() };
-
-        // sanity check
         _selectingSize = {
-            qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS - _cursorPos.x()),
-            qBound(-_cursorPos.y(), _selectingSize.height(), ROWS - _cursorPos.y())
+            std::clamp(x - _cursorPos.x(), -_cursorPos.x(), kColumns - _cursorPos.x()),
+            std::clamp(y - _cursorPos.y(), -_cursorPos.y(), kRows - _cursorPos.y())
         };
-
         _selecting = true;
-
         update();
     }
 }
@@ -142,6 +175,10 @@ void CharsetWidget::mouseMoveEvent(QMouseEvent* event)
 void CharsetWidget::keyPressEvent(QKeyEvent* event)
 {
     event->accept();
+
+    if (_activeState == nullptr) {
+        return;
+    }
 
     QPoint point;
     switch (event->key()) {
@@ -162,37 +199,36 @@ void CharsetWidget::keyPressEvent(QKeyEvent* event)
         return;
     }
 
-    bool selecting = (event->modifiers() & Qt::ShiftModifier);
+    const bool selecting = (event->modifiers() & Qt::ShiftModifier) != 0;
 
-    // disabling selecting?
     if (_selecting && !selecting) {
         _selectingSize = { 1, 1 };
-    } else {
-        if (selecting) {
-            _selectingSize += { point.x(), point.y() };
+    } else if (selecting) {
+        _selectingSize += { point.x(), point.y() };
 
-            if (_selectingSize.width() == 0)
-                _selectingSize.setWidth(_selectingSize.width() + 1 * point.x());
-            if (_selectingSize.height() == 0)
-                _selectingSize.setHeight(_selectingSize.height() + 1 * point.y());
-
-            _selectingSize = {
-                qBound(-_cursorPos.x(), _selectingSize.width(), COLUMNS - _cursorPos.x()),
-                qBound(-_cursorPos.y(), _selectingSize.height(), ROWS - _cursorPos.y())
-            };
-        } else {
-            _cursorPos += point;
-            _cursorPos = { qBound(0, _cursorPos.x(), COLUMNS - 1),
-                qBound(0, _cursorPos.y(), ROWS - 1) };
-
-            // reverse calculation. From char index to tile index
-            int charIndex = _cursorPos.x() + _cursorPos.y() * COLUMNS;
-            updateCharIndex(charIndex);
-
-            MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2")
-                    .arg(_cursorPos.x())
-                    .arg(_cursorPos.y()));
+        if (_selectingSize.width() == 0) {
+            _selectingSize.setWidth(_selectingSize.width() + point.x());
         }
+        if (_selectingSize.height() == 0) {
+            _selectingSize.setHeight(_selectingSize.height() + point.y());
+        }
+
+        _selectingSize = {
+            std::clamp(_selectingSize.width(), -_cursorPos.x(), kColumns - _cursorPos.x()),
+            std::clamp(_selectingSize.height(), -_cursorPos.y(), kRows - _cursorPos.y())
+        };
+    } else {
+        _cursorPos += point;
+        _cursorPos = {
+            std::clamp(_cursorPos.x(), 0, kColumns - 1),
+            std::clamp(_cursorPos.y(), 0, kRows - 1)
+        };
+
+        const int charIndex = _cursorPos.x() + _cursorPos.y() * kColumns;
+        updateCharIndex(charIndex);
+
+        MainWindow::getInstance()->showMessageOnStatusBar(
+            tr("x: %1, y: %2").arg(_cursorPos.x()).arg(_cursorPos.y()));
     }
 
     _selecting = selecting;
@@ -201,75 +237,69 @@ void CharsetWidget::keyPressEvent(QKeyEvent* event)
 
 void CharsetWidget::paintEvent(QPaintEvent* event)
 {
-    auto state = MainWindow::getCurrentState();
+    QPainter painter(this);
 
-    // no open documents?
-    if (!state)
-        return;
-
-    QPainter painter;
-
-    painter.begin(this);
-    painter.scale(_zoomLevel, _zoomLevel);
-
+    // Fill the exposed device-coordinate rectangle BEFORE applying zoom scaling.
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
+    const State* state = _activeState.data();
+    if (state == nullptr) {
+        return;
+    }
+
+    painter.scale(_zoomLevel, _zoomLevel);
     painter.setBrush(QColor(0, 0, 0));
     painter.setPen(Qt::NoPen);
 
-    for (int w = 0; w < COLUMNS; w++) {
-        for (int h = 0; h < ROWS; h++) {
-
-            int index = w + h * COLUMNS;
-
-            utilsDrawCharInPainter(state, &painter, QSizeF(1, 1), QPoint(OFFSET, OFFSET), QPoint(w, h), index);
+    for (int w = 0; w < kColumns; ++w) {
+        for (int h = 0; h < kRows; ++h) {
+            const int index = w + h * kColumns;
+            utilsDrawCharInPainter(state, &painter, QSizeF(1, 1), QPoint(kOffset, kOffset), QPoint(w, h), index);
         }
     }
 
     if (_displayGrid) {
-        auto pen = painter.pen();
-        pen.setColor(Preferences::getInstance().getGridColor());
-        pen.setStyle(Qt::DashLine);
-        pen.setWidthF(1.0 / _zoomLevel);
-        painter.setPen(pen);
+        QPen gridPen = painter.pen();
+        gridPen.setColor(Preferences::getInstance().getGridColor());
+        gridPen.setStyle(Qt::DashLine);
+        gridPen.setWidthF(1.0 / _zoomLevel);
+        painter.setPen(gridPen);
 
-        for (int y = 0; y <= ROWS; ++y)
-            painter.drawLine(QPointF(0 + OFFSET, y * 8 + OFFSET),
-                QPointF(COLUMNS * 8 + OFFSET, y * 8 + OFFSET));
+        for (int y = 0; y <= kRows; ++y) {
+            painter.drawLine(
+                QPointF(static_cast<qreal>(kOffset), static_cast<qreal>(y * 8 + kOffset)),
+                QPointF(static_cast<qreal>(kColumns * 8 + kOffset), static_cast<qreal>(y * 8 + kOffset)));
+        }
 
-        for (int x = 0; x <= COLUMNS; ++x)
-            painter.drawLine(QPointF(x * 8 + OFFSET, OFFSET),
-                QPointF(x * 8 + OFFSET, ROWS * 8 + OFFSET));
+        for (int x = 0; x <= kColumns; ++x) {
+            painter.drawLine(
+                QPointF(static_cast<qreal>(x * 8 + kOffset), static_cast<qreal>(kOffset)),
+                QPointF(static_cast<qreal>(x * 8 + kOffset), static_cast<qreal>(kRows * 8 + kOffset)));
+        }
     }
 
     QPen pen;
     pen.setColor({ 149, 195, 244, 255 });
     pen.setWidthF(2.0 / _zoomLevel);
     pen.setStyle(Qt::PenStyle::SolidLine);
+    painter.setPen(pen);
 
     if (_selecting) {
-        int plusOneX = _selectingSize.width() < 0 ? 1 : 0;
-        int plusOneY = _selectingSize.height() < 0 ? 1 : 0;
+        const int plusOneX = _selectingSize.width() < 0 ? 1 : 0;
+        const int plusOneY = _selectingSize.height() < 0 ? 1 : 0;
 
-        pen.setColor({ 149, 195, 244, 255 });
-        painter.setPen(pen);
         painter.setBrush(QColor(149, 195, 244, 64));
-        painter.drawRect((_cursorPos.x() + plusOneX) * 8 + OFFSET,
-            (_cursorPos.y() + plusOneY) * 8 + OFFSET,
+        painter.drawRect(
+            (_cursorPos.x() + plusOneX) * 8 + kOffset,
+            (_cursorPos.y() + plusOneY) * 8 + kOffset,
             (_selectingSize.width() - plusOneX) * 8,
             (_selectingSize.height() - plusOneY) * 8);
     } else {
-        pen.setColor({ 149, 195, 244, 255 });
-        painter.setPen(pen);
         painter.setBrush(QColor(128, 0, 0, 0));
-        painter.drawRect(_cursorPos.x() * 8 + OFFSET,
-            _cursorPos.y() * 8 + OFFSET,
-            8,
-            8);
+        painter.drawRect(_cursorPos.x() * 8 + kOffset, _cursorPos.y() * 8 + kOffset, 8, 8);
     }
 
     paintFocus(painter);
-    painter.end();
 }
 
 QSize CharsetWidget::sizeHint() const
@@ -277,47 +307,35 @@ QSize CharsetWidget::sizeHint() const
     return _sizeHint;
 }
 
-//
-// Helpers
-//
 void CharsetWidget::paintFocus(QPainter& painter)
 {
-    if (hasFocus()) {
-        QPen pen;
-        pen.setColor({ 149, 195, 244, 255 });
-        pen.setWidthF(3 / _zoomLevel);
-        pen.setStyle(Qt::PenStyle::SolidLine);
-
-        painter.setPen(pen);
-
-        // vertical lines
-        painter.drawLine(OFFSET - 1, OFFSET - 1,
-            OFFSET - 1, ROWS * 8 + OFFSET);
-        painter.drawLine(COLUMNS * 8 + OFFSET, OFFSET - 1,
-            COLUMNS * 8 + OFFSET, ROWS * 8 + 1);
-
-        // horizontal lines
-        painter.drawLine(OFFSET - 1, OFFSET - 1,
-            COLUMNS * 8 + 1, OFFSET - 1);
-        painter.drawLine(OFFSET - 1, ROWS * 8 + OFFSET,
-            COLUMNS * 8 + OFFSET, ROWS * 8 + OFFSET);
+    if (!hasFocus()) {
+        return;
     }
+
+    QPen pen;
+    pen.setColor({ 149, 195, 244, 255 });
+    pen.setWidthF(3.0 / _zoomLevel);
+    pen.setStyle(Qt::PenStyle::SolidLine);
+    painter.setPen(pen);
+
+    painter.drawLine(kOffset - 1, kOffset - 1, kOffset - 1, kRows * 8 + kOffset);
+    painter.drawLine(kColumns * 8 + kOffset, kOffset - 1, kColumns * 8 + kOffset, kRows * 8 + 1);
+    painter.drawLine(kOffset - 1, kOffset - 1, kColumns * 8 + 1, kOffset - 1);
+    painter.drawLine(kOffset - 1, kRows * 8 + kOffset, kColumns * 8 + kOffset, kRows * 8 + kOffset);
 }
 
-//
-// slots
-//
 void CharsetWidget::onCharIndexUpdated(int charIndex)
 {
-    // if the charIndex is updated, cancel selection
     if (_selecting) {
         _selecting = false;
         _selectingSize = { 1, 1 };
     }
 
-    _cursorPos.setX(charIndex % COLUMNS);
-    _cursorPos.setY(charIndex / COLUMNS);
-    _charIndex = charIndex;
+    const int clamped = std::clamp(charIndex, 0, 255);
+    _cursorPos.setX(clamped % kColumns);
+    _cursorPos.setY(clamped / kColumns);
+    _charIndex = clamped;
     update();
 }
 
@@ -339,57 +357,54 @@ void CharsetWidget::onTileUpdated(int tileIndex)
     update();
 }
 
+void CharsetWidget::onBytesUpdated(int pos, int count)
+{
+    Q_UNUSED(pos)
+    Q_UNUSED(count)
+    update();
+}
+
 void CharsetWidget::onCharsetUpdated()
 {
     update();
 }
 
-//
-// public
-//
-bool CharsetWidget::hasSelection() const
+bool CharsetWidget::hasSelection() const noexcept
 {
     return (_selecting && _selectingSize.width() != 0 && _selectingSize.height() != 0);
 }
 
 void CharsetWidget::getSelectionRange(State::CopyRange* copyRange) const
 {
-    Q_ASSERT(copyRange);
+    Q_ASSERT(copyRange != nullptr);
 
-    // if charset has no selection, it works the same
-    // since selectingSize will be {1,1}
+    QPoint fixedOrigin = _cursorPos;
+    QSize fixedSize = _selecting ? _selectingSize : QSize(1, 1);
 
-    // calculate absolute values of origin/size
-    QPoint fixed_origin = _cursorPos;
-    QSize fixed_size = _selectingSize;
-
-    if (_selectingSize.width() < 0) {
-        fixed_origin.setX(_cursorPos.x() + _selectingSize.width());
-        fixed_size.setWidth(-_selectingSize.width() + 1);
+    if (fixedSize.width() < 0) {
+        fixedOrigin.setX(_cursorPos.x() + fixedSize.width());
+        fixedSize.setWidth(-fixedSize.width() + 1);
     }
 
-    if (_selectingSize.height() < 0) {
-        fixed_origin.setY(_cursorPos.y() + _selectingSize.height());
-        fixed_size.setHeight(-_selectingSize.height() + 1);
+    if (fixedSize.height() < 0) {
+        fixedOrigin.setY(_cursorPos.y() + fixedSize.height());
+        fixedSize.setHeight(-fixedSize.height() + 1);
     }
 
-    // transform origin/size to offset, blockSize, ...
-
-    copyRange->offset = fixed_origin.y() * COLUMNS + fixed_origin.x();
-    copyRange->blockSize = fixed_size.width();
-    copyRange->count = fixed_size.height();
-    copyRange->skip = COLUMNS - fixed_size.width();
-
+    copyRange->offset = fixedOrigin.y() * kColumns + fixedOrigin.x();
+    copyRange->blockSize = fixedSize.width();
+    copyRange->count = fixedSize.height();
+    copyRange->skip = kColumns - fixedSize.width();
+    copyRange->sourceRowWidth = kColumns;
     copyRange->type = State::CopyRange::CHARS;
     copyRange->tileProperties.size = { -1, -1 };
     copyRange->tileProperties.interleaved = -1;
-
     copyRange->bufferSize = State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE;
 }
 
-int CharsetWidget::getCursorPos() const
+int CharsetWidget::getCursorPos() const noexcept
 {
-    return _cursorPos.y() * COLUMNS + _cursorPos.x();
+    return _cursorPos.y() * kColumns + _cursorPos.x();
 }
 
 void CharsetWidget::enableGrid(bool enabled)
@@ -402,11 +417,11 @@ void CharsetWidget::enableGrid(bool enabled)
 
 void CharsetWidget::setZoomLevel(int zoomLevel)
 {
-    _zoomLevel = zoomLevel * ZOOM_LEVEL / 100.0;
+    _zoomLevel = static_cast<qreal>(std::max(1, zoomLevel)) * kBaseZoomLevel / 100.0;
 
     _sizeHint = QSize(
-        static_cast<int>((COLUMNS * 8 + OFFSET) * _zoomLevel + 1),
-        static_cast<int>((ROWS * 8 + OFFSET) * _zoomLevel + 1));
+        static_cast<int>(std::ceil(static_cast<qreal>(kColumns * 8 + kOffset) * _zoomLevel + 1.0)),
+        static_cast<int>(std::ceil(static_cast<qreal>(kRows * 8 + kOffset) * _zoomLevel + 1.0)));
 
     setMinimumSize(_sizeHint);
     update();

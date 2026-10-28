@@ -139,12 +139,6 @@
     <property name="title">
      <string>Preview</string>
     </property>
-    <widget class="QMenu" name="menuXlink">
-     <property name="title">
-      <string>Xlink</string>
-     </property>
-     <addaction name="actionXlinkConnection"/>
-    </widget>
     <widget class="QMenu" name="menuVChar64_Server">
      <property name="title">
       <string>TCP/IP Server</string>
@@ -152,7 +146,6 @@
      <addaction name="actionServerConnection"/>
     </widget>
     <addaction name="menuVChar64_Server"/>
-    <addaction name="menuXlink"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -972,11 +965,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+W</string>
-   </property>
-  </action>
-  <action name="actionXlinkConnection">
-   <property name="text">
-    <string>Connect</string>
    </property>
   </action>
   <action name="actionServerConnection">

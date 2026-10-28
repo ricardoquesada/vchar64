@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,9 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file mainwindow.h
+ * @brief Top-level MDI application shell and `DocumentSession` RAII owner (`vchar64` GUI target).
+ *
+ * Orchestrates multiple concurrent `State` documents inside `QMdiArea`, routes active-tab
+ * signals exclusively through `ActiveDocumentRelay` (`O(1)` connections regardless of open
+ * tab count), wires `ClipboardCodec` MIME Copy/Cut/Paste, and manages target-explicit save
+ * and close lifecycles.
+ */
+
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include <QMainWindow>
+#include <QMetaObject>
+#include <QPointer>
 #include <QString>
 #include <QVector>
 
@@ -36,55 +51,93 @@ namespace Ui {
 class MainWindow;
 }
 
+class ActiveDocumentRelay;
 class BigCharWidget;
 class State;
+struct UpdateInfo;
 
+/**
+ * @brief Primary MDI window owning open `DocumentSession` instances, docks, and actions.
+ *
+ * Ownership model:
+ *
+ * - Each open project lives in a `DocumentSession` owning `std::unique_ptr<State>`.
+ * - `BigCharWidget` holds a non-owning `QPointer<State>` so widget destruction order
+ *   (`Qt::WA_DeleteOnClose` / `DeferredDelete`) never double-frees or dangles `State`.
+ * - `_isShuttingDown` short-circuits `QMdiSubWindow::destroyed` callbacks during
+ *   `~MainWindow()` teardown to prevent half-destructed re-entry.
+ */
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
     static constexpr int MAX_RECENT_FILES = 20;
 
 public:
-    /**
-     * @brief getInstance returns the singletone
-     * @return the MainWindow
-     */
     static MainWindow* getInstance();
-
-    /**
-     * @brief getCurrentState returns the current State
-     * @return nullptr if none are present. Otherwise, it will return the current State
-     */
     static State* getCurrentState();
 
-    Ui::MainWindow* getUi() const
+    [[nodiscard]] Ui::MainWindow* getUi() const noexcept
     {
         return _ui;
     }
 
     /**
-     * @brief createsDocument creates a document with a State
-     * @return
+     * @brief Adopts exclusive RAII ownership of @p state into an MDI DocumentSession.
+     */
+    BigCharWidget* adoptDocument(std::unique_ptr<State> state);
+
+    /**
+     * @brief Compatibility wrapper forwarding raw heap State* into adoptDocument.
      */
     BigCharWidget* createDocument(State* state);
 
     /**
-     * @brief openDefaultDocument open the default document. Either the last one that was opened
-     * or a new one
-     * @return returns the newly created BigCharWidget
+     * @brief Saves @p targetState in place (or prompts Save As if never saved).
+     *
+     * Operates explicitly on @p targetState even when its MDI subwindow is inactive.
+     * @return true if the document was saved cleanly; false on user cancel or I/O error.
      */
-    void openDefaultDocument();
+    bool saveDocument(State* targetState);
 
+    /**
+     * @brief Prompts for a destination path and saves @p targetState as a `.vchar64proj`.
+     * @return true if saved cleanly; false on user cancel or I/O error.
+     */
+    bool saveAsDocument(State* targetState);
+
+    /**
+     * @brief Notifies MainWindow that @p editor accepted its closeEvent so closing
+     *        subwindows are immediately excluded before Qt's DeferredDelete runs.
+     */
+    void notifyEditorClosing(BigCharWidget* editor);
+
+    /**
+     * @brief Iteratively closes all open MDI document subwindows, stopping immediately
+     *        if any dirty subwindow cancels or fails its save prompt.
+     * @return true if all documents closed cleanly; false if any subwindow remained open.
+     */
+    bool closeAllDocuments();
+
+    [[nodiscard]] ActiveDocumentRelay* activeDocumentRelay() const noexcept
+    {
+        return _activeRelay.get();
+    }
+
+    void openDefaultDocument();
     void readSettings();
 
 public slots:
-    void xlinkConnected();
-    void xlinkDisconnected();
     void serverConnected();
     void serverDisconnected();
+    void serverPreviewError(const QString& message);
+    void onUpdateAvailable(const UpdateInfo& info);
+    void onUpdateUpToDate();
+    void onUpdateCheckFailed(const QString& reason);
     void documentWasModified();
-    void onCharIndexUpdated(int);
-    void onMulticolorModeToggled(bool);
+    void onActiveStateChanged(State* state);
+    void onCharIndexUpdated(int charIndex);
+    void onTileIndexUpdated(int tileIndex);
+    void onMulticolorModeToggled(bool newvalue);
     void onTilePropertiesUpdated();
     bool openFile(const QString& fileName);
     void showMessageOnStatusBar(const QString& message);
@@ -92,12 +145,13 @@ public slots:
     void onOpenRecentFileTriggered();
     void onSubWindowActivated(QMdiSubWindow* subwindow);
     void onSpinBoxValueChanged(int tileIndex);
+    void onClipboardDataChanged();
     bool on_actionSave_triggered();
     void refresh();
 
 protected:
     explicit MainWindow(QWidget* parent = nullptr);
-    virtual ~MainWindow() override;
+    ~MainWindow() override;
 
     bool _openFile(const QString& fileName);
     bool activateIfAlreadyOpen(const QString& fileName);
@@ -105,33 +159,35 @@ protected:
     void createActions();
     void createDefaults();
     void createUndoView();
+    void wireActiveDocumentRelay();
     void setupStatusBar();
     void setupCharsetDock();
     void setupTilesetDock();
     void setupMapDock();
-    void closeState(State* state);
     void checkForUpdates();
 
     void updateRecentFiles();
     void setRecentFile(const QString& fileName);
-
     void setSessionFiles();
 
     void activateRadioButtonIndex(int pen);
+    void syncPenSelectionControls(const State* state);
     void activatePalette(int paletteIndex);
 
     void updateMenus();
+    void updateWindowModifiedFlag();
 
     void closeEvent(QCloseEvent* event) override;
     bool eventFilter(QObject* watched, QEvent* event) override;
 
-    BigCharWidget* getBigcharWidget() const;
-    State* getState() const;
+    [[nodiscard]] BigCharWidget* getBigcharWidget() const;
+    [[nodiscard]] State* getState() const;
 
-    State::CopyRange bufferToClipboard(State* state) const;
-    QByteArray bufferFromClipboard() const;
+    [[nodiscard]] State::CopyRange copySelectionToClipboard(const State* state);
+    [[nodiscard]] bool hasValidClipboardPayload() const;
 
 private slots:
+    void teardownSessionForSubWindow(QObject* subWindowObj);
 
     void on_actionExit_triggered();
     void on_actionOpen_triggered();
@@ -183,7 +239,6 @@ private slots:
     void on_actionClose_triggered();
     void on_actionClose_All_triggered();
 
-    void on_actionXlinkConnection_triggered();
     void on_actionServerConnection_triggered();
 
     void on_actionImportKoalaImage_triggered();
@@ -199,47 +254,50 @@ private slots:
     void onMapSizeUpdated();
 
     void on_actionFill_Map_triggered();
-
     void on_actionPaint_Mode_triggered();
-
     void on_actionSelect_Mode_triggered();
-
     void on_actionClear_Map_triggered();
-
     void on_actionToggle_MapGrid_triggered();
-
     void on_actionToggle_CharsetGrid_triggered();
-
     void on_actionToggle_TilesetGrid_triggered();
-
     void on_actionCloneCurrentProject_triggered();
-
     void on_actionPreferences_triggered();
-
     void on_actionPalette_5_triggered();
 
 private:
+    struct DocumentSession {
+        std::unique_ptr<State> state;
+        QPointer<QMdiSubWindow> subWindow;
+        QMdiSubWindow* rawSubWindow = nullptr;
+        QPointer<BigCharWidget> editorWidget;
+        std::vector<QMetaObject::Connection> sessionConnections;
+        bool isClosing = false;
+    };
+
+    [[nodiscard]] DocumentSession* findSessionByState(const State* targetState) noexcept;
+    [[nodiscard]] const DocumentSession* findSessionByState(const State* targetState) const noexcept;
+    [[nodiscard]] DocumentSession* findSessionBySubWindow(const QMdiSubWindow* subWindow) noexcept;
+    [[nodiscard]] const DocumentSession* findSessionBySubWindow(const QMdiSubWindow* subWindow) const noexcept;
+    [[nodiscard]] DocumentSession* findSessionByEditor(const BigCharWidget* editor) noexcept;
+    [[nodiscard]] bool hasOpenDocuments() const noexcept;
+
+    std::unique_ptr<ActiveDocumentRelay> _activeRelay;
+    std::vector<DocumentSession> _sessions;
+    bool _isShuttingDown = false;
+
     QVector<QAction*> _recentFiles;
 
-    Ui::MainWindow* _ui;
-    QLabel* _labelCharIdx;
-    QLabel* _labelTileIdx;
-    QLabel* _labelSelectedColor;
-    QUndoView* _undoView;
+    Ui::MainWindow* _ui = nullptr;
+    QLabel* _labelCharIdx = nullptr;
+    QLabel* _labelTileIdx = nullptr;
+    QLabel* _labelSelectedColor = nullptr;
+    QUndoView* _undoView = nullptr;
 
-    // FIXME: Should be moved to the "map dock" once it is implemented
-    QSpinBox* _spinBoxMapX;
-    QSpinBox* _spinBoxMapY;
-    QComboBox* _comboBoxMapZoom;
+    QSpinBox* _spinBoxMapX = nullptr;
+    QSpinBox* _spinBoxMapY = nullptr;
+    QComboBox* _comboBoxMapZoom = nullptr;
+    QComboBox* _comboBoxCharsetZoom = nullptr;
+    QComboBox* _comboBoxTilesetZoom = nullptr;
 
-    // FIXME: Should be moved to the "charset dock" once it is implemented
-    QComboBox* _comboBoxCharsetZoom;
-
-    // FIXME: Should be moved to the "charset dock" once it is implemented
-    QComboBox* _comboBoxTilesetZoom;
-
-    // Tracks whichever of charsetWidget/tilesetWidget/mapWidget last had keyboard focus.
-    // Needed because triggering Copy/Paste from the Edit menu momentarily steals focus
-    // away from these widgets, so a plain hasFocus() check fails at that point.
     QWidget* _lastFocusedEditorWidget = nullptr;
 };

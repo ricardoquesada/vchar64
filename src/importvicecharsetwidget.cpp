@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,76 +14,91 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file importvicecharsetwidget.cpp
+ * @brief `TileAtlasCache`-backed `16x16` charset preview painter for VICE `.vsf` import.
+ *
+ * Clears the exposed device-coordinate `event->rect()` prior to applying the
+ * `1.5625x` logical-to-device `QPainter::scale()` transform, then blits all 256
+ * character tiles from `ImportVICEDialog::atlasCache()`.
+ */
+
 #include "importvicecharsetwidget.h"
+
+#include <cmath>
 
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPointF>
+#include <QRectF>
 
 #include "importvicedialog.h"
-#include "mainwindow.h"
-#include "palette.h"
-#include "state.h"
 
-constexpr float PIXEL_SIZE = 1.5625f;
-constexpr int COLUMNS = 16;
-constexpr int ROWS = 16;
-constexpr int OFFSET = 0;
+namespace {
+
+constexpr qreal kPixelSize = 1.5625;
+constexpr int kColumns = 16;
+constexpr int kRows = 16;
+constexpr int kOffset = 0;
+
+} // namespace
 
 ImportVICECharsetWidget::ImportVICECharsetWidget(QWidget* parent)
     : QWidget(parent)
-    , _parentDialog(nullptr)
-    , _displayGrid(false)
 {
-    setFixedSize(PIXEL_SIZE * COLUMNS * 8 + OFFSET * 2,
-        PIXEL_SIZE * ROWS * 8 + OFFSET * 2);
+    setFixedSize(
+        static_cast<int>(std::lround(kPixelSize * static_cast<qreal>(kColumns * 8 + kOffset * 2))),
+        static_cast<int>(std::lround(kPixelSize * static_cast<qreal>(kRows * 8 + kOffset * 2))));
 }
 
-//
-// Overriden
-//
 void ImportVICECharsetWidget::paintEvent(QPaintEvent* event)
 {
-    QPainter painter;
+    QPainter painter(this);
 
-    if (!_parentDialog)
-        return;
-
-    painter.begin(this);
-    painter.scale(PIXEL_SIZE, PIXEL_SIZE);
-
+    // Fill the exposed device-coordinate rectangle before applying scale transform.
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
+    if (_parentDialog == nullptr || _parentDialog->previewState() == nullptr) {
+        return;
+    }
+
+    painter.scale(kPixelSize, kPixelSize);
     painter.setBrush(QColor(0, 0, 0));
     painter.setPen(Qt::NoPen);
 
-    for (int x = 0; x < COLUMNS; x++) {
-        for (int y = 0; y < ROWS; y++) {
-
-            int tileIdx = x + y * COLUMNS;
-            QRectF target(x * 8, y * 8, 8, 8);
-            painter.drawImage(target,
-                *_parentDialog->_tileImages[tileIdx],
-                _parentDialog->_tileImages[tileIdx]->rect());
+    const TileAtlasCache& cache = _parentDialog->atlasCache();
+    const QImage& atlas = cache.atlasImage();
+    for (int x = 0; x < kColumns; ++x) {
+        for (int y = 0; y < kRows; ++y) {
+            const int tileIdx = x + y * kColumns;
+            const QRectF target(
+                static_cast<qreal>(x * 8 + kOffset),
+                static_cast<qreal>(y * 8 + kOffset),
+                8.0,
+                8.0);
+            painter.drawImage(target, atlas, QRectF(cache.sourceRectForTile(tileIdx)));
         }
     }
 
     if (_displayGrid) {
-        auto pen = painter.pen();
-        pen.setColor(QColor(0, 128, 0));
-        pen.setStyle(Qt::DashLine);
-        pen.setWidthF(1.0 / PIXEL_SIZE);
-        painter.setPen(pen);
+        QPen gridPen = painter.pen();
+        gridPen.setColor(QColor(0, 128, 0));
+        gridPen.setStyle(Qt::DashLine);
+        gridPen.setWidthF(1.0 / kPixelSize);
+        painter.setPen(gridPen);
 
-        for (int y = 0; y <= ROWS; ++y)
-            painter.drawLine(QPointF(0 + OFFSET, y * 8 + OFFSET),
-                QPointF(COLUMNS * 8 + OFFSET, y * 8 + OFFSET));
+        for (int y = 0; y <= kRows; ++y) {
+            painter.drawLine(
+                QPointF(static_cast<qreal>(kOffset), static_cast<qreal>(y * 8 + kOffset)),
+                QPointF(static_cast<qreal>(kColumns * 8 + kOffset), static_cast<qreal>(y * 8 + kOffset)));
+        }
 
-        for (int x = 0; x <= COLUMNS; ++x)
-            painter.drawLine(QPointF(x * 8 + OFFSET, OFFSET),
-                QPointF(x * 8 + OFFSET, ROWS * 8 + OFFSET));
+        for (int x = 0; x <= kColumns; ++x) {
+            painter.drawLine(
+                QPointF(static_cast<qreal>(x * 8 + kOffset), static_cast<qreal>(kOffset)),
+                QPointF(static_cast<qreal>(x * 8 + kOffset), static_cast<qreal>(kRows * 8 + kOffset)));
+        }
     }
-
-    painter.end();
 }
 
 void ImportVICECharsetWidget::setDisplayGrid(bool enabled)

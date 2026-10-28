@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,47 +14,57 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file importvicedialog.cpp
+ * @brief Implementation of the VICE `.vsf` snapshot interactive importer.
+ *
+ * Enforces hardware VIC-II alignment (2 KiB charset boundaries up to `0xF800`,
+ * 1 KiB Screen RAM boundaries up to `0xFC00`) unless arbitrary offsets are
+ * explicitly enabled, projects Color RAM nibbles onto referenced character tiles,
+ * and transfers `_previewState` ownership via `MainWindow::adoptDocument()`.
+ */
+
 #include "importvicedialog.h"
 #include "ui_importvicedialog.h"
 
-#include <QDebug>
+#include <algorithm>
+
+#include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 
 #include "mainwindow.h"
 #include "preferences.h"
 #include "state.h"
-#include "utils.h"
+#include "stateimport.h"
+
+namespace {
+
+constexpr size_t kRamSizeBytes = 64U * 1024U;
+constexpr int kMaxCharsetOffset = 0xF800; // 65536 - 2048
+constexpr int kMaxScreenRamOffset = 0xFC00; // 65536 - 1024
+
+} // namespace
 
 ImportVICEDialog::ImportVICEDialog(QWidget* parent)
     : QDialog(parent)
-    , ui(new Ui::ImportVICEDialog)
-    , _validVICEFile(false)
-    , _filepath("")
-    , _supportInvalidVICAddresses(false)
+    , ui(std::make_unique<Ui::ImportVICEDialog>())
+    , _memoryRAM(kRamSizeBytes, 0U)
+    , _previewState(std::make_unique<State>())
 {
     ui->setupUi(this);
 
-    memset(_memoryRAM, 0, std::size(_memoryRAM));
-    memset(_colorRAM, 0, std::size(_colorRAM));
-
-    // comes with a default map of 40*25
-    _tmpState = new State;
-    _tmpState->_setForegroundColorMode(
+    _previewState->setForegroundColorModeDirect(
         ui->checkBoxGuessColors->checkState() == Qt::CheckState::Checked
             ? State::FOREGROUND_COLOR_PER_TILE
             : State::FOREGROUND_COLOR_GLOBAL);
 
-    // default tiles
-    for (auto& _tileImage : _tileImages) {
-        _tileImage = new QImage(QSize(8, 8), QImage::Format_RGB888);
-    }
-    updateTileImages();
+    syncPreviewAtlas();
 
-    // needed for the shared _memoryRAM / _colorRAM
     ui->widgetCharset->setParentDialog(this);
     ui->widgetScreenRAM->setParentDialog(this);
 
-    auto lastDir = Preferences::getInstance().getLastUsedDirectory();
+    const QString lastDir = Preferences::getInstance().getLastUsedDirectory();
     ui->lineEdit->setText(lastDir);
     updateWidgets();
 
@@ -62,68 +72,63 @@ ImportVICEDialog::ImportVICEDialog(QWidget* parent)
     ui->widgetScreenRAM->update();
 }
 
-ImportVICEDialog::~ImportVICEDialog()
-{
-    delete ui;
-}
+ImportVICEDialog::~ImportVICEDialog() = default;
 
-const QString& ImportVICEDialog::getFilepath() const
+const QString& ImportVICEDialog::getFilepath() const noexcept
 {
     return _filepath;
 }
 
-void ImportVICEDialog::updateTileImages()
+void ImportVICEDialog::syncPreviewAtlas()
 {
-    for (int tileIdx = 0; tileIdx < 256; ++tileIdx) {
-        utilsDrawCharInImage(_tmpState, _tileImages[tileIdx], QPoint(0, 0), tileIdx);
+    if (_previewState) {
+        _atlasCache.markAllDirty();
+        _atlasCache.sync(*_previewState);
     }
 }
 
-//
-// slots
-//
 void ImportVICEDialog::on_pushButtonImport_clicked()
 {
-    // Imported files should not set _loadedFilename - they are treated as new unsaved documents
-    // Store the import source path for reference only if needed in the future
-    MainWindow::getInstance()->createDocument(_tmpState);
-    QFileInfo info(ui->lineEdit->text());
-    Preferences::getInstance().setLastUsedDirectory(info.absolutePath());
+    if (_previewState) {
+        MainWindow::getInstance()->adoptDocument(std::move(_previewState));
+    }
 
-    // don't free _tmpState;
+    const QFileInfo info(ui->lineEdit->text());
+    Preferences::getInstance().setLastUsedDirectory(info.absolutePath());
     accept();
 }
 
 void ImportVICEDialog::on_pushButtonCancel_clicked()
 {
-    // only free the tmpState if import is rejected
-    free(_tmpState);
     reject();
 }
 
 void ImportVICEDialog::on_spinBoxCharset_editingFinished()
 {
-    int newvalue = 0;
-    int oldvalue = ui->spinBoxCharset->value();
+    const int oldValue = ui->spinBoxCharset->value();
+    int newValue = 0;
     if (_supportInvalidVICAddresses) {
-        newvalue = qMin(oldvalue, 0xf800); // no bigger than 0xf800 to prevent buffer overflow issues
+        newValue = std::clamp(oldValue, 0, kMaxCharsetOffset);
     } else {
-        // normalize number, in case it was edited manually
-        int m = oldvalue / 2048;
-        newvalue = m * 2048;
-
-        if (newvalue != oldvalue)
-            ui->spinBoxCharset->setValue(newvalue);
+        newValue = std::clamp((oldValue / 2048) * 2048, 0, kMaxCharsetOffset);
+        if (newValue != oldValue) {
+            ui->spinBoxCharset->setValue(newValue);
+        }
     }
 
-    on_spinBoxCharset_valueChanged(newvalue);
+    on_spinBoxCharset_valueChanged(newValue);
 }
 
 void ImportVICEDialog::on_spinBoxCharset_valueChanged(int address)
 {
-    Q_ASSERT(address <= (65536 - 2048) && "invalid address");
-    std::copy_n(std::begin(_memoryRAM) + address, std::size(_tmpState->_charset), std::begin(_tmpState->_charset));
-    updateTileImages();
+    if (!_previewState || address < 0 || address > kMaxCharsetOffset) {
+        return;
+    }
+
+    _previewState->setCharsetBytes(
+        _memoryRAM.data() + static_cast<size_t>(address),
+        State::CHAR_BUFFER_SIZE);
+    syncPreviewAtlas();
 
     ui->widgetCharset->update();
     ui->widgetScreenRAM->update();
@@ -131,37 +136,39 @@ void ImportVICEDialog::on_spinBoxCharset_valueChanged(int address)
 
 void ImportVICEDialog::on_spinBoxScreenRAM_editingFinished()
 {
-    int newvalue = 0;
-    int oldvalue = ui->spinBoxScreenRAM->value();
+    const int oldValue = ui->spinBoxScreenRAM->value();
+    int newValue = 0;
     if (_supportInvalidVICAddresses) {
-        // no bigger than 0xfc00 to prevent buffer overflow issues
-        newvalue = qMin(oldvalue, 0xfc00);
+        newValue = std::clamp(oldValue, 0, kMaxScreenRamOffset);
     } else {
-        // normalize number, in case it was edited manually
-        int m = oldvalue / 1024;
-        newvalue = m * 1024;
-
-        if (newvalue != oldvalue)
-            ui->spinBoxScreenRAM->setValue(newvalue);
+        newValue = std::clamp((oldValue / 1024) * 1024, 0, kMaxScreenRamOffset);
+        if (newValue != oldValue) {
+            ui->spinBoxScreenRAM->setValue(newValue);
+        }
     }
 
-    on_spinBoxScreenRAM_valueChanged(newvalue);
+    on_spinBoxScreenRAM_valueChanged(newValue);
 }
 
 void ImportVICEDialog::on_spinBoxScreenRAM_valueChanged(int address)
 {
-    Q_ASSERT(address <= (65536 - 1024) && "invalid address");
-
-    std::copy_n(std::begin(_memoryRAM) + address, 40 * 25, std::begin(_tmpState->_map));
-
-    for (int i = 40 * 25 - 1; i >= 0; --i) {
-        quint8 tileColor = _colorRAM[i];
-        quint8 tileIdx = _tmpState->_map[i];
-
-        _tmpState->_tileColors[tileIdx] = tileColor;
+    if (!_previewState || address < 0 || address > kMaxScreenRamOffset) {
+        return;
     }
 
-    updateTileImages();
+    const uint8_t* screenBase = _memoryRAM.data() + static_cast<size_t>(address);
+    std::vector<uint8_t> mapCells(screenBase, screenBase + (40 * 25));
+    (void)_previewState->replaceMap(QSize(40, 25), std::move(mapCells));
+
+    const auto& mapBuf = _previewState->map();
+    for (int i = 40 * 25 - 1; i >= 0; --i) {
+        const size_t idx = static_cast<size_t>(i);
+        const uint8_t tileColor = _colorRAM[idx];
+        const uint8_t tileIdx = mapBuf[idx];
+        _previewState->setTileColorDirect(tileIdx, tileColor);
+    }
+
+    syncPreviewAtlas();
 
     ui->widgetScreenRAM->update();
     ui->widgetCharset->update();
@@ -169,135 +176,146 @@ void ImportVICEDialog::on_spinBoxScreenRAM_valueChanged(int address)
 
 void ImportVICEDialog::on_pushButtonBrowse_clicked()
 {
-    auto filter = tr("VICE snapshot files");
-    auto fn = QFileDialog::getOpenFileName(this,
+    QString filter = tr("VICE snapshot files");
+    const QString fn = QFileDialog::getOpenFileName(
+        this,
         tr("Select VICE Snapshot File"),
         ui->lineEdit->text(),
-        tr(
-            "All files (*);;"
-            "VICE snapshot files (*.vsf);;"),
-        &filter
-        /*,QFileDialog::DontUseNativeDialog*/
-    );
+        tr("All files (*);;VICE snapshot files (*.vsf);;"),
+        &filter);
 
-    if (fn.length() > 0) {
-        if (fn != _filepath) {
-            _filepath = fn;
-            ui->lineEdit->setText(fn);
+    if (!fn.isEmpty() && fn != _filepath) {
+        _filepath = fn;
+        ui->lineEdit->setText(fn);
 
-            _validVICEFile = validateVICEFile(fn);
-            updateWidgets();
-        }
+        _validVICEFile = validateVICEFile(fn);
+        updateWidgets();
     }
 }
 
 void ImportVICEDialog::on_lineEdit_editingFinished()
 {
-    QString filename = ui->lineEdit->text();
+    const QString filename = ui->lineEdit->text();
 
     if (_filepath != filename) {
-        QFileInfo fi(filename);
+        const QFileInfo fi(filename);
         _validVICEFile = fi.exists() && validateVICEFile(filename);
         updateWidgets();
         _filepath = filename;
     }
 }
 
-// helper
 bool ImportVICEDialog::validateVICEFile(const QString& filepath)
 {
+    if (!_previewState) {
+        return false;
+    }
+
     QFile file(filepath);
 
-    quint16 charsetAddress, screenRAMOAddress;
-    quint8 VICRegisters[64];
-    auto ret = StateImport::parseVICESnapshot(
+    uint16_t charsetAddress = 0U;
+    uint16_t screenRAMAddress = 0U;
+    std::array<uint8_t, 64> vicRegisters { };
+    const auto ret = StateImport::parseVICESnapshot(
         file,
-        _memoryRAM,
+        _memoryRAM.data(),
         &charsetAddress,
-        &screenRAMOAddress,
-        _colorRAM,
-        reinterpret_cast<quint8*>(&VICRegisters));
+        &screenRAMAddress,
+        _colorRAM.data(),
+        vicRegisters.data());
 
-    if (ret >= 0) {
-        // colors d021, d022, d023
-        _tmpState->_penColors[0] = VICRegisters[0x21] & 0xf;
-        _tmpState->_penColors[1] = VICRegisters[0x22] & 0xf;
-        _tmpState->_penColors[2] = VICRegisters[0x23] & 0xf;
+    if (ret.isOk()) {
+        _previewState->setPenColorDirect(State::PEN_BACKGROUND, vicRegisters[0x21U] & 0x0FU);
+        _previewState->setPenColorDirect(State::PEN_MULTICOLOR1, vicRegisters[0x22U] & 0x0FU);
+        _previewState->setPenColorDirect(State::PEN_MULTICOLOR2, vicRegisters[0x23U] & 0x0FU);
+        _vicColorsBackup[0] = static_cast<uint8_t>(vicRegisters[0x21U] & 0x0FU);
+        _vicColorsBackup[1] = static_cast<uint8_t>(vicRegisters[0x22U] & 0x0FU);
+        _vicColorsBackup[2] = static_cast<uint8_t>(vicRegisters[0x23U] & 0x0FU);
 
-        std::fill(std::begin(_tmpState->_tileColors), std::end(_tmpState->_tileColors), 11);
+        State::TileColorsBuffer defaultColors { };
+        defaultColors.fill(State::TILE_COLORS_DEFAULT);
+        _previewState->setTileColorsDirect(defaultColors.data(), defaultColors.size());
 
-        int oldCharset = ui->spinBoxCharset->value();
-        int oldScreenRAM = ui->spinBoxScreenRAM->value();
-        ui->spinBoxCharset->setValue(charsetAddress);
-        ui->spinBoxScreenRAM->setValue(screenRAMOAddress);
+        const int oldCharset = ui->spinBoxCharset->value();
+        const int oldScreenRAM = ui->spinBoxScreenRAM->value();
+        const int nextCharset = static_cast<int>(charsetAddress);
+        const int nextScreenRAM = static_cast<int>(screenRAMAddress);
+        ui->spinBoxCharset->setValue(nextCharset);
+        ui->spinBoxScreenRAM->setValue(nextScreenRAM);
 
-        // d016 contains multicolor bit
-        bool isMC = (VICRegisters[0x16] >> 4) & 0x1;
+        const bool isMC = ((vicRegisters[0x16U] >> 4U) & 0x01U) != 0U;
         ui->checkBoxMulticolor->setChecked(isMC);
-        _tmpState->_setMulticolorMode(isMC);
+        _previewState->setMulticolorModeDirect(isMC);
 
-        // force the update when the value is the same as the previous one
-        if (oldCharset == charsetAddress)
-            on_spinBoxCharset_valueChanged(charsetAddress);
-        if (oldScreenRAM == screenRAMOAddress)
-            on_spinBoxScreenRAM_valueChanged(screenRAMOAddress);
+        if (oldCharset == nextCharset) {
+            on_spinBoxCharset_valueChanged(nextCharset);
+        }
+        if (oldScreenRAM == nextScreenRAM) {
+            on_spinBoxScreenRAM_valueChanged(nextScreenRAM);
+        }
 
-        updateTileImages();
+        syncPreviewAtlas();
 
         ui->widgetCharset->update();
         ui->widgetScreenRAM->update();
     }
-    return (ret >= 0);
+    return ret.isOk();
 }
 
 void ImportVICEDialog::updateWidgets()
 {
-    QWidget* widgets[] = {
+    const std::array<QWidget*, 7> widgets = {
         ui->checkBoxMulticolor,
         ui->checkBoxGuessColors,
         ui->checkBoxDisplayGrid,
         ui->checkBoxInvalidAddresses,
         ui->spinBoxCharset,
         ui->spinBoxScreenRAM,
-        ui->pushButtonImport
+        ui->pushButtonImport,
     };
 
-    for (auto& widget : widgets) {
+    for (QWidget* widget : widgets) {
         widget->setEnabled(_validVICEFile);
     }
 }
 
 void ImportVICEDialog::on_checkBoxMulticolor_toggled(bool checked)
 {
-    _tmpState->_setMulticolorMode(checked);
-    updateTileImages();
+    if (!_previewState) {
+        return;
+    }
+
+    _previewState->setMulticolorModeDirect(checked);
+    syncPreviewAtlas();
     ui->widgetCharset->update();
     ui->widgetScreenRAM->update();
 }
 
 void ImportVICEDialog::on_checkBoxGuessColors_toggled(bool checked)
 {
-    _tmpState->_setForegroundColorMode(
-        checked
-            ? State::FOREGROUND_COLOR_PER_TILE
-            : State::FOREGROUND_COLOR_GLOBAL);
-
-    if (checked) {
-        _tmpState->_penColors[0] = _vicColorsBackup[0];
-        _tmpState->_penColors[1] = _vicColorsBackup[1];
-        _tmpState->_penColors[2] = _vicColorsBackup[2];
-    } else {
-        _vicColorsBackup[0] = _tmpState->_penColors[0];
-        _vicColorsBackup[1] = _tmpState->_penColors[1];
-        _vicColorsBackup[2] = _tmpState->_penColors[2];
-
-        _tmpState->_penColors[0] = 1; // white
-        _tmpState->_penColors[1] = 5; // green
-        _tmpState->_penColors[2] = 7; // yellow
-        _tmpState->_penColors[3] = 11; // dark gray
+    if (!_previewState) {
+        return;
     }
 
-    updateTileImages();
+    _previewState->setForegroundColorModeDirect(
+        checked ? State::FOREGROUND_COLOR_PER_TILE : State::FOREGROUND_COLOR_GLOBAL);
+
+    if (checked) {
+        _previewState->setPenColorDirect(State::PEN_BACKGROUND, _vicColorsBackup[0]);
+        _previewState->setPenColorDirect(State::PEN_MULTICOLOR1, _vicColorsBackup[1]);
+        _previewState->setPenColorDirect(State::PEN_MULTICOLOR2, _vicColorsBackup[2]);
+    } else {
+        _vicColorsBackup[0] = static_cast<uint8_t>(_previewState->getGlobalColorForPen(State::PEN_BACKGROUND));
+        _vicColorsBackup[1] = static_cast<uint8_t>(_previewState->getGlobalColorForPen(State::PEN_MULTICOLOR1));
+        _vicColorsBackup[2] = static_cast<uint8_t>(_previewState->getGlobalColorForPen(State::PEN_MULTICOLOR2));
+
+        _previewState->setPenColorDirect(State::PEN_BACKGROUND, 1U);
+        _previewState->setPenColorDirect(State::PEN_MULTICOLOR1, 5U);
+        _previewState->setPenColorDirect(State::PEN_MULTICOLOR2, 7U);
+        _previewState->setPenColorDirect(State::PEN_FOREGROUND, 11U);
+    }
+
+    syncPreviewAtlas();
     ui->widgetCharset->update();
     ui->widgetScreenRAM->update();
 }

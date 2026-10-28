@@ -14,8 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file main.cpp
+ * @brief Desktop GUI executable entrypoint (`vchar64` target).
+ *
+ * Initializes embedded Qt resources (`resources.qrc`, including `:/i18n` `.qm`
+ * translations), configures macOS Finder file-open event routing via
+ * `VChar64Application`, restores persisted window layout, and opens either the
+ * CLI project path or the default C64 Upper/Graphics document.
+ */
+
+#include <QCoreApplication>
 #include <QDebug>
+#include <QFile>
 #include <QLibraryInfo>
+#include <QLocale>
 #include <QTranslator>
 
 #include "mainwindow.h"
@@ -23,38 +36,30 @@ limitations under the License.
 
 int main(int argc, char* argv[])
 {
+    // Initialize resources explicitly so embedded assets and translations load
+    // reliably even when helper targets are linked as static archives.
     Q_INIT_RESOURCE(resources);
 
     VChar64Application app(argc, argv);
 
     // translation code
     QTranslator qtTranslator;
-    if (qtTranslator.load("qt_" + QLocale::system().name(),
-#if QT_VERSION_MAJOR >= 6
+    if (qtTranslator.load(QLocale::system(), QStringLiteral("qt"), QStringLiteral("_"),
             QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
-#else
-            QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
-#endif
         app.installTranslator(&qtTranslator);
 
     QTranslator myappTranslator;
-    if (myappTranslator.load(":/i18n/vchar64_" + QLocale::system().name()))
+    if (myappTranslator.load(QLocale::system(), QStringLiteral("vchar64"), QStringLiteral("_"),
+            QStringLiteral(":/i18n")))
         app.installTranslator(&myappTranslator);
 
     // name code
     app.setOrganizationDomain(QLatin1String("retro.moe"));
     app.setApplicationName(QLatin1String("VChar64"));
-
-    // if compiled from .tar.gz, GIT_VERSION will be empty
-    // FIXME: this should be evaluated as a preprocessor macro
-    if (GIT_VERSION && strlen(GIT_VERSION) != 0)
-        app.setApplicationVersion(QLatin1String(GIT_VERSION));
-    else
-        app.setApplicationVersion(QLatin1String(VERSION));
-
+    QCoreApplication::setApplicationVersion(QStringLiteral(VCHAR64_VERSION));
     app.setApplicationDisplayName(QLatin1String("VChar64"));
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     app.setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif
 

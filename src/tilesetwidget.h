@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,35 +14,54 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file tilesetwidget.h
+ * @brief `TileAtlasCache`-backed tileset picker and rectangular selection dock widget (`vchar64`).
+ */
+
 #pragma once
 
 #include <memory>
 
 #include <QImage>
 #include <QPoint>
+#include <QPointer>
 #include <QSize>
 #include <QWidget>
 
+#include "core/tileatlascache.h"
 #include "state.h"
 
+/**
+ * @brief Displays all addressable tiles (`1..256`) of the active document in a zoomable grid.
+ *
+ * Uses `TileAtlasCache` to incrementally rasterize modified tiles into a `32 x 8` character
+ * `QImage` sheet and blits visible tiles in `paintEvent()` rather than invoking per-pixel
+ * `QPainter` draws on every expose event.
+ */
 class TilesetWidget : public QWidget {
     Q_OBJECT
 
 public:
-    TilesetWidget(QWidget* parent = nullptr);
+    explicit TilesetWidget(QWidget* parent = nullptr);
 
-    bool hasSelection() const;
+    [[nodiscard]] bool hasSelection() const noexcept;
+    /** @brief Populates `copyRange` (`CopyRange::TILES`) for the active tile or Shift-drag selection. */
     void getSelectionRange(State::CopyRange* copyRange) const;
     void enableGrid(bool enabled);
     void setZoomLevel(int zoomLevel);
-    std::unique_ptr<QImage> renderToQImage();
+    /** @brief Renders the full tileset sheet at 1:1 pixel scale via `DocumentImageRenderer::renderTileset()`. */
+    [[nodiscard]] std::unique_ptr<QImage> renderToQImage();
 
 public slots:
+    /** @brief Rebinds the dock to `state` (or `nullptr`) and invalidates `_atlasCache`. */
+    void setActiveState(State* state);
     void onTileIndexUpdated(int selectedTileIndex);
     void onTilePropertiesUpdated();
     void onMulticolorModeToggled(bool state);
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);
+    void onBytesUpdated(int pos, int count);
     void onCharsetUpdated();
     void onFileLoaded();
 
@@ -54,17 +73,25 @@ protected:
     [[nodiscard]] QSize sizeHint() const override;
 
     void paintFocus(QPainter& painter);
-    void paintPixel(QPainter& painter, int width, int height, quint8* charPtr);
     void paintSelectedTile(QPainter& painter);
 
-    QPoint _cursorPos;
-    bool _selecting;
-    QSize _selectingSize;
-    int _columns, _tileColumns;
-    int _rows, _tileRows;
-    int _maxTiles;
+private:
+    void updateGeometryMetrics();
+    [[nodiscard]] QPoint mapMousePositionToCell(const QPoint& pos, int tw, int th) const noexcept;
 
-    QSize _sizeHint;
-    qreal _zoomLevel;
-    bool _displayGrid;
+    QPointer<State> _activeState;
+    TileAtlasCache _atlasCache;
+
+    QPoint _cursorPos { 0, 0 };
+    bool _selecting = false;
+    QSize _selectingSize { 1, 1 };
+    int _columns = 32;
+    int _tileColumns = 32;
+    int _rows = 8;
+    int _tileRows = 8;
+    int _maxTiles = 256;
+
+    QSize _sizeHint { 0, 0 };
+    qreal _zoomLevel = 2.0;
+    bool _displayGrid = false;
 };

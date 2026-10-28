@@ -14,6 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file importkoalabitmapwidget.h
+ * @brief Interactive preview and color-histogram analyzer for C64 Koala Painter bitmaps.
+ *
+ * Decodes 10,003-byte Koala Painter multicolor bitmaps into a `160x200` 4-bit C64
+ * color index framebuffer, lets the user drag-select a character-aligned sub-region,
+ * and builds `4x8` cell uniqueness histograms used by `ImportKoalaDialog` to
+ * choose `$D021`/`$D022`/`$D023` shared registers during bitmap-to-charset conversion.
+ */
+
 #pragma once
 
 #include <array>
@@ -23,7 +33,12 @@ limitations under the License.
 #include <QWidget>
 
 #include "state.h"
+#include "stateimport.h"
 
+/**
+ * @brief Renders a C64 Koala Painter multicolor bitmap (`160x200` double-wide pixels)
+ *        with interactive `8x8` character-cell region selection and color-usage analysis.
+ */
 class ImportKoalaBitmapWidget : public QWidget {
     Q_OBJECT
 
@@ -31,8 +46,18 @@ class ImportKoalaBitmapWidget : public QWidget {
 
 public:
     ImportKoalaBitmapWidget(QWidget* parent = nullptr);
+
+    /**
+     * @brief Loads and decodes a Koala Painter file from disk via `StateImport::loadKoala()`.
+     * @param koalaFilepath Filesystem path to the `.koa` / `.kla` image.
+     * @return `true` when the Koala payload was decoded and analyzed; `false` on I/O or size error.
+     */
     bool loadKoala(const QString& koalaFilepath);
+
+    /** @brief Toggles the `8x8` character-cell alignment grid overlay. */
     void enableGrid(bool enabled);
+
+    /** @brief Recomputes color histograms and unique `4x8` multicolor cell signatures for the active selection. */
     void parseKoala();
 
 signals:
@@ -52,18 +77,7 @@ protected:
     void strategyD02xAbove8();
     void strategyD02xAny();
 
-#pragma pack(push)
-#pragma pack(1)
-    struct koala {
-        quint8 addr[2]; // load address. ignore
-        quint8 bitmap[40 * 25 * 8];
-        quint8 screenRAM[40 * 25];
-        quint8 colorRAM[40 * 25];
-        quint8 backgroundColor;
-    };
-#pragma pack(pop)
-
-    struct koala _koala;
+    StateImport::KoalaBitmap _koala { };
 
     // one byte per pixel, although only the
     // 4 LSB will be used. Bits 7-4 are ignored

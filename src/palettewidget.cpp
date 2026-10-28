@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,55 +14,77 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file palettewidget.cpp
+ * @brief Implementation of `PaletteWidget` 16-color VIC-II swatch rendering and selection (`vchar64`).
+ */
+
 #include "palettewidget.h"
 
+#include <algorithm>
+
 #include <QColor>
-#include <QDebug>
+#include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QResizeEvent>
 
 #include "mainwindow.h"
 #include "palette.h"
 #include "state.h"
 
-constexpr int PIXEL_SIZE_X = 24;
-constexpr int PIXEL_SIZE_Y = 16;
-constexpr int COLUMNS = 8;
-constexpr int ROWS = 2;
+namespace {
+
+constexpr int kPixelSizeX = 24;
+constexpr int kPixelSizeY = 16;
+constexpr int kColumns = 8;
+constexpr int kRows = 2;
+
+} // namespace
 
 PaletteWidget::PaletteWidget(QWidget* parent)
     : QWidget(parent)
-    , _pixelSize(PIXEL_SIZE_X, PIXEL_SIZE_Y)
-    , _sizeHint(_pixelSize.width() * COLUMNS, _pixelSize.height() * ROWS)
+    , _pixelSize(kPixelSizeX, kPixelSizeY)
+    , _sizeHint(_pixelSize.width() * kColumns, _pixelSize.height() * kRows)
 {
     setMinimumSize(_sizeHint);
     setMouseTracking(true);
+}
+
+void PaletteWidget::setActiveState(State* state)
+{
+    if (_activeState == state) {
+        return;
+    }
+
+    _activeState = state;
+    update();
 }
 
 void PaletteWidget::mousePressEvent(QMouseEvent* event)
 {
     event->accept();
 
-    auto pos = event->pos();
+    State* state = _activeState.data();
+    if (state == nullptr) {
+        return;
+    }
 
-    int x = pos.x() / _pixelSize.width();
-    int y = pos.y() / _pixelSize.height();
+    const QPoint pos = event->pos();
+    const int safeW = std::max(1, _pixelSize.width());
+    const int safeH = std::max(1, _pixelSize.height());
 
-    x = qBound(0, x, COLUMNS - 1);
-    y = qBound(0, y, ROWS - 1);
+    const int x = std::clamp(pos.x() / safeW, 0, kColumns - 1);
+    const int y = std::clamp(pos.y() / safeH, 0, kRows - 1);
+    const int color = 8 * y + x;
 
-    int color = 8 * y + x;
+    const int tileIndex = state->getTileIndex();
+    const int pen = state->getSelectedPen();
+    const int oldColor = state->getColorForPen(pen, tileIndex);
 
-    auto state = MainWindow::getCurrentState();
-    if (state) {
-        int tileIndex = state->getTileIndex();
-        int pen = state->getSelectedPen();
-        int oldColor = state->getColorForPen(pen, tileIndex);
-
-        if (oldColor != color) {
-            state->setColorForPen(pen, color, tileIndex);
-            update();
-        }
+    if (oldColor != color) {
+        state->setColorForPen(pen, color, tileIndex);
+        update();
     }
 }
 
@@ -71,32 +93,29 @@ void PaletteWidget::mouseMoveEvent(QMouseEvent* event)
     event->accept();
 
     if (event->buttons() == Qt::NoButton) {
-        auto pos = event->pos();
+        const QPoint pos = event->pos();
+        const int safeW = std::max(1, _pixelSize.width());
+        const int safeH = std::max(1, _pixelSize.height());
 
-        int x = pos.x() / _pixelSize.width();
-        int y = pos.y() / _pixelSize.height();
+        const int x = std::clamp(pos.x() / safeW, 0, kColumns - 1);
+        const int y = std::clamp(pos.y() / safeH, 0, kRows - 1);
+        const int color = 8 * y + x;
 
-        x = qBound(0, x, COLUMNS - 1);
-        y = qBound(0, y, ROWS - 1);
-
-        int color = 8 * y + x;
-
-        MainWindow::getInstance()->showMessageOnStatusBar(tr("%1 (%2)").arg(Palette::color_names[color]).arg(color));
+        MainWindow::getInstance()->showMessageOnStatusBar(
+            tr("%1 (%2)").arg(Palette::colorName(color)).arg(color));
     }
 }
 
 void PaletteWidget::paintEvent(QPaintEvent* event)
 {
-    QPainter painter;
-    painter.begin(this);
+    QPainter painter(this);
 
-    // paint with default background color
     painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
 
     int currentColor = 0;
     int selectedPen = State::PEN_BACKGROUND;
-    auto state = MainWindow::getCurrentState();
-    if (state) {
+    const State* state = _activeState.data();
+    if (state != nullptr) {
         selectedPen = state->getSelectedPen();
         currentColor = state->getColorForPen(selectedPen, state->getTileIndex());
     }
@@ -106,8 +125,8 @@ void PaletteWidget::paintEvent(QPaintEvent* event)
     pen.setWidth(3);
     pen.setStyle(Qt::PenStyle::DotLine);
 
-    for (int y = 0; y < 2; y++) {
-        for (int x = 0; x < 8; x++) {
+    for (int y = 0; y < kRows; ++y) {
+        for (int x = 0; x < kColumns; ++x) {
             int c = 8 * y + x;
 
             if (c == currentColor) {
@@ -116,18 +135,20 @@ void PaletteWidget::paintEvent(QPaintEvent* event)
                 painter.setPen(Qt::PenStyle::NoPen);
             }
 
-            if (selectedPen == State::PEN_FOREGROUND && state && state->isMulticolorMode())
+            // In VIC-II Multicolor mode, Color RAM bit 3 selects Multicolor (8..15) vs Hi-Res (0..7)
+            // while bits 0..2 select the actual foreground color (`0..7`).
+            if (selectedPen == State::PEN_FOREGROUND && state != nullptr && state->isMulticolorMode()) {
                 c %= 8;
+            }
             painter.setBrush(Palette::getColor(c));
 
-            painter.drawRect(x * _pixelSize.width(),
+            painter.drawRect(
+                x * _pixelSize.width(),
                 y * _pixelSize.height(),
                 _pixelSize.width() - 1,
                 _pixelSize.height() - 1);
         }
     }
-
-    painter.end();
 }
 
 QSize PaletteWidget::sizeHint() const
@@ -139,7 +160,7 @@ void PaletteWidget::resizeEvent(QResizeEvent* event)
 {
     Q_UNUSED(event)
 
-    auto pixel_size_x = size().width() / COLUMNS;
-    auto pixel_size_y = size().height() / ROWS;
-    _pixelSize = { pixel_size_x, pixel_size_y };
+    const int pixelSizeX = std::max(1, size().width() / kColumns);
+    const int pixelSizeY = std::max(1, size().height() / kRows);
+    _pixelSize = { pixelSizeX, pixelSizeY };
 }

@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,49 +14,55 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file colorrectwidget.h
+ * @brief Swatch preview widget displaying either an active VIC-II pen or a static C64 color (`vchar64`).
+ */
+
 #pragma once
 
+#include <QPointer>
 #include <QWidget>
 
-// paints a color:
-// either a fixed color `setColor()`, or the color from a pen `setPen()`
-// used in: Import Koala Dialog and Select Color Dialog
+class State;
+
+/**
+ * @brief Displays either the color associated with a VIC-II pen on the active State
+ *        or a fixed C64 color index (used in Import Koala and Select Color dialogs).
+ */
 class ColorRectWidget : public QWidget {
-
     Q_OBJECT
-public:
-    enum {
-        // displays the color based on a pen
-        SHOW_PEN_MODE,
 
-        // displays the color based on a color index
+public:
+    /** @brief Selects whether the swatch tracks a live `State` pen or a static `0..15` color index. */
+    enum Mode {
+        SHOW_PEN_MODE,
         SHOW_COLORINDEX_MODE,
     };
 
     explicit ColorRectWidget(QWidget* parent = nullptr);
-    virtual ~ColorRectWidget() override;
+    ~ColorRectWidget() override;
 
-    // Pen mode
     void setPen(int pen);
-    int getPen() const;
+    [[nodiscard]] int getPen() const noexcept;
 
-    // Color mode
     void setColorIndex(int colorIndex);
-    int getColorIndex() const;
+    [[nodiscard]] int getColorIndex() const noexcept;
 
-    // when selected, draws a rect around it
+    /** @brief Draws a highlighted red border around the swatch when `selected` is true. */
     void setSelected(bool selected);
 
-signals:
-
 public slots:
+    /** @brief Rebinds `SHOW_PEN_MODE` swatches to the active MDI `State` (or `nullptr`). */
+    void setActiveState(State* state);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
 
-    // PEN or COLOR
-    int _mode;
-    int _pen;
-    int _colorIndex;
-    bool _selected;
+private:
+    QPointer<State> _activeState;
+    Mode _mode = SHOW_PEN_MODE;
+    int _pen = 0;
+    int _colorIndex = -1;
+    bool _selected = false;
 };

@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,23 +14,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file importvicecharsetwidget.h
+ * @brief `16x16` character-set preview widget inside the VICE snapshot import dialog.
+ *
+ * Blits all 256 decoded `8x8` glyphs directly from `ImportVICEDialog::atlasCache()`
+ * (`TileAtlasCache`) at `1.5625x` (`200x200` px) scale as the user inspects
+ * different VIC-II bank/address candidates in a VICE `.vsf` snapshot.
+ */
+
 #pragma once
 
-#include "state.h"
 #include <QWidget>
 
 class ImportVICEDialog;
 
+/**
+ * @brief Live `16x16` charset preview canvas backed by `ImportVICEDialog`'s `TileAtlasCache`.
+ */
 class ImportVICECharsetWidget : public QWidget {
     Q_OBJECT
 
 public:
     explicit ImportVICECharsetWidget(QWidget* parent = nullptr);
-    void setParentDialog(ImportVICEDialog* parentDialog) { _parentDialog = parentDialog; }
+
+    /** @brief Binds the owning `ImportVICEDialog` supplying the preview `State` and `TileAtlasCache`. */
+    void setParentDialog(ImportVICEDialog* parentDialog) noexcept { _parentDialog = parentDialog; }
+
+    /** @brief Enables or disables the `8x8` character-cell dashed grid overlay. */
     void setDisplayGrid(bool enabled);
 
 protected:
     void paintEvent(QPaintEvent* event) override;
-    ImportVICEDialog* _parentDialog;
-    bool _displayGrid;
+
+private:
+    ImportVICEDialog* _parentDialog = nullptr;
+    bool _displayGrid = false;
 };
