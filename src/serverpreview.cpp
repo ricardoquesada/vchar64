@@ -1,5 +1,5 @@
 /****************************************************************************
-Copyright 2015 Ricardo Quesada
+Copyright 2015-2026 Ricardo Quesada
 Copyright 2015 Henning Bekel
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,616 +15,729 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+/**
+ * @file serverpreview.cpp
+ * @brief Non-blocking Contiki `vchar64d` TCP framing, uIP window flow control, and backpressure (`vchar64_net`).
+ *
+ * Key wire invariants:
+ *
+ * - **Zero blocking socket waits:** Never calls `waitForConnected`, `waitForBytesWritten`,
+ *   or `waitForReadyRead` on the UI event loop.
+ * - **1,400-byte uIP window reservation:** `drainTxQueue()` reserves `kPingFrameBytes` (2 B)
+ *   inside `VCHAR64_SERVER_BUFFER_SIZE` so appending `TYPE_PING` never overflows Contiki's
+ *   single-MSS receive buffer, and chunks `TYPE_SET_CHARS` into `<= 128` glyphs (`1,027` B).
+ * - **Explicit little-endian wire encoding:** Serializes all 16-bit C64 addresses and counts
+ *   byte-by-byte via `appendUint16LE()` rather than dumping host structs containing pointers.
+ */
+
 #include "serverpreview.h"
 
+#include <algorithm>
 #include <cstring>
+#include <utility>
 
-#include <QFile>
-#include <QFileInfo>
 #include <QTcpSocket>
 #include <QtEndian>
 
-#include "mainwindow.h"
-#include "serverprotocol.h"
+namespace {
+
+constexpr quint16 kVicBorderColorReg = 0xD020U;
+constexpr quint16 kVicBackgroundColorReg = 0xD021U;
+constexpr quint16 kVicMulticolor1Reg = 0xD022U;
+constexpr quint16 kVicMulticolor2Reg = 0xD023U;
+constexpr quint16 kVicControlReg2 = 0xD016U;
+
+constexpr uint8_t kVicControlHiRes40Col = 0x08U;
+constexpr uint8_t kVicControlMulticolor40Col = 0x18U;
+
+// `server/vchar64d.c` places VIC-II Screen RAM at $A400 (Bank 2, +$2400) and Color RAM at $D800.
+constexpr quint16 kC64RemappedScreenBase = 0xA400U;
+constexpr quint16 kC64ColorRamBase = 0xD800U;
+
+constexpr quint16 kC64TileScreenSliceAddr = static_cast<quint16>(
+    kC64RemappedScreenBase + vchar64::kC64TileRegionOffset); // 0xA5E0
+constexpr quint16 kC64TileColorSliceAddr = static_cast<quint16>(
+    kC64ColorRamBase + vchar64::kC64TileRegionOffset); // 0xD9E0
+
+/** @brief Appends a 16-bit integer to `packet` in 6510 little-endian byte order. */
+void appendUint16LE(QByteArray& packet, quint16 value)
+{
+    const quint16 le = qToLittleEndian<quint16>(value);
+    char bytes[sizeof(quint16)];
+    std::memcpy(bytes, &le, sizeof(le));
+    packet.append(bytes, static_cast<qsizetype>(sizeof(bytes)));
+}
+
+} // namespace
 
 ServerPreview* ServerPreview::_instance = nullptr;
 
 ServerPreview* ServerPreview::getInstance()
 {
-    if (!_instance)
-        _instance = new ServerPreview;
+    if (_instance == nullptr) {
+        _instance = new ServerPreview();
+    }
     return _instance;
 }
 
 void ServerPreview::deleteInstance()
 {
-    Q_ASSERT(_instance);
     delete _instance;
     _instance = nullptr;
 }
 
-ServerPreview::ServerPreview()
-    : _socket(nullptr)
-    , _bytesSent(0)
-    , _alreadyQueued(false)
-    , _readOnlyQueue(false)
+ServerPreview::ServerPreview(QObject* parent)
+    : ILivePreviewSink(parent)
 {
-    // default is 1x1, 1: server must display it by itself
-    _prevTileProperties.interleaved = 1;
-    _prevTileProperties.size = { 1, 1 };
+    _pongTimer.setSingleShot(true);
+    _pongTimer.setInterval(kPongTimeoutMs);
+    QObject::connect(&_pongTimer, &QTimer::timeout, this, &ServerPreview::onPongTimeout);
 }
 
-ServerPreview::~ServerPreview() = default;
-
-bool ServerPreview::isConnected()
+ServerPreview::~ServerPreview()
 {
-    return (_socket && _socket->state() == QTcpSocket::ConnectedState);
-}
-
-bool ServerPreview::connect(const QString& ipaddress)
-{
-    _socket = new QTcpSocket(this);
-
-    QObject::connect(_socket, &QTcpSocket::connected, this, &ServerPreview::onConnected);
-    QObject::connect(_socket, &QTcpSocket::disconnected, this, &ServerPreview::onDisconnected);
-    QObject::connect(_socket, &QTcpSocket::bytesWritten, this, &ServerPreview::onBytesWritten);
-    QObject::connect(_socket, &QTcpSocket::readyRead, this, &ServerPreview::onReadyRead);
-
-    _socket->connectToHost(ipaddress, VCHAR64_SERVER_LISTEN_PORT);
-
-    // we need to wait...
-    if (!_socket->waitForConnected(3000)) {
-        qDebug() << "Error: " << _socket->errorString();
-        return false;
+    detachStateConnections();
+    _pongTimer.stop();
+    if (_socket) {
+        _socket->disconnect(this);
+        _socket->abort();
+        _socket.reset();
     }
-    return true;
 }
 
-void ServerPreview::disconnect()
+void ServerPreview::detachStateConnections()
 {
-    if (_socket)
-        _socket->disconnectFromHost();
-}
-
-// SLOTS
-void ServerPreview::onBytesWritten(qint64 bytes)
-{
-    Q_UNUSED(bytes)
-}
-
-void ServerPreview::onReadyRead()
-{
-#pragma pack(push)
-#pragma pack(1)
-    struct {
-        struct vchar64d_proto_header header;
-        struct vchar64d_proto_ping payload;
-    } data;
-#pragma pack(pop)
-
-    // read pong or peek
-    while (_socket->bytesAvailable() < (qint64)sizeof(data)) {
-        if (!_socket->waitForReadyRead(2000)) {
-            qDebug() << "Error waiting";
-            return;
-        }
+    for (const QMetaObject::Connection& conn : _stateConnections) {
+        QObject::disconnect(conn);
     }
+    _stateConnections.clear();
+}
 
-    auto r = _socket->read((char*)&data, sizeof(data));
-    if (r < 0) {
-        qDebug() << "Error reading";
+void ServerPreview::resetTransportState() noexcept
+{
+    _pongTimer.stop();
+    _txQueue.clear();
+    _queuedBytes = 0;
+    _rxBuffer.clear();
+    _inFlightBytes = 0;
+    _awaitingPong = false;
+    _fullSyncPending = false;
+    _enqueueingFullSync = false;
+}
+
+void ServerPreview::setActiveState(const State* state)
+{
+    if (_activeState == state) {
         return;
     }
 
-    if (data.header.type == TYPE_PONG && data.payload.something == 0) {
-        _bytesSent = 0;
-        _alreadyQueued = false;
-        _readOnlyQueue = true;
-        auto it = std::begin(_commands);
-        while (it != std::end(_commands)) {
-            auto command = *it;
-            sendOrQueueData(command->_data, command->_dataSize);
-            it = _commands.erase(it);
-            delete command;
-        }
-        _readOnlyQueue = false;
+    detachStateConnections();
+    _activeState = state;
 
-        // not supported in Qt 5.3 (needed for Travis)
-        //        _commands.append(_tmpCommands);
-        for (const auto& tmpCommand : _tmpCommands)
-            _commands.append(tmpCommand);
+    if (_activeState == nullptr) {
+        _txQueue.clear();
+        _queuedBytes = 0;
+        _fullSyncPending = false;
+        return;
+    }
 
-        _tmpCommands.clear();
-    } else
-        qDebug() << "Error in ping";
+    _stateConnections.reserve(8);
+    _stateConnections.push_back(
+        QObject::connect(_activeState, &State::fileLoaded, this, &ServerPreview::fileLoaded));
+    _stateConnections.push_back(
+        QObject::connect(_activeState, &State::charsetUpdated, this, &ServerPreview::charsetUpdated));
+    _stateConnections.push_back(
+        QObject::connect(_activeState, &State::bytesUpdated, this, &ServerPreview::bytesUpdated));
+    _stateConnections.push_back(
+        QObject::connect(_activeState, &State::tileUpdated, this, &ServerPreview::tileUpdated));
+    _stateConnections.push_back(
+        QObject::connect(_activeState, &State::colorPropertiesUpdated, this, &ServerPreview::colorPropertiesUpdated));
+    _stateConnections.push_back(
+        QObject::connect(_activeState, &State::multicolorModeToggled, this, &ServerPreview::multicolorModeUpdated));
+    _stateConnections.push_back(
+        QObject::connect(_activeState, &State::tilePropertiesUpdated, this, &ServerPreview::tilePropertiesUpdated));
+    _stateConnections.push_back(
+        QObject::connect(_activeState, &QObject::destroyed, this, [this, state]() {
+            if (_activeState == state) {
+                setActiveState(nullptr);
+            }
+        }));
+
+    if (isConnected()) {
+        requestFullSync();
+    }
+}
+
+bool ServerPreview::isConnected() const
+{
+    return _socket != nullptr && _socket->state() == QAbstractSocket::ConnectedState;
+}
+
+bool ServerPreview::isConnecting() const
+{
+    if (_socket == nullptr) {
+        return false;
+    }
+    const QAbstractSocket::SocketState st = _socket->state();
+    return st == QAbstractSocket::HostLookupState || st == QAbstractSocket::ConnectingState;
+}
+
+void ServerPreview::connectPreview(const QString& host, quint16 port)
+{
+    const QString trimmedHost = host.trimmed();
+    if (trimmedHost.isEmpty() || port == 0U) {
+        emit previewError(tr("Invalid live preview host or port."));
+        return;
+    }
+
+    bool notifyDisconnect = false;
+    if (_socket) {
+        auto oldSocket = std::move(_socket);
+        oldSocket->disconnect(this);
+        notifyDisconnect = (oldSocket->state() == QAbstractSocket::ConnectedState);
+        oldSocket->abort();
+        oldSocket.release()->deleteLater();
+    }
+    resetTransportState();
+    if (notifyDisconnect) {
+        emit previewDisconnected();
+    }
+
+    _socket = std::make_unique<QTcpSocket>();
+    QObject::connect(_socket.get(), &QTcpSocket::connected, this, &ServerPreview::onConnected);
+    QObject::connect(_socket.get(), &QTcpSocket::disconnected, this, &ServerPreview::onDisconnected);
+    QObject::connect(_socket.get(), &QTcpSocket::readyRead, this, &ServerPreview::onReadyRead);
+    QObject::connect(_socket.get(), &QAbstractSocket::errorOccurred, this, &ServerPreview::onSocketError);
+
+    _socket->connectToHost(trimmedHost, port);
+}
+
+void ServerPreview::disconnectPreview()
+{
+    resetTransportState();
+    if (!_socket) {
+        return;
+    }
+
+    const QAbstractSocket::SocketState st = _socket->state();
+    if (st == QAbstractSocket::ConnectedState) {
+        _socket->disconnectFromHost();
+    } else if (st != QAbstractSocket::UnconnectedState) {
+        _socket->abort();
+    }
 }
 
 void ServerPreview::onConnected()
 {
+    resetTransportState();
     emit previewConnected();
 
-    updateCharset();
-    updateColorProperties();
-    updateTiles();
+    if (_activeState != nullptr) {
+        enqueueFullSyncPackets();
+        drainTxQueue();
+    }
 }
 
 void ServerPreview::onDisconnected()
 {
+    resetTransportState();
     emit previewDisconnected();
 }
 
+void ServerPreview::onSocketError(QAbstractSocket::SocketError socketError)
+{
+    Q_UNUSED(socketError);
+    resetTransportState();
+    const QString errMsg = _socket ? _socket->errorString() : tr("Unknown TCP socket error.");
+    emit previewError(errMsg);
+}
+
+void ServerPreview::onPongTimeout()
+{
+    if (!_awaitingPong) {
+        return;
+    }
+    emit previewError(tr("Timed out waiting for C64 live preview PONG acknowledgment."));
+    disconnectPreview();
+}
+
+void ServerPreview::onReadyRead()
+{
+    if (!_socket) {
+        return;
+    }
+
+    _rxBuffer.append(_socket->readAll());
+
+    while (_rxBuffer.size() >= kPingFrameBytes) {
+        const auto frameType = static_cast<uint8_t>(_rxBuffer.at(0));
+        const auto token = static_cast<uint8_t>(_rxBuffer.at(1));
+
+        if (frameType != static_cast<uint8_t>(TYPE_PONG)) {
+            _rxBuffer.clear();
+            emit previewError(tr("Unexpected protocol response from C64 live preview daemon."));
+            disconnectPreview();
+            return;
+        }
+
+        _rxBuffer.remove(0, kPingFrameBytes);
+        if (_awaitingPong && token == _expectedPongToken) {
+            _pongTimer.stop();
+            _awaitingPong = false;
+            _inFlightBytes = 0;
+            drainTxQueue();
+        }
+    }
+}
+
+void ServerPreview::requestFullSync()
+{
+    if (!isConnected() || _activeState == nullptr) {
+        return;
+    }
+
+    _txQueue.clear();
+    _queuedBytes = 0;
+
+    if (_awaitingPong) {
+        _fullSyncPending = true;
+        return;
+    }
+
+    _fullSyncPending = false;
+    enqueueFullSyncPackets();
+    drainTxQueue();
+}
+
+void ServerPreview::enqueueFullSyncPackets()
+{
+    if (_activeState == nullptr) {
+        return;
+    }
+
+    _enqueueingFullSync = true;
+    enqueueCharsetPackets();
+    enqueueAllColorPackets();
+    enqueueTilesScreenPacket();
+    _enqueueingFullSync = false;
+}
+
+void ServerPreview::enqueuePacket(QByteArray packet)
+{
+    if (!isConnected() || packet.isEmpty()) {
+        return;
+    }
+
+    // While coalescing stalled-modem backpressure, drop redundant intermediate deltas;
+    // the full active State will be materialized as soon as TYPE_PONG arrives.
+    if (_fullSyncPending && !_enqueueingFullSync) {
+        return;
+    }
+
+    const auto pktBytes = static_cast<size_t>(packet.size());
+    if (!_enqueueingFullSync && (_queuedBytes + pktBytes > kMaxBackpressureBytes)) {
+        _txQueue.clear();
+        _queuedBytes = 0;
+        _fullSyncPending = true;
+        if (!_awaitingPong) {
+            sendPingBarrier();
+        }
+        return;
+    }
+
+    _queuedBytes += pktBytes;
+    _txQueue.push_back(std::move(packet));
+
+    if (!_enqueueingFullSync) {
+        drainTxQueue();
+    }
+}
+
+void ServerPreview::drainTxQueue()
+{
+    if (!isConnected() || _awaitingPong) {
+        return;
+    }
+
+    if (_fullSyncPending && _txQueue.empty()) {
+        _fullSyncPending = false;
+        enqueueFullSyncPackets();
+    }
+
+    while (!_txQueue.empty()) {
+        const QByteArray& nextPacket = _txQueue.front();
+        const int pktSize = static_cast<int>(nextPacket.size());
+
+        // Reserve 2 bytes inside Contiki's 1,400-byte uIP receive window so the
+        // TYPE_PING synchronization frame itself never pushes in-flight bytes > 1,400.
+        if (_inFlightBytes > 0 && (_inFlightBytes + pktSize + kPingFrameBytes) > kContikiWindowBytes) {
+            sendPingBarrier();
+            return;
+        }
+
+        QByteArray packet = std::move(_txQueue.front());
+        _txQueue.pop_front();
+        _queuedBytes -= static_cast<size_t>(packet.size());
+
+        writeRawToSocket(packet);
+
+        if ((_inFlightBytes + kPingFrameBytes) >= kContikiWindowBytes
+            && (!_txQueue.empty() || _fullSyncPending)) {
+            sendPingBarrier();
+            return;
+        }
+    }
+}
+
+void ServerPreview::sendPingBarrier()
+{
+    if (!isConnected() || _awaitingPong) {
+        return;
+    }
+
+    const uint8_t token = _nextPingToken++;
+    QByteArray pingPacket;
+    pingPacket.reserve(kPingFrameBytes);
+    pingPacket.append(static_cast<char>(static_cast<uint8_t>(TYPE_PING)));
+    pingPacket.append(static_cast<char>(token));
+
+    _expectedPongToken = token;
+    _awaitingPong = true;
+    writeRawToSocket(pingPacket);
+    _pongTimer.start();
+}
+
+void ServerPreview::writeRawToSocket(const QByteArray& bytes)
+{
+    if (!_socket || bytes.isEmpty()) {
+        return;
+    }
+    _socket->write(bytes);
+    _inFlightBytes += static_cast<int>(bytes.size());
+}
+
 //
-void ServerPreview::updateBackgroundColor()
+// Wire-packet builders
+//
+
+QByteArray ServerPreview::makePokePacket(quint16 addr, uint8_t value)
 {
-    auto state = MainWindow::getCurrentState();
-    protoPoke(0xd020, (uchar)state->getColorForPen(State::PEN_BACKGROUND));
-    protoPoke(0xd021, (uchar)state->getColorForPen(State::PEN_BACKGROUND));
+    QByteArray packet;
+    packet.reserve(4);
+    packet.append(static_cast<char>(static_cast<uint8_t>(TYPE_POKE)));
+    appendUint16LE(packet, addr);
+    packet.append(static_cast<char>(value));
+    return packet;
 }
 
-void ServerPreview::updateForegroundColorForCharset()
+QByteArray ServerPreview::makeFillPacket(quint16 addr, uint8_t value, quint16 count)
 {
-    auto state = MainWindow::getCurrentState();
-    struct vchar64d_proto_header* header;
-    struct vchar64d_proto_set_mem* payload;
-
-    static constexpr quint16 CHARS_TO_COPY = 40 * 8;
-    static constexpr quint16 COLOR_RAM = 0xd800;
-    auto tileColors = state->getTileColors();
-
-    int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
-    char* data = (char*)std::malloc(size);
-
-    header = (struct vchar64d_proto_header*)data;
-    payload = (struct vchar64d_proto_set_mem*)(data + sizeof(*header));
-    quint8* chars = (quint8*)&payload->data;
-
-    header->type = TYPE_SET_MEM;
-    payload->addr = qToLittleEndian(COLOR_RAM);
-    payload->count = qToLittleEndian(CHARS_TO_COPY);
-
-    // clean the screen memory since "fill" won't fill everything
-    std::memset(chars, 0x08, CHARS_TO_COPY);
-
-    for (int y = 0; y < 8; ++y) {
-        for (int x = 0; x < 32; ++x) {
-            chars[y * 40 + x] = tileColors[state->getTileIndexFromCharIndex(y * 32 + x)];
-        }
-    }
-
-    sendOrQueueData(data, size);
+    QByteArray packet;
+    packet.reserve(6);
+    packet.append(static_cast<char>(static_cast<uint8_t>(TYPE_FILL)));
+    appendUint16LE(packet, addr);
+    packet.append(static_cast<char>(value));
+    appendUint16LE(packet, count);
+    return packet;
 }
 
-void ServerPreview::updateForegroundColorForTileset()
+QByteArray ServerPreview::makeSetMemPacket(quint16 addr, const uint8_t* data, quint16 count)
 {
-    auto state = MainWindow::getCurrentState();
-    struct vchar64d_proto_header* header;
-    struct vchar64d_proto_set_mem* payload;
-
-    static constexpr quint16 CHARS_TO_COPY = 40 * 10;
-    static constexpr quint16 COLOR_RAM = 0xd800 + 12 * 40;
-    auto tileColors = state->getTileColors();
-    auto currentTileProperties = state->getTileProperties();
-
-    int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
-    char* data = (char*)std::malloc(size);
-
-    header = (struct vchar64d_proto_header*)data;
-    payload = (struct vchar64d_proto_set_mem*)(data + sizeof(*header));
-    quint8* chars = (quint8*)&payload->data;
-
-    header->type = TYPE_SET_MEM;
-    payload->addr = qToLittleEndian(COLOR_RAM);
-    payload->count = qToLittleEndian(CHARS_TO_COPY);
-
-    // clean the screen memory since "fill" won't fill everything
-    std::memset(chars, 0x08, CHARS_TO_COPY);
-
-    // fill the screen memory
-    int tw = currentTileProperties.size.width();
-    int th = currentTileProperties.size.height();
-
-    int max_tiles = 256 / (tw * th);
-
-    // 32 columns
-    int columns = (32 / currentTileProperties.size.width()) * currentTileProperties.size.width();
-
-    for (int i = 0; i < max_tiles; i++) {
-        int index = currentTileProperties.interleaved == 1 ? i * tw * th : i;
-        int w = (i * tw) % columns;
-        int h = th * ((i * tw) / columns);
-
-        for (int char_idx = 0; char_idx < (tw * th); char_idx++) {
-            int local_w = w + char_idx % tw;
-            int local_h = h + char_idx / tw;
-
-            chars[local_h * 40 + local_w] = tileColors[state->getTileIndexFromCharIndex(index)];
-
-            index += currentTileProperties.interleaved;
-        }
-    }
-
-    sendOrQueueData(data, size);
+    QByteArray packet;
+    packet.reserve(5 + static_cast<qsizetype>(count));
+    packet.append(static_cast<char>(static_cast<uint8_t>(TYPE_SET_MEM)));
+    appendUint16LE(packet, addr);
+    appendUint16LE(packet, count);
+    packet.append(reinterpret_cast<const char*>(data), static_cast<qsizetype>(count));
+    return packet;
 }
 
-void ServerPreview::updateForegroundColor()
+QByteArray ServerPreview::makeSetBytePacket(quint16 idx, uint8_t value)
 {
-    if (!isConnected())
+    QByteArray packet;
+    packet.reserve(4);
+    packet.append(static_cast<char>(static_cast<uint8_t>(TYPE_SET_BYTE_FOR_CHAR)));
+    appendUint16LE(packet, idx);
+    packet.append(static_cast<char>(value));
+    return packet;
+}
+
+QByteArray ServerPreview::makeSetCharPacket(uint8_t charIdx, const uint8_t* charData8)
+{
+    QByteArray packet;
+    packet.reserve(10);
+    packet.append(static_cast<char>(static_cast<uint8_t>(TYPE_SET_CHAR)));
+    packet.append(static_cast<char>(charIdx));
+    packet.append(reinterpret_cast<const char*>(charData8), 8);
+    return packet;
+}
+
+QByteArray ServerPreview::makeSetCharsChunkPacket(
+    uint8_t charIdx,
+    const uint8_t* charBuf,
+    uint8_t count)
+{
+    const qsizetype payloadBytes = static_cast<qsizetype>(count) * 8;
+    QByteArray packet;
+    packet.reserve(3 + payloadBytes);
+    packet.append(static_cast<char>(static_cast<uint8_t>(TYPE_SET_CHARS)));
+    packet.append(static_cast<char>(charIdx));
+    packet.append(static_cast<char>(count));
+    packet.append(reinterpret_cast<const char*>(charBuf), payloadBytes);
+    return packet;
+}
+
+void ServerPreview::protoPoke(quint16 addr, uint8_t value)
+{
+    enqueuePacket(makePokePacket(addr, value));
+}
+
+void ServerPreview::protoFill(quint16 addr, uint8_t value, quint16 count)
+{
+    enqueuePacket(makeFillPacket(addr, value, count));
+}
+
+void ServerPreview::protoSetMem(quint16 addr, const uint8_t* data, quint16 count)
+{
+    if (data == nullptr || count == 0U) {
         return;
+    }
+    enqueuePacket(makeSetMemPacket(addr, data, count));
+}
 
-    auto state = MainWindow::getCurrentState();
+void ServerPreview::protoSetByte(quint16 idx, uint8_t value)
+{
+    enqueuePacket(makeSetBytePacket(idx, value));
+}
 
-    if (state->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL) {
-        uchar foreground = state->getColorForPen(State::PEN_FOREGROUND, -1);
-        protoFill(0xd800, foreground, 40 * 25);
-    } else {
-        updateForegroundColorForCharset();
-        updateForegroundColorForTileset();
+void ServerPreview::protoSetChar(int charIdx, const uint8_t* charBuf)
+{
+    if (charBuf == nullptr || charIdx < 0 || charIdx >= 256) {
+        return;
+    }
+    enqueuePacket(makeSetCharPacket(static_cast<uint8_t>(charIdx), charBuf));
+}
+
+void ServerPreview::protoSetChars(int charIdx, const uint8_t* charBuf, int totalChars)
+{
+    if (charBuf == nullptr || charIdx < 0 || charIdx >= 256 || totalChars <= 0) {
+        return;
+    }
+
+    int remaining = std::min(totalChars, 256 - charIdx);
+    int currentIdx = charIdx;
+    const uint8_t* currentPtr = charBuf;
+
+    while (remaining > 0) {
+        const int chunkChars = std::min(remaining, kMaxCharsPerPacket);
+        enqueuePacket(makeSetCharsChunkPacket(
+            static_cast<uint8_t>(currentIdx),
+            currentPtr,
+            static_cast<uint8_t>(chunkChars)));
+        currentIdx += chunkChars;
+        currentPtr += static_cast<ptrdiff_t>(chunkChars) * 8;
+        remaining -= chunkChars;
     }
 }
 
-void ServerPreview::updateMulticolor1()
+//
+// High-level C64 VIC-II / RAM state synchronization
+//
+
+void ServerPreview::enqueueBackgroundColorPackets()
 {
-    if (!isConnected())
+    if (_activeState == nullptr) {
         return;
-
-    auto state = MainWindow::getCurrentState();
-    protoPoke(0xd022, (uchar)state->getColorForPen(State::PEN_MULTICOLOR1));
-}
-
-void ServerPreview::updateMulticolor2()
-{
-    if (!isConnected())
-        return;
-
-    auto state = MainWindow::getCurrentState();
-    protoPoke(0xd023, (uchar)state->getColorForPen(State::PEN_MULTICOLOR2));
-}
-
-void ServerPreview::updateColorMode()
-{
-    if (!isConnected())
-        return;
-
-    auto state = MainWindow::getCurrentState();
-    protoPoke(0xd016, state->isMulticolorMode() ? 0x18 : 0x08);
-}
-
-void ServerPreview::updateColorProperties()
-{
-    updateBackgroundColor();
-    updateMulticolor1();
-    updateMulticolor2();
-    updateForegroundColor();
-
-    updateColorMode();
-}
-
-void ServerPreview::updateCharset()
-{
-    auto state = MainWindow::getCurrentState();
-    auto charset = state->getCharsetBuffer();
-
-    // send the charset in 2 parts to avoid filling the C64 MTU buffer
-    constexpr int segments = 2;
-    constexpr int segmentSize = 256 / segments;
-    for (int i = 0; i < segments; i++) {
-        protoSetChars(segmentSize * i, &charset[segmentSize * 8 * i], segmentSize);
     }
+    const auto bg = static_cast<uint8_t>(
+        static_cast<unsigned int>(_activeState->getGlobalColorForPen(State::PEN_BACKGROUND)) & 0x0FU);
+    protoPoke(kVicBorderColorReg, bg);
+    protoPoke(kVicBackgroundColorReg, bg);
 }
 
-void ServerPreview::updateTiles()
+void ServerPreview::enqueueMulticolor1Packet()
 {
-    auto currentTileProperties = MainWindow::getCurrentState()->getTileProperties();
-    if (currentTileProperties.interleaved != _prevTileProperties.interleaved
-        || currentTileProperties.size != _prevTileProperties.size) {
-        struct vchar64d_proto_header* header;
-        struct vchar64d_proto_set_mem* payload;
-
-        static constexpr quint16 CHARS_TO_COPY = 40 * 10;
-
-        // FIXME: Fragile. Both in the c64 and c128 the screen memory
-        // was remapped to a400, but the best way to do it,
-        // is to query the server.
-        static constexpr quint16 SCREEN_MEMORY = 0xa400 + 12 * 40;
-
-        int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->data)) + CHARS_TO_COPY;
-        char* data = (char*)std::malloc(size);
-
-        header = (struct vchar64d_proto_header*)data;
-        payload = (struct vchar64d_proto_set_mem*)(data + sizeof(*header));
-        quint8* chars = (quint8*)&payload->data;
-
-        header->type = TYPE_SET_MEM;
-        payload->addr = qToLittleEndian(SCREEN_MEMORY);
-        payload->count = qToLittleEndian(CHARS_TO_COPY);
-
-        // clean the screen memory since "fill" won't fill everything
-        std::memset(chars, 0x20, CHARS_TO_COPY);
-
-        // fill the screen memory
-        int tw = currentTileProperties.size.width();
-        int th = currentTileProperties.size.height();
-
-        int max_tiles = 256 / (tw * th);
-
-        // 32 columns
-        int columns = (32 / currentTileProperties.size.width()) * currentTileProperties.size.width();
-
-        for (int i = 0; i < max_tiles; i++) {
-            quint8 index = currentTileProperties.interleaved == 1 ? i * tw * th : i;
-            int w = (i * tw) % columns;
-            int h = th * ((i * tw) / columns);
-
-            for (int char_idx = 0; char_idx < (tw * th); char_idx++) {
-                int local_w = w + char_idx % tw;
-                int local_h = h + char_idx / tw;
-
-                chars[local_h * 40 + local_w] = index;
-
-                index += currentTileProperties.interleaved;
-            }
-        }
-
-        sendOrQueueData(data, size);
-
-        _prevTileProperties = currentTileProperties;
+    if (_activeState == nullptr) {
+        return;
     }
+    const auto mc1 = static_cast<uint8_t>(
+        static_cast<unsigned int>(_activeState->getGlobalColorForPen(State::PEN_MULTICOLOR1)) & 0x0FU);
+    protoPoke(kVicMulticolor1Reg, mc1);
 }
+
+void ServerPreview::enqueueMulticolor2Packet()
+{
+    if (_activeState == nullptr) {
+        return;
+    }
+    const auto mc2 = static_cast<uint8_t>(
+        static_cast<unsigned int>(_activeState->getGlobalColorForPen(State::PEN_MULTICOLOR2)) & 0x0FU);
+    protoPoke(kVicMulticolor2Reg, mc2);
+}
+
+void ServerPreview::enqueueForegroundColorPackets()
+{
+    if (_activeState == nullptr) {
+        return;
+    }
+
+    if (_activeState->getForegroundColorMode() == State::FOREGROUND_COLOR_GLOBAL) {
+        const auto fg = static_cast<uint8_t>(
+            static_cast<unsigned int>(_activeState->getGlobalColorForPen(State::PEN_FOREGROUND)) & 0x0FU);
+        protoFill(kC64ColorRamBase, fg, static_cast<quint16>(vchar64::kC64ScreenBytes));
+        return;
+    }
+
+    const vchar64::C64ScreenBuffer colorRam = vchar64::buildC64PreviewColorRam(*_activeState);
+    protoSetMem(
+        kC64ColorRamBase,
+        colorRam.data(),
+        static_cast<quint16>(vchar64::kC64CharsetRegionBytes));
+    protoSetMem(
+        kC64TileColorSliceAddr,
+        colorRam.data() + vchar64::kC64TileRegionOffset,
+        static_cast<quint16>(vchar64::kC64TileRegionBytes));
+}
+
+void ServerPreview::enqueueColorModePacket()
+{
+    if (_activeState == nullptr) {
+        return;
+    }
+    const uint8_t d016 = _activeState->isMulticolorMode()
+        ? kVicControlMulticolor40Col
+        : kVicControlHiRes40Col;
+    protoPoke(kVicControlReg2, d016);
+}
+
+void ServerPreview::enqueueAllColorPackets()
+{
+    enqueueBackgroundColorPackets();
+    enqueueMulticolor1Packet();
+    enqueueMulticolor2Packet();
+    enqueueForegroundColorPackets();
+    enqueueColorModePacket();
+}
+
+void ServerPreview::enqueueCharsetPackets()
+{
+    if (_activeState == nullptr) {
+        return;
+    }
+    const auto& charset = _activeState->getCharsetBuffer();
+    protoSetChars(0, charset.data(), 256);
+}
+
+void ServerPreview::enqueueTilesScreenPacket()
+{
+    if (_activeState == nullptr) {
+        return;
+    }
+    const vchar64::C64ScreenBuffer screen = vchar64::buildC64PreviewScreen(*_activeState);
+    protoSetMem(
+        kC64TileScreenSliceAddr,
+        screen.data() + vchar64::kC64TileRegionOffset,
+        static_cast<quint16>(vchar64::kC64TileRegionBytes));
+}
+
+//
+// Public State notification slots
+//
 
 void ServerPreview::fileLoaded()
 {
-    if (!isConnected())
+    requestFullSync();
+}
+
+void ServerPreview::charsetUpdated()
+{
+    if (!isConnected() || _activeState == nullptr) {
         return;
-
-    // flush queued commands
-    for (auto it = std::begin(_tmpCommands); it != std::end(_tmpCommands);) {
-        auto command = *it;
-        free(command->_data);
-        it = _tmpCommands.erase(it);
-        delete command;
     }
-    _tmpCommands.clear();
-
-    // flush queued commands
-    for (auto it = std::begin(_commands); it != std::end(_commands);) {
-        auto command = *it;
-        free(command->_data);
-        it = _commands.erase(it);
-        delete command;
-    }
-    _commands.clear();
-
-    _bytesSent = 0;
-    _alreadyQueued = false;
-
-    updateCharset();
-    updateColorProperties();
-    updateTiles();
+    enqueueCharsetPackets();
 }
 
 void ServerPreview::bytesUpdated(int pos, int count)
 {
-    if (!isConnected())
-        return;
-
-    if (pos % 8 != 0 || count % 8 != 0) {
-        qDebug() << "Invalid values for bytesUpdated:" << pos << count;
+    if (!isConnected() || _activeState == nullptr) {
         return;
     }
-    auto state = MainWindow::getCurrentState();
+    if (pos < 0 || count <= 0 || pos >= State::CHAR_BUFFER_SIZE) {
+        return;
+    }
 
-    protoSetChars(pos / 8, state->getCharAtIndex(pos / 8), count / 8);
+    const int clampedEnd = std::min(pos + count, State::CHAR_BUFFER_SIZE);
+    const int firstChar = pos / 8;
+    const int endCharExclusive = (clampedEnd + 7) / 8;
+    const int charCount = endCharExclusive - firstChar;
+    if (charCount <= 0) {
+        return;
+    }
+
+    protoSetChars(firstChar, _activeState->getCharAtIndex(firstChar), charCount);
 }
 
 void ServerPreview::tileUpdated(int tileIndex)
 {
-    if (!isConnected())
+    if (!isConnected() || _activeState == nullptr || !_activeState->isValidTileIndex(tileIndex)) {
         return;
-    auto state = MainWindow::getCurrentState();
+    }
 
-    State::TileProperties properties = state->getTileProperties();
+    const State::TileProperties props = _activeState->getTileProperties();
+    const int numChars = props.size.width() * props.size.height();
+    int charIndex = _activeState->getCharIndexFromTileIndex(tileIndex);
 
-    int charIndex = state->getCharIndexFromTileIndex(tileIndex);
-    int numChars = properties.size.width() * properties.size.height();
+    if (props.interleaved == 1) {
+        protoSetChars(charIndex, _activeState->getCharAtIndex(charIndex), numChars);
+        return;
+    }
 
-    if (properties.interleaved == 1) {
-        protoSetChars(charIndex, state->getCharAtIndex(charIndex), numChars);
-    } else {
-        for (int sent = 0; sent < numChars; sent++) {
-            protoSetChars(charIndex, state->getCharAtIndex(charIndex), 1);
-            charIndex += properties.interleaved;
+    for (int i = 0; i < numChars; ++i) {
+        if (charIndex >= 0 && charIndex < 256) {
+            protoSetChar(charIndex, _activeState->getCharAtIndex(charIndex));
         }
+        charIndex += props.interleaved;
     }
 }
 
 void ServerPreview::colorPropertiesUpdated(int pen)
 {
-    if (!isConnected())
+    if (!isConnected() || _activeState == nullptr) {
         return;
-    updateColorMode();
+    }
 
-    if (pen == State::PEN_FOREGROUND)
-        updateForegroundColor();
+    switch (pen) {
+    case State::PEN_BACKGROUND:
+        enqueueBackgroundColorPackets();
+        break;
+    case State::PEN_MULTICOLOR1:
+        enqueueMulticolor1Packet();
+        break;
+    case State::PEN_MULTICOLOR2:
+        enqueueMulticolor2Packet();
+        break;
+    case State::PEN_FOREGROUND:
+        enqueueForegroundColorPackets();
+        break;
+    default:
+        break;
+    }
 }
 
 void ServerPreview::multicolorModeUpdated(bool toggled)
 {
-    Q_UNUSED(toggled)
-    updateColorMode();
+    Q_UNUSED(toggled);
+    if (!isConnected() || _activeState == nullptr) {
+        return;
+    }
+    enqueueColorModePacket();
 }
 
 void ServerPreview::tilePropertiesUpdated()
 {
-    if (!isConnected())
+    if (!isConnected() || _activeState == nullptr) {
         return;
-    updateTiles();
-    updateForegroundColor();
-}
-
-//
-// Proto methods
-//
-
-void ServerPreview::protoPing(quint8 pingValue)
-{
-#pragma pack(push)
-#pragma pack(1)
-    struct _data {
-        struct vchar64d_proto_header header;
-        struct vchar64d_proto_ping payload;
-    };
-#pragma pack(pop)
-
-    struct _data* data = (struct _data*)std::malloc(sizeof(*data));
-
-    data->header.type = TYPE_PING;
-    data->payload.something = pingValue;
-    sendData((char*)data, sizeof(*data));
-
-    //    _socket->waitForBytesWritten();
-    //    while (_socket->bytesAvailable() < (qint64) sizeof(data))
-    //    {
-    //        if (!_socket->waitForReadyRead(2000))
-    //        {
-    //            qDebug() << "Error waiting";
-    //            return;
-    //        }
-    //    }
-
-    //    std::memset(&data, 0, sizeof(data));
-    //    auto r = _socket->read((char*)&data, sizeof(data));
-    //    if (r<0)
-    //    {
-    //        qDebug() << "Error reading";
-    //        return;
-    //    }
-
-    //    if (data.header.type == TYPE_PONG && data.payload.something == pingValue)
-    //        return;
-
-    //    qDebug() << "Error in ping";
-}
-
-void ServerPreview::protoPoke(quint16 addr, quint8 value)
-{
-#pragma pack(push)
-#pragma pack(1)
-    struct _data {
-        struct vchar64d_proto_header header;
-        struct vchar64d_proto_poke payload;
-    };
-#pragma pack(pop)
-
-    struct _data* data = (struct _data*)std::malloc(sizeof(*data));
-
-    data->header.type = TYPE_POKE;
-    data->payload.addr = qToLittleEndian(addr);
-    data->payload.value = value;
-    sendOrQueueData((char*)data, sizeof(*data));
-}
-
-void ServerPreview::protoPeek(quint16 addr, const quint8* value)
-{
-    Q_UNUSED(addr)
-    Q_UNUSED(value)
-}
-
-void ServerPreview::protoFill(quint16 addr, quint8 value, quint16 count)
-{
-#pragma pack(push)
-#pragma pack(1)
-    struct _data {
-        struct vchar64d_proto_header header;
-        struct vchar64d_proto_fill payload;
-    };
-#pragma pack(pop)
-
-    struct _data* data = (struct _data*)std::malloc(sizeof(*data));
-
-    data->header.type = TYPE_FILL;
-    data->payload.addr = qToLittleEndian(addr);
-    data->payload.value = value;
-    data->payload.count = count;
-    sendOrQueueData((char*)data, sizeof(*data));
-}
-
-void ServerPreview::protoSetByte(quint16 addr, quint8 value)
-{
-#pragma pack(push)
-#pragma pack(1)
-    struct _data {
-        struct vchar64d_proto_header header;
-        struct vchar64d_proto_set_byte payload;
-    };
-#pragma pack(pop)
-
-    struct _data* data = (struct _data*)std::malloc(sizeof(*data));
-
-    data->header.type = TYPE_SET_BYTE_FOR_CHAR;
-    data->payload.idx = qToLittleEndian(addr);
-    data->payload.byte = value;
-    sendOrQueueData((char*)data, sizeof(*data));
-}
-
-void ServerPreview::protoSetChar(int charIdx, const quint8* charBuf)
-{
-#pragma pack(push)
-#pragma pack(1)
-    struct _data {
-        struct vchar64d_proto_header header;
-        struct vchar64d_proto_set_char payload;
-    };
-#pragma pack(pop)
-
-    struct _data* data = (struct _data*)std::malloc(sizeof(*data));
-
-    data->header.type = TYPE_SET_CHAR;
-    data->payload.idx = charIdx;
-    std::memcpy(data->payload.chardata, charBuf, sizeof(data->payload.chardata));
-
-    sendOrQueueData((char*)data, sizeof(*data));
-}
-
-void ServerPreview::protoSetChars(int charIdx, const quint8* charBuf, int totalChars)
-{
-    struct vchar64d_proto_header* header;
-    struct vchar64d_proto_set_chars* payload;
-
-    int size = sizeof(*header) + (sizeof(*payload) - sizeof(payload->charsdata)) + totalChars * 8;
-    char* data = (char*)std::malloc(size);
-
-    header = (struct vchar64d_proto_header*)data;
-    payload = (struct vchar64d_proto_set_chars*)(data + sizeof(*header));
-
-    header->type = TYPE_SET_CHARS;
-    payload->idx = charIdx;
-    payload->count = totalChars;
-    std::memcpy(&payload->charsdata, charBuf, totalChars * 8);
-
-    sendOrQueueData(data, size);
-}
-
-void ServerPreview::sendOrQueueData(char* buffer, int bufferSize)
-{
-    if (_alreadyQueued || _bytesSent + bufferSize > VCHAR64_SERVER_BUFFER_SIZE) {
-        // won't enter into infinite loop since
-        // it will go directly to sendData() and sendData() doesn't sync
-        if (!_alreadyQueued)
-            protoPing(0);
-        if (_readOnlyQueue)
-            _tmpCommands.append(new ServerCommand(buffer, bufferSize));
-        else
-            _commands.append(new ServerCommand(buffer, bufferSize));
-        _alreadyQueued = true;
-    } else {
-        sendData(buffer, bufferSize);
     }
-}
-
-void ServerPreview::sendData(char* buffer, int bufferSize)
-{
-    _socket->write(buffer, bufferSize);
-    _bytesSent += bufferSize;
-
-    free(buffer);
+    enqueueTilesScreenPacket();
+    enqueueForegroundColorPackets();
 }
