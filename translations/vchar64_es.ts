@@ -236,8 +236,8 @@ Do you want to save your changes?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/exportdialog.cpp" line="206"/>
-        <source>Export failed: %1</source>
+        <location filename="../src/exportdialog.cpp" line="197"/>
+        <source>Export Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -245,7 +245,7 @@ Do you want to save your changes?</source>
         <translation type="vanished">Archivos ASM(*.s *.a *.asm);;Archivos RAW (*.raw *.bin);;Archivos PRG (*.prg *.64c);;Todos los archivos (*)</translation>
     </message>
     <message>
-        <location filename="../src/exportdialog.cpp" line="200"/>
+        <location filename="../src/exportdialog.cpp" line="205"/>
         <source>File exported to %1</source>
         <translation>Archivo exportado como %1</translation>
     </message>

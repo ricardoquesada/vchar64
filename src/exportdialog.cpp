@@ -29,10 +29,10 @@ limitations under the License.
 #include <algorithm>
 #include <array>
 
-#include <QDebug>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QStatusBar>
 #include <QWidget>
@@ -192,21 +192,18 @@ void ExportDialog::accept()
         result = _state->exportC(filename, properties);
     }
 
-    if (result.isOk()) {
-        const QFileInfo info(filename);
-        Preferences::getInstance().setLastUsedDirectory(info.absolutePath());
-        if (mainWindow != nullptr) {
-            mainWindow->statusBar()->showMessage(
-                tr("File exported to %1").arg(_state->getExportedFilename()),
-                2000);
-        }
-    } else {
-        if (mainWindow != nullptr) {
-            mainWindow->statusBar()->showMessage(
-                tr("Export failed: %1").arg(result.errorMessage()),
-                3000);
-        }
-        qDebug() << "Error saving file:" << filename << result.errorMessage();
+    if (!result.isOk()) {
+        // Keep the dialog open so the user can correct the path or options and retry.
+        QMessageBox::warning(this, tr("Export Failed"), result.errorMessage());
+        return;
+    }
+
+    const QFileInfo info(filename);
+    Preferences::getInstance().setLastUsedDirectory(info.absolutePath());
+    if (mainWindow != nullptr) {
+        mainWindow->statusBar()->showMessage(
+            tr("File exported to %1").arg(_state->getExportedFilename()),
+            2000);
     }
 
     QDialog::accept();
