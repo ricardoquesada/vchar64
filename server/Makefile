@@ -48,4 +48,3 @@ vchar64d-c128.d71: c128-makes
 clean:
 	rm *.eth *.c64 *.c128 *.a *.map obj_c128/* obj_c64/*
 	rmdir obj_c128 obj_c64
-

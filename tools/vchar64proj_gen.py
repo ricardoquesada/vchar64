@@ -18,7 +18,7 @@ def run(charsetfile, mapfile, map_w, map_h, filename):
         fd.write(b'\x00')           # byte: color mode:  0 == global
         fd.write(bytes([map_w&0xff,map_w>>8]))      # word: map width
         fd.write(bytes([map_h&0xff,map_h>>8]))      # word: map height
-        fd.write(bytes([0,0x40]))   # word: charset export address 
+        fd.write(bytes([0,0x40]))   # word: charset export address
         fd.write(bytes([0,0x80]))   # word: map export address
         fd.write(bytes([0,0]))      # word: address attributes
         fd.write(b'\x00')           # byte: what features should be exported

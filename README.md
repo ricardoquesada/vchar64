@@ -102,4 +102,3 @@ $ cmake --build . --target release_translations
 ## License
 
 * [Apache v2](http://www.apache.org/licenses/LICENSE-2.0)
-

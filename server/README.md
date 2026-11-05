@@ -4,8 +4,8 @@
 
 ## Install 3rd party tools
 
-* Download and install [cc65][1] from github (C compiler for 6502) 
-* Download [Contiki OS][2] from github (TCP/IP stack plus other utilities) 
+* Download and install [cc65][1] from github (C compiler for 6502)
+* Download [Contiki OS][2] from github (TCP/IP stack plus other utilities)
 * Download and install [c1541][3] bundled with VICE (needed to create the .d64 and .d71 images)
 * Setup the following environtment variables:
     * `CONTIKI`: Path to Contiki OS root
