@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file aboutdialog.cpp
- * @brief Implementation of `AboutDialog` displaying CMake-injected version and Git revision metadata (`vchar64`).
- */
+// AboutDialog implementation displaying CMake-injected version and Git revision metadata.
 
 #include "aboutdialog.h"
 #include "ui_aboutdialog.h"
+
+#include <QCoreApplication>
+#include <QString>
 
 AboutDialog::AboutDialog(QWidget* parent)
     : QDialog(parent)
@@ -28,7 +28,7 @@ AboutDialog::AboutDialog(QWidget* parent)
 {
     ui->setupUi(this);
 
-    const char* htmlraw = R"html(
+    static constexpr const char* kHtmlTemplate = R"html(
 <p align="center"><img height="92" width="92" src=":/res/logo512.png"></p>
 <p align="center"><font size="+2"><b>VChar64</b></font><br><i>Version %1</i>%2<br><i>Built: %3</i></p>
 <p align="center">Copyright 2015, 2024 <a href="http://retro.moe">Ricardo Quesada</a><br>(see the <a href="https://github.com/ricardoquesada/vchar64/blob/master/AUTHORS">AUTHORS</a> file for a full list of contributors)</p>
@@ -43,17 +43,17 @@ AboutDialog::AboutDialog(QWidget* parent)
 </p>
 )html";
 
-    // `VCHAR64_GIT_HASH` is injected by CMake (`git rev-parse --short HEAD`), and may
+    // VCHAR64_GIT_HASH is injected by CMake (`git rev-parse --short HEAD`) and may
     // be empty when building from a release tarball outside a Git worktree.
-    const QString gitHash = QStringLiteral(VCHAR64_GIT_HASH);
-    const QString gitLine = gitHash.isEmpty()
+    const QString git_hash = QStringLiteral(VCHAR64_GIT_HASH);
+    const QString git_line = git_hash.isEmpty()
         ? QString()
-        : QStringLiteral("<br><i>Git: %1</i>").arg(gitHash);
+        : QStringLiteral("<br><i>Git: %1</i>").arg(git_hash);
 
-    const QString html = QCoreApplication::translate("AboutDialog", htmlraw)
-                             .arg(QStringLiteral(VCHAR64_VERSION), gitLine, QStringLiteral(__DATE__));
+    const QString rendered_html = QCoreApplication::translate("AboutDialog", kHtmlTemplate)
+                                      .arg(QStringLiteral(VCHAR64_VERSION), git_line, QStringLiteral(__DATE__));
 
-    ui->textBrowser->setHtml(html);
+    ui->textBrowser->setHtml(rendered_html);
 }
 
 AboutDialog::~AboutDialog()

@@ -14,8 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+// TilePropertiesDialog implementation for editing tile dimensions and interleave distance.
+
 #include "tilepropertiesdialog.h"
 #include "ui_tilepropertiesdialog.h"
+
+#include <QSize>
 
 #include "state.h"
 
@@ -26,7 +30,7 @@ TilePropertiesDialog::TilePropertiesDialog(State* state, QWidget* parent)
 {
     ui->setupUi(this);
 
-    auto properties = _state->getTileProperties();
+    const State::TileProperties properties = _state->getTileProperties();
     ui->spinBoxSizeX->setValue(properties.size.width());
     ui->spinBoxSizeY->setValue(properties.size.height());
     ui->spinBoxInterleaved->setValue(properties.interleaved);
@@ -39,12 +43,12 @@ TilePropertiesDialog::~TilePropertiesDialog()
 
 void TilePropertiesDialog::on_buttonBox_accepted()
 {
-    int w = ui->spinBoxSizeX->value();
-    int h = ui->spinBoxSizeY->value();
-    int interleaved = ui->spinBoxInterleaved->value();
+    const int tile_width = ui->spinBoxSizeX->value();
+    const int tile_height = ui->spinBoxSizeY->value();
+    const int interleaved = ui->spinBoxInterleaved->value();
 
     State::TileProperties properties;
-    properties.size = { w, h };
+    properties.size = QSize(tile_width, tile_height);
     properties.interleaved = interleaved;
 
     _state->setTileProperties(properties);
@@ -52,9 +56,9 @@ void TilePropertiesDialog::on_buttonBox_accepted()
 
 void TilePropertiesDialog::on_spinBoxSizeX_editingFinished()
 {
-    int x = ui->spinBoxSizeX->value();
-    int y = ui->spinBoxSizeY->value();
-    ui->spinBoxInterleaved->setMaximum(256 / (x * y));
+    const int tile_width = ui->spinBoxSizeX->value();
+    const int tile_height = ui->spinBoxSizeY->value();
+    ui->spinBoxInterleaved->setMaximum(256 / (tile_width * tile_height));
 }
 
 void TilePropertiesDialog::on_spinBoxSizeY_editingFinished()

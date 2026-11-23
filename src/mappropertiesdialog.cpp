@@ -1,5 +1,9 @@
+// MapPropertiesDialog implementation for editing the document's tile map dimensions.
+
 #include "mappropertiesdialog.h"
 #include "ui_mappropertiesdialog.h"
+
+#include <QSize>
 
 #include "state.h"
 
@@ -10,9 +14,9 @@ MapPropertiesDialog::MapPropertiesDialog(State* state, QWidget* parent)
 {
     ui->setupUi(this);
 
-    auto mapSize = state->getMapSize();
-    ui->spinBox_width->setValue(mapSize.width());
-    ui->spinBox_height->setValue(mapSize.height());
+    const QSize map_size = state->getMapSize();
+    ui->spinBox_width->setValue(map_size.width());
+    ui->spinBox_height->setValue(map_size.height());
 }
 
 MapPropertiesDialog::~MapPropertiesDialog()
@@ -22,7 +26,7 @@ MapPropertiesDialog::~MapPropertiesDialog()
 
 void MapPropertiesDialog::on_buttonBox_accepted()
 {
-    int w = ui->spinBox_width->value();
-    int h = ui->spinBox_height->value();
-    _state->setMapSize(QSize(w, h));
+    const int width = ui->spinBox_width->value();
+    const int height = ui->spinBox_height->value();
+    _state->setMapSize(QSize(width, height));
 }

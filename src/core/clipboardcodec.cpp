@@ -14,35 +14,139 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "core/clipboardcodec.h"
+// Implements the "VC64CLIP" v2 little-endian clipboard wire format.
+//
+// Wire layout (all integers little-endian QDataStream::Qt_6_0):
+// - Bytes [0..7]:   ASCII magic "VC64CLIP" (8 bytes).
+// - Bytes [8..11]:  uint32_t format version (2).
+// - Bytes [12..47]: Nine int32_t geometry fields (type, offset, blockSize,
+//                   skip, count, sourceRowWidth, tw, th, interleaved).
+// - Bytes [48..51]: uint32_t payload byte_count.
+// - Bytes [52..]:   For CHARS/TILES, 2,304 contiguous bytes (2,048 B charset +
+//                   256 B tile colors); for MAP, byte_count tile-index bytes.
 
-/**
- * @file clipboardcodec.cpp
- * @brief Implementation of the `"VC64CLIP"` v2 little-endian clipboard wire format.
- *
- * Wire layout (all integers little-endian `QDataStream::Qt_6_0`):
- *
- * - Bytes `[0..7]`:   ASCII magic `"VC64CLIP"` (8 bytes)
- * - Bytes `[8..11]`:  `uint32_t` format version (`2`)
- * - Bytes `[12..47]`: Nine `int32_t` geometry fields (`type`, `offset`, `blockSize`,
- *                     `skip`, `count`, `sourceRowWidth`, `tw`, `th`, `interleaved`)
- * - Bytes `[48..51]`: `uint32_t` payload `byteCount`
- * - Bytes `[52..]`:   For `CHARS`/`TILES`, `2,304` contiguous bytes (`2,048`B charset +
- *                     `256`B tile colors); for `MAP`, `byteCount` tile-index bytes.
- */
+#include "core/clipboardcodec.h"
 
 #include <algorithm>
 #include <array>
-#include <cstring>
+#include <cstddef>
+#include <cstdint>
+#include <utility>
 
 #include <QDataStream>
 #include <QIODevice>
+#include <QSize>
+#include <QString>
 
 namespace {
 
 constexpr std::array<char, 8> kMagic = { 'V', 'C', '6', '4', 'C', 'L', 'I', 'P' };
 constexpr uint32_t kCharsetAndColorsBytes = static_cast<uint32_t>(
     State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE);
+
+// Validates map selection geometry and reads `byte_count` cell indices from `stream` into
+// `payload`, normalizing `payload.sourceRowWidth`. Returns an error on invalid dimensions,
+// buffer size mismatches, or stream read failures.
+[[nodiscard]] vchar64::Result<void> ReadMapPayload(
+    QDataStream& stream,
+    quint32 byte_count,
+    ClipboardPayload& payload)
+{
+    if (payload.blockSize > State::kMaxMapDim || payload.skip > State::kMaxMapDim
+        || payload.count > State::kMaxMapDim || payload.sourceRowWidth > State::kMaxMapDim) {
+        return vchar64::Result<void>::err(
+            vchar64::ErrorCode::InvalidDimensions,
+            QStringLiteral("Clipboard map dimensions exceed maximum"));
+    }
+
+    // Use 64-bit unsigned arithmetic so adversarial 32-bit dimensions cannot wrap around.
+    const uint64_t selected_cells = static_cast<uint64_t>(payload.blockSize) * static_cast<uint64_t>(payload.count);
+    if (selected_cells == 0ULL || selected_cells > State::kMaxMapCells
+        || byte_count == 0U || static_cast<size_t>(byte_count) > State::kMaxMapCells) {
+        return vchar64::Result<void>::err(
+            vchar64::ErrorCode::InvalidDimensions,
+            QStringLiteral("Clipboard map cell count out of bounds"));
+    }
+
+    const int effective_row_width = (payload.sourceRowWidth > 0) ? payload.sourceRowWidth : payload.blockSize;
+    if (effective_row_width < payload.blockSize) {
+        return vchar64::Result<void>::err(
+            vchar64::ErrorCode::HeaderOutOfBounds,
+            QStringLiteral("Clipboard sourceRowWidth smaller than blockSize"));
+    }
+
+    // Accept either a tight subgrid (`effective_row_width * count`) or a full strided buffer
+    // large enough to cover the final selected row.
+    const uint64_t tight_bytes = static_cast<uint64_t>(effective_row_width) * static_cast<uint64_t>(payload.count);
+    const uint64_t strided_span = static_cast<uint64_t>(payload.offset)
+        + static_cast<uint64_t>(payload.count - 1) * static_cast<uint64_t>(payload.blockSize + payload.skip)
+        + static_cast<uint64_t>(payload.blockSize);
+
+    if (static_cast<uint64_t>(byte_count) != tight_bytes
+        && static_cast<uint64_t>(byte_count) < strided_span) {
+        return vchar64::Result<void>::err(
+            vchar64::ErrorCode::HeaderOutOfBounds,
+            QStringLiteral("Clipboard map buffer too small for declared selection range"));
+    }
+
+    payload.sourceRowWidth = effective_row_width;
+    payload.mapCells.resize(static_cast<size_t>(byte_count));
+    const qint64 bytes_read = stream.readRawData(
+        reinterpret_cast<char*>(payload.mapCells.data()),
+        static_cast<int>(byte_count));
+    if (bytes_read != static_cast<qint64>(byte_count)) {
+        return vchar64::Result<void>::err(
+            vchar64::ErrorCode::FileReadFailed,
+            QStringLiteral("Failed reading clipboard map cells"));
+    }
+
+    return vchar64::Result<void>::ok();
+}
+
+// Validates char/tile selection bounds, reads the 2,048-byte charset and 256-byte color buffers
+// from `stream` into `payload`, and masks Color RAM entries to 4 bits. Returns an error on
+// range violations or stream read failures.
+[[nodiscard]] vchar64::Result<void> ReadCharsetPayload(
+    QDataStream& stream,
+    quint32 byte_count,
+    ClipboardPayload& payload)
+{
+    if (payload.offset >= 256 || payload.blockSize > 256 || payload.skip > 256
+        || payload.count > 256 || byte_count != kCharsetAndColorsBytes) {
+        return vchar64::Result<void>::err(
+            vchar64::ErrorCode::HeaderOutOfBounds,
+            QStringLiteral("Invalid char/tile range or byte count in clipboard payload"));
+    }
+
+    const uint64_t span = static_cast<uint64_t>(payload.offset)
+        + static_cast<uint64_t>(payload.count - 1) * static_cast<uint64_t>(payload.blockSize + payload.skip)
+        + static_cast<uint64_t>(payload.blockSize);
+    if (span > 256ULL) {
+        return vchar64::Result<void>::err(
+            vchar64::ErrorCode::HeaderOutOfBounds,
+            QStringLiteral("Clipboard char/tile selection exceeds 256 entries"));
+    }
+
+    const qint64 chars_read = stream.readRawData(
+        reinterpret_cast<char*>(payload.charset.data()),
+        static_cast<int>(payload.charset.size()));
+    const qint64 colors_read = stream.readRawData(
+        reinterpret_cast<char*>(payload.tileColors.data()),
+        static_cast<int>(payload.tileColors.size()));
+    if (chars_read != static_cast<qint64>(payload.charset.size())
+        || colors_read != static_cast<qint64>(payload.tileColors.size())) {
+        return vchar64::Result<void>::err(
+            vchar64::ErrorCode::FileReadFailed,
+            QStringLiteral("Failed reading clipboard charset/color buffers"));
+    }
+
+    // Mask C64 Color RAM values to 4 bits (0..15) so downstream palette lookups never go out of bounds.
+    for (uint8_t& color_entry : payload.tileColors) {
+        color_entry &= 0x0FU;
+    }
+
+    return vchar64::Result<void>::ok();
+}
 
 } // namespace
 
@@ -64,62 +168,10 @@ State::CopyRange ClipboardPayload::toCopyRange() const noexcept
     return range;
 }
 
-ClipboardPayload ClipboardCodec::fromStateSelection(
-    const State& state,
-    const State::CopyRange& copyRange)
-{
-    ClipboardPayload payload;
-    payload.type = copyRange.type;
-    payload.offset = copyRange.offset;
-    payload.blockSize = copyRange.blockSize;
-    payload.skip = copyRange.skip;
-    payload.count = copyRange.count;
-    if (copyRange.tileProperties.size.width() >= 1
-        && copyRange.tileProperties.size.height() >= 1
-        && copyRange.tileProperties.interleaved >= 1) {
-        payload.tileProperties = copyRange.tileProperties;
-    } else {
-        payload.tileProperties = state.getTileProperties();
-    }
-
-    if (copyRange.type == State::CopyRange::MAP) {
-        payload.sourceRowWidth = std::max(0, copyRange.blockSize);
-        const auto& mapBuf = state.map();
-        const int srcStride = copyRange.blockSize + copyRange.skip;
-        if (copyRange.offset >= 0 && copyRange.blockSize > 0 && copyRange.count > 0 && srcStride >= copyRange.blockSize) {
-            const size_t totalCells = static_cast<size_t>(copyRange.blockSize) * static_cast<size_t>(copyRange.count);
-            if (totalCells <= State::kMaxMapCells) {
-                payload.mapCells.assign(totalCells, 0U);
-                for (int row = 0; row < copyRange.count; ++row) {
-                    const size_t srcOffset = static_cast<size_t>(copyRange.offset)
-                        + static_cast<size_t>(row) * static_cast<size_t>(srcStride);
-                    if (srcOffset >= mapBuf.size()) {
-                        break;
-                    }
-                    const size_t avail = std::min(static_cast<size_t>(copyRange.blockSize), mapBuf.size() - srcOffset);
-                    std::copy_n(
-                        mapBuf.data() + srcOffset,
-                        avail,
-                        payload.mapCells.data() + static_cast<size_t>(row) * static_cast<size_t>(copyRange.blockSize));
-                }
-                // Tight extracted sub-grid has zero inter-row skip and 0 offset inside mapCells.
-                payload.offset = 0;
-                payload.skip = 0;
-            }
-        }
-    } else {
-        payload.sourceRowWidth = std::max(0, copyRange.blockSize);
-        payload.charset = state.charset();
-        payload.tileColors = state.tileColors();
-    }
-
-    return payload;
-}
-
 QByteArray ClipboardCodec::serialize(const ClipboardPayload& payload)
 {
-    QByteArray outBytes;
-    QDataStream stream(&outBytes, QIODevice::WriteOnly);
+    QByteArray out_bytes;
+    QDataStream stream(&out_bytes, QIODevice::WriteOnly);
     stream.setVersion(QDataStream::Qt_6_0);
     stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -136,13 +188,13 @@ QByteArray ClipboardCodec::serialize(const ClipboardPayload& payload)
     stream << static_cast<qint32>(payload.tileProperties.interleaved);
 
     if (payload.type == State::CopyRange::MAP) {
-        const auto byteCount = static_cast<quint32>(
+        const quint32 byte_count = static_cast<quint32>(
             std::min<size_t>(payload.mapCells.size(), State::kMaxMapCells));
-        stream << byteCount;
-        if (byteCount > 0U) {
+        stream << byte_count;
+        if (byte_count > 0U) {
             stream.writeRawData(
                 reinterpret_cast<const char*>(payload.mapCells.data()),
-                static_cast<int>(byteCount));
+                static_cast<int>(byte_count));
         }
     } else {
         stream << static_cast<quint32>(kCharsetAndColorsBytes);
@@ -154,20 +206,20 @@ QByteArray ClipboardCodec::serialize(const ClipboardPayload& payload)
             static_cast<int>(payload.tileColors.size()));
     }
 
-    return outBytes;
+    return out_bytes;
 }
 
-vchar64::Result<ClipboardPayload> ClipboardCodec::deserialize(const QByteArray& rawData)
+vchar64::Result<ClipboardPayload> ClipboardCodec::deserialize(const QByteArray& raw_data)
 {
-    // Minimum header size: 8 (magic) + 4 (version) + 9 * 4 (metadata) + 4 (byteCount) = 52 bytes.
+    // Minimum header size: 8 (magic) + 4 (version) + 9 * 4 (metadata) + 4 (byte_count) = 52 bytes.
     constexpr qsizetype kMinHeaderBytes = 52;
-    if (rawData.size() < kMinHeaderBytes) {
+    if (raw_data.size() < kMinHeaderBytes) {
         return vchar64::Result<ClipboardPayload>::err(
             vchar64::ErrorCode::FileTooSmall,
             QStringLiteral("Clipboard buffer smaller than v2 header"));
     }
 
-    QDataStream stream(rawData);
+    QDataStream stream(raw_data);
     stream.setVersion(QDataStream::Qt_6_0);
     stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -180,19 +232,19 @@ vchar64::Result<ClipboardPayload> ClipboardCodec::deserialize(const QByteArray& 
     }
 
     quint32 version = 0;
-    qint32 rawType = -1;
+    qint32 raw_type = -1;
     qint32 offset = -1;
-    qint32 blockSize = -1;
+    qint32 block_size = -1;
     qint32 skip = -1;
     qint32 count = -1;
-    qint32 sourceRowWidth = -1;
-    qint32 tileWidth = 0;
-    qint32 tileHeight = 0;
+    qint32 source_row_width = -1;
+    qint32 tile_width = 0;
+    qint32 tile_height = 0;
     qint32 interleaved = 0;
-    quint32 byteCount = 0;
+    quint32 byte_count = 0;
 
-    stream >> version >> rawType >> offset >> blockSize >> skip >> count
-        >> sourceRowWidth >> tileWidth >> tileHeight >> interleaved >> byteCount;
+    stream >> version >> raw_type >> offset >> block_size >> skip >> count
+        >> source_row_width >> tile_width >> tile_height >> interleaved >> byte_count;
 
     if (stream.status() != QDataStream::Ok) {
         return vchar64::Result<ClipboardPayload>::err(
@@ -206,14 +258,14 @@ vchar64::Result<ClipboardPayload> ClipboardCodec::deserialize(const QByteArray& 
             QStringLiteral("Unsupported clipboard payload version %1").arg(version));
     }
 
-    if (rawType < static_cast<qint32>(State::CopyRange::CHARS)
-        || rawType > static_cast<qint32>(State::CopyRange::MAP)) {
+    if (raw_type < static_cast<qint32>(State::CopyRange::CHARS)
+        || raw_type > static_cast<qint32>(State::CopyRange::MAP)) {
         return vchar64::Result<ClipboardPayload>::err(
             vchar64::ErrorCode::HeaderOutOfBounds,
-            QStringLiteral("Unknown clipboard buffer type %1").arg(rawType));
+            QStringLiteral("Unknown clipboard buffer type %1").arg(raw_type));
     }
 
-    if (offset < 0 || blockSize <= 0 || skip < 0 || count <= 0 || sourceRowWidth < 0) {
+    if (offset < 0 || block_size <= 0 || skip < 0 || count <= 0 || source_row_width < 0) {
         return vchar64::Result<ClipboardPayload>::err(
             vchar64::ErrorCode::HeaderOutOfBounds,
             QStringLiteral("Negative or zero range bounds in clipboard payload"));
@@ -221,128 +273,112 @@ vchar64::Result<ClipboardPayload> ClipboardCodec::deserialize(const QByteArray& 
 
     // Default-constructed CopyRange initializes tileProperties to {{-1, -1}, -1} for CHARS/MAP
     // selections that do not depend on tile dimensions; normalize that sentinel to 1x1.
-    const bool isNonTileSentinel = (rawType != static_cast<qint32>(State::CopyRange::TILES))
-        && (tileWidth == -1 && tileHeight == -1 && interleaved == -1);
-    if (isNonTileSentinel) {
-        tileWidth = 1;
-        tileHeight = 1;
+    const bool is_non_tile_sentinel = (raw_type != static_cast<qint32>(State::CopyRange::TILES))
+        && (tile_width == -1 && tile_height == -1 && interleaved == -1);
+    if (is_non_tile_sentinel) {
+        tile_width = 1;
+        tile_height = 1;
         interleaved = 1;
     }
 
-    if (tileWidth < 1 || tileWidth > State::MAX_TILE_WIDTH
-        || tileHeight < 1 || tileHeight > State::MAX_TILE_HEIGHT
-        || (tileWidth * tileHeight) > 256
+    if (tile_width < 1 || tile_width > State::MAX_TILE_WIDTH
+        || tile_height < 1 || tile_height > State::MAX_TILE_HEIGHT
+        || (tile_width * tile_height) > 256
         || interleaved < 1 || interleaved > 256) {
         return vchar64::Result<ClipboardPayload>::err(
             vchar64::ErrorCode::InvalidDimensions,
             QStringLiteral("Invalid tile properties in clipboard payload"));
     }
 
-    // Require an exact match between declared byteCount and remaining stream bytes
-    // before allocating payload vectors (prevents OOM from forged 4 GiB byteCount headers).
-    const qint64 streamPos = stream.device()->pos();
-    const qint64 remainingBytes = static_cast<qint64>(rawData.size()) - streamPos;
-    if (remainingBytes < 0 || static_cast<quint64>(remainingBytes) != static_cast<quint64>(byteCount)) {
+    // Require an exact match between declared byte_count and remaining stream bytes
+    // before allocating payload vectors (prevents OOM from forged 4 GiB byte_count headers).
+    const qint64 stream_pos = stream.device()->pos();
+    const qint64 remaining_bytes = static_cast<qint64>(raw_data.size()) - stream_pos;
+    if (remaining_bytes < 0 || static_cast<quint64>(remaining_bytes) != static_cast<quint64>(byte_count)) {
         return vchar64::Result<ClipboardPayload>::err(
             vchar64::ErrorCode::FileTooSmall,
             QStringLiteral("Clipboard payload byte length mismatch"));
     }
 
     ClipboardPayload payload;
-    payload.type = static_cast<State::CopyRange::BufferType>(rawType);
+    payload.type = static_cast<State::CopyRange::BufferType>(raw_type);
     payload.offset = static_cast<int>(offset);
-    payload.blockSize = static_cast<int>(blockSize);
+    payload.blockSize = static_cast<int>(block_size);
     payload.skip = static_cast<int>(skip);
     payload.count = static_cast<int>(count);
-    payload.sourceRowWidth = static_cast<int>(sourceRowWidth);
+    payload.sourceRowWidth = static_cast<int>(source_row_width);
     payload.tileProperties = State::TileProperties {
-        QSize(static_cast<int>(tileWidth), static_cast<int>(tileHeight)),
+        QSize(static_cast<int>(tile_width), static_cast<int>(tile_height)),
         static_cast<int>(interleaved)
     };
 
-    if (payload.type == State::CopyRange::MAP) {
-        if (blockSize > State::kMaxMapDim || skip > State::kMaxMapDim
-            || count > State::kMaxMapDim || sourceRowWidth > State::kMaxMapDim) {
-            return vchar64::Result<ClipboardPayload>::err(
-                vchar64::ErrorCode::InvalidDimensions,
-                QStringLiteral("Clipboard map dimensions exceed maximum"));
-        }
-
-        // Use 64-bit unsigned arithmetic so adversarial 32-bit dimensions cannot wrap around.
-        const uint64_t selectedCells = static_cast<uint64_t>(blockSize) * static_cast<uint64_t>(count);
-        if (selectedCells == 0ULL || selectedCells > State::kMaxMapCells
-            || byteCount == 0U || static_cast<size_t>(byteCount) > State::kMaxMapCells) {
-            return vchar64::Result<ClipboardPayload>::err(
-                vchar64::ErrorCode::InvalidDimensions,
-                QStringLiteral("Clipboard map cell count out of bounds"));
-        }
-
-        const int effectiveRowWidth = (sourceRowWidth > 0) ? static_cast<int>(sourceRowWidth) : static_cast<int>(blockSize);
-        if (effectiveRowWidth < blockSize) {
-            return vchar64::Result<ClipboardPayload>::err(
-                vchar64::ErrorCode::HeaderOutOfBounds,
-                QStringLiteral("Clipboard sourceRowWidth smaller than blockSize"));
-        }
-
-        // Accept either a tight subgrid (`effectiveRowWidth * count`) or a full strided buffer
-        // large enough to cover the final selected row.
-        const uint64_t tightBytes = static_cast<uint64_t>(effectiveRowWidth) * static_cast<uint64_t>(count);
-        const uint64_t stridedSpan = static_cast<uint64_t>(offset)
-            + static_cast<uint64_t>(count - 1) * static_cast<uint64_t>(blockSize + skip)
-            + static_cast<uint64_t>(blockSize);
-
-        if (static_cast<uint64_t>(byteCount) != tightBytes
-            && static_cast<uint64_t>(byteCount) < stridedSpan) {
-            return vchar64::Result<ClipboardPayload>::err(
-                vchar64::ErrorCode::HeaderOutOfBounds,
-                QStringLiteral("Clipboard map buffer too small for declared selection range"));
-        }
-
-        payload.sourceRowWidth = effectiveRowWidth;
-        payload.mapCells.resize(static_cast<size_t>(byteCount));
-        const qint64 readGot = stream.readRawData(
-            reinterpret_cast<char*>(payload.mapCells.data()),
-            static_cast<int>(byteCount));
-        if (readGot != static_cast<qint64>(byteCount)) {
-            return vchar64::Result<ClipboardPayload>::err(
-                vchar64::ErrorCode::FileReadFailed,
-                QStringLiteral("Failed reading clipboard map cells"));
-        }
-    } else {
-        if (offset >= 256 || blockSize > 256 || skip > 256 || count > 256
-            || byteCount != kCharsetAndColorsBytes) {
-            return vchar64::Result<ClipboardPayload>::err(
-                vchar64::ErrorCode::HeaderOutOfBounds,
-                QStringLiteral("Invalid char/tile range or byte count in clipboard payload"));
-        }
-
-        const uint64_t span = static_cast<uint64_t>(offset)
-            + static_cast<uint64_t>(count - 1) * static_cast<uint64_t>(blockSize + skip)
-            + static_cast<uint64_t>(blockSize);
-        if (span > 256ULL) {
-            return vchar64::Result<ClipboardPayload>::err(
-                vchar64::ErrorCode::HeaderOutOfBounds,
-                QStringLiteral("Clipboard char/tile selection exceeds 256 entries"));
-        }
-
-        const qint64 gotChars = stream.readRawData(
-            reinterpret_cast<char*>(payload.charset.data()),
-            static_cast<int>(payload.charset.size()));
-        const qint64 gotColors = stream.readRawData(
-            reinterpret_cast<char*>(payload.tileColors.data()),
-            static_cast<int>(payload.tileColors.size()));
-        if (gotChars != static_cast<qint64>(payload.charset.size())
-            || gotColors != static_cast<qint64>(payload.tileColors.size())) {
-            return vchar64::Result<ClipboardPayload>::err(
-                vchar64::ErrorCode::FileReadFailed,
-                QStringLiteral("Failed reading clipboard charset/color buffers"));
-        }
-
-        // Mask C64 Color RAM values to 4 bits (0..15) so downstream palette lookups never go OOB.
-        for (uint8_t& c : payload.tileColors) {
-            c &= 0x0FU;
-        }
+    const vchar64::Result<void> payload_result = (payload.type == State::CopyRange::MAP)
+        ? ReadMapPayload(stream, byte_count, payload)
+        : ReadCharsetPayload(stream, byte_count, payload);
+    if (!payload_result) {
+        return vchar64::Result<ClipboardPayload>::err(
+            payload_result.error().code,
+            payload_result.error().detail);
     }
 
     return vchar64::Result<ClipboardPayload>::ok(std::move(payload));
+}
+
+ClipboardPayload ClipboardCodec::fromStateSelection(
+    const State& state,
+    const State::CopyRange& copy_range)
+{
+    ClipboardPayload payload;
+    payload.type = copy_range.type;
+    payload.offset = copy_range.offset;
+    payload.blockSize = copy_range.blockSize;
+    payload.skip = copy_range.skip;
+    payload.count = copy_range.count;
+    payload.sourceRowWidth = std::max(0, copy_range.blockSize);
+    if (copy_range.tileProperties.size.width() >= 1
+        && copy_range.tileProperties.size.height() >= 1
+        && copy_range.tileProperties.interleaved >= 1) {
+        payload.tileProperties = copy_range.tileProperties;
+    } else {
+        payload.tileProperties = state.getTileProperties();
+    }
+
+    if (copy_range.type != State::CopyRange::MAP) {
+        payload.charset = state.charset();
+        payload.tileColors = state.tileColors();
+        return payload;
+    }
+
+    const State::MapBuffer& map_buffer = state.map();
+    const int source_stride = copy_range.blockSize + copy_range.skip;
+    if (copy_range.offset < 0 || copy_range.blockSize <= 0 || copy_range.count <= 0
+        || source_stride < copy_range.blockSize) {
+        return payload;
+    }
+
+    const size_t total_cells = static_cast<size_t>(copy_range.blockSize) * static_cast<size_t>(copy_range.count);
+    if (total_cells > State::kMaxMapCells) {
+        return payload;
+    }
+
+    payload.mapCells.assign(total_cells, 0U);
+    for (int row = 0; row < copy_range.count; ++row) {
+        const size_t source_offset = static_cast<size_t>(copy_range.offset)
+            + static_cast<size_t>(row) * static_cast<size_t>(source_stride);
+        if (source_offset >= map_buffer.size()) {
+            break;
+        }
+        const size_t available_bytes = std::min(
+            static_cast<size_t>(copy_range.blockSize),
+            map_buffer.size() - source_offset);
+        std::copy_n(
+            map_buffer.data() + source_offset,
+            available_bytes,
+            payload.mapCells.data() + static_cast<size_t>(row) * static_cast<size_t>(copy_range.blockSize));
+    }
+
+    // Tight extracted subgrid has zero inter-row skip and zero offset inside mapCells.
+    payload.offset = 0;
+    payload.skip = 0;
+    return payload;
 }

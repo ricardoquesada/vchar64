@@ -14,21 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file importvicescreenramwidget.cpp
- * @brief `TileAtlasCache`-backed `40x25` Screen RAM preview painter for VICE `.vsf` import.
- *
- * Clears the exposed device-coordinate `event->rect()` before applying any logical
- * scale transform, then blits each `(x, y)` map cell from `ImportVICEDialog::atlasCache()`.
- */
+// TileAtlasCache-backed 40x25 Screen RAM preview painter for VICE .vsf snapshot import.
+//
+// Clears the exposed device-coordinate event->rect() before applying any logical
+// scale transform, then blits each (col, row) map cell from ImportVICEDialog::atlasCache().
 
 #include "importvicescreenramwidget.h"
 
+#include <QColor>
+#include <QImage>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPen>
+#include <QPoint>
 #include <QPointF>
 #include <QRectF>
 
+#include "core/tileatlascache.h"
 #include "importvicedialog.h"
 #include "state.h"
 
@@ -47,6 +49,14 @@ ImportVICEScreenRAMWidget::ImportVICEScreenRAMWidget(QWidget* parent)
     setFixedSize(
         kPixelSize * kColumns * 8 + kOffset * 2,
         kPixelSize * kRows * 8 + kOffset * 2);
+}
+
+void ImportVICEScreenRAMWidget::setDisplayGrid(bool enabled)
+{
+    if (enabled != _displayGrid) {
+        _displayGrid = enabled;
+        update();
+    }
 }
 
 void ImportVICEScreenRAMWidget::paintEvent(QPaintEvent* event)
@@ -69,45 +79,37 @@ void ImportVICEScreenRAMWidget::paintEvent(QPaintEvent* event)
     painter.setBrush(QColor(0, 0, 0));
     painter.setPen(Qt::NoPen);
 
-    const TileAtlasCache& cache = _parentDialog->atlasCache();
-    const QImage& atlas = cache.atlasImage();
-    for (int y = 0; y < kRows; ++y) {
-        for (int x = 0; x < kColumns; ++x) {
-            const int tileIdx = state->getTileIndexFromMap(QPoint(x, y));
-            const QRectF target(
-                static_cast<qreal>(x * 8 + kOffset),
-                static_cast<qreal>(y * 8 + kOffset),
+    const TileAtlasCache& atlas_cache = _parentDialog->atlasCache();
+    const QImage& atlas = atlas_cache.atlasImage();
+    for (int row = 0; row < kRows; ++row) {
+        for (int col = 0; col < kColumns; ++col) {
+            const int tile_index = state->getTileIndexFromMap(QPoint(col, row));
+            const QRectF dest_rect(
+                static_cast<qreal>(col * 8 + kOffset),
+                static_cast<qreal>(row * 8 + kOffset),
                 8.0,
                 8.0);
-            painter.drawImage(target, atlas, QRectF(cache.sourceRectForTile(tileIdx)));
+            painter.drawImage(dest_rect, atlas, QRectF(atlas_cache.sourceRectForTile(tile_index)));
         }
     }
 
     if (_displayGrid) {
-        QPen gridPen = painter.pen();
-        gridPen.setColor(QColor(0, 128, 0));
-        gridPen.setStyle(Qt::DashLine);
-        gridPen.setWidthF(1.0 / static_cast<qreal>(kPixelSize));
-        painter.setPen(gridPen);
+        QPen grid_pen = painter.pen();
+        grid_pen.setColor(QColor(0, 128, 0));
+        grid_pen.setStyle(Qt::DashLine);
+        grid_pen.setWidthF(1.0 / static_cast<qreal>(kPixelSize));
+        painter.setPen(grid_pen);
 
-        for (int y = 0; y <= kRows; ++y) {
+        for (int row = 0; row <= kRows; ++row) {
             painter.drawLine(
-                QPointF(static_cast<qreal>(kOffset), static_cast<qreal>(y * 8 + kOffset)),
-                QPointF(static_cast<qreal>(kColumns * 8 + kOffset), static_cast<qreal>(y * 8 + kOffset)));
+                QPointF(static_cast<qreal>(kOffset), static_cast<qreal>(row * 8 + kOffset)),
+                QPointF(static_cast<qreal>(kColumns * 8 + kOffset), static_cast<qreal>(row * 8 + kOffset)));
         }
 
-        for (int x = 0; x <= kColumns; ++x) {
+        for (int col = 0; col <= kColumns; ++col) {
             painter.drawLine(
-                QPointF(static_cast<qreal>(x * 8 + kOffset), static_cast<qreal>(kOffset)),
-                QPointF(static_cast<qreal>(x * 8 + kOffset), static_cast<qreal>(kRows * 8 + kOffset)));
+                QPointF(static_cast<qreal>(col * 8 + kOffset), static_cast<qreal>(kOffset)),
+                QPointF(static_cast<qreal>(col * 8 + kOffset), static_cast<qreal>(kRows * 8 + kOffset)));
         }
-    }
-}
-
-void ImportVICEScreenRAMWidget::setDisplayGrid(bool enabled)
-{
-    if (enabled != _displayGrid) {
-        _displayGrid = enabled;
-        update();
     }
 }

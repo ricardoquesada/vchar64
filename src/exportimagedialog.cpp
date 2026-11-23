@@ -14,25 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file exportimagedialog.cpp
- * @brief Modal PNG image export dialog for tileset and screen-map rendering.
- *
- * Pre-populates target `.png` paths via `FileUtils::replaceExtension()`, invokes
- * `State::exportPNG()` (delegating to headless `DocumentImageRenderer`), and
- * reports `Result<void>` status or failure diagnostics on `MainWindow::statusBar()`.
- */
+// Modal PNG image export dialog for tileset and screen-map rendering.
+//
+// Pre-populates target .png paths via FileUtils::replaceExtension(), invokes
+// State::exportPNG() (delegating to headless DocumentImageRenderer), and
+// reports Result<void> status or failure diagnostics on MainWindow::statusBar().
 
 #include "exportimagedialog.h"
 #include "ui_exportimagedialog.h"
 
+#include <QCheckBox>
 #include <QDebug>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QLineEdit>
 #include <QStatusBar>
+#include <QString>
 #include <QWidget>
 
+#include "core/result.h"
 #include "fileutils.h"
 #include "mainwindow.h"
 #include "preferences.h"
@@ -45,20 +46,20 @@ ExportImageDialog::ExportImageDialog(State* state, QWidget* parent)
 {
     ui->setupUi(this);
 
-    const QString lastDir = Preferences::getInstance().getLastUsedDirectory();
+    const QString last_dir = Preferences::getInstance().getLastUsedDirectory();
 
-    QString fn = _state->getExportedFilename();
-    if (fn.isEmpty()) {
-        fn = state->getLoadedFilename();
+    QString initial_filename = _state->getExportedFilename();
+    if (initial_filename.isEmpty()) {
+        initial_filename = state->getLoadedFilename();
     }
 
-    if (!fn.isEmpty()) {
-        fn = FileUtils::replaceExtension(fn, QStringLiteral("png"));
+    if (!initial_filename.isEmpty()) {
+        initial_filename = FileUtils::replaceExtension(initial_filename, QStringLiteral("png"));
     } else {
-        fn = QDir(lastDir).filePath(QStringLiteral("untitled.png"));
+        initial_filename = QDir(last_dir).filePath(QStringLiteral("untitled.png"));
     }
 
-    ui->editFilename->setText(fn);
+    ui->editFilename->setText(initial_filename);
 }
 
 ExportImageDialog::~ExportImageDialog()
@@ -68,14 +69,14 @@ ExportImageDialog::~ExportImageDialog()
 
 void ExportImageDialog::on_pushBrowse_clicked()
 {
-    QString pngFilter = tr("PNG files (*.png)");
+    QString png_filter = tr("PNG files (*.png)");
 
     const QString filename = QFileDialog::getSaveFileName(
         this,
         tr("Select filename"),
         ui->editFilename->text(),
         tr("PNG files (*.png);;Any file (*)"),
-        &pngFilter,
+        &png_filter,
         QFileDialog::DontConfirmOverwrite);
 
     if (!filename.isEmpty()) {
@@ -86,24 +87,24 @@ void ExportImageDialog::on_pushBrowse_clicked()
 void ExportImageDialog::accept()
 {
     const QString filename = ui->editFilename->text();
-    auto* mainWindow = qobject_cast<MainWindow*>(parent());
+    auto* main_window = qobject_cast<MainWindow*>(parent());
 
-    const auto result = _state->exportPNG(
+    const vchar64::Result<void> result = _state->exportPNG(
         filename,
         ui->checkBox_tileset->isChecked(),
         ui->checkBox_map->isChecked());
 
     if (result.isOk()) {
-        const QFileInfo info(filename);
-        Preferences::getInstance().setLastUsedDirectory(info.absolutePath());
-        if (mainWindow != nullptr) {
-            mainWindow->statusBar()->showMessage(
+        const QFileInfo file_info(filename);
+        Preferences::getInstance().setLastUsedDirectory(file_info.absolutePath());
+        if (main_window != nullptr) {
+            main_window->statusBar()->showMessage(
                 tr("File exported to %1").arg(_state->getExportedFilename()),
                 2000);
         }
     } else {
-        if (mainWindow != nullptr) {
-            mainWindow->statusBar()->showMessage(
+        if (main_window != nullptr) {
+            main_window->statusBar()->showMessage(
                 tr("Export failed: %1").arg(result.errorMessage()),
                 3000);
         }

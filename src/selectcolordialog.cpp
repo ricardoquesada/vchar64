@@ -14,15 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file selectcolordialog.cpp
- * @brief Implementation of the 16-swatch C64 VIC-II color picker dialog.
- */
+// Implementation of the 16-swatch C64 VIC-II color picker dialog.
 
 #include "selectcolordialog.h"
 #include "ui_selectcolordialog.h"
 
+#include <cstddef>
+
+#include <QDialogButtonBox>
 #include <QMouseEvent>
+#include <QPoint>
+
+#include "colorrectwidget.h"
 
 SelectColorDialog::SelectColorDialog(QWidget* parent)
     : QDialog(parent)
@@ -49,35 +52,12 @@ SelectColorDialog::SelectColorDialog(QWidget* parent)
         ui->widget_16,
     };
 
-    for (size_t i = 0U; i < _widgets.size(); ++i) {
-        _widgets[i]->setColorIndex(static_cast<int>(i));
+    for (size_t swatch_index = 0U; swatch_index < _widgets.size(); ++swatch_index) {
+        _widgets[swatch_index]->setColorIndex(static_cast<int>(swatch_index));
     }
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &SelectColorDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &SelectColorDialog::reject);
-}
-
-int SelectColorDialog::getSelectedColor() const noexcept
-{
-    return _selectedColor;
-}
-
-void SelectColorDialog::setCurrentColor(int colorIndex)
-{
-    if (colorIndex < 0 || colorIndex >= static_cast<int>(_widgets.size())) {
-        return;
-    }
-
-    if (_selectedColor != colorIndex) {
-        if (_selectedColor >= 0 && _selectedColor < static_cast<int>(_widgets.size())) {
-            _widgets[static_cast<size_t>(_selectedColor)]->setSelected(false);
-        }
-
-        _selectedColor = colorIndex;
-        _widgets[static_cast<size_t>(_selectedColor)]->setSelected(true);
-
-        emit colorSelected(colorIndex);
-    }
 }
 
 SelectColorDialog::~SelectColorDialog()
@@ -85,12 +65,33 @@ SelectColorDialog::~SelectColorDialog()
     delete ui;
 }
 
+void SelectColorDialog::setCurrentColor(int color_index)
+{
+    if (color_index < 0 || color_index >= static_cast<int>(_widgets.size()) || _selectedColor == color_index) {
+        return;
+    }
+
+    if (_selectedColor >= 0 && _selectedColor < static_cast<int>(_widgets.size())) {
+        _widgets[static_cast<size_t>(_selectedColor)]->setSelected(false);
+    }
+
+    _selectedColor = color_index;
+    _widgets[static_cast<size_t>(_selectedColor)]->setSelected(true);
+
+    emit colorSelected(color_index);
+}
+
+int SelectColorDialog::getSelectedColor() const noexcept
+{
+    return _selectedColor;
+}
+
 void SelectColorDialog::mousePressEvent(QMouseEvent* event)
 {
-    for (size_t i = 0U; i < _widgets.size(); ++i) {
-        const QPoint localPos = _widgets[i]->mapFromParent(event->pos());
-        if (_widgets[i]->rect().contains(localPos)) {
-            setCurrentColor(static_cast<int>(i));
+    for (size_t swatch_index = 0U; swatch_index < _widgets.size(); ++swatch_index) {
+        const QPoint local_pos = _widgets[swatch_index]->mapFromParent(event->pos());
+        if (_widgets[swatch_index]->rect().contains(local_pos)) {
+            setCurrentColor(static_cast<int>(swatch_index));
             event->accept();
             return;
         }

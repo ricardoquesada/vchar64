@@ -14,18 +14,79 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+// Boundary-safe home-path shortening, multi-dot extension replacement, and drag-and-drop
+// file classification helpers.
+
 #include "fileutils.h"
 
-/**
- * @file fileutils.cpp
- * @brief Implementation of boundary-safe home-path shortening and multi-dot extension replacement.
- */
-
 #include <algorithm>
+#include <array>
+#include <optional>
+#include <string_view>
 
 #include <QDir>
 #include <QFileInfo>
-#include <QHash>
+#include <QLatin1Char>
+#include <QLatin1StringView>
+
+namespace {
+
+struct SuffixActionEntry {
+    std::string_view suffix;
+    FileUtils::DropAction action;
+};
+
+// Keep in sync with the file filters of MainWindow::on_actionOpen_triggered(),
+// ImportKoalaDialog::on_pushButtonBrowse_clicked(), and ImportVICEDialog::on_pushButtonBrowse_clicked().
+constexpr std::array<SuffixActionEntry, 10> kActionBySuffix = { {
+    { "vchar64proj", FileUtils::DropAction::Open },
+    { "raw", FileUtils::DropAction::Open },
+    { "bin", FileUtils::DropAction::Open },
+    { "fnt", FileUtils::DropAction::Open },
+    { "prg", FileUtils::DropAction::Open },
+    { "64c", FileUtils::DropAction::Open },
+    { "ctm", FileUtils::DropAction::Open },
+    { "koa", FileUtils::DropAction::ImportKoala },
+    { "kla", FileUtils::DropAction::ImportKoala },
+    { "vsf", FileUtils::DropAction::ImportViceSnapshot },
+} };
+
+#ifdef Q_OS_UNIX
+// Shortens `path` relative to `home` using a `~` prefix when `path` equals `home` or lies
+// strictly inside `home/`. Returns an empty string when `path` is outside `home`, ensuring
+// sibling prefixes like `/Users/alice_smith/foo` are not rewritten for `/Users/alice`.
+[[nodiscard]] QString TryShortenAgainstHome(const QString& path, const QString& home)
+{
+    if (path.isEmpty() || home.isEmpty() || home == QStringLiteral("/")) {
+        return QString();
+    }
+    if (path == home) {
+        return QStringLiteral("~");
+    }
+    if (path.startsWith(home + QLatin1Char('/'))) {
+        return QStringLiteral("~") + QDir::toNativeSeparators(path.mid(home.size()));
+    }
+    return QString();
+}
+#endif
+
+// Looks up the DropAction associated with a case-insensitive file `suffix`, or returns
+// std::nullopt when the extension is unsupported.
+[[nodiscard]] std::optional<FileUtils::DropAction> FindDropActionForSuffix(const QString& suffix)
+{
+    const QString lowercase_suffix = suffix.toLower();
+    for (const SuffixActionEntry& entry : kActionBySuffix) {
+        const QLatin1StringView entry_suffix(
+            entry.suffix.data(),
+            static_cast<qsizetype>(entry.suffix.size()));
+        if (lowercase_suffix == entry_suffix) {
+            return entry.action;
+        }
+    }
+    return std::nullopt;
+}
+
+} // namespace
 
 QString FileUtils::getShortNativePath(const QString& filename)
 {
@@ -34,122 +95,98 @@ QString FileUtils::getShortNativePath(const QString& filename)
     }
 
 #ifdef Q_OS_UNIX
-    // Require either an exact match (`path == home`) or an explicit `/` separator immediately
-    // after `home` so `/Users/alice_smith/foo` is never mangled into `~_smith/foo`.
-    const auto tryShortenAgainstHome = [](const QString& path, const QString& home) -> QString {
-        if (path.isEmpty() || home.isEmpty() || home == QStringLiteral("/")) {
-            return { };
-        }
-        if (path == home) {
-            return QStringLiteral("~");
-        }
-        if (path.startsWith(home + QLatin1Char('/'))) {
-            return QStringLiteral("~") + QDir::toNativeSeparators(path.mid(home.size()));
-        }
-        return { };
-    };
-
-    const QString cleanInput = QDir::cleanPath(filename);
-    const QString cleanHome = QDir::cleanPath(QDir::homePath());
-    if (const QString shortened = tryShortenAgainstHome(cleanInput, cleanHome); !shortened.isEmpty()) {
-        return shortened;
+    const QString clean_input = QDir::cleanPath(filename);
+    const QString clean_home = QDir::cleanPath(QDir::homePath());
+    if (const QString shortened_path = TryShortenAgainstHome(clean_input, clean_home); !shortened_path.isEmpty()) {
+        return shortened_path;
     }
 
     // Fall back to canonical path resolution when symlinks differ between input and HOME
-    // (for example, macOS `/var/folders/...` vs `/private/var/folders/...`).
-    const QString canonicalInput = QFileInfo(filename).canonicalFilePath();
-    if (!canonicalInput.isEmpty()) {
-        const QString cleanCanonicalInput = QDir::cleanPath(canonicalInput);
-        if (const QString shortened = tryShortenAgainstHome(cleanCanonicalInput, cleanHome); !shortened.isEmpty()) {
-            return shortened;
-        }
-        const QString canonicalHome = QFileInfo(QDir::homePath()).canonicalFilePath();
-        if (!canonicalHome.isEmpty()) {
-            const QString cleanCanonicalHome = QDir::cleanPath(canonicalHome);
-            if (const QString shortened = tryShortenAgainstHome(cleanCanonicalInput, cleanCanonicalHome);
-                !shortened.isEmpty()) {
-                return shortened;
-            }
-        }
-        return QDir::toNativeSeparators(cleanCanonicalInput);
+    // (for example, macOS /var/folders/... vs /private/var/folders/...).
+    const QString canonical_input = QFileInfo(filename).canonicalFilePath();
+    if (canonical_input.isEmpty()) {
+        return QDir::toNativeSeparators(clean_input);
     }
-    return QDir::toNativeSeparators(cleanInput);
+
+    const QString clean_canonical_input = QDir::cleanPath(canonical_input);
+    if (const QString shortened_path = TryShortenAgainstHome(clean_canonical_input, clean_home);
+        !shortened_path.isEmpty()) {
+        return shortened_path;
+    }
+
+    const QString canonical_home = QFileInfo(QDir::homePath()).canonicalFilePath();
+    if (!canonical_home.isEmpty()) {
+        const QString clean_canonical_home = QDir::cleanPath(canonical_home);
+        if (const QString shortened_path = TryShortenAgainstHome(clean_canonical_input, clean_canonical_home);
+            !shortened_path.isEmpty()) {
+            return shortened_path;
+        }
+    }
+    return QDir::toNativeSeparators(clean_canonical_input);
 #else
     return QDir::toNativeSeparators(QDir::cleanPath(filename));
 #endif
 }
 
-QString FileUtils::replaceExtension(const QString& filename, const QString& newExtension)
+QString FileUtils::replaceExtension(const QString& filename, const QString& new_extension)
 {
     if (filename.isEmpty()) {
         return QString();
     }
 
-    QString cleanExt = newExtension;
-    while (cleanExt.startsWith(QLatin1Char('.'))) {
-        cleanExt.remove(0, 1);
+    QString clean_extension = new_extension;
+    while (clean_extension.startsWith(QLatin1Char('.'))) {
+        clean_extension.remove(0, 1);
     }
 
-    const QFileInfo info(filename);
-    const QString baseName = info.completeBaseName();
-    if (baseName.isEmpty()) {
+    const QFileInfo file_info(filename);
+    const QString base_name = file_info.completeBaseName();
+    if (base_name.isEmpty()) {
         return filename;
     }
 
-    const QString newName = cleanExt.isEmpty()
-        ? baseName
-        : (baseName + QLatin1Char('.') + cleanExt);
+    const QString new_filename = clean_extension.isEmpty()
+        ? base_name
+        : (base_name + QLatin1Char('.') + clean_extension);
 
     // Preserve bare filenames (e.g. "untitled" -> "untitled.bin") without prepending "./".
     if (!filename.contains(QLatin1Char('/')) && !filename.contains(QLatin1Char('\\'))) {
-        return newName;
+        return new_filename;
     }
 
-    return QDir(info.path()).filePath(newName);
+    return QDir(file_info.path()).filePath(new_filename);
 }
 
 QList<FileUtils::DroppedFile> FileUtils::classifyDroppedFiles(const QList<QUrl>& urls)
 {
-    // Keep in sync with the file filters of MainWindow::on_actionOpen_triggered(),
-    // ImportKoalaDialog::on_pushButtonBrowse_clicked(), and ImportVICEDialog::on_pushButtonBrowse_clicked().
-    static const QHash<QString, DropAction> kActionBySuffix = {
-        { QStringLiteral("vchar64proj"), DropAction::Open },
-        { QStringLiteral("raw"), DropAction::Open },
-        { QStringLiteral("bin"), DropAction::Open },
-        { QStringLiteral("fnt"), DropAction::Open },
-        { QStringLiteral("prg"), DropAction::Open },
-        { QStringLiteral("64c"), DropAction::Open },
-        { QStringLiteral("ctm"), DropAction::Open },
-        { QStringLiteral("koa"), DropAction::ImportKoala },
-        { QStringLiteral("kla"), DropAction::ImportKoala },
-        { QStringLiteral("vsf"), DropAction::ImportViceSnapshot },
-    };
-
     QList<DroppedFile> files;
     for (const QUrl& url : urls) {
         if (!url.isLocalFile()) {
             continue;
         }
-        const QFileInfo info(url.toLocalFile());
-        if (!info.isFile()) {
+        const QFileInfo file_info(url.toLocalFile());
+        if (!file_info.isFile()) {
             continue;
         }
-        const auto it = kActionBySuffix.constFind(info.suffix().toLower());
-        if (it == kActionBySuffix.constEnd()) {
+        const std::optional<DropAction> drop_action = FindDropActionForSuffix(file_info.suffix());
+        if (!drop_action.has_value()) {
             continue;
         }
-        const QString path = info.absoluteFilePath();
-        const bool duplicate = std::any_of(files.cbegin(), files.cend(), [&path](const DroppedFile& f) {
-            return f.path == path;
-        });
-        if (!duplicate) {
-            files.append({ path, it.value() });
+        const QString file_path = file_info.absoluteFilePath();
+        const bool is_duplicate = std::any_of(
+            files.cbegin(),
+            files.cend(),
+            [&file_path](const DroppedFile& dropped_file) {
+                return dropped_file.path == file_path;
+            });
+        if (!is_duplicate) {
+            files.append(DroppedFile { file_path, *drop_action });
         }
     }
 
     // Non-interactive opens first, then modal import dialogs; drop order is kept within each group.
-    std::stable_partition(files.begin(), files.end(), [](const DroppedFile& f) {
-        return f.action == DropAction::Open;
+    std::stable_partition(files.begin(), files.end(), [](const DroppedFile& dropped_file) {
+        return dropped_file.action == DropAction::Open;
     });
     return files;
 }

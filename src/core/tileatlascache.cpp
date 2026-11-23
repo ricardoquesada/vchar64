@@ -14,22 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "core/tileatlascache.h"
+// CPU scanline rasterizer for the dirty-tracked 16-column VIC-II tile sheet cache.
 
-/**
- * @file tileatlascache.cpp
- * @brief CPU scanline rasterizer for the dirty-tracked 16-column VIC-II tile sheet cache.
- */
+#include "core/tileatlascache.h"
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
+#include <cstdint>
+
+#include <QColor>
+#include <QRgb>
 
 #include "palette.h"
 
-void TileAtlasCache::markTileDirty(int tileIndex) noexcept
+void TileAtlasCache::markTileDirty(int tile_index) noexcept
 {
-    if (tileIndex >= 0 && tileIndex < kMaxTiles) {
-        _dirtyTiles.set(static_cast<size_t>(tileIndex));
+    if (tile_index >= 0 && tile_index < kMaxTiles) {
+        _dirtyTiles.set(static_cast<size_t>(tile_index));
     }
 }
 
@@ -39,152 +41,165 @@ void TileAtlasCache::markAllDirty() noexcept
     _dirtyTiles.set();
 }
 
-bool TileAtlasCache::isTileDirty(int tileIndex) const noexcept
-{
-    if (_allDirty) {
-        return true;
-    }
-    if (tileIndex < 0 || tileIndex >= kMaxTiles) {
-        return false;
-    }
-    return _dirtyTiles.test(static_cast<size_t>(tileIndex));
-}
-
-QRect TileAtlasCache::sourceRectForTile(int tileIndex) const noexcept
-{
-    const int safeMax = std::max(1, _maxTiles);
-    const int clamped = std::clamp(tileIndex, 0, safeMax - 1);
-    const int col = clamped % kColumns;
-    const int row = clamped / kColumns;
-    return QRect(col * _tilePixelWidth, row * _tilePixelHeight, _tilePixelWidth, _tilePixelHeight);
-}
-
 void TileAtlasCache::sync(const State& state)
 {
-    const State::TileProperties props = state.getTileProperties();
-    const int tw = std::clamp(props.size.width(), 1, State::MAX_TILE_WIDTH);
-    const int th = std::clamp(props.size.height(), 1, State::MAX_TILE_HEIGHT);
-    const int interleaved = std::clamp(props.interleaved, 1, 256);
-    const int maxTiles = std::max(1, 256 / (tw * th));
+    const State::TileProperties tile_props = state.getTileProperties();
+    const int tile_width = std::clamp(tile_props.size.width(), 1, State::MAX_TILE_WIDTH);
+    const int tile_height = std::clamp(tile_props.size.height(), 1, State::MAX_TILE_HEIGHT);
+    const int interleaved = std::clamp(tile_props.interleaved, 1, 256);
+    const int max_tiles = std::max(1, 256 / (tile_width * tile_height));
 
-    const int activePal = Palette::activePalette();
-    const bool multicolor = state.isMulticolorMode();
-    const State::ForegroundColorMode fgMode = state.getForegroundColorMode();
-    const int bgColor = state.getColorForPen(State::PEN_BACKGROUND);
-    const int mc1Color = state.getColorForPen(State::PEN_MULTICOLOR1);
-    const int mc2Color = state.getColorForPen(State::PEN_MULTICOLOR2);
-    const int globalFgColor = state.getColorForPen(State::PEN_FOREGROUND);
+    const int active_palette = Palette::activePalette();
+    const bool is_multicolor_mode = state.isMulticolorMode();
+    const State::ForegroundColorMode foreground_mode = state.getForegroundColorMode();
+    const int background_color = state.getColorForPen(State::PEN_BACKGROUND);
+    const int multicolor1_color = state.getColorForPen(State::PEN_MULTICOLOR1);
+    const int multicolor2_color = state.getColorForPen(State::PEN_MULTICOLOR2);
+    const int global_foreground_color = state.getColorForPen(State::PEN_FOREGROUND);
 
     // Detect MDI active-document switches (`_cachedState != &state`), global VIC-II palette
-    // switches (`_cachedPaletteIndex != activePal`), and document-wide geometry/register changes
-    // so shared dock widgets never display stale tiles from a previous document or palette.
-    const bool contextChanged = (_cachedState != &state)
-        || (_cachedPaletteIndex != activePal)
-        || (_cachedTileSize != QSize(tw, th))
+    // switches (`_cachedPaletteIndex != active_palette`), and document-wide geometry or register
+    // changes so shared dock widgets never display stale tiles from a previous document or palette.
+    const bool context_changed = (_cachedState != &state)
+        || (_cachedPaletteIndex != active_palette)
+        || (_cachedTileSize != QSize(tile_width, tile_height))
         || (_cachedInterleaved != interleaved)
-        || (_cachedMulticolorMode != multicolor)
-        || (_cachedFgMode != fgMode)
-        || (_cachedBgColor != bgColor)
-        || (_cachedMc1Color != mc1Color)
-        || (_cachedMc2Color != mc2Color)
-        || (fgMode == State::FOREGROUND_COLOR_GLOBAL && _cachedGlobalFgColor != globalFgColor);
+        || (_cachedMulticolorMode != is_multicolor_mode)
+        || (_cachedFgMode != foreground_mode)
+        || (_cachedBgColor != background_color)
+        || (_cachedMc1Color != multicolor1_color)
+        || (_cachedMc2Color != multicolor2_color)
+        || (foreground_mode == State::FOREGROUND_COLOR_GLOBAL && _cachedGlobalFgColor != global_foreground_color);
 
-    _tilePixelWidth = tw * 8;
-    _tilePixelHeight = th * 8;
-    _maxTiles = maxTiles;
+    _tilePixelWidth = tile_width * 8;
+    _tilePixelHeight = tile_height * 8;
+    _maxTiles = max_tiles;
 
-    const int sheetRows = std::max(1, (maxTiles + kColumns - 1) / kColumns);
-    const QSize requiredAtlasSize(kColumns * _tilePixelWidth, sheetRows * _tilePixelHeight);
+    const int sheet_rows = std::max(1, (max_tiles + kColumns - 1) / kColumns);
+    const QSize required_atlas_size(kColumns * _tilePixelWidth, sheet_rows * _tilePixelHeight);
 
     // Use Format_ARGB32_Premultiplied so Qt's raster paint engine blits sub-rectangles
     // directly without per-pixel format conversion during QPainter::drawImage().
-    if (_atlas.size() != requiredAtlasSize || _atlas.format() != QImage::Format_ARGB32_Premultiplied) {
-        _atlas = QImage(requiredAtlasSize, QImage::Format_ARGB32_Premultiplied);
+    if (_atlas.size() != required_atlas_size || _atlas.format() != QImage::Format_ARGB32_Premultiplied) {
+        _atlas = QImage(required_atlas_size, QImage::Format_ARGB32_Premultiplied);
         _atlas.fill(0U);
         _allDirty = true;
     }
 
-    if (_allDirty || contextChanged) {
+    if (_allDirty || context_changed) {
         _dirtyTiles.set();
         _allDirty = false;
         _cachedState = &state;
-        _cachedPaletteIndex = activePal;
-        _cachedTileSize = QSize(tw, th);
+        _cachedPaletteIndex = active_palette;
+        _cachedTileSize = QSize(tile_width, tile_height);
         _cachedInterleaved = interleaved;
-        _cachedMulticolorMode = multicolor;
-        _cachedFgMode = fgMode;
-        _cachedBgColor = bgColor;
-        _cachedMc1Color = mc1Color;
-        _cachedMc2Color = mc2Color;
-        _cachedGlobalFgColor = globalFgColor;
+        _cachedMulticolorMode = is_multicolor_mode;
+        _cachedFgMode = foreground_mode;
+        _cachedBgColor = background_color;
+        _cachedMc1Color = multicolor1_color;
+        _cachedMc2Color = multicolor2_color;
+        _cachedGlobalFgColor = global_foreground_color;
     }
 
-    int syncedCount = 0;
-    for (int tileIdx = 0; tileIdx < maxTiles; ++tileIdx) {
-        if (!_dirtyTiles.test(static_cast<size_t>(tileIdx))) {
+    int synced_count = 0;
+    for (int tile_index = 0; tile_index < max_tiles; ++tile_index) {
+        if (!_dirtyTiles.test(static_cast<size_t>(tile_index))) {
             continue;
         }
-        rasterizeTile(state, tileIdx, tw, th, interleaved);
-        _dirtyTiles.reset(static_cast<size_t>(tileIdx));
-        ++syncedCount;
+        rasterizeTile(state, tile_index, tile_width, tile_height, interleaved);
+        _dirtyTiles.reset(static_cast<size_t>(tile_index));
+        ++synced_count;
     }
     _dirtyTiles.reset();
-    _lastSyncedTileCount = syncedCount;
+    _lastSyncedTileCount = synced_count;
 }
 
-void TileAtlasCache::rasterizeTile(const State& state, int tileIndex, int tw, int th, int interleaved)
+QRect TileAtlasCache::sourceRectForTile(int tile_index) const noexcept
 {
-    const auto& charset = state.charset();
-    const bool isMc = state.shouldBeDisplayedInMulticolor2(tileIndex);
+    const int safe_max_tiles = std::max(1, _maxTiles);
+    const int clamped_tile_index = std::clamp(tile_index, 0, safe_max_tiles - 1);
+    const int column = clamped_tile_index % kColumns;
+    const int row = clamped_tile_index / kColumns;
+    return QRect(column * _tilePixelWidth, row * _tilePixelHeight, _tilePixelWidth, _tilePixelHeight);
+}
 
-    const QRgb bgRgb = qPremultiply(Palette::getColor(state.getColorForPen(State::PEN_BACKGROUND)).rgba());
-    const QRgb mc1Rgb = qPremultiply(Palette::getColor(state.getColorForPen(State::PEN_MULTICOLOR1)).rgba());
-    const QRgb mc2Rgb = qPremultiply(Palette::getColor(state.getColorForPen(State::PEN_MULTICOLOR2)).rgba());
-    const int rawFg = state.getColorForPen(State::PEN_FOREGROUND, tileIndex);
-    const QRgb fgHiResRgb = qPremultiply(Palette::getColor(rawFg).rgba());
+bool TileAtlasCache::isTileDirty(int tile_index) const noexcept
+{
+    if (_allDirty) {
+        return true;
+    }
+    if (tile_index < 0 || tile_index >= kMaxTiles) {
+        return false;
+    }
+    return _dirtyTiles.test(static_cast<size_t>(tile_index));
+}
+
+void TileAtlasCache::rasterizeTile(
+    const State& state,
+    int tile_index,
+    int tile_width,
+    int tile_height,
+    int interleaved)
+{
+    const State::CharsetBuffer& charset = state.charset();
+    const bool is_multicolor = state.shouldBeDisplayedInMulticolor2(tile_index);
+
+    const QRgb background_rgb = qPremultiply(Palette::getColor(state.getColorForPen(State::PEN_BACKGROUND)).rgba());
+    const QRgb multicolor1_rgb = qPremultiply(Palette::getColor(state.getColorForPen(State::PEN_MULTICOLOR1)).rgba());
+    const QRgb multicolor2_rgb = qPremultiply(Palette::getColor(state.getColorForPen(State::PEN_MULTICOLOR2)).rgba());
+    const int raw_foreground = state.getColorForPen(State::PEN_FOREGROUND, tile_index);
+    const QRgb foreground_hires_rgb = qPremultiply(Palette::getColor(raw_foreground).rgba());
     // In VIC-II multicolor character mode ($D016 bit 4 == 1 and Color RAM bit 3 == 1),
     // bits 0..2 of Color RAM select one of the lower 8 foreground colors (0..7).
-    const QRgb fgMcRgb = qPremultiply(
-        Palette::getColor(static_cast<int>(static_cast<unsigned int>(rawFg) & 0x07U)).rgba());
-    const std::array<QRgb, 4> mcLut = { bgRgb, mc1Rgb, mc2Rgb, fgMcRgb };
+    const QRgb foreground_multicolor_rgb = qPremultiply(
+        Palette::getColor(static_cast<int>(static_cast<unsigned int>(raw_foreground) & 0x07U)).rgba());
+    const std::array<QRgb, 4> multicolor_palette = {
+        background_rgb,
+        multicolor1_rgb,
+        multicolor2_rgb,
+        foreground_multicolor_rgb,
+    };
 
-    const int baseOriginX = (tileIndex % kColumns) * _tilePixelWidth;
-    const int baseOriginY = (tileIndex / kColumns) * _tilePixelHeight;
+    const int base_origin_x = (tile_index % kColumns) * _tilePixelWidth;
+    const int base_origin_y = (tile_index / kColumns) * _tilePixelHeight;
 
-    int charIdx = (interleaved == 1) ? (tileIndex * tw * th) : tileIndex;
-    const int totalSubChars = tw * th;
+    int char_index = (interleaved == 1) ? (tile_index * tile_width * tile_height) : tile_index;
+    const int total_sub_chars = tile_width * tile_height;
 
-    for (int sub = 0; sub < totalSubChars; ++sub) {
-        const int subX = (sub % tw) * 8;
-        const int subY = (sub / tw) * 8;
+    for (int sub_index = 0; sub_index < total_sub_chars; ++sub_index) {
+        if (char_index < 0 || char_index >= 256) {
+            char_index += interleaved;
+            continue;
+        }
 
-        if (charIdx >= 0 && charIdx < 256) {
-            const size_t charByteBase = static_cast<size_t>(charIdx) * 8U;
-            for (int row = 0; row < 8; ++row) {
-                const uint8_t rowByte = charset[charByteBase + static_cast<size_t>(row)];
-                auto* scanline = static_cast<QRgb*>(
-                    static_cast<void*>(_atlas.scanLine(baseOriginY + subY + row)));
-                QRgb* dst = scanline + baseOriginX + subX;
+        const int sub_x = (sub_index % tile_width) * 8;
+        const int sub_y = (sub_index / tile_width) * 8;
+        const size_t char_byte_base = static_cast<size_t>(char_index) * 8U;
 
-                if (isMc) {
-                    // Multicolor row: 4 double-wide 2-bit pixels [b7b6 | b5b4 | b3b2 | b1b0].
-                    for (unsigned int pairIdx = 0; pairIdx < 4U; ++pairIdx) {
-                        const unsigned int shift = 6U - (pairIdx * 2U);
-                        const size_t penBits = static_cast<size_t>((rowByte >> shift) & 0x03U);
-                        const QRgb px = mcLut[penBits];
-                        dst[pairIdx * 2U] = px;
-                        dst[pairIdx * 2U + 1U] = px;
-                    }
-                } else {
-                    // Hi-Res row: 8 single-wide 1-bit pixels [b7 .. b0].
-                    for (unsigned int bit = 0; bit < 8U; ++bit) {
-                        const bool set = ((rowByte >> (7U - bit)) & 0x01U) != 0U;
-                        dst[bit] = set ? fgHiResRgb : bgRgb;
-                    }
+        for (int row = 0; row < 8; ++row) {
+            const uint8_t row_byte = charset[char_byte_base + static_cast<size_t>(row)];
+            QRgb* const scanline = static_cast<QRgb*>(
+                static_cast<void*>(_atlas.scanLine(base_origin_y + sub_y + row)));
+            QRgb* dest_pixels = scanline + base_origin_x + sub_x;
+
+            if (is_multicolor) {
+                // Multicolor row: 4 double-wide 2-bit pixels [b7b6 | b5b4 | b3b2 | b1b0].
+                for (unsigned int pair_index = 0; pair_index < 4U; ++pair_index) {
+                    const unsigned int shift = 6U - (pair_index * 2U);
+                    const size_t pen_bits = static_cast<size_t>((row_byte >> shift) & 0x03U);
+                    const QRgb pixel_rgb = multicolor_palette[pen_bits];
+                    dest_pixels[pair_index * 2U] = pixel_rgb;
+                    dest_pixels[pair_index * 2U + 1U] = pixel_rgb;
+                }
+            } else {
+                // Hi-Res row: 8 single-wide 1-bit pixels [b7 .. b0].
+                for (unsigned int bit = 0; bit < 8U; ++bit) {
+                    const bool is_pixel_set = ((row_byte >> (7U - bit)) & 0x01U) != 0U;
+                    dest_pixels[bit] = is_pixel_set ? foreground_hires_rgb : background_rgb;
                 }
             }
         }
 
-        charIdx += interleaved;
+        char_index += interleaved;
     }
 }

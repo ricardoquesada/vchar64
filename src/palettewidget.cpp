@@ -14,10 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file palettewidget.cpp
- * @brief Implementation of `PaletteWidget` 16-color VIC-II swatch rendering and selection (`vchar64`).
- */
+// PaletteWidget implementation for 16-color VIC-II swatch rendering and selection.
 
 #include "palettewidget.h"
 
@@ -27,7 +24,10 @@ limitations under the License.
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPen>
+#include <QPoint>
 #include <QResizeEvent>
+#include <QWidget>
 
 #include "mainwindow.h"
 #include "palette.h"
@@ -35,16 +35,27 @@ limitations under the License.
 
 namespace {
 
-constexpr int kPixelSizeX = 24;
-constexpr int kPixelSizeY = 16;
+constexpr int kDefaultSwatchWidth = 24;
+constexpr int kDefaultSwatchHeight = 16;
 constexpr int kColumns = 8;
 constexpr int kRows = 2;
+
+// Maps widget-local coordinates `pos` into a clamped C64 color index (`0..15`)
+// for the `kColumns x kRows` swatch grid.
+[[nodiscard]] int ColorIndexAtPosition(const QPoint& pos, const QSize& swatch_size) noexcept
+{
+    const int safe_width = std::max(1, swatch_size.width());
+    const int safe_height = std::max(1, swatch_size.height());
+    const int column = std::clamp(pos.x() / safe_width, 0, kColumns - 1);
+    const int row = std::clamp(pos.y() / safe_height, 0, kRows - 1);
+    return kColumns * row + column;
+}
 
 } // namespace
 
 PaletteWidget::PaletteWidget(QWidget* parent)
     : QWidget(parent)
-    , _pixelSize(kPixelSizeX, kPixelSizeY)
+    , _pixelSize(kDefaultSwatchWidth, kDefaultSwatchHeight)
     , _sizeHint(_pixelSize.width() * kColumns, _pixelSize.height() * kRows)
 {
     setMinimumSize(_sizeHint);
@@ -61,6 +72,52 @@ void PaletteWidget::setActiveState(State* state)
     update();
 }
 
+void PaletteWidget::paintEvent(QPaintEvent* event)
+{
+    QPainter painter(this);
+
+    painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
+
+    int current_color = 0;
+    int selected_pen = State::PEN_BACKGROUND;
+    const State* state = _activeState.data();
+    if (state != nullptr) {
+        selected_pen = state->getSelectedPen();
+        current_color = state->getColorForPen(selected_pen, state->getTileIndex());
+    }
+
+    QPen selection_pen;
+    selection_pen.setColor(Qt::red);
+    selection_pen.setWidth(3);
+    selection_pen.setStyle(Qt::PenStyle::DotLine);
+
+    for (int row = 0; row < kRows; ++row) {
+        for (int col = 0; col < kColumns; ++col) {
+            const int swatch_color = kColumns * row + col;
+
+            if (swatch_color == current_color) {
+                painter.setPen(selection_pen);
+            } else {
+                painter.setPen(Qt::PenStyle::NoPen);
+            }
+
+            // In VIC-II Multicolor mode, Color RAM bit 3 selects Multicolor (8..15) vs Hi-Res (0..7)
+            // while bits 0..2 select the actual foreground color (0..7).
+            int displayed_color = swatch_color;
+            if (selected_pen == State::PEN_FOREGROUND && state != nullptr && state->isMulticolorMode()) {
+                displayed_color %= 8;
+            }
+            painter.setBrush(Palette::getColor(displayed_color));
+
+            painter.drawRect(
+                col * _pixelSize.width(),
+                row * _pixelSize.height(),
+                _pixelSize.width() - 1,
+                _pixelSize.height() - 1);
+        }
+    }
+}
+
 void PaletteWidget::mousePressEvent(QMouseEvent* event)
 {
     event->accept();
@@ -70,20 +127,13 @@ void PaletteWidget::mousePressEvent(QMouseEvent* event)
         return;
     }
 
-    const QPoint pos = event->pos();
-    const int safeW = std::max(1, _pixelSize.width());
-    const int safeH = std::max(1, _pixelSize.height());
+    const int color_index = ColorIndexAtPosition(event->pos(), _pixelSize);
+    const int tile_index = state->getTileIndex();
+    const int selected_pen = state->getSelectedPen();
+    const int old_color = state->getColorForPen(selected_pen, tile_index);
 
-    const int x = std::clamp(pos.x() / safeW, 0, kColumns - 1);
-    const int y = std::clamp(pos.y() / safeH, 0, kRows - 1);
-    const int color = 8 * y + x;
-
-    const int tileIndex = state->getTileIndex();
-    const int pen = state->getSelectedPen();
-    const int oldColor = state->getColorForPen(pen, tileIndex);
-
-    if (oldColor != color) {
-        state->setColorForPen(pen, color, tileIndex);
+    if (old_color != color_index) {
+        state->setColorForPen(selected_pen, color_index, tile_index);
         update();
     }
 }
@@ -92,63 +142,13 @@ void PaletteWidget::mouseMoveEvent(QMouseEvent* event)
 {
     event->accept();
 
-    if (event->buttons() == Qt::NoButton) {
-        const QPoint pos = event->pos();
-        const int safeW = std::max(1, _pixelSize.width());
-        const int safeH = std::max(1, _pixelSize.height());
-
-        const int x = std::clamp(pos.x() / safeW, 0, kColumns - 1);
-        const int y = std::clamp(pos.y() / safeH, 0, kRows - 1);
-        const int color = 8 * y + x;
-
-        MainWindow::getInstance()->showMessageOnStatusBar(
-            tr("%1 (%2)").arg(Palette::colorName(color)).arg(color));
-    }
-}
-
-void PaletteWidget::paintEvent(QPaintEvent* event)
-{
-    QPainter painter(this);
-
-    painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
-
-    int currentColor = 0;
-    int selectedPen = State::PEN_BACKGROUND;
-    const State* state = _activeState.data();
-    if (state != nullptr) {
-        selectedPen = state->getSelectedPen();
-        currentColor = state->getColorForPen(selectedPen, state->getTileIndex());
+    if (event->buttons() != Qt::NoButton) {
+        return;
     }
 
-    QPen pen;
-    pen.setColor(Qt::red);
-    pen.setWidth(3);
-    pen.setStyle(Qt::PenStyle::DotLine);
-
-    for (int y = 0; y < kRows; ++y) {
-        for (int x = 0; x < kColumns; ++x) {
-            int c = 8 * y + x;
-
-            if (c == currentColor) {
-                painter.setPen(pen);
-            } else {
-                painter.setPen(Qt::PenStyle::NoPen);
-            }
-
-            // In VIC-II Multicolor mode, Color RAM bit 3 selects Multicolor (8..15) vs Hi-Res (0..7)
-            // while bits 0..2 select the actual foreground color (`0..7`).
-            if (selectedPen == State::PEN_FOREGROUND && state != nullptr && state->isMulticolorMode()) {
-                c %= 8;
-            }
-            painter.setBrush(Palette::getColor(c));
-
-            painter.drawRect(
-                x * _pixelSize.width(),
-                y * _pixelSize.height(),
-                _pixelSize.width() - 1,
-                _pixelSize.height() - 1);
-        }
-    }
+    const int color_index = ColorIndexAtPosition(event->pos(), _pixelSize);
+    MainWindow::getInstance()->showMessageOnStatusBar(
+        tr("%1 (%2)").arg(Palette::colorName(color_index)).arg(color_index));
 }
 
 QSize PaletteWidget::sizeHint() const
@@ -160,7 +160,7 @@ void PaletteWidget::resizeEvent(QResizeEvent* event)
 {
     Q_UNUSED(event)
 
-    const int pixelSizeX = std::max(1, size().width() / kColumns);
-    const int pixelSizeY = std::max(1, size().height() / kRows);
-    _pixelSize = { pixelSizeX, pixelSizeY };
+    const int swatch_width = std::max(1, size().width() / kColumns);
+    const int swatch_height = std::max(1, size().height() / kRows);
+    _pixelSize = QSize(swatch_width, swatch_height);
 }

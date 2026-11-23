@@ -14,13 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file vchar64application.cpp
- * @brief `QApplication` subclass intercepting macOS Finder `QEvent::FileOpen` events (`vchar64`).
- */
+// QApplication subclass intercepting macOS Finder QEvent::FileOpen events.
 
 #include "vchar64application.h"
 
+#include <QEvent>
 #include <QFileOpenEvent>
 
 VChar64Application::VChar64Application(int& argc, char** argv)
@@ -30,8 +28,8 @@ VChar64Application::VChar64Application(int& argc, char** argv)
 
 bool VChar64Application::event(QEvent* event)
 {
-    // On macOS, double-clicking a `.vchar64proj` or `.ctm` file in Finder dispatches
-    // an AppleEvent translated by Qt into `QEvent::FileOpen` rather than `argv[1]`.
+    // On macOS, double-clicking a .vchar64proj or .ctm file in Finder dispatches an
+    // AppleEvent translated by Qt into QEvent::FileOpen rather than argv[1].
     switch (event->type()) {
     case QEvent::FileOpen:
         emit fileOpenRequest(static_cast<QFileOpenEvent*>(event)->file());

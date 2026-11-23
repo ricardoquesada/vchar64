@@ -14,24 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file autoupdater.cpp
- * @brief Implementation of the hardened HTTPS release-manifest checker (`vchar64_net`).
- *
- * Enforces `NoLessSafeRedirectPolicy`, a `64 KiB` streaming response budget,
- * `10`-second inactivity/transfer timeouts, and tag-stripping HTML-to-plaintext
- * changelog conversion before emitting `UpdateInfo` to GUI listeners.
- */
+// Implementation of the hardened HTTPS release-manifest checker (vchar64_net).
+//
+// Enforces NoLessSafeRedirectPolicy, a 64 KiB streaming response budget,
+// 10-second inactivity/transfer timeouts, and tag-stripping HTML-to-plaintext
+// changelog conversion before emitting UpdateInfo to GUI listeners.
 
 #include "autoupdater.h"
 
 #include <algorithm>
 
+#include <QIODevice>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QRegularExpression>
+#include <QString>
 #include <QStringList>
 #include <QVersionNumber>
+
+namespace {
+
+constexpr QLatin1String kVersionPrefix("stable_version:");
+constexpr QLatin1String kUrlPrefix("stable_url:");
+constexpr QLatin1String kChangesPrefix("changes:");
+
+} // namespace
 
 AutoUpdater& AutoUpdater::getInstance()
 {
@@ -71,82 +78,9 @@ void AutoUpdater::setCurrentVersion(const QString& version)
     _currentVersion = version.trimmed();
 }
 
-void AutoUpdater::setTransferTimeoutMs(int timeoutMs) noexcept
+void AutoUpdater::setTransferTimeoutMs(int timeout_ms) noexcept
 {
-    _transferTimeoutMs = std::max(1, timeoutMs);
-}
-
-bool AutoUpdater::isStrictHttpsUrl(const QUrl& url) noexcept
-{
-    return url.isValid()
-        && !url.isRelative()
-        && url.scheme().compare(QLatin1String("https"), Qt::CaseInsensitive) == 0
-        && !url.host().isEmpty();
-}
-
-QString AutoUpdater::sanitizeChangelogHtmlToPlainText(const QString& rawChanges)
-{
-    if (rawChanges.isEmpty()) {
-        return { };
-    }
-
-    QString text = rawChanges;
-    text.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
-    text.replace(QLatin1Char('\r'), QLatin1Char('\n'));
-
-    // Strip embedded <script>...</script> and <style>...</style> blocks completely.
-    static const QRegularExpression kScriptOrStyleBlockRe(
-        QStringLiteral("<(script|style)\\b[^>]*>.*?</\\1\\s*>"),
-        QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
-    text.replace(kScriptOrStyleBlockRe, QStringLiteral("\n"));
-
-    // Preserve line breaks for HTML break and block-closing tags.
-    static const QRegularExpression kBreakTagRe(
-        QStringLiteral("<br\\s*/?>"),
-        QRegularExpression::CaseInsensitiveOption);
-    text.replace(kBreakTagRe, QStringLiteral("\n"));
-
-    static const QRegularExpression kBlockCloseTagRe(
-        QStringLiteral("</(p|li|div|tr|h[1-6])\\s*>"),
-        QRegularExpression::CaseInsensitiveOption);
-    text.replace(kBlockCloseTagRe, QStringLiteral("\n"));
-
-    // Convert <li> list items into plain-text "- " bullets.
-    static const QRegularExpression kListItemOpenTagRe(
-        QStringLiteral("<li(?:\\s[^>]*)?>"),
-        QRegularExpression::CaseInsensitiveOption);
-    text.replace(kListItemOpenTagRe, QStringLiteral("\n- "));
-
-    // Strip all remaining HTML/XML tags and comments.
-    static const QRegularExpression kAnyHtmlTagRe(
-        QStringLiteral("<[A-Za-z!/?][^>]*>"));
-    text.remove(kAnyHtmlTagRe);
-
-    // Decode common safe non-markup entities in plain text.
-    text.replace(QStringLiteral("&nbsp;"), QStringLiteral(" "), Qt::CaseInsensitive);
-    text.replace(QStringLiteral("&quot;"), QStringLiteral("\""), Qt::CaseInsensitive);
-    text.replace(QStringLiteral("&#39;"), QStringLiteral("'"), Qt::CaseInsensitive);
-    text.replace(QStringLiteral("&apos;"), QStringLiteral("'"), Qt::CaseInsensitive);
-    text.replace(QStringLiteral("&amp;"), QStringLiteral("&"), Qt::CaseInsensitive);
-
-    static const QRegularExpression kBulletSpacingRe(QStringLiteral("^-\\s+"));
-    QStringList cleanedLines;
-    const QStringList rawLines = text.split(QLatin1Char('\n'));
-    cleanedLines.reserve(rawLines.size());
-
-    for (const QString& rawLine : rawLines) {
-        QString line = rawLine.trimmed();
-        if (line.isEmpty()) {
-            continue;
-        }
-        line.replace(kBulletSpacingRe, QStringLiteral("- "));
-        if (line == QStringLiteral("-")) {
-            continue;
-        }
-        cleanedLines.append(line);
-    }
-
-    return cleanedLines.join(QLatin1Char('\n'));
+    _transferTimeoutMs = std::max(1, timeout_ms);
 }
 
 void AutoUpdater::checkUpdate()
@@ -154,46 +88,19 @@ void AutoUpdater::checkUpdate()
     checkUpdate(_url);
 }
 
-void AutoUpdater::checkUpdate(const QUrl& requestedUrl)
+void AutoUpdater::checkUpdate(const QUrl& requested_url)
 {
     if (_inProgress) {
         return;
     }
 
-    if (!isStrictHttpsUrl(requestedUrl)) {
-        failCheck(tr("Rejected non-HTTPS update URL: %1").arg(requestedUrl.toString()));
+    if (!isStrictHttpsUrl(requested_url)) {
+        failCheck(tr("Rejected non-HTTPS update URL: %1").arg(requested_url.toString()));
         return;
     }
 
     beginStreamingCheck();
-    startRequest(requestedUrl);
-}
-
-void AutoUpdater::beginStreamingCheck() noexcept
-{
-    _rawResponse.clear();
-    _httpRequestAborted = false;
-    _oversizeAborted = false;
-    _timedOut = false;
-    _inProgress = true;
-}
-
-void AutoUpdater::startRequest(const QUrl& requestedUrl)
-{
-    _qnam.clearAccessCache();
-
-    QNetworkRequest request(requestedUrl);
-    request.setAttribute(
-        QNetworkRequest::RedirectPolicyAttribute,
-        QNetworkRequest::NoLessSafeRedirectPolicy);
-    request.setMaximumRedirectsAllowed(kMaxRedirects);
-    request.setTransferTimeout(_transferTimeoutMs);
-
-    _reply = _qnam.get(request);
-    connect(_reply, &QIODevice::readyRead, this, &AutoUpdater::httpReadyRead);
-    connect(_reply, &QNetworkReply::finished, this, &AutoUpdater::httpFinished);
-
-    _timeoutTimer.start(_transferTimeoutMs);
+    startRequest(requested_url);
 }
 
 void AutoUpdater::cancelDownload()
@@ -207,17 +114,13 @@ void AutoUpdater::cancelDownload()
     }
 }
 
-void AutoUpdater::onTransferTimeout()
+void AutoUpdater::beginStreamingCheck() noexcept
 {
-    if (!_inProgress) {
-        return;
-    }
-    _timedOut = true;
-    if (_reply != nullptr) {
-        _reply->abort();
-    } else {
-        failCheck(tr("Update check timed out after %1 ms.").arg(_transferTimeoutMs));
-    }
+    _rawResponse.clear();
+    _httpRequestAborted = false;
+    _oversizeAborted = false;
+    _timedOut = false;
+    _inProgress = true;
 }
 
 bool AutoUpdater::ingestResponseChunk(QByteArrayView chunk)
@@ -233,14 +136,15 @@ bool AutoUpdater::ingestResponseChunk(QByteArrayView chunk)
         _rawResponse.clear();
 
         if (_reply != nullptr) {
-            // Detach `_reply` signals BEFORE calling `abort()` because `QNetworkReply::abort()`
-            // synchronously emits `finished()` on the current call stack; disconnecting first
-            // prevents re-entrant double `failCheck()` emission.
-            QNetworkReply* activeReply = _reply;
+            // Detach `_reply` signals BEFORE calling `abort()` because
+            // `QNetworkReply::abort()` synchronously emits `finished()` on the
+            // current call stack; disconnecting first prevents re-entrant
+            // double `failCheck()` emission.
+            QNetworkReply* active_reply = _reply;
             _reply = nullptr;
-            activeReply->disconnect(this);
-            activeReply->abort();
-            activeReply->deleteLater();
+            active_reply->disconnect(this);
+            active_reply->abort();
+            active_reply->deleteLater();
         }
 
         failCheck(tr("Update manifest exceeded maximum allowed size of 64 KiB."));
@@ -251,6 +155,208 @@ bool AutoUpdater::ingestResponseChunk(QByteArrayView chunk)
     return true;
 }
 
+void AutoUpdater::processManifestPayload(const QByteArray& utf8_manifest)
+{
+    _inProgress = false;
+
+    if (utf8_manifest.size() > kMaxResponseBytes) {
+        failCheck(tr("Update manifest exceeded maximum allowed size of 64 KiB."));
+        return;
+    }
+
+    QString manifest_text = QString::fromUtf8(utf8_manifest);
+    manifest_text.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
+    manifest_text.replace(QLatin1Char('\r'), QLatin1Char('\n'));
+
+    QString raw_version;
+    QString raw_url;
+    QStringList raw_changes_lines;
+    bool in_changes = false;
+
+    const QStringList lines = manifest_text.split(QLatin1Char('\n'));
+    for (const QString& line : lines) {
+        const QString trimmed = line.trimmed();
+        if (trimmed.startsWith(QLatin1Char('#'))) {
+            continue;
+        }
+
+        if (in_changes) {
+            raw_changes_lines.append(line);
+            continue;
+        }
+
+        if (trimmed.isEmpty()) {
+            continue;
+        }
+        if (trimmed.startsWith(kVersionPrefix)) {
+            raw_version = trimmed.mid(kVersionPrefix.size()).trimmed();
+        } else if (trimmed.startsWith(kUrlPrefix)) {
+            raw_url = trimmed.mid(kUrlPrefix.size()).trimmed();
+        } else if (trimmed.startsWith(kChangesPrefix)) {
+            in_changes = true;
+            const QString inline_changes = trimmed.mid(kChangesPrefix.size()).trimmed();
+            if (!inline_changes.isEmpty()) {
+                raw_changes_lines.append(inline_changes);
+            }
+        }
+    }
+
+    const QVersionNumber new_version = QVersionNumber::fromString(raw_version);
+    const QVersionNumber current_version = QVersionNumber::fromString(_currentVersion);
+    if (raw_version.isEmpty() || new_version.isNull() || current_version.isNull()) {
+        failCheck(tr("Invalid or missing version number in update manifest."));
+        return;
+    }
+
+    if (new_version <= current_version) {
+        emit upToDate();
+        emit updateCheckFinished();
+        return;
+    }
+
+    const QUrl parsed_download_url(raw_url, QUrl::StrictMode);
+    if (raw_url.isEmpty() || !isStrictHttpsUrl(parsed_download_url)) {
+        failCheck(tr("Rejected non-HTTPS or invalid update download URL."));
+        return;
+    }
+
+    UpdateInfo info;
+    info.version = raw_version;
+    info.plainTextChanges = sanitizeChangelogHtmlToPlainText(
+        raw_changes_lines.join(QLatin1Char('\n')));
+    info.httpsDownloadUrl = parsed_download_url;
+
+    emit updateAvailable(info);
+    emit updateCheckFinished();
+}
+
+bool AutoUpdater::isStrictHttpsUrl(const QUrl& url) noexcept
+{
+    return url.isValid()
+        && !url.isRelative()
+        && url.scheme().toLower() == QLatin1String("https")
+        && !url.host().isEmpty();
+}
+
+QString AutoUpdater::sanitizeChangelogHtmlToPlainText(const QString& raw_changes)
+{
+    if (raw_changes.isEmpty()) {
+        return { };
+    }
+
+    QString text = raw_changes;
+    text.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
+    text.replace(QLatin1Char('\r'), QLatin1Char('\n'));
+
+    // Strip embedded <script>...</script> and <style>...</style> blocks completely.
+    const QRegularExpression script_or_style_re(
+        QStringLiteral("<(script|style)\\b[^>]*>.*?</\\1\\s*>"),
+        QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
+    text.replace(script_or_style_re, QStringLiteral("\n"));
+
+    // Preserve line breaks for HTML break and block-closing tags.
+    const QRegularExpression break_tag_re(
+        QStringLiteral("<br\\s*/?>"),
+        QRegularExpression::CaseInsensitiveOption);
+    text.replace(break_tag_re, QStringLiteral("\n"));
+
+    const QRegularExpression block_close_tag_re(
+        QStringLiteral("</(p|li|div|tr|h[1-6])\\s*>"),
+        QRegularExpression::CaseInsensitiveOption);
+    text.replace(block_close_tag_re, QStringLiteral("\n"));
+
+    // Convert <li> list items into plain-text "- " bullets.
+    const QRegularExpression list_item_open_tag_re(
+        QStringLiteral("<li(?:\\s[^>]*)?>"),
+        QRegularExpression::CaseInsensitiveOption);
+    text.replace(list_item_open_tag_re, QStringLiteral("\n- "));
+
+    // Strip all remaining HTML/XML tags and comments.
+    const QRegularExpression any_html_tag_re(
+        QStringLiteral("<[A-Za-z!/?][^>]*>"));
+    text.remove(any_html_tag_re);
+
+    // Decode common safe non-markup entities in plain text.
+    text.replace(QStringLiteral("&nbsp;"), QStringLiteral(" "), Qt::CaseInsensitive);
+    text.replace(QStringLiteral("&quot;"), QStringLiteral("\""), Qt::CaseInsensitive);
+    text.replace(QStringLiteral("&#39;"), QStringLiteral("'"), Qt::CaseInsensitive);
+    text.replace(QStringLiteral("&apos;"), QStringLiteral("'"), Qt::CaseInsensitive);
+    text.replace(QStringLiteral("&amp;"), QStringLiteral("&"), Qt::CaseInsensitive);
+
+    const QRegularExpression bullet_spacing_re(QStringLiteral("^-\\s+"));
+    QStringList cleaned_lines;
+    const QStringList raw_lines = text.split(QLatin1Char('\n'));
+    cleaned_lines.reserve(raw_lines.size());
+
+    for (const QString& raw_line : raw_lines) {
+        QString line = raw_line.trimmed();
+        if (line.isEmpty()) {
+            continue;
+        }
+        line.replace(bullet_spacing_re, QStringLiteral("- "));
+        if (line == QStringLiteral("-")) {
+            continue;
+        }
+        cleaned_lines.append(line);
+    }
+
+    return cleaned_lines.join(QLatin1Char('\n'));
+}
+
+void AutoUpdater::httpFinished()
+{
+    _timeoutTimer.stop();
+
+    QNetworkReply* finished_reply = _reply;
+    _reply = nullptr;
+
+    if (finished_reply == nullptr) {
+        _inProgress = false;
+        return;
+    }
+
+    const bool was_cancelled = _httpRequestAborted;
+    const bool was_oversize = _oversizeAborted;
+    const bool was_timed_out = _timedOut;
+
+    if (was_cancelled || was_oversize) {
+        _inProgress = false;
+        _rawResponse.clear();
+        finished_reply->deleteLater();
+        return;
+    }
+
+    if (was_timed_out || finished_reply->error() != QNetworkReply::NoError) {
+        const QString error_message = was_timed_out
+            ? tr("Update check timed out after %1 ms.").arg(_transferTimeoutMs)
+            : finished_reply->errorString();
+        _rawResponse.clear();
+        finished_reply->deleteLater();
+        failCheck(error_message);
+        return;
+    }
+
+    if (!isStrictHttpsUrl(finished_reply->url())) {
+        _rawResponse.clear();
+        finished_reply->deleteLater();
+        failCheck(tr("Update check redirected to non-HTTPS endpoint."));
+        return;
+    }
+
+    const QByteArray trailing = finished_reply->readAll();
+    finished_reply->deleteLater();
+
+    if (!ingestResponseChunk(trailing)) {
+        return;
+    }
+
+    const QByteArray complete_payload = _rawResponse;
+    _rawResponse.clear();
+    _inProgress = false;
+
+    processManifestPayload(complete_payload);
+}
+
 void AutoUpdater::httpReadyRead()
 {
     if (_reply == nullptr || _httpRequestAborted || _oversizeAborted) {
@@ -259,139 +365,38 @@ void AutoUpdater::httpReadyRead()
 
     _timeoutTimer.start(_transferTimeoutMs);
     const QByteArray chunk = _reply->readAll();
-    (void)ingestResponseChunk(chunk);
+    static_cast<void>(ingestResponseChunk(chunk));
 }
 
-void AutoUpdater::httpFinished()
+void AutoUpdater::onTransferTimeout()
 {
-    _timeoutTimer.stop();
-
-    QNetworkReply* finishedReply = _reply;
-    _reply = nullptr;
-
-    if (finishedReply == nullptr) {
-        _inProgress = false;
+    if (!_inProgress) {
         return;
     }
-
-    const bool wasCancelled = _httpRequestAborted;
-    const bool wasOversize = _oversizeAborted;
-    const bool wasTimedOut = _timedOut;
-
-    if (wasCancelled || wasOversize) {
-        _inProgress = false;
-        _rawResponse.clear();
-        finishedReply->deleteLater();
-        return;
+    _timedOut = true;
+    if (_reply != nullptr) {
+        _reply->abort();
+    } else {
+        failCheck(tr("Update check timed out after %1 ms.").arg(_transferTimeoutMs));
     }
-
-    if (wasTimedOut || finishedReply->error() != QNetworkReply::NoError) {
-        const QString errStr = wasTimedOut
-            ? tr("Update check timed out after %1 ms.").arg(_transferTimeoutMs)
-            : finishedReply->errorString();
-        _rawResponse.clear();
-        finishedReply->deleteLater();
-        failCheck(errStr);
-        return;
-    }
-
-    if (!isStrictHttpsUrl(finishedReply->url())) {
-        _rawResponse.clear();
-        finishedReply->deleteLater();
-        failCheck(tr("Update check redirected to non-HTTPS endpoint."));
-        return;
-    }
-
-    const QByteArray trailing = finishedReply->readAll();
-    finishedReply->deleteLater();
-
-    if (!ingestResponseChunk(trailing)) {
-        return;
-    }
-
-    const QByteArray completePayload = _rawResponse;
-    _rawResponse.clear();
-    _inProgress = false;
-
-    processManifestPayload(completePayload);
 }
 
-void AutoUpdater::processManifestPayload(const QByteArray& utf8Manifest)
+void AutoUpdater::startRequest(const QUrl& requested_url)
 {
-    _inProgress = false;
+    _qnam.clearAccessCache();
 
-    if (utf8Manifest.size() > kMaxResponseBytes) {
-        failCheck(tr("Update manifest exceeded maximum allowed size of 64 KiB."));
-        return;
-    }
+    QNetworkRequest request(requested_url);
+    request.setAttribute(
+        QNetworkRequest::RedirectPolicyAttribute,
+        QNetworkRequest::NoLessSafeRedirectPolicy);
+    request.setMaximumRedirectsAllowed(kMaxRedirects);
+    request.setTransferTimeout(_transferTimeoutMs);
 
-    QString manifestText = QString::fromUtf8(utf8Manifest);
-    manifestText.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
-    manifestText.replace(QLatin1Char('\r'), QLatin1Char('\n'));
+    _reply = _qnam.get(request);
+    connect(_reply, &QIODevice::readyRead, this, &AutoUpdater::httpReadyRead);
+    connect(_reply, &QNetworkReply::finished, this, &AutoUpdater::httpFinished);
 
-    QString rawVersion;
-    QString rawUrl;
-    QStringList rawChangesLines;
-    bool inChanges = false;
-
-    static constexpr QLatin1String kVersionPrefix("stable_version:");
-    static constexpr QLatin1String kUrlPrefix("stable_url:");
-    static constexpr QLatin1String kChangesPrefix("changes:");
-
-    const QStringList lines = manifestText.split(QLatin1Char('\n'));
-    for (const QString& line : lines) {
-        const QString trimmed = line.trimmed();
-        if (trimmed.startsWith(QLatin1Char('#'))) {
-            continue;
-        }
-
-        if (!inChanges) {
-            if (trimmed.isEmpty()) {
-                continue;
-            }
-            if (trimmed.startsWith(kVersionPrefix)) {
-                rawVersion = trimmed.mid(kVersionPrefix.size()).trimmed();
-            } else if (trimmed.startsWith(kUrlPrefix)) {
-                rawUrl = trimmed.mid(kUrlPrefix.size()).trimmed();
-            } else if (trimmed.startsWith(kChangesPrefix)) {
-                inChanges = true;
-                const QString inlineChanges = trimmed.mid(kChangesPrefix.size()).trimmed();
-                if (!inlineChanges.isEmpty()) {
-                    rawChangesLines.append(inlineChanges);
-                }
-            }
-        } else {
-            rawChangesLines.append(line);
-        }
-    }
-
-    const QVersionNumber newVersionNumber = QVersionNumber::fromString(rawVersion);
-    const QVersionNumber curVersionNumber = QVersionNumber::fromString(_currentVersion);
-    if (rawVersion.isEmpty() || newVersionNumber.isNull() || curVersionNumber.isNull()) {
-        failCheck(tr("Invalid or missing version number in update manifest."));
-        return;
-    }
-
-    if (newVersionNumber <= curVersionNumber) {
-        emit upToDate();
-        emit updateCheckFinished();
-        return;
-    }
-
-    const QUrl parsedDownloadUrl(rawUrl, QUrl::StrictMode);
-    if (rawUrl.isEmpty() || !isStrictHttpsUrl(parsedDownloadUrl)) {
-        failCheck(tr("Rejected non-HTTPS or invalid update download URL."));
-        return;
-    }
-
-    UpdateInfo info;
-    info.version = rawVersion;
-    info.plainTextChanges = sanitizeChangelogHtmlToPlainText(
-        rawChangesLines.join(QLatin1Char('\n')));
-    info.httpsDownloadUrl = parsedDownloadUrl;
-
-    emit updateAvailable(info);
-    emit updateCheckFinished();
+    _timeoutTimer.start(_transferTimeoutMs);
 }
 
 void AutoUpdater::failCheck(const QString& reason)

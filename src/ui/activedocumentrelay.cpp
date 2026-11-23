@@ -14,13 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file activedocumentrelay.cpp
- * @brief Implementation of `ActiveDocumentRelay` (`vchar64` GUI target).
- *
- * Replaces O(N * M) cross-document signal fan-out across MDI tabs with an O(1)
- * active connection set stored in `_activeConnections`.
- */
+// Implements ActiveDocumentRelay, maintaining O(1) signal connections exclusively
+// to the single active MDI State document and its QUndoStack.
 
 #include "ui/activedocumentrelay.h"
 
@@ -36,77 +31,80 @@ ActiveDocumentRelay::~ActiveDocumentRelay()
     detachConnections();
 }
 
-void ActiveDocumentRelay::detachConnections() noexcept
+void ActiveDocumentRelay::setActiveState(State* next_state)
 {
-    for (const QMetaObject::Connection& conn : _activeConnections) {
-        QObject::disconnect(conn);
-    }
-    _activeConnections.clear();
-}
-
-void ActiveDocumentRelay::setActiveState(State* nextState)
-{
-    if (_boundRawState == nextState) {
+    if (_boundRawState == next_state) {
         return;
     }
 
     detachConnections();
-    _activeState = nextState;
-    _boundRawState = nextState;
+    _activeState = next_state;
+    _boundRawState = next_state;
 
-    if (nextState != nullptr) {
-        _activeConnections.reserve(18);
-
-        _activeConnections.push_back(
-            connect(nextState, &State::fileLoaded, this, &ActiveDocumentRelay::fileLoaded));
-        _activeConnections.push_back(
-            connect(nextState, &State::tilePropertiesUpdated, this, &ActiveDocumentRelay::tilePropertiesUpdated));
-        _activeConnections.push_back(
-            connect(nextState, &State::mapSizeUpdated, this, &ActiveDocumentRelay::mapSizeUpdated));
-        _activeConnections.push_back(
-            connect(nextState, &State::mapContentUpdated, this, &ActiveDocumentRelay::mapContentUpdated));
-        _activeConnections.push_back(
-            connect(nextState, &State::bytesUpdated, this, &ActiveDocumentRelay::bytesUpdated));
-        _activeConnections.push_back(
-            connect(nextState, &State::tileUpdated, this, &ActiveDocumentRelay::tileUpdated));
-        _activeConnections.push_back(
-            connect(nextState, &State::charsetUpdated, this, &ActiveDocumentRelay::charsetUpdated));
-        _activeConnections.push_back(
-            connect(nextState, &State::colorPropertiesUpdated, this, &ActiveDocumentRelay::colorPropertiesUpdated));
-        _activeConnections.push_back(
-            connect(nextState, &State::selectedPenChanged, this, &ActiveDocumentRelay::selectedPenChanged));
-        _activeConnections.push_back(
-            connect(nextState, &State::multicolorModeToggled, this, &ActiveDocumentRelay::multicolorModeToggled));
-        _activeConnections.push_back(
-            connect(nextState, &State::contentsChanged, this, &ActiveDocumentRelay::contentsChanged));
-        _activeConnections.push_back(
-            connect(nextState, &State::charIndexUpdated, this, &ActiveDocumentRelay::charIndexUpdated));
-        _activeConnections.push_back(
-            connect(nextState, &State::tileIndexUpdated, this, &ActiveDocumentRelay::tileIndexUpdated));
-
-        if (QUndoStack* stack = nextState->getUndoStack()) {
-            _activeConnections.push_back(
-                connect(stack, &QUndoStack::cleanChanged, this, &ActiveDocumentRelay::undoCleanChanged));
-            _activeConnections.push_back(
-                connect(stack, &QUndoStack::canUndoChanged, this, &ActiveDocumentRelay::canUndoChanged));
-            _activeConnections.push_back(
-                connect(stack, &QUndoStack::canRedoChanged, this, &ActiveDocumentRelay::canRedoChanged));
-            _activeConnections.push_back(
-                connect(stack, &QUndoStack::indexChanged, this, &ActiveDocumentRelay::undoIndexChanged));
-        }
-
-        // Compare against _boundRawState because QPointer clears its internal weak reference
-        // prior to QObject::destroyed slot invocation during ~QObject().
-        _activeConnections.push_back(
-            connect(nextState, &QObject::destroyed, this, [this, nextState]() {
-                if (_boundRawState == nextState) {
-                    detachConnections();
-                    _activeState = nullptr;
-                    _boundRawState = nullptr;
-                    emit activeStateChanged(nullptr);
-                }
-            }));
+    if (next_state == nullptr) {
+        emit activeStateChanged(nullptr);
+        return;
     }
 
-    emit activeStateChanged(nextState);
+    _activeConnections.reserve(18);
+
+    _activeConnections.push_back(
+        connect(next_state, &State::fileLoaded, this, &ActiveDocumentRelay::fileLoaded));
+    _activeConnections.push_back(
+        connect(next_state, &State::tilePropertiesUpdated, this, &ActiveDocumentRelay::tilePropertiesUpdated));
+    _activeConnections.push_back(
+        connect(next_state, &State::mapSizeUpdated, this, &ActiveDocumentRelay::mapSizeUpdated));
+    _activeConnections.push_back(
+        connect(next_state, &State::mapContentUpdated, this, &ActiveDocumentRelay::mapContentUpdated));
+    _activeConnections.push_back(
+        connect(next_state, &State::bytesUpdated, this, &ActiveDocumentRelay::bytesUpdated));
+    _activeConnections.push_back(
+        connect(next_state, &State::tileUpdated, this, &ActiveDocumentRelay::tileUpdated));
+    _activeConnections.push_back(
+        connect(next_state, &State::charsetUpdated, this, &ActiveDocumentRelay::charsetUpdated));
+    _activeConnections.push_back(
+        connect(next_state, &State::colorPropertiesUpdated, this, &ActiveDocumentRelay::colorPropertiesUpdated));
+    _activeConnections.push_back(
+        connect(next_state, &State::selectedPenChanged, this, &ActiveDocumentRelay::selectedPenChanged));
+    _activeConnections.push_back(
+        connect(next_state, &State::multicolorModeToggled, this, &ActiveDocumentRelay::multicolorModeToggled));
+    _activeConnections.push_back(
+        connect(next_state, &State::contentsChanged, this, &ActiveDocumentRelay::contentsChanged));
+    _activeConnections.push_back(
+        connect(next_state, &State::charIndexUpdated, this, &ActiveDocumentRelay::charIndexUpdated));
+    _activeConnections.push_back(
+        connect(next_state, &State::tileIndexUpdated, this, &ActiveDocumentRelay::tileIndexUpdated));
+
+    if (QUndoStack* undo_stack = next_state->getUndoStack()) {
+        _activeConnections.push_back(
+            connect(undo_stack, &QUndoStack::cleanChanged, this, &ActiveDocumentRelay::undoCleanChanged));
+        _activeConnections.push_back(
+            connect(undo_stack, &QUndoStack::canUndoChanged, this, &ActiveDocumentRelay::canUndoChanged));
+        _activeConnections.push_back(
+            connect(undo_stack, &QUndoStack::canRedoChanged, this, &ActiveDocumentRelay::canRedoChanged));
+        _activeConnections.push_back(
+            connect(undo_stack, &QUndoStack::indexChanged, this, &ActiveDocumentRelay::undoIndexChanged));
+    }
+
+    // Compare against _boundRawState because QPointer clears its internal weak reference
+    // prior to QObject::destroyed slot invocation during ~QObject().
+    _activeConnections.push_back(
+        connect(next_state, &QObject::destroyed, this, [this, next_state]() {
+            if (_boundRawState == next_state) {
+                detachConnections();
+                _activeState = nullptr;
+                _boundRawState = nullptr;
+                emit activeStateChanged(nullptr);
+            }
+        }));
+
+    emit activeStateChanged(next_state);
+}
+
+void ActiveDocumentRelay::detachConnections() noexcept
+{
+    for (const QMetaObject::Connection& connection : _activeConnections) {
+        QObject::disconnect(connection);
+    }
+    _activeConnections.clear();
 }

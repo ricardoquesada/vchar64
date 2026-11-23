@@ -14,16 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file updatedialog.cpp
- * @brief Implementation of `UpdateDialog` (`vchar64` GUI target).
- */
+// UpdateDialog implementation presenting release notes and launching HTTPS-verified updates.
 
 #include "updatedialog.h"
 #include "ui_updatedialog.h"
 
 #include <QDebug>
 #include <QDesktopServices>
+#include <QString>
 
 UpdateDialog::UpdateDialog(QWidget* parent)
     : QDialog(parent)
@@ -54,28 +52,29 @@ void UpdateDialog::setUpdateInfo(const UpdateInfo& info)
     setUpdateURL(info.httpsDownloadUrl);
 }
 
-void UpdateDialog::setNewVersion(const QString& newVersion)
-{
-    ui->labelNewVersion->setText(tr("New version: %1").arg(newVersion));
-}
-
-void UpdateDialog::setChanges(const QString& plainTextChanges)
+void UpdateDialog::setChanges(const QString& plain_text_changes)
 {
     // Render exclusively as plain text so untrusted manifest payloads cannot inject
-    // HTML, external `<img>` fetches, or rich-text links into `QTextBrowser`.
-    ui->textBrowserChanges->setPlainText(plainTextChanges);
+    // HTML, external <img> fetches, or rich-text links into QTextBrowser.
+    ui->textBrowserChanges->setPlainText(plain_text_changes);
+}
+
+void UpdateDialog::setNewVersion(const QString& new_version)
+{
+    ui->labelNewVersion->setText(tr("New version: %1").arg(new_version));
 }
 
 void UpdateDialog::setUpdateURL(const QUrl& url)
 {
-    if (AutoUpdater::isStrictHttpsUrl(url)) {
-        _url = url;
-        ui->pushButtonDownload->setEnabled(true);
-    } else {
+    if (!AutoUpdater::isStrictHttpsUrl(url)) {
         _url.clear();
         ui->pushButtonDownload->setEnabled(false);
         qWarning() << "Rejected unsafe update download URL:" << url;
+        return;
     }
+
+    _url = url;
+    ui->pushButtonDownload->setEnabled(true);
 }
 
 void UpdateDialog::setUpdateURL(const QString& url)

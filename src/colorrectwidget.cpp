@@ -14,15 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file colorrectwidget.cpp
- * @brief Implementation of `ColorRectWidget` pen and static color swatch painting (`vchar64`).
- */
+// ColorRectWidget swatch painting for live State pens and static C64 color indices.
 
 #include "colorrectwidget.h"
 
+#include <QColor>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPen>
 
 #include "palette.h"
 #include "state.h"
@@ -34,18 +33,6 @@ ColorRectWidget::ColorRectWidget(QWidget* parent)
 }
 
 ColorRectWidget::~ColorRectWidget() = default;
-
-void ColorRectWidget::setActiveState(State* state)
-{
-    if (_activeState == state) {
-        return;
-    }
-
-    _activeState = state;
-    if (_mode == SHOW_PEN_MODE) {
-        update();
-    }
-}
 
 void ColorRectWidget::setPen(int pen)
 {
@@ -62,11 +49,11 @@ int ColorRectWidget::getPen() const noexcept
     return _pen;
 }
 
-void ColorRectWidget::setColorIndex(int colorIndex)
+void ColorRectWidget::setColorIndex(int color_index)
 {
-    Q_ASSERT(colorIndex >= 0 && colorIndex < 16 && "Invalid color");
-    if (_colorIndex != colorIndex || _mode != SHOW_COLORINDEX_MODE) {
-        _colorIndex = colorIndex;
+    Q_ASSERT(color_index >= 0 && color_index < 16 && "Invalid color");
+    if (_colorIndex != color_index || _mode != SHOW_COLORINDEX_MODE) {
+        _colorIndex = color_index;
         _mode = SHOW_COLORINDEX_MODE;
         update();
     }
@@ -85,6 +72,18 @@ void ColorRectWidget::setSelected(bool selected)
     }
 }
 
+void ColorRectWidget::setActiveState(State* state)
+{
+    if (_activeState == state) {
+        return;
+    }
+
+    _activeState = state;
+    if (_mode == SHOW_PEN_MODE) {
+        update();
+    }
+}
+
 void ColorRectWidget::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
@@ -96,11 +95,11 @@ void ColorRectWidget::paintEvent(QPaintEvent* event)
     }
 
     if (_selected) {
-        QPen pen;
-        pen.setColor(Qt::red);
-        pen.setWidth(3);
-        pen.setStyle(Qt::PenStyle::SolidLine);
-        painter.setPen(pen);
+        QPen border_pen;
+        border_pen.setColor(Qt::red);
+        border_pen.setWidth(3);
+        border_pen.setStyle(Qt::PenStyle::SolidLine);
+        painter.setPen(border_pen);
         painter.drawRect(0, 0, width() - 1, height() - 1);
     }
 }

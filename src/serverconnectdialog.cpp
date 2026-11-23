@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+// ServerConnectDialog implementation for configuring and persisting the TCP preview host IP.
+
 #include "serverconnectdialog.h"
 #include "ui_serverconnectdialog.h"
 
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
+#include <QString>
 
 #include "preferences.h"
 
@@ -28,21 +31,22 @@ ServerConnectDialog::ServerConnectDialog(QWidget* parent)
 {
     ui->setupUi(this);
 
-    auto regexp = QRegularExpression("^[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]$");
-    auto validator = new QRegularExpressionValidator(regexp, this);
+    const QRegularExpression ip_regex(
+        QStringLiteral("^[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]\\.[0-2]?[0-9]?[0-9]$"));
+    auto* validator = new QRegularExpressionValidator(ip_regex, this);
     ui->lineEdit->setValidator(validator);
 
-    auto ipaddress = Preferences::getInstance().getServerIPAddress();
-    ui->lineEdit->setText(ipaddress);
-}
-
-QString ServerConnectDialog::getIPAddress() const
-{
-    return ui->lineEdit->text();
+    const QString ip_address = Preferences::getInstance().getServerIPAddress();
+    ui->lineEdit->setText(ip_address);
 }
 
 ServerConnectDialog::~ServerConnectDialog()
 {
     Preferences::getInstance().setServerIPAddress(ui->lineEdit->text());
     delete ui;
+}
+
+QString ServerConnectDialog::getIPAddress() const
+{
+    return ui->lineEdit->text();
 }

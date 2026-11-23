@@ -14,15 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-#include "palette.h"
+// Static VIC-II RGB color tables and runtime-localized C64 color name lookup.
 
-/**
- * @file palette.cpp
- * @brief Static VIC-II RGB color tables and runtime-localized C64 color name lookup.
- */
+#include "palette.h"
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 
 #include <QCoreApplication>
 
@@ -30,7 +28,7 @@ limitations under the License.
 
 namespace {
 
-const std::array<std::array<QColor, Palette::kColorCount>, Palette::kPaletteCount> kPalettes = { {
+constexpr std::array<std::array<QColor, Palette::kColorCount>, Palette::kPaletteCount> kPalettes = { {
     { {
         // Pepto palette. Taken from: http://www.pepto.de/projects/colorvic/
         { 0x00, 0x00, 0x00 },
@@ -51,7 +49,7 @@ const std::array<std::array<QColor, Palette::kColorCount>, Palette::kPaletteCoun
         { 0x95, 0x95, 0x95 },
     } },
     { {
-        // VICE palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64
+        // VICE palette. Taken from https://github.com/dirkwhoffmann/virtualc64
         { 0x00, 0x00, 0x00 },
         { 0xff, 0xff, 0xff },
         { 0xbd, 0x18, 0x21 },
@@ -70,7 +68,7 @@ const std::array<std::array<QColor, Palette::kColorCount>, Palette::kPaletteCoun
         { 0xa5, 0xa5, 0xa5 },
     } },
     { {
-        // CCS64 palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64
+        // CCS64 palette. Taken from https://github.com/dirkwhoffmann/virtualc64
         { 0x10, 0x10, 0x10 },
         { 0xff, 0xff, 0xff },
         { 0xe0, 0x40, 0x40 },
@@ -89,7 +87,7 @@ const std::array<std::array<QColor, Palette::kColorCount>, Palette::kPaletteCoun
         { 0xc0, 0xc0, 0xc0 },
     } },
     { {
-        // FRODO palette. Copied+Pasted from https://github.com/dirkwhoffmann/virtualc64
+        // Frodo palette. Taken from https://github.com/dirkwhoffmann/virtualc64
         { 0x00, 0x00, 0x00 },
         { 0xff, 0xff, 0xff },
         { 0xcc, 0x00, 0x00 },
@@ -147,44 +145,44 @@ const std::array<std::array<QColor, Palette::kColorCount>, Palette::kPaletteCoun
     } },
 } };
 
-// Cast through unsigned before `& 0x0FU` so negative signed values (such as `-1` from
-// unmasked `char` bytes) fold cleanly into `[0, 15]` without implementation-defined behavior.
-[[nodiscard]] constexpr size_t maskColorIndex(int colorIndex) noexcept
+// Casts through unsigned before masking with 0x0FU so negative signed values (such as -1
+// from unmasked char bytes) fold cleanly into [0, 15] without implementation-defined behavior.
+[[nodiscard]] constexpr size_t MaskColorIndex(int color_index) noexcept
 {
-    return static_cast<size_t>(static_cast<unsigned int>(colorIndex) & 0x0FU);
+    return static_cast<size_t>(static_cast<unsigned int>(color_index) & 0x0FU);
 }
 
 } // namespace
 
 int Palette::_paletteIndex = Palette::PEPTO;
 
+const QColor& Palette::getColor(int color_index)
+{
+    const size_t active_index = static_cast<size_t>(std::clamp(_paletteIndex, 0, kPaletteCount - 1));
+    return kPalettes[active_index][MaskColorIndex(color_index)];
+}
+
 const QColor& Palette::getColorForPen(const State* state, int pen)
 {
-    constexpr std::array<int, 4> kDefaultColors = { 1, 5, 7, 11 };
-    const int clampedPen = std::clamp(pen, 0, State::PEN_MAX - 1);
-    int colorIndex = kDefaultColors[static_cast<size_t>(clampedPen)];
+    static constexpr std::array<int, 4> kDefaultColors = { 1, 5, 7, 11 };
+    const int clamped_pen = std::clamp(pen, 0, State::PEN_MAX - 1);
+    int color_index = kDefaultColors[static_cast<size_t>(clamped_pen)];
 
     if (state != nullptr) {
-        const int tileIdx = state->getTileIndex();
-        colorIndex = state->getColorForPen(clampedPen, tileIdx);
+        const int tile_index = state->getTileIndex();
+        color_index = state->getColorForPen(clamped_pen, tile_index);
 
         // In VIC-II multicolor character mode, foreground Color RAM bit 3 selects
         // multicolor mode while bits 0..2 select the displayed foreground color (0..7).
-        if (clampedPen == State::PEN_FOREGROUND && state->shouldBeDisplayedInMulticolor2(tileIdx)) {
-            colorIndex = static_cast<int>(static_cast<unsigned int>(colorIndex) & 0x07U);
+        if (clamped_pen == State::PEN_FOREGROUND && state->shouldBeDisplayedInMulticolor2(tile_index)) {
+            color_index = static_cast<int>(static_cast<unsigned int>(color_index) & 0x07U);
         }
     }
 
-    return getColor(colorIndex);
+    return getColor(color_index);
 }
 
-const QColor& Palette::getColor(int colorIndex)
-{
-    const auto activeIdx = static_cast<size_t>(std::clamp(_paletteIndex, 0, kPaletteCount - 1));
-    return kPalettes[activeIdx][maskColorIndex(colorIndex)];
-}
-
-QString Palette::colorName(int colorIndex)
+QString Palette::colorName(int color_index)
 {
     // Store raw untranslated literals via QT_TR_NOOP and invoke tr() dynamically on each call.
     // Static QString arrays initialized with tr() before main() would freeze English strings
@@ -207,12 +205,12 @@ QString Palette::colorName(int colorIndex)
         QT_TR_NOOP("Light blue"),
         QT_TR_NOOP("Light grey"),
     };
-    return tr(kColorNames[maskColorIndex(colorIndex)]);
+    return tr(kColorNames[MaskColorIndex(color_index)]);
 }
 
-void Palette::setActivePalette(int paletteIndex) noexcept
+void Palette::setActivePalette(int palette_index) noexcept
 {
-    _paletteIndex = std::clamp(paletteIndex, 0, kPaletteCount - 1);
+    _paletteIndex = std::clamp(palette_index, 0, kPaletteCount - 1);
 }
 
 int Palette::activePalette() noexcept

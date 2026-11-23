@@ -14,10 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
+// PreferencesDialog implementation managing grid color, startup session, and update settings.
+
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
 
+#include <QCheckBox>
+#include <QColor>
 #include <QColorDialog>
+#include <QDateTime>
+#include <QPixmap>
+#include <QPushButton>
+#include <QSize>
+#include <QToolButton>
 
 #include "autoupdater.h"
 #include "preferences.h"
@@ -32,8 +41,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     connect(ui->pushButtonCheckNow, &QPushButton::clicked, this, &PreferencesDialog::onUpdateNow);
     connect(ui->checkBoxStartupFiles, &QCheckBox::toggled, this, &PreferencesDialog::onStartUpFiles);
     connect(ui->checkBoxAutoCheck, &QCheckBox::toggled, this, &PreferencesDialog::onAutoCheckUpdates);
-    auto& updateInstance = AutoUpdater::getInstance();
-    connect(&updateInstance, &AutoUpdater::updateCheckFinished, this, &PreferencesDialog::onUpdateCheckFinished);
+    AutoUpdater& updater = AutoUpdater::getInstance();
+    connect(&updater, &AutoUpdater::updateCheckFinished, this, &PreferencesDialog::onUpdateCheckFinished);
 
     setGridColor(Preferences::getInstance().getGridColor());
     ui->checkBoxStartupFiles->setChecked(Preferences::getInstance().getOpenLastFiles());
@@ -47,23 +56,12 @@ PreferencesDialog::~PreferencesDialog()
     delete ui;
 }
 
-// from here: http://stackoverflow.com/a/15081186
-void PreferencesDialog::setGridColor(const QColor& color)
-{
-    QSize iconSize = ui->toolButtonSelectColor->iconSize();
-    QPixmap px(iconSize - QSize(2, 2));
-    px.fill(color);
-    ui->toolButtonSelectColor->setIcon(px);
-
-    Preferences::getInstance().setGridColor(color);
-}
-
-// slots
 void PreferencesDialog::onSelectColor()
 {
-    QColor color = QColorDialog::getColor();
-    if (color.isValid())
+    const QColor color = QColorDialog::getColor();
+    if (color.isValid()) {
         setGridColor(color);
+    }
 }
 
 void PreferencesDialog::onStartUpFiles(bool checked)
@@ -83,6 +81,18 @@ void PreferencesDialog::onUpdateNow()
 
 void PreferencesDialog::onUpdateCheckFinished()
 {
-    QDateTime lastCheck = Preferences::getInstance().getLastUpdateCheckDate();
-    ui->labelLastCheck->setText(tr("Last check: %1").arg(lastCheck.toString("ddd MMMM d yyyy - hh:mm:ss ap")));
+    const QDateTime last_check = Preferences::getInstance().getLastUpdateCheckDate();
+    ui->labelLastCheck->setText(
+        tr("Last check: %1").arg(last_check.toString("ddd MMMM d yyyy - hh:mm:ss ap")));
+}
+
+// Color swatch icon recipe adapted from http://stackoverflow.com/a/15081186.
+void PreferencesDialog::setGridColor(const QColor& color)
+{
+    const QSize icon_size = ui->toolButtonSelectColor->iconSize();
+    QPixmap swatch_pixmap(icon_size - QSize(2, 2));
+    swatch_pixmap.fill(color);
+    ui->toolButtonSelectColor->setIcon(swatch_pixmap);
+
+    Preferences::getInstance().setGridColor(color);
 }

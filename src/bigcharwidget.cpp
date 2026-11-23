@@ -14,30 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file bigcharwidget.cpp
- * @brief Interactive zoomed pixel-grid canvas and MDI document lifecycle implementation.
- *
- * Implements VIC-II Hi-Res (`8x8`) and Multicolor (`4x8` double-wide) pixel
- * hit-testing, keyboard cursor navigation, undoable `PaintTileCommand` stroke
- * submission, and the `QMdiSubWindow` close/save confirmation prompt (`maybeSave()`).
- */
+// Interactive zoomed pixel-grid canvas and MDI document lifecycle implementation.
+//
+// Implements VIC-II Hi-Res (8x8) and Multicolor (4x8 double-wide) pixel hit-testing,
+// keyboard cursor navigation, undoable PaintTileCommand stroke submission, and the
+// QMdiSubWindow close/save confirmation prompt (maybeSave()).
 
 #include "bigcharwidget.h"
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 
 #include <QCloseEvent>
+#include <QColor>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPen>
 #include <QSizeF>
 
 #include "mainwindow.h"
-#include "palette.h"
 #include "state.h"
 #include "utils.h"
 
@@ -72,55 +71,96 @@ State* BigCharWidget::getState() const noexcept
     return _state.data();
 }
 
-void BigCharWidget::recalculatePixelSize() noexcept
-{
-    const int maxTileDim = std::max({ 1, _tileProperties.size.width(), _tileProperties.size.height() });
-    const int minWidgetDim = std::min(size().width(), size().height());
-    const int px = std::max(1, minWidgetDim / (8 * maxTileDim));
-    _pixelSize = QSize(px, px);
-}
-
-void BigCharWidget::paintPixel(int x, int y, int pen)
+void BigCharWidget::onTileIndexUpdated(int tile_index)
 {
     if (_state == nullptr) {
         return;
     }
-
-    if (_state->tileGetPen(_tileIndex, QPoint(x, y)) != pen) {
-        int effectivePen = pen;
-        if (!_state->shouldBeDisplayedInMulticolor2(_tileIndex) && effectivePen != 0) {
-            effectivePen = 1;
-        }
-        _state->tilePaint(_tileIndex, QPoint(x, y), effectivePen, _commandMergeable);
+    if (_tileIndex != tile_index) {
+        _tileIndex = tile_index;
+        _charIndex = _state->getCharIndexFromTileIndex(_tileIndex);
+        update();
     }
+}
 
+void BigCharWidget::onTilePropertiesUpdated()
+{
+    if (_state == nullptr) {
+        return;
+    }
+    _tileProperties = _state->getTileProperties();
+    _tileIndex = _state->getTileIndex();
+    _charIndex = _state->getCharIndexFromTileIndex(_tileIndex);
+    recalculatePixelSize();
     update();
 }
 
-void BigCharWidget::cyclePixel(int x, int y)
+void BigCharWidget::onTileUpdated(int tile_index)
 {
+    Q_UNUSED(tile_index)
+    update();
+}
+
+void BigCharWidget::onMulticolorModeToggled(bool enabled)
+{
+    Q_UNUSED(enabled)
+    update();
+}
+
+void BigCharWidget::onColorPropertiesUpdated(int pen)
+{
+    Q_UNUSED(pen)
+    update();
+}
+
+void BigCharWidget::onCharsetUpdated()
+{
+    update();
+}
+
+void BigCharWidget::onFileLoaded()
+{
+    onTilePropertiesUpdated();
+}
+
+void BigCharWidget::paintEvent(QPaintEvent* event)
+{
+    QPainter painter(this);
+    painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
+
     if (_state == nullptr) {
         return;
     }
 
-    const int currentPen = std::clamp(_state->tileGetPen(_tileIndex, QPoint(x, y)), 0, 3);
+    QPen border_pen;
+    border_pen.setColor(QWidget::palette().color(QWidget::backgroundRole()));
+    border_pen.setWidth(1);
+    border_pen.setStyle(Qt::SolidLine);
+    painter.setPen(border_pen);
 
-    static constexpr std::array<int, 4> kNextPenMc = {
-        State::PEN_FOREGROUND,
-        State::PEN_MULTICOLOR2,
-        State::PEN_BACKGROUND,
-        State::PEN_MULTICOLOR1
-    };
-    static constexpr std::array<int, 2> kNextPenHr = {
-        State::PEN_FOREGROUND,
-        State::PEN_BACKGROUND
-    };
+    int char_index = _charIndex;
+    const QSizeF pixel_size_f(
+        static_cast<qreal>(_pixelSize.width()),
+        static_cast<qreal>(_pixelSize.height()));
 
-    const int nextPen = _state->shouldBeDisplayedInMulticolor2(_tileIndex)
-        ? kNextPenMc[static_cast<size_t>(currentPen)]
-        : kNextPenHr[static_cast<size_t>(currentPen & 1)];
+    for (int row = 0; row < _tileProperties.size.height(); ++row) {
+        for (int col = 0; col < _tileProperties.size.width(); ++col) {
+            if (char_index >= 0 && char_index < 256) {
+                utilsDrawCharInPainter(
+                    _state.data(),
+                    &painter,
+                    pixel_size_f,
+                    QPoint(0, 0),
+                    QPoint(col, row),
+                    char_index);
+            }
+            char_index += _tileProperties.interleaved;
+        }
+    }
 
-    paintPixel(x, y, nextPen);
+    paintCursor(painter);
+    paintSeparators(painter);
+    paintFocus(painter);
 }
 
 void BigCharWidget::mousePressEvent(QMouseEvent* event)
@@ -131,20 +171,20 @@ void BigCharWidget::mousePressEvent(QMouseEvent* event)
     }
 
     const QPoint pos = event->pos();
-    const int x = pos.x() / std::max(1, _pixelSize.width());
-    const int y = pos.y() / std::max(1, _pixelSize.height());
-    if (x < 0 || x >= 8 * _tileProperties.size.width()
-        || y < 0 || y >= 8 * _tileProperties.size.height()) {
+    const int pixel_x = pos.x() / std::max(1, _pixelSize.width());
+    const int pixel_y = pos.y() / std::max(1, _pixelSize.height());
+    if (pixel_x < 0 || pixel_x >= 8 * _tileProperties.size.width()
+        || pixel_y < 0 || pixel_y >= 8 * _tileProperties.size.height()) {
         return;
     }
 
-    _cursorPos = { x, y };
-    const int selectedPen = _state->getSelectedPen();
+    _cursorPos = QPoint(pixel_x, pixel_y);
+    const int selected_pen = _state->getSelectedPen();
 
     if (event->button() == Qt::LeftButton) {
-        paintPixel(x, y, selectedPen);
+        paintPixel(pixel_x, pixel_y, selected_pen);
     } else if (event->button() == Qt::RightButton) {
-        paintPixel(x, y, State::PEN_BACKGROUND);
+        paintPixel(pixel_x, pixel_y, State::PEN_BACKGROUND);
     }
 
     _commandMergeable = true;
@@ -158,27 +198,27 @@ void BigCharWidget::mouseMoveEvent(QMouseEvent* event)
     }
 
     const QPoint pos = event->pos();
-    const int x = std::clamp(
+    const int pixel_x = std::clamp(
         pos.x() / std::max(1, _pixelSize.width()),
         0,
         8 * _tileProperties.size.width() - 1);
-    const int y = std::clamp(
+    const int pixel_y = std::clamp(
         pos.y() / std::max(1, _pixelSize.height()),
         0,
         8 * _tileProperties.size.height() - 1);
 
     if (event->buttons() == Qt::NoButton) {
-        MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(x).arg(y));
+        MainWindow::getInstance()->showMessageOnStatusBar(tr("x: %1, y: %2").arg(pixel_x).arg(pixel_y));
         return;
     }
 
-    _cursorPos = { x, y };
-    const int pen = _state->getSelectedPen();
+    _cursorPos = QPoint(pixel_x, pixel_y);
+    const int selected_pen = _state->getSelectedPen();
     const Qt::MouseButtons buttons = event->buttons();
     if (buttons == Qt::LeftButton) {
-        paintPixel(x, y, pen);
+        paintPixel(pixel_x, pixel_y, selected_pen);
     } else if (buttons == Qt::RightButton) {
-        paintPixel(x, y, State::PEN_BACKGROUND);
+        paintPixel(pixel_x, pixel_y, State::PEN_BACKGROUND);
     }
 
     _commandMergeable = true;
@@ -197,17 +237,17 @@ void BigCharWidget::keyPressEvent(QKeyEvent* event)
         return;
     }
 
-    bool updated = false;
-    const bool ismc = _state->shouldBeDisplayedInMulticolor2(_tileIndex);
-    const QPoint oldCursorPos = _cursorPos;
-    const int incrementX = ismc ? 2 : 1;
+    bool needs_update = false;
+    const bool is_multicolor = _state->shouldBeDisplayedInMulticolor2(_tileIndex);
+    const QPoint old_cursor_pos = _cursorPos;
+    const int step_x = is_multicolor ? 2 : 1;
 
     switch (event->key()) {
     case Qt::Key_Left:
-        _cursorPos += { -incrementX, 0 };
+        _cursorPos += { -step_x, 0 };
         break;
     case Qt::Key_Right:
-        _cursorPos += { +incrementX, 0 };
+        _cursorPos += { +step_x, 0 };
         break;
     case Qt::Key_Down:
         _cursorPos += { 0, +1 };
@@ -217,232 +257,46 @@ void BigCharWidget::keyPressEvent(QKeyEvent* event)
         break;
     case Qt::Key_1:
         paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_BACKGROUND);
-        updated = true;
+        needs_update = true;
         break;
     case Qt::Key_2:
         paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_FOREGROUND);
-        updated = true;
+        needs_update = true;
         break;
     case Qt::Key_3:
-        if (ismc) {
+        if (is_multicolor) {
             paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_MULTICOLOR1);
-            updated = true;
+            needs_update = true;
         }
         break;
     case Qt::Key_4:
-        if (ismc) {
+        if (is_multicolor) {
             paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_MULTICOLOR2);
-            updated = true;
+            needs_update = true;
         }
         break;
     case Qt::Key_Space:
         cyclePixel(_cursorPos.x(), _cursorPos.y());
-        updated = true;
+        needs_update = true;
         break;
     default:
         QWidget::keyPressEvent(event);
         break;
     }
 
-    _cursorPos = {
-        std::clamp(_cursorPos.x(), 0, std::max(0, 8 * _tileProperties.size.width() - incrementX)),
-        std::clamp(_cursorPos.y(), 0, std::max(0, 8 * _tileProperties.size.height() - 1))
-    };
+    _cursorPos = QPoint(
+        std::clamp(_cursorPos.x(), 0, std::max(0, 8 * _tileProperties.size.width() - step_x)),
+        std::clamp(_cursorPos.y(), 0, std::max(0, 8 * _tileProperties.size.height() - 1)));
 
-    if (oldCursorPos != _cursorPos) {
-        updated = true;
+    if (old_cursor_pos != _cursorPos) {
+        needs_update = true;
     }
 
-    if (updated) {
+    if (needs_update) {
         update();
         MainWindow::getInstance()->showMessageOnStatusBar(
             tr("x: %1, y: %2").arg(_cursorPos.x()).arg(_cursorPos.y()));
     }
-}
-
-void BigCharWidget::paintEvent(QPaintEvent* event)
-{
-    QPainter painter(this);
-    painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
-
-    if (_state == nullptr) {
-        return;
-    }
-
-    QPen pen;
-    pen.setColor(QWidget::palette().color(QWidget::backgroundRole()));
-    pen.setWidth(1);
-    pen.setStyle(Qt::SolidLine);
-    painter.setPen(pen);
-
-    int charIndex = _charIndex;
-    const QSizeF pixelSizeF(
-        static_cast<qreal>(_pixelSize.width()),
-        static_cast<qreal>(_pixelSize.height()));
-
-    for (int y = 0; y < _tileProperties.size.height(); ++y) {
-        for (int x = 0; x < _tileProperties.size.width(); ++x) {
-            if (charIndex >= 0 && charIndex < 256) {
-                utilsDrawCharInPainter(
-                    _state.data(),
-                    &painter,
-                    pixelSizeF,
-                    QPoint(0, 0),
-                    QPoint(x, y),
-                    charIndex);
-            }
-            charIndex += _tileProperties.interleaved;
-        }
-    }
-
-    paintCursor(painter);
-    paintSeparators(painter);
-    paintFocus(painter);
-}
-
-void BigCharWidget::paintCursor(QPainter& painter)
-{
-    if (_state == nullptr) {
-        return;
-    }
-
-    painter.setBrush(QColor(0, 0, 255, 24));
-    QPen pen;
-    pen.setColor({ 149, 195, 244, 255 });
-    pen.setStyle(Qt::SolidLine);
-    pen.setWidth(hasFocus() ? 3 : 1);
-    painter.setPen(pen);
-
-    int bitWidth = 1;
-    int x = _cursorPos.x();
-    if (_state->shouldBeDisplayedInMulticolor2(_tileIndex)) {
-        bitWidth = 2;
-        x = (x / 2) * 2;
-    }
-
-    painter.drawRect(
-        x * _pixelSize.width(),
-        _cursorPos.y() * _pixelSize.height(),
-        _pixelSize.width() * bitWidth,
-        _pixelSize.height());
-}
-
-void BigCharWidget::paintSeparators(QPainter& painter)
-{
-    QPen pen;
-    pen.setColor({ 128, 128, 128, 196 });
-    pen.setWidth(2);
-    pen.setStyle(Qt::SolidLine);
-    painter.setPen(pen);
-
-    const int totalH = _pixelSize.height() * _tileProperties.size.height() * 8;
-    const int totalW = _pixelSize.width() * _tileProperties.size.width() * 8;
-
-    for (int x = 1; x < _tileProperties.size.width(); ++x) {
-        const int lineX = x * _pixelSize.width() * 8;
-        painter.drawLine(lineX, 0, lineX, totalH);
-    }
-    for (int y = 1; y < _tileProperties.size.height(); ++y) {
-        const int lineY = y * _pixelSize.height() * 8;
-        painter.drawLine(0, lineY, totalW, lineY);
-    }
-}
-
-void BigCharWidget::paintFocus(QPainter& painter)
-{
-    if (!hasFocus()) {
-        return;
-    }
-
-    QPen pen;
-    pen.setColor({ 149, 195, 244, 255 });
-    pen.setWidth(3);
-    pen.setStyle(Qt::SolidLine);
-    painter.setPen(pen);
-
-    const int totalW = _tileProperties.size.width() * _pixelSize.width() * 8;
-    const int totalH = _tileProperties.size.height() * _pixelSize.height() * 8;
-
-    painter.drawLine(0, 0, 0, totalH);
-    painter.drawLine(totalW, 0, totalW, totalH);
-    painter.drawLine(0, 0, totalW, 0);
-    painter.drawLine(0, totalH, totalW, totalH);
-}
-
-bool BigCharWidget::maybeSave()
-{
-    if (_state == nullptr || !_state->isModified()) {
-        return true;
-    }
-
-    const QMessageBox::StandardButton ret = QMessageBox::warning(
-        this,
-        tr("Application"),
-        tr("There are unsaved changes.\n"
-           "Do you want to save your changes?"),
-        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-
-    if (ret == QMessageBox::Save) {
-        // Pass `_state.data()` explicitly rather than relying on `activeSubWindow()` so
-        // closing a background MDI tab never saves the wrong project.
-        return MainWindow::getInstance()->saveDocument(_state.data());
-    }
-    if (ret == QMessageBox::Cancel) {
-        return false;
-    }
-    return true;
-}
-
-void BigCharWidget::onMulticolorModeToggled(bool enabled)
-{
-    Q_UNUSED(enabled)
-    update();
-}
-
-void BigCharWidget::onTileIndexUpdated(int tileIndex)
-{
-    if (_state == nullptr) {
-        return;
-    }
-    if (_tileIndex != tileIndex) {
-        _tileIndex = tileIndex;
-        _charIndex = _state->getCharIndexFromTileIndex(_tileIndex);
-        update();
-    }
-}
-
-void BigCharWidget::onTilePropertiesUpdated()
-{
-    if (_state == nullptr) {
-        return;
-    }
-    _tileProperties = _state->getTileProperties();
-    _tileIndex = _state->getTileIndex();
-    _charIndex = _state->getCharIndexFromTileIndex(_tileIndex);
-    recalculatePixelSize();
-    update();
-}
-
-void BigCharWidget::onColorPropertiesUpdated(int pen)
-{
-    Q_UNUSED(pen)
-    update();
-}
-
-void BigCharWidget::onTileUpdated(int tileIndex)
-{
-    Q_UNUSED(tileIndex)
-    update();
-}
-
-void BigCharWidget::onCharsetUpdated()
-{
-    update();
-}
-
-void BigCharWidget::onFileLoaded()
-{
-    onTilePropertiesUpdated();
 }
 
 void BigCharWidget::resizeEvent(QResizeEvent* event)
@@ -453,12 +307,157 @@ void BigCharWidget::resizeEvent(QResizeEvent* event)
 
 void BigCharWidget::closeEvent(QCloseEvent* event)
 {
-    if (maybeSave()) {
-        // Mark the owning `DocumentSession` as closing immediately so `MainWindow`
-        // excludes this subwindow before Qt's deferred `WA_DeleteOnClose` runs.
-        MainWindow::getInstance()->notifyEditorClosing(this);
-        event->accept();
-    } else {
+    if (!maybeSave()) {
         event->ignore();
+        return;
     }
+
+    // Mark the owning DocumentSession as closing immediately so MainWindow
+    // excludes this subwindow before Qt's deferred WA_DeleteOnClose runs.
+    MainWindow::getInstance()->notifyEditorClosing(this);
+    event->accept();
+}
+
+void BigCharWidget::paintCursor(QPainter& painter)
+{
+    if (_state == nullptr) {
+        return;
+    }
+
+    painter.setBrush(QColor(0, 0, 255, 24));
+    QPen cursor_pen;
+    cursor_pen.setColor({ 149, 195, 244, 255 });
+    cursor_pen.setStyle(Qt::SolidLine);
+    cursor_pen.setWidth(hasFocus() ? 3 : 1);
+    painter.setPen(cursor_pen);
+
+    int bit_width = 1;
+    int cursor_pixel_x = _cursorPos.x();
+    if (_state->shouldBeDisplayedInMulticolor2(_tileIndex)) {
+        bit_width = 2;
+        cursor_pixel_x = (cursor_pixel_x / 2) * 2;
+    }
+
+    painter.drawRect(
+        cursor_pixel_x * _pixelSize.width(),
+        _cursorPos.y() * _pixelSize.height(),
+        _pixelSize.width() * bit_width,
+        _pixelSize.height());
+}
+
+void BigCharWidget::paintSeparators(QPainter& painter)
+{
+    QPen separator_pen;
+    separator_pen.setColor({ 128, 128, 128, 196 });
+    separator_pen.setWidth(2);
+    separator_pen.setStyle(Qt::SolidLine);
+    painter.setPen(separator_pen);
+
+    const int total_height = _pixelSize.height() * _tileProperties.size.height() * 8;
+    const int total_width = _pixelSize.width() * _tileProperties.size.width() * 8;
+
+    for (int col = 1; col < _tileProperties.size.width(); ++col) {
+        const int line_x = col * _pixelSize.width() * 8;
+        painter.drawLine(line_x, 0, line_x, total_height);
+    }
+    for (int row = 1; row < _tileProperties.size.height(); ++row) {
+        const int line_y = row * _pixelSize.height() * 8;
+        painter.drawLine(0, line_y, total_width, line_y);
+    }
+}
+
+void BigCharWidget::paintFocus(QPainter& painter)
+{
+    if (!hasFocus()) {
+        return;
+    }
+
+    QPen focus_pen;
+    focus_pen.setColor({ 149, 195, 244, 255 });
+    focus_pen.setWidth(3);
+    focus_pen.setStyle(Qt::SolidLine);
+    painter.setPen(focus_pen);
+
+    const int total_width = _tileProperties.size.width() * _pixelSize.width() * 8;
+    const int total_height = _tileProperties.size.height() * _pixelSize.height() * 8;
+
+    painter.drawLine(0, 0, 0, total_height);
+    painter.drawLine(total_width, 0, total_width, total_height);
+    painter.drawLine(0, 0, total_width, 0);
+    painter.drawLine(0, total_height, total_width, total_height);
+}
+
+void BigCharWidget::recalculatePixelSize() noexcept
+{
+    const int max_tile_dim = std::max({ 1, _tileProperties.size.width(), _tileProperties.size.height() });
+    const int min_widget_dim = std::min(size().width(), size().height());
+    const int pixel_edge = std::max(1, min_widget_dim / (8 * max_tile_dim));
+    _pixelSize = QSize(pixel_edge, pixel_edge);
+}
+
+bool BigCharWidget::maybeSave()
+{
+    if (_state == nullptr || !_state->isModified()) {
+        return true;
+    }
+
+    const QMessageBox::StandardButton button_choice = QMessageBox::warning(
+        this,
+        tr("Application"),
+        tr("There are unsaved changes.\n"
+           "Do you want to save your changes?"),
+        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+
+    if (button_choice == QMessageBox::Save) {
+        // Pass _state.data() explicitly rather than relying on activeSubWindow() so
+        // closing a background MDI tab never saves the wrong project.
+        return MainWindow::getInstance()->saveDocument(_state.data());
+    }
+    if (button_choice == QMessageBox::Cancel) {
+        return false;
+    }
+    return true;
+}
+
+void BigCharWidget::paintPixel(int pixel_x, int pixel_y, int pen)
+{
+    if (_state == nullptr) {
+        return;
+    }
+
+    if (_state->tileGetPen(_tileIndex, QPoint(pixel_x, pixel_y)) != pen) {
+        int effective_pen = pen;
+        if (!_state->shouldBeDisplayedInMulticolor2(_tileIndex) && effective_pen != 0) {
+            effective_pen = 1;
+        }
+        _state->tilePaint(_tileIndex, QPoint(pixel_x, pixel_y), effective_pen, _commandMergeable);
+    }
+
+    update();
+}
+
+void BigCharWidget::cyclePixel(int pixel_x, int pixel_y)
+{
+    if (_state == nullptr) {
+        return;
+    }
+
+    const int current_pen = std::clamp(_state->tileGetPen(_tileIndex, QPoint(pixel_x, pixel_y)), 0, 3);
+
+    static constexpr std::array<int, 4> kNextPenMulticolor = {
+        State::PEN_FOREGROUND,
+        State::PEN_MULTICOLOR2,
+        State::PEN_BACKGROUND,
+        State::PEN_MULTICOLOR1,
+    };
+    static constexpr std::array<int, 2> kNextPenHiRes = {
+        State::PEN_FOREGROUND,
+        State::PEN_BACKGROUND,
+    };
+
+    const int next_pen = _state->shouldBeDisplayedInMulticolor2(_tileIndex)
+        ? kNextPenMulticolor[static_cast<size_t>(current_pen)]
+        : kNextPenHiRes[static_cast<size_t>(current_pen & 1)];
+
+    paintPixel(pixel_x, pixel_y, next_pen);
 }

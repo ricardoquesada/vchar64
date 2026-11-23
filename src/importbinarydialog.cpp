@@ -14,83 +14,132 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file importbinarydialog.cpp
- * @brief Modal dialog for importing raw binary charset, screen-map, and per-tile color dumps.
- *
- * Assembles a new 40-column `State` document using `std::unique_ptr<State>` RAII,
- * computes ceiling map row counts clamped to `State::kMaxMapDim` so trailing map
- * bytes are preserved, masks imported color bytes to 4-bit C64 indices (`& 0x0FU`),
- * and transfers document ownership via `MainWindow::adoptDocument()`.
- */
+// Modal dialog for importing raw binary charset, screen-map, and per-tile color dumps.
+//
+// Assembles a new 40-column State document using std::unique_ptr<State> RAII,
+// computes ceiling map row counts clamped to State::kMaxMapDim so trailing map
+// bytes are preserved, masks imported color bytes to 4-bit C64 indices (& 0x0FU),
+// and transfers document ownership via MainWindow::adoptDocument().
 
 #include "importbinarydialog.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <memory>
+#include <utility>
 #include <vector>
 
+#include <QByteArray>
 #include <QDialogButtonBox>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFormLayout>
 #include <QHBoxLayout>
+#include <QIODevice>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSize>
 #include <QVBoxLayout>
 
 #include "mainwindow.h"
 #include "preferences.h"
 #include "state.h"
 
+namespace {
+
+// Appends a labeled file-path input row with a Browse button to `form_layout`,
+// wiring click and text-change signals back to `dialog`.
+void AddFileRow(
+    ImportBinaryDialog* dialog,
+    QFormLayout* form_layout,
+    const QString& label_text,
+    const QString& browse_button_text,
+    QLineEdit*& line_edit,
+    void (ImportBinaryDialog::*browse_slot)(),
+    void (ImportBinaryDialog::*text_changed_slot)())
+{
+    auto* row_layout = new QHBoxLayout();
+    line_edit = new QLineEdit(dialog);
+    auto* browse_button = new QPushButton(browse_button_text, dialog);
+    row_layout->addWidget(line_edit);
+    row_layout->addWidget(browse_button);
+    form_layout->addRow(new QLabel(label_text, dialog), row_layout);
+
+    QObject::connect(browse_button, &QPushButton::clicked, dialog, browse_slot);
+    QObject::connect(line_edit, &QLineEdit::textChanged, dialog, text_changed_slot);
+}
+
+// Prompts the user to pick a file starting in the last used directory and stores
+// any non-empty selection in `target_edit`.
+void BrowseFileIntoLineEdit(
+    QWidget* parent,
+    const QString& dialog_title,
+    const QString& file_filter,
+    QLineEdit* target_edit)
+{
+    const QString selected_filename = QFileDialog::getOpenFileName(
+        parent,
+        dialog_title,
+        Preferences::getInstance().getLastUsedDirectory(),
+        file_filter);
+    if (!selected_filename.isEmpty()) {
+        target_edit->setText(selected_filename);
+    }
+}
+
+} // namespace
+
 ImportBinaryDialog::ImportBinaryDialog(QWidget* parent)
     : QDialog(parent)
 {
     setWindowTitle(tr("Import Binary Files"));
 
-    auto* mainLayout = new QVBoxLayout(this);
-    auto* formLayout = new QFormLayout();
+    auto* main_layout = new QVBoxLayout(this);
+    auto* form_layout = new QFormLayout();
+    const QString browse_text = tr("Browse...");
 
-    auto createRow = [this, formLayout](
-                         const QString& labelText,
-                         QLineEdit*& lineEdit,
-                         QPushButton*& button,
-                         void (ImportBinaryDialog::*slot)()) {
-        auto* hLayout = new QHBoxLayout();
-        lineEdit = new QLineEdit(this);
-        button = new QPushButton(tr("Browse..."), this);
-        hLayout->addWidget(lineEdit);
-        hLayout->addWidget(button);
-        formLayout->addRow(new QLabel(labelText, this), hLayout);
+    AddFileRow(
+        this,
+        form_layout,
+        tr("Charset File:"),
+        browse_text,
+        _lineEditCharset,
+        &ImportBinaryDialog::onBrowseCharset,
+        &ImportBinaryDialog::onLineEditsChanged);
+    AddFileRow(
+        this,
+        form_layout,
+        tr("Tile Map File:"),
+        browse_text,
+        _lineEditMap,
+        &ImportBinaryDialog::onBrowseMap,
+        &ImportBinaryDialog::onLineEditsChanged);
+    AddFileRow(
+        this,
+        form_layout,
+        tr("Tile Colors File (Optional):"),
+        browse_text,
+        _lineEditColors,
+        &ImportBinaryDialog::onBrowseColors,
+        &ImportBinaryDialog::onLineEditsChanged);
 
-        connect(button, &QPushButton::clicked, this, slot);
-        connect(lineEdit, &QLineEdit::textChanged, this, &ImportBinaryDialog::onLineEditsChanged);
-    };
+    main_layout->addLayout(form_layout);
 
-    QPushButton* btnCharset = nullptr;
-    QPushButton* btnMap = nullptr;
-    QPushButton* btnColors = nullptr;
-
-    createRow(tr("Charset File:"), _lineEditCharset, btnCharset, &ImportBinaryDialog::onBrowseCharset);
-    createRow(tr("Tile Map File:"), _lineEditMap, btnMap, &ImportBinaryDialog::onBrowseMap);
-    createRow(tr("Tile Colors File (Optional):"), _lineEditColors, btnColors, &ImportBinaryDialog::onBrowseColors);
-
-    mainLayout->addLayout(formLayout);
-
-    auto* buttonBox = new QDialogButtonBox(
+    auto* button_box = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
         Qt::Horizontal,
         this);
-    mainLayout->addWidget(buttonBox);
+    main_layout->addWidget(button_box);
 
-    _btnImport = buttonBox->button(QDialogButtonBox::Ok);
+    _btnImport = button_box->button(QDialogButtonBox::Ok);
     _btnImport->setText(tr("Import"));
 
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &ImportBinaryDialog::onImport);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(button_box, &QDialogButtonBox::accepted, this, &ImportBinaryDialog::onImport);
+    connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     updateImportButtonState();
 }
@@ -99,41 +148,80 @@ ImportBinaryDialog::~ImportBinaryDialog() = default;
 
 void ImportBinaryDialog::onBrowseCharset()
 {
-    const QString filter = tr("All files (*.*)");
-    const QString fn = QFileDialog::getOpenFileName(
-        this,
-        tr("Select Charset File"),
-        Preferences::getInstance().getLastUsedDirectory(),
-        filter);
-    if (!fn.isEmpty()) {
-        _lineEditCharset->setText(fn);
-    }
+    BrowseFileIntoLineEdit(this, tr("Select Charset File"), tr("All files (*.*)"), _lineEditCharset);
 }
 
 void ImportBinaryDialog::onBrowseMap()
 {
-    const QString filter = tr("All files (*.*)");
-    const QString fn = QFileDialog::getOpenFileName(
-        this,
-        tr("Select Tile Map File"),
-        Preferences::getInstance().getLastUsedDirectory(),
-        filter);
-    if (!fn.isEmpty()) {
-        _lineEditMap->setText(fn);
-    }
+    BrowseFileIntoLineEdit(this, tr("Select Tile Map File"), tr("All files (*.*)"), _lineEditMap);
 }
 
 void ImportBinaryDialog::onBrowseColors()
 {
-    const QString filter = tr("All files (*.*)");
-    const QString fn = QFileDialog::getOpenFileName(
-        this,
-        tr("Select Tile Colors File"),
-        Preferences::getInstance().getLastUsedDirectory(),
-        filter);
-    if (!fn.isEmpty()) {
-        _lineEditColors->setText(fn);
+    BrowseFileIntoLineEdit(this, tr("Select Tile Colors File"), tr("All files (*.*)"), _lineEditColors);
+}
+
+void ImportBinaryDialog::onImport()
+{
+    QFile charset_file(_lineEditCharset->text());
+    if (!charset_file.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(this, tr("Error"), tr("Could not open charset file."));
+        return;
     }
+    const QByteArray charset_data = charset_file.readAll();
+
+    QFile map_file(_lineEditMap->text());
+    if (!map_file.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(this, tr("Error"), tr("Could not open map file."));
+        return;
+    }
+    const QByteArray map_data = map_file.readAll();
+
+    QByteArray colors_data;
+    if (!_lineEditColors->text().isEmpty()) {
+        QFile colors_file(_lineEditColors->text());
+        if (!colors_file.open(QIODevice::ReadOnly)) {
+            QMessageBox::critical(this, tr("Error"), tr("Could not open colors file."));
+            return;
+        }
+        colors_data = colors_file.readAll();
+    }
+
+    const QFileInfo file_info(_lineEditCharset->text());
+    Preferences::getInstance().setLastUsedDirectory(file_info.absolutePath());
+
+    // Compute ceiling row count so trailing map bytes are preserved and clamp against kMaxMapDim.
+    const int rows = std::clamp(
+        static_cast<int>((map_data.size() + 39) / 40),
+        1,
+        State::kMaxMapDim);
+    const QSize map_size(40, rows);
+
+    auto state = std::make_unique<State>(file_info.filePath(), map_size);
+
+    state->resetCharsetBuffer();
+    state->setCharsetBytes(
+        reinterpret_cast<const uint8_t*>(charset_data.constData()),
+        static_cast<size_t>(charset_data.size()));
+
+    std::vector<uint8_t> map_cells(static_cast<size_t>(map_size.width() * map_size.height()), 0U);
+    const size_t copy_map_bytes = std::min(static_cast<size_t>(map_data.size()), map_cells.size());
+    std::copy_n(reinterpret_cast<const uint8_t*>(map_data.constData()), copy_map_bytes, map_cells.begin());
+    (void)state->replaceMap(map_size, std::move(map_cells));
+
+    State::TileColorsBuffer colors { };
+    colors.fill(State::TILE_COLORS_DEFAULT);
+    const size_t copy_color_bytes = std::min(static_cast<size_t>(colors_data.size()), colors.size());
+    for (size_t i = 0U; i < copy_color_bytes; ++i) {
+        colors[i] = static_cast<uint8_t>(static_cast<uint8_t>(colors_data[static_cast<qsizetype>(i)]) & 0x0FU);
+    }
+    state->setTileColorsDirect(colors.data(), colors.size());
+
+    state->setMulticolorModeDirect(false);
+    state->setForegroundColorModeDirect(State::FOREGROUND_COLOR_PER_TILE);
+
+    MainWindow::getInstance()->adoptDocument(std::move(state));
+    accept();
 }
 
 void ImportBinaryDialog::onLineEditsChanged()
@@ -143,69 +231,6 @@ void ImportBinaryDialog::onLineEditsChanged()
 
 void ImportBinaryDialog::updateImportButtonState()
 {
-    const bool canImport = !_lineEditCharset->text().isEmpty() && !_lineEditMap->text().isEmpty();
-    _btnImport->setEnabled(canImport);
-}
-
-void ImportBinaryDialog::onImport()
-{
-    QFile charsetFile(_lineEditCharset->text());
-    if (!charsetFile.open(QIODevice::ReadOnly)) {
-        QMessageBox::critical(this, tr("Error"), tr("Could not open charset file."));
-        return;
-    }
-    const QByteArray charsetData = charsetFile.readAll();
-
-    QFile mapFile(_lineEditMap->text());
-    if (!mapFile.open(QIODevice::ReadOnly)) {
-        QMessageBox::critical(this, tr("Error"), tr("Could not open map file."));
-        return;
-    }
-    const QByteArray mapData = mapFile.readAll();
-
-    QByteArray colorsData;
-    if (!_lineEditColors->text().isEmpty()) {
-        QFile colorsFile(_lineEditColors->text());
-        if (!colorsFile.open(QIODevice::ReadOnly)) {
-            QMessageBox::critical(this, tr("Error"), tr("Could not open colors file."));
-            return;
-        }
-        colorsData = colorsFile.readAll();
-    }
-
-    const QFileInfo info(_lineEditCharset->text());
-    Preferences::getInstance().setLastUsedDirectory(info.absolutePath());
-
-    // Compute ceiling row count so trailing map bytes are preserved and clamp against kMaxMapDim.
-    const int rows = std::clamp(
-        static_cast<int>((mapData.size() + 39) / 40),
-        1,
-        State::kMaxMapDim);
-    const QSize mapSize(40, rows);
-
-    auto state = std::make_unique<State>(info.filePath(), mapSize);
-
-    state->resetCharsetBuffer();
-    state->setCharsetBytes(
-        reinterpret_cast<const uint8_t*>(charsetData.constData()),
-        static_cast<size_t>(charsetData.size()));
-
-    std::vector<uint8_t> mapCells(static_cast<size_t>(mapSize.width() * mapSize.height()), 0U);
-    const size_t copyMapBytes = std::min(static_cast<size_t>(mapData.size()), mapCells.size());
-    std::copy_n(reinterpret_cast<const uint8_t*>(mapData.constData()), copyMapBytes, mapCells.begin());
-    (void)state->replaceMap(mapSize, std::move(mapCells));
-
-    State::TileColorsBuffer colors { };
-    colors.fill(State::TILE_COLORS_DEFAULT);
-    const size_t copyColors = std::min(static_cast<size_t>(colorsData.size()), colors.size());
-    for (size_t i = 0; i < copyColors; ++i) {
-        colors[i] = static_cast<uint8_t>(static_cast<uint8_t>(colorsData[static_cast<qsizetype>(i)]) & 0x0FU);
-    }
-    state->setTileColorsDirect(colors.data(), colors.size());
-
-    state->setMulticolorModeDirect(false);
-    state->setForegroundColorModeDirect(State::FOREGROUND_COLOR_PER_TILE);
-
-    MainWindow::getInstance()->adoptDocument(std::move(state));
-    accept();
+    const bool can_import = !_lineEditCharset->text().isEmpty() && !_lineEditMap->text().isEmpty();
+    _btnImport->setEnabled(can_import);
 }

@@ -14,10 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file charsetimagecache.cpp
- * @brief Implementation of `CharsetImageCache` staleness checks and rebuild.
- */
+// Implements CharsetImageCache staleness checks and glyph-sheet rebuilds.
 
 #include "core/charsetimagecache.h"
 
@@ -27,14 +24,14 @@ limitations under the License.
 
 const QImage& CharsetImageCache::sync(const State& state)
 {
-    const int activePalette = Palette::activePalette();
-    const bool stale = _dirty
+    const int active_palette = Palette::activePalette();
+    const bool is_stale = _dirty
         || _image.isNull()
         || _cachedState != &state
-        || _cachedPaletteIndex != activePalette;
+        || _cachedPaletteIndex != active_palette;
 
-    _lastSyncRebuilt = stale;
-    if (!stale) {
+    _lastSyncRebuilt = is_stale;
+    if (!is_stale) {
         return _image;
     }
 
@@ -43,7 +40,7 @@ const QImage& CharsetImageCache::sync(const State& state)
     _image = DocumentImageRenderer::renderCharset(state, false)
                  .convertToFormat(QImage::Format_ARGB32_Premultiplied);
     _cachedState = &state;
-    _cachedPaletteIndex = activePalette;
+    _cachedPaletteIndex = active_palette;
     _dirty = false;
     return _image;
 }

@@ -14,31 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ****************************************************************************/
 
-/**
- * @file preferences.cpp
- * @brief Implementation of the GUI-layer `QSettings` persistence facade.
- *
- * Clamps persisted palette indices to `[0, Palette::kPaletteCount - 1]` and
- * update-check day deltas to `[0, 36500]` to guard against corrupted or out-of-range
- * user configuration entries.
- */
+// GUI-layer QSettings persistence facade.
+//
+// Clamps persisted palette indices to [0, Palette::kPaletteCount - 1] and update-check
+// day deltas to [0, 36500] to guard against corrupted or out-of-range configuration entries.
 
 #include "preferences.h"
 
 #include <algorithm>
 
 #include <QColor>
+#include <QDate>
 #include <QDateTime>
 #include <QDebug>
 #include <QDir>
+#include <QLatin1String>
 #include <QTime>
+#include <QVariant>
 
 #include "palette.h"
 
 Preferences& Preferences::getInstance()
 {
-    static Preferences prefs;
-    return prefs;
+    static Preferences instance;
+    return instance;
 }
 
 Preferences::Preferences()
@@ -52,14 +51,14 @@ Preferences::~Preferences() = default;
 
 void Preferences::readSettings()
 {
-    const int rawPalette = _settings.value(QLatin1String("palette"), 0).toInt();
-    _palette = std::clamp(rawPalette, 0, Palette::kPaletteCount - 1);
+    const int raw_palette = _settings.value(QLatin1String("palette"), 0).toInt();
+    _palette = std::clamp(raw_palette, 0, Palette::kPaletteCount - 1);
 }
 
 void Preferences::setGridColor(const QColor& color)
 {
-    const QVariant variantColor = color;
-    _settings.setValue(QLatin1String("UI/gridColor"), variantColor);
+    const QVariant variant_color = color;
+    _settings.setValue(QLatin1String("UI/gridColor"), variant_color);
 }
 
 QColor Preferences::getGridColor() const
@@ -67,9 +66,9 @@ QColor Preferences::getGridColor() const
     return _settings.value(QLatin1String("UI/gridColor"), QColor(0, 128, 0)).value<QColor>();
 }
 
-void Preferences::setOpenLastFiles(bool enableIt)
+void Preferences::setOpenLastFiles(bool enable_it)
 {
-    _settings.setValue(QLatin1String("Startup/OpenLastFiles"), enableIt);
+    _settings.setValue(QLatin1String("Startup/OpenLastFiles"), enable_it);
 }
 
 bool Preferences::getOpenLastFiles() const
@@ -77,9 +76,9 @@ bool Preferences::getOpenLastFiles() const
     return _settings.value(QLatin1String("Startup/OpenLastFiles"), true).toBool();
 }
 
-void Preferences::setCheckUpdates(bool enableIt)
+void Preferences::setCheckUpdates(bool enable_it)
 {
-    _settings.setValue(QLatin1String("Install/CheckForUpdates"), enableIt);
+    _settings.setValue(QLatin1String("Install/CheckForUpdates"), enable_it);
 }
 
 bool Preferences::getCheckUpdates() const
@@ -103,12 +102,11 @@ QDateTime Preferences::getLastUpdateCheckDate() const
 int Preferences::getLastTimeUpdateCheck() const
 {
     const QDateTime now = QDateTime::currentDateTime();
-    const QDateTime lastTime = getLastUpdateCheckDate();
-    const qint64 days = lastTime.daysTo(now);
-    return static_cast<int>(std::clamp<qint64>(days, 0, 36500));
+    const QDateTime last_check_time = getLastUpdateCheckDate();
+    const qint64 days_elapsed = last_check_time.daysTo(now);
+    return static_cast<int>(std::clamp<qint64>(days_elapsed, 0, 36500));
 }
 
-// default geometry / state
 void Preferences::setMainWindowDefaultGeometry(const QByteArray& geometry)
 {
     _settings.setValue(QLatin1String("MainWindow/defaultGeometry"), geometry);
@@ -129,7 +127,6 @@ QByteArray Preferences::getMainWindowDefaultState() const
     return _settings.value(QLatin1String("MainWindow/defaultWindowState")).toByteArray();
 }
 
-// user geometry / state
 void Preferences::setMainWindowGeometry(const QByteArray& geometry)
 {
     _settings.setValue(QLatin1String("MainWindow/geometry"), geometry);
@@ -150,7 +147,6 @@ QByteArray Preferences::getMainWindowState() const
     return _settings.value(QLatin1String("MainWindow/windowState")).toByteArray();
 }
 
-// palette index
 void Preferences::setPalette(int palette)
 {
     _palette = std::clamp(palette, 0, Palette::kPaletteCount - 1);
@@ -159,11 +155,10 @@ void Preferences::setPalette(int palette)
 
 int Preferences::getPalette() const
 {
-    const int rawPalette = _settings.value(QLatin1String("palette"), _palette).toInt();
-    return std::clamp(rawPalette, 0, Palette::kPaletteCount - 1);
+    const int raw_palette = _settings.value(QLatin1String("palette"), _palette).toInt();
+    return std::clamp(raw_palette, 0, Palette::kPaletteCount - 1);
 }
 
-// recent files
 void Preferences::setRecentFiles(const QStringList& filenames)
 {
     _settings.setValue(QLatin1String("recentFiles/fileNames"), filenames);
@@ -174,7 +169,6 @@ QStringList Preferences::getRecentFiles() const
     return _settings.value(QLatin1String("recentFiles/fileNames")).toStringList();
 }
 
-// session files
 void Preferences::setSessionFiles(const QStringList& filenames)
 {
     _settings.setValue(QLatin1String("sessionFiles/fileNames"), filenames);
@@ -185,7 +179,6 @@ QStringList Preferences::getSessionFiles() const
     return _settings.value(QLatin1String("sessionFiles/fileNames")).toStringList();
 }
 
-// last dir
 void Preferences::setLastUsedDirectory(const QString& path)
 {
     _settings.setValue(QLatin1String("dir/lastdir"), path);
@@ -196,7 +189,6 @@ QString Preferences::getLastUsedDirectory() const
     return _settings.value(QLatin1String("dir/lastdir"), QDir::homePath()).toString();
 }
 
-// open filter
 void Preferences::setLastUsedOpenFilter(const QString& filter)
 {
     _settings.setValue(QLatin1String("dir/lastUsedOpenFilter"), filter);
@@ -207,10 +199,9 @@ QString Preferences::getLastUsedOpenFilter() const
     return _settings.value(QLatin1String("dir/lastUsedOpenFilter"), tr("All supported files")).toString();
 }
 
-// server IP Address
-void Preferences::setServerIPAddress(const QString& ipaddress)
+void Preferences::setServerIPAddress(const QString& ip_address)
 {
-    _settings.setValue(QLatin1String("server/ipaddress"), ipaddress);
+    _settings.setValue(QLatin1String("server/ipaddress"), ip_address);
 }
 
 QString Preferences::getServerIPAddress() const
