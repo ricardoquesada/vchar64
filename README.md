@@ -12,54 +12,57 @@ An editor for the Commodore 64/128
 
 Tailored for my own needs, but feel free to send patches, to open bugs, etc.
 
-
 ## Features
 
-* Char editing:
-    * Cut, Copy & Paste
-    * Clear
-    * Invert
-    * Flip Horizontally, Vertically
-    * Rotate
-    * Shift Up, Down, Left, Right
-    * Undo, Redo
-* Tile support:
-    * From 1x1 to 8x8
-    * Custom Distance in chars between tiles
-* Map support
-* Imports CharPad 1.8 and 2.0 projects
-* Imports Koala image files: [Demo Video](https://www.youtube.com/watch?v=wIBTINBCngs)
-* Imports VICE snapshot images
-* Exports to Assembly, C (`const uint8_t[]`), Raw, PRG, and PNG
-* Emulates different palettes: Pepto, VICE, Colodore, Frodo, CCS64, etc.
-* Live Preview mode:
-    * [TCP/IP server](https://github.com/ricardoquesada/vchar64/blob/master/server/README.md) support. [Demo Video](https://www.youtube.com/watch?v=yNCK_wZbo40)
-* Keyboard shortcuts for almost all actions
+- VIC-II character modes:
+  - Hi-Res
+  - Multicolor
+  - Extended Color Mode
+- Char editing:
+  - Cut, Copy & Paste
+  - Clear
+  - Invert
+  - Flip Horizontally, Vertically
+  - Rotate
+  - Shift Up, Down, Left, Right
+  - Undo, Redo
+- Tile support:
+  - From 1x1 to 8x8
+  - Custom Distance in chars between tiles
+- Map support
+- Imports CharPad 1.8 and 2.0 projects
+- Imports Koala image files: [Demo Video](https://www.youtube.com/watch?v=wIBTINBCngs)
+- Imports VICE snapshot images
+- Exports to Assembly, C (`const uint8_t[]`), Raw, PRG, and PNG
+- Emulates different palettes: Pepto, VICE, Colodore, Frodo, CCS64, etc.
+- Live Preview mode:
+  - [TCP/IP server](https://github.com/ricardoquesada/vchar64/blob/master/server/README.md) support. [Demo Video](https://www.youtube.com/watch?v=yNCK_wZbo40)
+- Keyboard shortcuts for almost all actions
 
 ## Roadmap
 
 In no particular order:
 
-* Convert to PETSCII
-* Tile: add Color Per Char (currently it supports Color Per Tile or Global)
-* Tile: arbitrary composition of tiles
-* Character / Tile animation support
-* Sprite
-   * Sprite editing
-   * Sprite animation
-* Level editor
+- Convert to PETSCII
+- Tile: add Color Per Char (currently it supports Color Per Tile or Global)
+- Tile: arbitrary composition of tiles
+- Character / Tile animation support
+- Sprite
+  - Sprite editing
+  - Sprite animation
+- Level editor
 
 ## Requirements
 
-* **Qt 6.8 or later** (Qt 5 is no longer supported as of version 1.0)
-* CMake 3.16+
-* C++20 compatible compiler
+- **Qt 6.8 or later** (Qt 5 is no longer supported as of version 1.0)
+- CMake 3.16+
+- C++20 compatible compiler
 
 ## How to compile it
 
 ### Install Qt
 
-* Download [Qt Creator Community Edition 6.8](http://www.qt.io/download/) or newer (doesn't work with older versions)
+- Download [Qt Creator Community Edition 6.8](http://www.qt.io/download/) or newer (doesn't work with older versions)
 
 ### Command Line
 
@@ -85,20 +88,20 @@ $ cmake --build . --target release_translations
 
 ### Using Qt Creator
 
-* Open `CMakeLists.txt` with Qt Creator
-* Configure the project for "Desktop"
-* Build & Run
+- Open `CMakeLists.txt` with Qt Creator
+- Configure the project for "Desktop"
+- Build & Run
 
 ## Supported platforms
 
-* Linux (tested on Linux Arch)
-* Mac (tested on v26.2)
-* Windows (tested on Windows 10)
+- Linux (tested on Linux Arch)
+- Mac (tested on v26.2)
+- Windows (tested on Windows 10)
 
 ## Download binaries
 
-* <https://github.com/ricardoquesada/vchar64/releases>
+- <https://github.com/ricardoquesada/vchar64/releases>
 
 ## License
 
-* [Apache v2](http://www.apache.org/licenses/LICENSE-2.0)
+- [Apache v2](http://www.apache.org/licenses/LICENSE-2.0)
