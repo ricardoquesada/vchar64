@@ -43,11 +43,27 @@ namespace {
     if (transparent_background) {
         return qRgba(0, 0, 0, 0);
     }
-    return Palette::getColor(state.getColorForPen(State::PEN_BACKGROUND)).rgba();
+    return Palette::getColor(state.getGlobalColorForPen(State::PEN_BACKGROUND)).rgba();
+}
+
+// Returns the straight ARGB32 background color for `char_index`, keeping ECM
+// background banks #1..#3 ($D022..$D024) opaque even when `transparent_background` is true.
+[[nodiscard]] QRgb ResolveCharBackgroundRgb(
+    const State& state,
+    int char_index,
+    bool transparent_background)
+{
+    const int bank = state.isExtendedColorMode()
+        ? static_cast<int>((static_cast<unsigned int>(char_index) >> 6U) & 0x03U)
+        : 0;
+    if (transparent_background && bank == 0) {
+        return qRgba(0, 0, 0, 0);
+    }
+    return Palette::getColor(state.getBackgroundColorForChar(char_index)).rgba();
 }
 
 // Rasterizes a single 8x8 glyph (`char_index` in 0..255) into `image` at `(dest_pixel_x, dest_pixel_y)`,
-// applying the VIC-II Hi-Res or Multicolor decoding mode of `tile_index`.
+// applying the VIC-II Hi-Res, Multicolor, or Extended Color decoding mode of `tile_index`.
 void DrawCharToImage(
     const State& state,
     QImage& image,
@@ -62,11 +78,12 @@ void DrawCharToImage(
     }
 
     const State::CharsetBuffer& charset = state.charset();
+    const bool is_ecm = state.isExtendedColorMode();
     const bool is_multicolor = state.shouldBeDisplayedInMulticolor2(tile_index);
 
-    const QRgb background_rgb = ResolveBackgroundRgb(state, transparent_background);
-    const QRgb multicolor1_rgb = Palette::getColor(state.getColorForPen(State::PEN_MULTICOLOR1)).rgba();
-    const QRgb multicolor2_rgb = Palette::getColor(state.getColorForPen(State::PEN_MULTICOLOR2)).rgba();
+    const QRgb background_rgb = ResolveCharBackgroundRgb(state, char_index, transparent_background);
+    const QRgb multicolor1_rgb = Palette::getColor(state.getGlobalColorForPen(State::PEN_MULTICOLOR1)).rgba();
+    const QRgb multicolor2_rgb = Palette::getColor(state.getGlobalColorForPen(State::PEN_MULTICOLOR2)).rgba();
 
     const int raw_foreground = state.getColorForPen(State::PEN_FOREGROUND, tile_index);
     const QRgb foreground_hires_rgb = Palette::getColor(raw_foreground).rgba();
@@ -79,7 +96,10 @@ void DrawCharToImage(
         foreground_multicolor_rgb,
     };
 
-    const size_t char_byte_base = static_cast<size_t>(char_index) * 8U;
+    const int physical_char = is_ecm
+        ? static_cast<int>(static_cast<unsigned int>(char_index) & 0x3FU)
+        : char_index;
+    const size_t char_byte_base = static_cast<size_t>(physical_char) * 8U;
     for (int row = 0; row < 8; ++row) {
         const uint8_t row_byte = charset[char_byte_base + static_cast<size_t>(row)];
         QRgb* const scanline = static_cast<QRgb*>(static_cast<void*>(image.scanLine(dest_pixel_y + row)));

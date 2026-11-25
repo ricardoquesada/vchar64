@@ -164,7 +164,7 @@ const QColor& Palette::getColor(int color_index)
 
 const QColor& Palette::getColorForPen(const State* state, int pen)
 {
-    static constexpr std::array<int, 4> kDefaultColors = { 1, 5, 7, 11 };
+    static constexpr std::array<int, State::PEN_MAX> kDefaultColors = { 1, 5, 7, 11, 6 };
     const int clamped_pen = std::clamp(pen, 0, State::PEN_MAX - 1);
     int color_index = kDefaultColors[static_cast<size_t>(clamped_pen)];
 

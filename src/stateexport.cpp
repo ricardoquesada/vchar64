@@ -96,10 +96,11 @@ vchar64::Result<qint64> StateExport::saveVChar64(
                 .arg(filename, save_file.errorString()));
     }
 
-    // Value-initialize to guarantee reserved[2] == {0, 0} (zero stack-padding leak).
+    // Value-initialize to guarantee zero stack-padding leak in bg_color_3 / reserved.
     StateImport::VChar64Header header { };
     std::memcpy(header.id, "VChar", 5);
-    header.version = 3U;
+    const bool is_ecm = state.isExtendedColorMode();
+    header.version = is_ecm ? 4U : 3U;
 
     for (int pen = 0; pen < 4; ++pen) {
         header.colors[pen] = static_cast<uint8_t>(
@@ -113,7 +114,7 @@ vchar64::Result<qint64> StateExport::saveVChar64(
     header.tile_width = static_cast<uint8_t>(tile_props.size.width());
     header.tile_height = static_cast<uint8_t>(tile_props.size.height());
     header.char_interleaved = static_cast<uint8_t>(tile_props.interleaved);
-    header.vic_res = state.isMulticolorMode() ? 1U : 0U;
+    header.vic_res = static_cast<uint8_t>(state.characterMode());
     header.color_mode = static_cast<uint8_t>(state.getForegroundColorMode());
     header.map_width = qToLittleEndian<quint16>(static_cast<quint16>(map_dims.width()));
     header.map_height = qToLittleEndian<quint16>(static_cast<quint16>(map_dims.height()));
@@ -122,9 +123,16 @@ vchar64::Result<qint64> StateExport::saveVChar64(
     header.address_charset = qToLittleEndian<quint16>(export_props.addresses[0]);
     header.address_map = qToLittleEndian<quint16>(export_props.addresses[1]);
     header.address_attribs = qToLittleEndian<quint16>(export_props.addresses[2]);
-    header.export_features = export_props.features;
+    const uint8_t valid_feature_mask = is_ecm
+        ? static_cast<uint8_t>(State::EXPORT_FEATURE_VALID_MASK)
+        : static_cast<uint8_t>(State::EXPORT_FEATURE_ALL);
+    header.export_features = static_cast<uint8_t>(export_props.features & valid_feature_mask);
     header.export_format = static_cast<uint8_t>(export_props.format);
     header.keyboard_mapping = static_cast<uint8_t>(state.getKeyboardMapping());
+    header.bg_color_3 = is_ecm
+        ? static_cast<uint8_t>(static_cast<unsigned int>(state.getGlobalColorForPen(State::PEN_BACKGROUND3)) & 0x0FU)
+        : 0U;
+    header.reserved = 0U;
 
     const State::CharsetBuffer& charset_buf = state.charset();
     const State::TileColorsBuffer& colors_buf = state.tileColors();

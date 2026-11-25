@@ -19,7 +19,10 @@ limitations under the License.
 #include "tilepropertiesdialog.h"
 #include "ui_tilepropertiesdialog.h"
 
+#include <algorithm>
+
 #include <QSize>
+#include <QSpinBox>
 
 #include "state.h"
 
@@ -33,7 +36,15 @@ TilePropertiesDialog::TilePropertiesDialog(State* state, QWidget* parent)
     const State::TileProperties properties = _state->getTileProperties();
     ui->spinBoxSizeX->setValue(properties.size.width());
     ui->spinBoxSizeY->setValue(properties.size.height());
+    updateInterleavedMax();
     ui->spinBoxInterleaved->setValue(properties.interleaved);
+
+    connect(ui->spinBoxSizeX, &QSpinBox::valueChanged, this, [this](int) {
+        updateInterleavedMax();
+    });
+    connect(ui->spinBoxSizeY, &QSpinBox::valueChanged, this, [this](int) {
+        updateInterleavedMax();
+    });
 }
 
 TilePropertiesDialog::~TilePropertiesDialog()
@@ -56,12 +67,20 @@ void TilePropertiesDialog::on_buttonBox_accepted()
 
 void TilePropertiesDialog::on_spinBoxSizeX_editingFinished()
 {
-    const int tile_width = ui->spinBoxSizeX->value();
-    const int tile_height = ui->spinBoxSizeY->value();
-    ui->spinBoxInterleaved->setMaximum(256 / (tile_width * tile_height));
+    updateInterleavedMax();
 }
 
 void TilePropertiesDialog::on_spinBoxSizeY_editingFinished()
 {
-    on_spinBoxSizeX_editingFinished();
+    updateInterleavedMax();
+}
+
+void TilePropertiesDialog::updateInterleavedMax()
+{
+    const int tile_width = std::max(1, ui->spinBoxSizeX->value());
+    const int tile_height = std::max(1, ui->spinBoxSizeY->value());
+    const int char_budget = (_state != nullptr && _state->isExtendedColorMode())
+        ? State::ECM_CHAR_COUNT
+        : 256;
+    ui->spinBoxInterleaved->setMaximum(std::max(1, char_budget / (tile_width * tile_height)));
 }

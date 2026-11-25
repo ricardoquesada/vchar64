@@ -98,6 +98,8 @@ public slots:
     void bytesUpdated(int pos, int count);
     void tileUpdated(int tileIndex);
     void colorPropertiesUpdated(int pen);
+    /** @brief Sends VIC-II `$D011`/`$D016` mode pokes in hardware-safe order on character mode changes. */
+    void characterModeUpdated(State::CharacterMode mode);
     void multicolorModeUpdated(bool toggled);
     void tilePropertiesUpdated();
 
@@ -140,6 +142,7 @@ private:
     void enqueueBackgroundColorPackets();
     void enqueueMulticolor1Packet();
     void enqueueMulticolor2Packet();
+    void enqueueBackgroundColor3Packet();
     void enqueueForegroundColorPackets();
     void enqueueColorModePacket();
     void enqueueAllColorPackets();

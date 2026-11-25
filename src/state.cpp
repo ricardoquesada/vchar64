@@ -27,6 +27,7 @@ limitations under the License.
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -125,7 +126,7 @@ constexpr std::array<StartupBanner, 2> kStartupBanners = { {
     return vchar64::Result<void>::ok();
 }
 
-// Writes one pixel (1 bit in Hi-Res, 2-bit pair in Multicolor) for `position`
+// Writes one pixel (1 bit in Hi-Res/ECM, 2-bit pair in Multicolor) for `position`
 // inside the tile rooted at `base_char`. Returns true if `_charset` changed.
 bool WriteTilePixelPen(
     State::CharsetBuffer& charset,
@@ -133,7 +134,8 @@ bool WriteTilePixelPen(
     const State::TileProperties& tile_props,
     const QPoint& position,
     int pen,
-    bool is_multicolor) noexcept
+    bool is_multicolor,
+    bool is_ecm) noexcept
 {
     const int px_x = position.x();
     const int px_y = position.y();
@@ -151,7 +153,10 @@ bool WriteTilePixelPen(
         return false;
     }
 
-    const size_t byte_index = static_cast<size_t>(char_index) * 8U
+    const int physical_char = is_ecm
+        ? static_cast<int>(static_cast<unsigned int>(char_index) & 0x3FU)
+        : char_index;
+    const size_t byte_index = static_cast<size_t>(physical_char) * 8U
         + static_cast<size_t>(bit_index / 8);
     const unsigned int bit_in_row = static_cast<unsigned int>(bit_index % 8);
 
@@ -159,7 +164,8 @@ bool WriteTilePixelPen(
     uint8_t or_mask = 0U;
     if (!is_multicolor) {
         const unsigned int shift = 7U - bit_in_row;
-        const unsigned int bit_val = (pen != 0) ? 1U : 0U;
+        // In 1bpp modes (Hi-Res and ECM), only PEN_FOREGROUND sets bit 1; all background pens clear bit 0.
+        const unsigned int bit_val = (pen == State::PEN_FOREGROUND) ? 1U : 0U;
         and_mask = static_cast<uint8_t>(1U << shift);
         or_mask = static_cast<uint8_t>(bit_val << shift);
     } else {
@@ -214,7 +220,7 @@ void State::copyState(const State& other)
 {
     _totalChars = other._totalChars;
     _mapSize = other._mapSize;
-    _multicolorMode = other._multicolorMode;
+    _characterMode = other._characterMode;
     _foregroundColorMode = other._foregroundColorMode;
     _selectedPen = other._selectedPen;
     _tileProperties = other._tileProperties;
@@ -232,10 +238,10 @@ void State::copyState(const State& other)
 void State::reset()
 {
     _totalChars = 0;
-    _multicolorMode = false;
+    _characterMode = CHARACTER_MODE_HIRES;
     _foregroundColorMode = FOREGROUND_COLOR_GLOBAL;
     _selectedPen = PEN_FOREGROUND;
-    _penColors = { 1U, 5U, 7U, 11U };
+    _penColors = { 1U, 5U, 7U, 11U, 6U };
     _tileProperties = { QSize(1, 1), 1 };
     _charIndex = 0;
     _tileIndex = 0;
@@ -346,7 +352,7 @@ vchar64::Result<void> State::exportRaw(const QString& filename, const ExportProp
         const vchar64::Result<void> status = ToVoidResult(StateExport::saveRaw(
             filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
             _charset.data(),
-            _charset.size()));
+            exportCharsetByteCount(properties)));
         if (!status.isOk()) {
             return status;
         }
@@ -385,7 +391,7 @@ vchar64::Result<void> State::exportPRG(const QString& filename, const ExportProp
         const vchar64::Result<void> status = ToVoidResult(StateExport::savePRG(
             filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
             _charset.data(),
-            _charset.size(),
+            exportCharsetByteCount(properties),
             properties.addresses[0]));
         if (!status.isOk()) {
             return status;
@@ -427,7 +433,7 @@ vchar64::Result<void> State::exportAsm(const QString& filename, const ExportProp
         const vchar64::Result<void> status = ToVoidResult(StateExport::saveAsm(
             filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
             _charset.data(),
-            _charset.size(),
+            exportCharsetByteCount(properties),
             QStringLiteral("charset")));
         if (!status.isOk()) {
             return status;
@@ -469,7 +475,7 @@ vchar64::Result<void> State::exportC(const QString& filename, const ExportProper
         const vchar64::Result<void> status = ToVoidResult(StateExport::saveC(
             filenameFixSuffix(filename, EXPORT_FEATURE_CHARSET),
             _charset.data(),
-            _charset.size(),
+            exportCharsetByteCount(properties),
             QStringLiteral("charset")));
         if (!status.isOk()) {
             return status;
@@ -632,6 +638,9 @@ void State::setColorForPen(int pen, int color, int tile_index)
         return;
     }
     const int masked_color = static_cast<int>(static_cast<unsigned int>(color) & 0x0FU);
+    if (getColorForPen(pen, tile_index) == masked_color) {
+        return;
+    }
     _undoStack->push(new SetColorCommand(this, masked_color, pen, tile_index));
 }
 
@@ -654,8 +663,41 @@ void State::setSelectedPen(int pen)
     emit selectedPenChanged(pen);
 }
 
+bool State::isBackgroundPen(int pen) const noexcept
+{
+    if (pen < 0 || pen >= PEN_MAX) {
+        return false;
+    }
+    if (_characterMode == CHARACTER_MODE_MULTICOLOR) {
+        return pen == PEN_BACKGROUND;
+    }
+    return pen != PEN_FOREGROUND;
+}
+
+int State::getBackgroundColorForChar(int char_index) const noexcept
+{
+    if (_characterMode == CHARACTER_MODE_EXTENDED_COLOR) {
+        const int clamped = std::clamp(char_index, 0, 255);
+        const int bank = static_cast<int>((static_cast<unsigned int>(clamped) >> 6U) & 0x03U);
+        return getGlobalColorForPen(penForExtendedBgBank(bank));
+    }
+    return getGlobalColorForPen(PEN_BACKGROUND);
+}
+
+void State::setCharacterMode(CharacterMode mode)
+{
+    if (_characterMode == mode) {
+        return;
+    }
+    _undoStack->push(new SetCharacterModeCommand(this, mode));
+}
+
 void State::setMulticolorMode(bool enabled)
 {
+    const CharacterMode target = enabled ? CHARACTER_MODE_MULTICOLOR : CHARACTER_MODE_HIRES;
+    if (_characterMode == target) {
+        return;
+    }
     _undoStack->push(new SetMulticolorModeCommand(this, enabled));
 }
 
@@ -666,12 +708,13 @@ void State::setForegroundColorMode(ForegroundColorMode mode)
 
 bool State::shouldBeDisplayedInMulticolor() const noexcept
 {
-    return _multicolorMode && ((_penColors[PEN_FOREGROUND] & 0x0FU) >= 8U);
+    return (_characterMode == CHARACTER_MODE_MULTICOLOR)
+        && ((_penColors[PEN_FOREGROUND] & 0x0FU) >= 8U);
 }
 
 bool State::shouldBeDisplayedInMulticolor2(int tile_index) const noexcept
 {
-    if (!_multicolorMode) {
+    if (_characterMode != CHARACTER_MODE_MULTICOLOR) {
         return false;
     }
     if (_foregroundColorMode == FOREGROUND_COLOR_GLOBAL) {
@@ -864,10 +907,47 @@ int State::getTileIndexFromCharIndex(int char_index) const noexcept
     return clamped_char % step;
 }
 
-const uint8_t* State::getCharAtIndex(int char_index) const
+int State::effectiveCharIndex(int char_index) const noexcept
 {
     const int clamped = std::clamp(char_index, 0, 255);
-    return _charset.data() + static_cast<size_t>(clamped) * 8U;
+    if (_characterMode == CHARACTER_MODE_EXTENDED_COLOR) {
+        return static_cast<int>(static_cast<unsigned int>(clamped) & 0x3FU);
+    }
+    return clamped;
+}
+
+bool State::hasAliasedSubChars(int tile_index) const noexcept
+{
+    if (_characterMode != CHARACTER_MODE_EXTENDED_COLOR || !isValidTileIndex(tile_index)) {
+        return false;
+    }
+    // Contiguous tiles (interleaved == 1) span at most 64 consecutive glyphs,
+    // which are strictly distinct modulo 64 even across bank boundaries.
+    if (_tileProperties.interleaved == 1) {
+        return false;
+    }
+
+    const int base_char = getCharIndexFromTileIndex(tile_index);
+    const int tile_area = _tileProperties.size.width() * _tileProperties.size.height();
+    std::bitset<ECM_CHAR_COUNT> seen;
+    for (int i = 0; i < tile_area; ++i) {
+        const int char_index = base_char + i * _tileProperties.interleaved;
+        if (char_index < 0 || char_index >= 256) {
+            continue;
+        }
+        const size_t phys = static_cast<size_t>(effectiveCharIndex(char_index));
+        if (seen.test(phys)) {
+            return true;
+        }
+        seen.set(phys);
+    }
+    return false;
+}
+
+const uint8_t* State::getCharAtIndex(int char_index) const
+{
+    const int effective = effectiveCharIndex(char_index);
+    return _charset.data() + static_cast<size_t>(effective) * 8U;
 }
 
 void State::copyTileFromIndex(int tile_index, uint8_t* buffer, int buffer_size) const
@@ -881,7 +961,9 @@ void State::copyTileFromIndex(int tile_index, uint8_t* buffer, int buffer_size) 
         return;
     }
 
-    if (_tileProperties.interleaved == 1) {
+    // Bypass the contiguous block copy in ECM because tiles crossing a 64-glyph
+    // bank boundary wrap around physical glyph slots.
+    if (!isExtendedColorMode() && _tileProperties.interleaved == 1) {
         const size_t src_base = static_cast<size_t>(tile_index * tile_area * 8);
         const size_t bytes_to_copy = std::min(
             static_cast<size_t>(tile_area * 8),
@@ -890,12 +972,14 @@ void State::copyTileFromIndex(int tile_index, uint8_t* buffer, int buffer_size) 
         return;
     }
 
+    const int base_char = getCharIndexFromTileIndex(tile_index);
     for (int i = 0; i < tile_area; ++i) {
-        const int char_index = tile_index + i * _tileProperties.interleaved;
+        const int char_index = base_char + i * _tileProperties.interleaved;
         if (char_index >= 0 && char_index < 256) {
+            const int effective_char = effectiveCharIndex(char_index);
             std::memcpy(
                 buffer + static_cast<size_t>(i) * 8U,
-                _charset.data() + static_cast<size_t>(char_index) * 8U,
+                _charset.data() + static_cast<size_t>(effective_char) * 8U,
                 8U);
         }
     }
@@ -912,18 +996,22 @@ void State::copyTileToIndex(int tile_index, const uint8_t* buffer, int buffer_si
         return;
     }
 
-    if (_tileProperties.interleaved == 1) {
+    // Bypass the contiguous block copy in ECM because tiles crossing a 64-glyph
+    // bank boundary wrap around physical glyph slots.
+    if (!isExtendedColorMode() && _tileProperties.interleaved == 1) {
         const size_t dst_base = static_cast<size_t>(tile_index * tile_area * 8);
         const size_t bytes_to_copy = std::min(
             static_cast<size_t>(tile_area * 8),
             _charset.size() - std::min(dst_base, _charset.size()));
         std::copy_n(buffer, bytes_to_copy, _charset.data() + dst_base);
     } else {
+        const int base_char = getCharIndexFromTileIndex(tile_index);
         for (int i = 0; i < tile_area; ++i) {
-            const int char_index = tile_index + i * _tileProperties.interleaved;
+            const int char_index = base_char + i * _tileProperties.interleaved;
             if (char_index >= 0 && char_index < 256) {
+                const int effective_char = effectiveCharIndex(char_index);
                 std::memcpy(
-                    _charset.data() + static_cast<size_t>(char_index) * 8U,
+                    _charset.data() + static_cast<size_t>(effective_char) * 8U,
                     buffer + static_cast<size_t>(i) * 8U,
                     8U);
             }
@@ -1057,6 +1145,11 @@ bool State::canRotateTile(int tile_index) const noexcept
     if (shouldBeDisplayedInMulticolor2(tile_index)) {
         return false;
     }
+    // In ECM, tiles whose sub-characters alias the same physical glyph cannot
+    // be rotated or undone losslessly in place.
+    if (hasAliasedSubChars(tile_index)) {
+        return false;
+    }
     return true;
 }
 
@@ -1106,7 +1199,7 @@ void State::tileClear(int tile_index)
 
 void State::tileFlipHorizontally(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
     _undoStack->push(new FlipTileHCommand(this, tile_index));
@@ -1114,7 +1207,7 @@ void State::tileFlipHorizontally(int tile_index)
 
 void State::tileFlipVertically(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
     _undoStack->push(new FlipTileVCommand(this, tile_index));
@@ -1130,7 +1223,7 @@ void State::tileRotate(int tile_index)
 
 void State::tileShiftLeft(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
     _undoStack->push(new ShiftLeftTileCommand(this, tile_index));
@@ -1138,7 +1231,7 @@ void State::tileShiftLeft(int tile_index)
 
 void State::tileShiftRight(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
     _undoStack->push(new ShiftRightTileCommand(this, tile_index));
@@ -1146,7 +1239,7 @@ void State::tileShiftRight(int tile_index)
 
 void State::tileShiftUp(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
     _undoStack->push(new ShiftUpTileCommand(this, tile_index));
@@ -1154,7 +1247,7 @@ void State::tileShiftUp(int tile_index)
 
 void State::tileShiftDown(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
     _undoStack->push(new ShiftDownTileCommand(this, tile_index));
@@ -1182,7 +1275,8 @@ int State::tileGetPen(int tile_index, const QPoint& position) const
         return 0;
     }
 
-    const uint8_t row_byte = _charset[static_cast<size_t>(char_index) * 8U
+    const int effective_char = effectiveCharIndex(char_index);
+    const uint8_t row_byte = _charset[static_cast<size_t>(effective_char) * 8U
         + static_cast<size_t>(bit_index / 8)];
     const unsigned int bit_in_row = static_cast<unsigned int>(bit_index % 8);
 
@@ -1283,8 +1377,8 @@ void State::setTileIndex(int tile_index)
 
 uint8_t* State::mutableCharAtIndex(int char_index)
 {
-    const int clamped = std::clamp(char_index, 0, 255);
-    return _charset.data() + static_cast<size_t>(clamped) * 8U;
+    const int effective = effectiveCharIndex(char_index);
+    return _charset.data() + static_cast<size_t>(effective) * 8U;
 }
 
 State::CharGlyph State::getCharFromTile(int tile_index, int x, int y) const
@@ -1296,7 +1390,7 @@ State::CharGlyph State::getCharFromTile(int tile_index, int x, int y) const
         return glyph;
     }
 
-    const size_t base = static_cast<size_t>(char_index) * 8U;
+    const size_t base = static_cast<size_t>(effectiveCharIndex(char_index)) * 8U;
     for (size_t row = 0U; row < 8U; ++row) {
         glyph[row] = _charset[base + row];
     }
@@ -1311,7 +1405,7 @@ void State::setCharForTile(int tile_index, int x, int y, const CharGlyph& glyph)
         return;
     }
 
-    const size_t base = static_cast<size_t>(char_index) * 8U;
+    const size_t base = static_cast<size_t>(effectiveCharIndex(char_index)) * 8U;
     for (size_t row = 0U; row < 8U; ++row) {
         _charset[base + row] = glyph[row];
     }
@@ -1378,18 +1472,31 @@ void State::_pasteChars(int char_index, const CopyRange& copy_range, const uint8
         if (chars_to_copy <= 0) {
             break;
         }
-        const int bytes_to_copy = chars_to_copy * 8;
-        std::memcpy(
-            _charset.data() + static_cast<size_t>(dst_char) * 8U,
-            orig_buffer + static_cast<size_t>(src_char) * 8U,
-            static_cast<size_t>(bytes_to_copy));
+        if (isExtendedColorMode()) {
+            for (int col = 0; col < chars_to_copy; ++col) {
+                const int effective_dst = effectiveCharIndex(dst_char + col);
+                std::memcpy(
+                    _charset.data() + static_cast<size_t>(effective_dst) * 8U,
+                    orig_buffer + static_cast<size_t>(src_char + col) * 8U,
+                    8U);
+                _tileColors[static_cast<size_t>(dst_char + col)] = static_cast<uint8_t>(
+                    colors_buffer[static_cast<size_t>(src_char + col)] & 0x0FU);
+                emit bytesUpdated(effective_dst * 8, 8);
+            }
+        } else {
+            const int bytes_to_copy = chars_to_copy * 8;
+            std::memcpy(
+                _charset.data() + static_cast<size_t>(dst_char) * 8U,
+                orig_buffer + static_cast<size_t>(src_char) * 8U,
+                static_cast<size_t>(bytes_to_copy));
 
-        for (int col = 0; col < chars_to_copy; ++col) {
-            _tileColors[static_cast<size_t>(dst_char + col)] = static_cast<uint8_t>(
-                colors_buffer[static_cast<size_t>(src_char + col)] & 0x0FU);
+            for (int col = 0; col < chars_to_copy; ++col) {
+                _tileColors[static_cast<size_t>(dst_char + col)] = static_cast<uint8_t>(
+                    colors_buffer[static_cast<size_t>(src_char + col)] & 0x0FU);
+            }
+
+            emit bytesUpdated(dst_char * 8, bytes_to_copy);
         }
-
-        emit bytesUpdated(dst_char * 8, bytes_to_copy);
 
         dst_char += stride;
         src_char += stride;
@@ -1453,11 +1560,12 @@ void State::_pasteTiles(int char_index, const CopyRange& copy_range, const uint8
             }
 
             for (int j = 0; j < tile_area; ++j) {
-                const int char_src_byte = (src_base_char + j * copy_range.tileProperties.interleaved) * 8;
-                const int char_dst_byte = (dst_base_char + j * _tileProperties.interleaved) * 8;
-
-                if (char_dst_byte >= 0 && (CHAR_BUFFER_SIZE - char_dst_byte) >= 8
-                    && char_src_byte >= 0 && (CHAR_BUFFER_SIZE - char_src_byte) >= 8) {
+                const int src_char_idx = src_base_char + j * copy_range.tileProperties.interleaved;
+                const int dst_char_idx = dst_base_char + j * _tileProperties.interleaved;
+                if (src_char_idx >= 0 && src_char_idx < 256
+                    && dst_char_idx >= 0 && dst_char_idx < 256) {
+                    const int char_src_byte = src_char_idx * 8;
+                    const int char_dst_byte = effectiveCharIndex(dst_char_idx) * 8;
                     std::memcpy(
                         _charset.data() + static_cast<size_t>(char_dst_byte),
                         orig_buffer + static_cast<size_t>(char_src_byte),
@@ -1575,6 +1683,8 @@ void State::_tileInvert(int tile_index)
     const int tile_width = _tileProperties.size.width();
     const int tile_height = _tileProperties.size.height();
     const int step = _tileProperties.interleaved;
+    const bool is_ecm = isExtendedColorMode();
+    std::bitset<ECM_CHAR_COUNT> inverted_ecm_chars;
 
     for (int y = 0; y < tile_height; ++y) {
         for (int x = 0; x < tile_width; ++x) {
@@ -1582,7 +1692,16 @@ void State::_tileInvert(int tile_index)
             if (char_index < 0 || char_index >= 256) {
                 continue;
             }
-            const size_t char_base = static_cast<size_t>(char_index) * 8U;
+            const int effective_char = effectiveCharIndex(char_index);
+            if (is_ecm) {
+                // Deduplicate physical ECM glyphs so self-aliased tiles invert each glyph once and undo stays self-inverse.
+                const size_t bit_pos = static_cast<size_t>(effective_char);
+                if (inverted_ecm_chars.test(bit_pos)) {
+                    continue;
+                }
+                inverted_ecm_chars.set(bit_pos);
+            }
+            const size_t char_base = static_cast<size_t>(effective_char) * 8U;
             for (size_t row = 0U; row < 8U; ++row) {
                 _charset[char_base + row] = static_cast<uint8_t>(~_charset[char_base + row]);
             }
@@ -1610,7 +1729,7 @@ void State::_tileClear(int tile_index)
             if (char_index < 0 || char_index >= 256) {
                 continue;
             }
-            const size_t char_base = static_cast<size_t>(char_index) * 8U;
+            const size_t char_base = static_cast<size_t>(effectiveCharIndex(char_index)) * 8U;
             std::fill_n(_charset.data() + char_base, 8U, uint8_t { 0U });
         }
     }
@@ -1621,7 +1740,7 @@ void State::_tileClear(int tile_index)
 
 void State::_tileFlipHorizontally(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
 
@@ -1637,7 +1756,7 @@ void State::_tileFlipHorizontally(int tile_index)
             if (char_index < 0 || char_index >= 256) {
                 continue;
             }
-            const size_t char_base = static_cast<size_t>(char_index) * 8U;
+            const size_t char_base = static_cast<size_t>(effectiveCharIndex(char_index)) * 8U;
             for (size_t row = 0U; row < 8U; ++row) {
                 _charset[char_base + row] = reverseCharRowBits(
                     _charset[char_base + row],
@@ -1653,8 +1772,8 @@ void State::_tileFlipHorizontally(int tile_index)
             if (left_char < 0 || left_char >= 256 || right_char < 0 || right_char >= 256) {
                 continue;
             }
-            const size_t left_base = static_cast<size_t>(left_char) * 8U;
-            const size_t right_base = static_cast<size_t>(right_char) * 8U;
+            const size_t left_base = static_cast<size_t>(effectiveCharIndex(left_char)) * 8U;
+            const size_t right_base = static_cast<size_t>(effectiveCharIndex(right_char)) * 8U;
             for (size_t row = 0U; row < 8U; ++row) {
                 std::swap(_charset[left_base + row], _charset[right_base + row]);
             }
@@ -1667,7 +1786,7 @@ void State::_tileFlipHorizontally(int tile_index)
 
 void State::_tileFlipVertically(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
 
@@ -1682,7 +1801,7 @@ void State::_tileFlipVertically(int tile_index)
             if (char_index < 0 || char_index >= 256) {
                 continue;
             }
-            const size_t char_base = static_cast<size_t>(char_index) * 8U;
+            const size_t char_base = static_cast<size_t>(effectiveCharIndex(char_index)) * 8U;
             for (size_t row = 0U; row < 4U; ++row) {
                 std::swap(_charset[char_base + row], _charset[char_base + (7U - row)]);
             }
@@ -1696,8 +1815,8 @@ void State::_tileFlipVertically(int tile_index)
             if (top_char < 0 || top_char >= 256 || bottom_char < 0 || bottom_char >= 256) {
                 continue;
             }
-            const size_t top_base = static_cast<size_t>(top_char) * 8U;
-            const size_t bottom_base = static_cast<size_t>(bottom_char) * 8U;
+            const size_t top_base = static_cast<size_t>(effectiveCharIndex(top_char)) * 8U;
+            const size_t bottom_base = static_cast<size_t>(effectiveCharIndex(bottom_char)) * 8U;
             for (size_t row = 0U; row < 8U; ++row) {
                 std::swap(_charset[top_base + row], _charset[bottom_base + row]);
             }
@@ -1759,7 +1878,7 @@ void State::_tileRotate(int tile_index)
 
 void State::_tileShiftLeft(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
 
@@ -1780,7 +1899,7 @@ void State::_tileShiftLeft(int tile_index)
                     if (char_index < 0 || char_index >= 256) {
                         continue;
                     }
-                    uint8_t& cell = _charset[static_cast<size_t>(char_index) * 8U + row];
+                    uint8_t& cell = _charset[static_cast<size_t>(effectiveCharIndex(char_index)) * 8U + row];
                     left_bit = static_cast<uint8_t>((static_cast<unsigned int>(cell) >> 7U) & 0x01U);
                     cell = static_cast<uint8_t>(
                         ((static_cast<unsigned int>(cell) << 1U) & 0xFEU)
@@ -1790,7 +1909,7 @@ void State::_tileShiftLeft(int tile_index)
 
                 const int rightmost_char = base_char + ((tile_width - 1) + y * tile_width) * step;
                 if (rightmost_char >= 0 && rightmost_char < 256) {
-                    uint8_t& cell = _charset[static_cast<size_t>(rightmost_char) * 8U + row];
+                    uint8_t& cell = _charset[static_cast<size_t>(effectiveCharIndex(rightmost_char)) * 8U + row];
                     cell = static_cast<uint8_t>(
                         (static_cast<unsigned int>(cell) & 0xFEU)
                         | static_cast<unsigned int>(left_bit));
@@ -1805,7 +1924,7 @@ void State::_tileShiftLeft(int tile_index)
 
 void State::_tileShiftRight(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
 
@@ -1826,7 +1945,7 @@ void State::_tileShiftRight(int tile_index)
                     if (char_index < 0 || char_index >= 256) {
                         continue;
                     }
-                    uint8_t& cell = _charset[static_cast<size_t>(char_index) * 8U + row];
+                    uint8_t& cell = _charset[static_cast<size_t>(effectiveCharIndex(char_index)) * 8U + row];
                     right_bit = static_cast<uint8_t>(static_cast<unsigned int>(cell) & 0x01U);
                     cell = static_cast<uint8_t>(
                         ((static_cast<unsigned int>(cell) >> 1U) & 0x7FU)
@@ -1836,7 +1955,7 @@ void State::_tileShiftRight(int tile_index)
 
                 const int leftmost_char = base_char + y * tile_width * step;
                 if (leftmost_char >= 0 && leftmost_char < 256) {
-                    uint8_t& cell = _charset[static_cast<size_t>(leftmost_char) * 8U + row];
+                    uint8_t& cell = _charset[static_cast<size_t>(effectiveCharIndex(leftmost_char)) * 8U + row];
                     cell = static_cast<uint8_t>(
                         (static_cast<unsigned int>(cell) & 0x7FU)
                         | (static_cast<unsigned int>(right_bit) << 7U));
@@ -1851,7 +1970,7 @@ void State::_tileShiftRight(int tile_index)
 
 void State::_tileShiftUp(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
 
@@ -1868,7 +1987,7 @@ void State::_tileShiftUp(int tile_index)
             if (char_index < 0 || char_index >= 256) {
                 continue;
             }
-            const size_t char_base = static_cast<size_t>(char_index) * 8U;
+            const size_t char_base = static_cast<size_t>(effectiveCharIndex(char_index)) * 8U;
             const uint8_t top_byte = _charset[char_base];
 
             for (size_t row = 0U; row < 7U; ++row) {
@@ -1881,7 +2000,7 @@ void State::_tileShiftUp(int tile_index)
 
         const int bottom_char = base_char + (x + (tile_height - 1) * tile_width) * step;
         if (bottom_char >= 0 && bottom_char < 256) {
-            _charset[static_cast<size_t>(bottom_char) * 8U + 7U] = prev_top_byte;
+            _charset[static_cast<size_t>(effectiveCharIndex(bottom_char)) * 8U + 7U] = prev_top_byte;
         }
     }
 
@@ -1891,7 +2010,7 @@ void State::_tileShiftUp(int tile_index)
 
 void State::_tileShiftDown(int tile_index)
 {
-    if (!isValidTileIndex(tile_index)) {
+    if (!isValidTileIndex(tile_index) || hasAliasedSubChars(tile_index)) {
         return;
     }
 
@@ -1908,7 +2027,7 @@ void State::_tileShiftDown(int tile_index)
             if (char_index < 0 || char_index >= 256) {
                 continue;
             }
-            const size_t char_base = static_cast<size_t>(char_index) * 8U;
+            const size_t char_base = static_cast<size_t>(effectiveCharIndex(char_index)) * 8U;
             const uint8_t bottom_byte = _charset[char_base + 7U];
 
             for (size_t row = 7U; row > 0U; --row) {
@@ -1921,7 +2040,7 @@ void State::_tileShiftDown(int tile_index)
 
         const int top_char = base_char + x * step;
         if (top_char >= 0 && top_char < 256) {
-            _charset[static_cast<size_t>(top_char) * 8U] = prev_bottom_byte;
+            _charset[static_cast<size_t>(effectiveCharIndex(top_char)) * 8U] = prev_bottom_byte;
         }
     }
 
@@ -1941,7 +2060,8 @@ void State::_tileSetPen(int tile_index, const QPoint& position, int pen)
             _tileProperties,
             position,
             pen,
-            shouldBeDisplayedInMulticolor2(tile_index))) {
+            shouldBeDisplayedInMulticolor2(tile_index),
+            isExtendedColorMode())) {
         emit tileUpdated(tile_index);
         emit contentsChanged();
     }
@@ -1956,6 +2076,7 @@ void State::_applyTilePoints(int tile_index, const QList<QPoint>& points, int pe
     bool any_changed = false;
     const int base_char = getCharIndexFromTileIndex(tile_index);
     const bool is_multicolor = shouldBeDisplayedInMulticolor2(tile_index);
+    const bool is_ecm = isExtendedColorMode();
 
     for (const QPoint& position : points) {
         if (WriteTilePixelPen(
@@ -1964,7 +2085,8 @@ void State::_applyTilePoints(int tile_index, const QList<QPoint>& points, int pe
                 _tileProperties,
                 position,
                 pen,
-                is_multicolor)) {
+                is_multicolor,
+                is_ecm)) {
             any_changed = true;
         }
     }
@@ -1975,13 +2097,23 @@ void State::_applyTilePoints(int tile_index, const QList<QPoint>& points, int pe
     }
 }
 
-void State::_setMulticolorMode(bool enabled)
+void State::_setCharacterMode(CharacterMode mode)
 {
-    if (_multicolorMode == enabled) {
+    if (_characterMode == mode) {
         return;
     }
-    _multicolorMode = enabled;
-    emit multicolorModeToggled(enabled);
+
+    const CharacterMode old_mode = _characterMode;
+    _characterMode = mode;
+
+    emit characterModeChanged(mode);
+
+    const bool was_multicolor = (old_mode == CHARACTER_MODE_MULTICOLOR);
+    const bool is_multicolor = (mode == CHARACTER_MODE_MULTICOLOR);
+    if (was_multicolor != is_multicolor) {
+        emit multicolorModeToggled(is_multicolor);
+    }
+
     emit contentsChanged();
 }
 

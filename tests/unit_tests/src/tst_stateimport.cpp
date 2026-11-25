@@ -201,6 +201,7 @@ private slots:
     void testCtm5ZeroTileWidthClampAndMapCellOver255Warning();
     void testColorNibbleMasking0xFFAcrossAllImporters();
     void testVChar64InvalidHeadersAndMapDimensionOverflow();
+    void testVChar64V4EcmImportAndValidation();
     void testKoalaBoundaryLengthsRejection();
     void testViceSnapshotZeroModuleLengthInfiniteLoopRegression();
 };
@@ -863,8 +864,8 @@ void StateImportTest::testVChar64InvalidHeadersAndMapDimensionOverflow()
         runExpectErr(raw, vchar64::ErrorCode::InvalidMagic);
     }
 
-    // 3. Unsupported version 0 and 4 -> UnsupportedVersion
-    for (const uint8_t ver : { static_cast<uint8_t>(0U), static_cast<uint8_t>(4U) }) {
+    // 3. Unsupported version 0 and 5 -> UnsupportedVersion
+    for (const uint8_t ver : { static_cast<uint8_t>(0U), static_cast<uint8_t>(5U) }) {
         auto hdr = makeBaseHeader();
         hdr.version = ver;
         QByteArray raw(reinterpret_cast<const char*>(&hdr), static_cast<qsizetype>(sizeof(hdr)));
@@ -897,6 +898,188 @@ void StateImportTest::testVChar64InvalidHeadersAndMapDimensionOverflow()
         raw.append(256, '\x0B'); // tile colors
         raw.append(8, '\x20'); // only 8 of 16 map bytes!
         runExpectErr(raw, vchar64::ErrorCode::FileReadFailed);
+    }
+}
+
+void StateImportTest::testVChar64V4EcmImportAndValidation()
+{
+    auto buildV4Payload = [](uint8_t version, uint8_t vicRes, uint8_t bgColor3) {
+        StateImport::VChar64Header hdr { };
+        std::memcpy(hdr.id, "VChar", 5);
+        hdr.version = version;
+        hdr.colors[0] = 1U;
+        hdr.colors[1] = 2U;
+        hdr.colors[2] = 5U;
+        hdr.colors[3] = 14U;
+        hdr.vic_res = vicRes;
+        hdr.num_chars = qToLittleEndian<quint16>(256U);
+        hdr.tile_width = 1U;
+        hdr.tile_height = 1U;
+        hdr.char_interleaved = 1U;
+        hdr.color_mode = 1U;
+        hdr.map_width = qToLittleEndian<quint16>(4U);
+        hdr.map_height = qToLittleEndian<quint16>(4U);
+        hdr.address_charset = qToLittleEndian<quint16>(0x3000U);
+        hdr.address_map = qToLittleEndian<quint16>(0x4000U);
+        hdr.address_attribs = qToLittleEndian<quint16>(0xD800U);
+        hdr.export_features = State::EXPORT_FEATURE_ALL;
+        hdr.export_format = static_cast<uint8_t>(State::EXPORT_FORMAT_ASM);
+        hdr.keyboard_mapping = static_cast<uint8_t>(State::KEYBOARD_MAPPING_ATARI8);
+        hdr.bg_color_3 = bgColor3;
+        hdr.reserved = 0U;
+
+        QByteArray raw(reinterpret_cast<const char*>(&hdr), static_cast<qsizetype>(sizeof(hdr)));
+        for (unsigned int i = 0; i < 2048U; ++i) {
+            raw.append(static_cast<char>(static_cast<uint8_t>((i * 19U + 3U) & 0xFFU)));
+        }
+        raw.append(256, '\x07');
+        raw.append(16, '\x41');
+        return raw;
+    };
+
+    // 1. Valid v4 ECM payload with bg_color_3 = 0x2D (masked to 13) and v3+ metadata restored.
+    {
+        QByteArray payload = buildV4Payload(4U, 2U, 0x2DU);
+        QBuffer buf(&payload);
+        State state;
+        const auto res = StateImport::loadVChar64(state, buf);
+        QVERIFY2(res.isOk(), qPrintable(res.isOk() ? QString() : res.error().detail));
+        QCOMPARE(state.characterMode(), State::CHARACTER_MODE_EXTENDED_COLOR);
+        QVERIFY(state.isExtendedColorMode());
+        QVERIFY(!state.isMulticolorMode());
+        QCOMPARE(state.getGlobalColorForPen(State::PEN_BACKGROUND3), 13);
+        QCOMPARE(state.exportProperties().addresses[0], static_cast<uint16_t>(0x3000U));
+        QCOMPARE(state.exportProperties().addresses[1], static_cast<uint16_t>(0x4000U));
+        QCOMPARE(state.exportProperties().addresses[2], static_cast<uint16_t>(0xD800U));
+        QCOMPARE(state.exportProperties().features, static_cast<uint8_t>(State::EXPORT_FEATURE_ALL));
+        QCOMPARE(state.exportProperties().format, State::EXPORT_FORMAT_ASM);
+        QCOMPARE(state.getKeyboardMapping(), State::KEYBOARD_MAPPING_ATARI8);
+        // Non-destructive 2,048-byte charset storage: bytes 512..2047 preserved.
+        QCOMPARE(state.charset()[512], static_cast<uint8_t>((512U * 19U + 3U) & 0xFFU));
+        QCOMPARE(state.charset()[2047], static_cast<uint8_t>((2047U * 19U + 3U) & 0xFFU));
+    }
+
+    // 1b. v4 preserves EXPORT_FEATURE_ECM_FULL_CHARSET (bit 3), whereas v3 strips bit 3 to EXPORT_FEATURE_ALL.
+    {
+        QByteArray v4Full = buildV4Payload(4U, 2U, 0x0DU);
+        v4Full[27] = static_cast<char>(State::EXPORT_FEATURE_VALID_MASK);
+        QBuffer v4Buf(&v4Full);
+        State v4State;
+        QVERIFY(StateImport::loadVChar64(v4State, v4Buf).isOk());
+        QCOMPARE(v4State.exportProperties().features, static_cast<uint8_t>(State::EXPORT_FEATURE_VALID_MASK));
+
+        QByteArray v3Masked = buildV4Payload(3U, 0U, 0x00U);
+        v3Masked[27] = static_cast<char>(State::EXPORT_FEATURE_VALID_MASK);
+        QBuffer v3Buf(&v3Masked);
+        State v3State;
+        QVERIFY(StateImport::loadVChar64(v3State, v3Buf).isOk());
+        QCOMPARE(v3State.exportProperties().features, static_cast<uint8_t>(State::EXPORT_FEATURE_ALL));
+    }
+
+    // 2. vic_res > 2 in v4 -> HeaderOutOfBounds, preserving prior state transactionally.
+    {
+        QByteArray payload = buildV4Payload(4U, 3U, 7U);
+        QBuffer buf(&payload);
+        State state;
+        QVERIFY(state.replaceMap(QSize(6, 5), std::vector<uint8_t>(30U, 0x20U)));
+        state.setCharacterModeDirect(State::CHARACTER_MODE_HIRES);
+        state.setPenColorDirect(State::PEN_BACKGROUND3, 9U);
+
+        const auto res = StateImport::loadVChar64(state, buf);
+        QVERIFY(!res.isOk());
+        QCOMPARE(res.error().code, vchar64::ErrorCode::HeaderOutOfBounds);
+        QCOMPARE(state.mapSize(), QSize(6, 5));
+        QCOMPARE(state.characterMode(), State::CHARACTER_MODE_HIRES);
+        QCOMPARE(state.getGlobalColorForPen(State::PEN_BACKGROUND3), 9);
+    }
+
+    // 3. Loading v3, CTM4, and CTM5 resets PEN_BACKGROUND3 to 6U and exits ECM.
+    {
+        State state;
+        state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+        state.setPenColorDirect(State::PEN_BACKGROUND3, 14U);
+
+        // v3 with garbage in byte 30 must still reset PEN_BACKGROUND3 to 6U.
+        QByteArray v3Payload = buildV4Payload(3U, 0U, 0x09U);
+        QBuffer v3Buf(&v3Payload);
+        QVERIFY(StateImport::loadVChar64(state, v3Buf).isOk());
+        QCOMPARE(state.getGlobalColorForPen(State::PEN_BACKGROUND3), 6);
+        QCOMPARE(state.characterMode(), State::CHARACTER_MODE_HIRES);
+
+        state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+        state.setPenColorDirect(State::PEN_BACKGROUND3, 14U);
+        QByteArray ctm4Payload = buildSyntheticCtm4(
+            1U, 0U, 0U, { 1U, 2U, 3U, 4U }, 15U, 15U, 1U, 1U, 2U, 2U, 0x11U, 0x00U, 0x01U, 0x00U);
+        QBuffer ctm4Buf(&ctm4Payload);
+        QVERIFY(StateImport::loadCTM(state, ctm4Buf).isOk());
+        QCOMPARE(state.getGlobalColorForPen(State::PEN_BACKGROUND3), 6);
+        QCOMPARE(state.characterMode(), State::CHARACTER_MODE_HIRES);
+
+        state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+        state.setPenColorDirect(State::PEN_BACKGROUND3, 14U);
+        QByteArray ctm5Payload = buildSyntheticCtm5(
+            0x03U, 0U, { 1U, 2U, 3U, 4U }, 15U, 15U, 1U, 1U, 2U, 2U, 0x11U, 0x00U, 0x01U, { 0U, 0U, 0U, 0U });
+        QBuffer ctm5Buf(&ctm5Payload);
+        QVERIFY(StateImport::loadCTM(state, ctm5Buf).isOk());
+        QCOMPARE(state.getGlobalColorForPen(State::PEN_BACKGROUND3), 6);
+        QCOMPARE(state.characterMode(), State::CHARACTER_MODE_HIRES);
+    }
+
+    // 4. VICE .vsf snapshot extraction of $D011 (0x5B), $D016 (0x08), and $D024 (0x0A).
+    {
+        StateImport::VICESnapshotHeader hdr { };
+        static constexpr char kMagic[19] = {
+            'V', 'I', 'C', 'E', ' ', 'S', 'n', 'a', 'p', 's', 'h', 'o', 't', ' ', 'F', 'i', 'l', 'e', '\032'
+        };
+        std::memcpy(hdr.id, kMagic, sizeof(kMagic));
+        hdr.major = 1U;
+        hdr.minor = 1U;
+        std::memcpy(hdr.machine, "C64", 4);
+
+        QByteArray snap;
+        snap.append(reinterpret_cast<const char*>(&hdr), static_cast<qsizetype>(sizeof(hdr)));
+
+        auto appendMod = [&](const char* name, const void* payloadPtr, size_t payloadBytes) {
+            StateImport::VICESnapshotModule mod { };
+            std::strncpy(mod.moduleName, name, sizeof(mod.moduleName) - 1U);
+            mod.length = qToLittleEndian<quint32>(static_cast<quint32>(sizeof(mod) + payloadBytes));
+            snap.append(reinterpret_cast<const char*>(&mod), static_cast<qsizetype>(sizeof(mod)));
+            snap.append(static_cast<const char*>(payloadPtr), static_cast<qsizetype>(payloadBytes));
+        };
+
+        auto c64mem = std::make_unique<StateImport::VICESnapshotC64Mem>();
+        std::memset(c64mem.get(), 0, sizeof(*c64mem));
+        appendMod("C64MEM", c64mem.get(), sizeof(*c64mem));
+
+        StateImport::VICESnapshotCIA2 cia2 { };
+        cia2.ora = 0x03U;
+        appendMod("CIA2", &cia2, sizeof(cia2));
+
+        StateImport::VICESnapshotVICII vic2 { };
+        vic2.registers[0x11] = 0x5BU;
+        vic2.registers[0x16] = 0x08U;
+        vic2.registers[0x18] = 0x14U;
+        vic2.registers[0x24] = 0x0AU;
+        appendMod("VIC-II", &vic2, sizeof(vic2));
+
+        auto ram64k = std::make_unique<std::array<uint8_t, 65536>>();
+        std::array<uint8_t, 1024> colorRam { };
+        std::array<uint8_t, 64> vicRegs { };
+        uint16_t charsetAddr = 0U;
+        uint16_t screenAddr = 0U;
+
+        QBuffer buf(&snap);
+        const auto res = StateImport::parseVICESnapshot(
+            buf,
+            ram64k->data(),
+            &charsetAddr,
+            &screenAddr,
+            colorRam.data(),
+            vicRegs.data());
+        QVERIFY2(res.isOk(), qPrintable(res.isOk() ? QString() : res.error().detail));
+        QCOMPARE(vicRegs[0x11], static_cast<uint8_t>(0x5BU));
+        QCOMPARE(vicRegs[0x16], static_cast<uint8_t>(0x08U));
+        QCOMPARE(vicRegs[0x24], static_cast<uint8_t>(0x0AU));
     }
 }
 

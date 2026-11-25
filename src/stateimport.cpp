@@ -381,10 +381,17 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadVChar64(State& state, QI
             QStringLiteral("Missing 'VChar' magic header"));
     }
 
-    if (header.version < 1U || header.version > 3U) {
+    if (header.version < 1U || header.version > 4U) {
         return vchar64::Result<vchar64::ImportReport>::err(
             vchar64::ErrorCode::UnsupportedVersion,
             QStringLiteral("Unsupported VChar64 version %1").arg(header.version));
+    }
+
+    if (header.version >= 4U
+        && header.vic_res > static_cast<uint8_t>(State::CHARACTER_MODE_EXTENDED_COLOR)) {
+        return vchar64::Result<vchar64::ImportReport>::err(
+            vchar64::ErrorCode::HeaderOutOfBounds,
+            QStringLiteral("Invalid VChar64 character mode %1").arg(header.vic_res));
     }
 
     const int tile_width = static_cast<int>(header.tile_width);
@@ -474,7 +481,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadVChar64(State& state, QI
     State::ExportProperties staged_export_props { };
     State::KeyboardMapping staged_keyboard_mapping = State::KEYBOARD_MAPPING_C64;
 
-    if (header.version == 3U) {
+    if (header.version >= 3U) {
         if (header.export_format > static_cast<uint8_t>(State::EXPORT_FORMAT_C)) {
             return vchar64::Result<vchar64::ImportReport>::err(
                 vchar64::ErrorCode::HeaderOutOfBounds,
@@ -485,8 +492,11 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadVChar64(State& state, QI
         staged_export_props.addresses[1] = qFromLittleEndian<quint16>(header.address_map);
         staged_export_props.addresses[2] = qFromLittleEndian<quint16>(header.address_attribs);
         staged_export_props.format = static_cast<State::ExportFormat>(header.export_format);
+        const uint8_t valid_feature_mask = header.version >= 4U
+            ? static_cast<uint8_t>(State::EXPORT_FEATURE_VALID_MASK)
+            : static_cast<uint8_t>(State::EXPORT_FEATURE_ALL);
         staged_export_props.features = static_cast<uint8_t>(
-            header.export_features & State::EXPORT_FEATURE_ALL);
+            header.export_features & valid_feature_mask);
 
         if (header.keyboard_mapping > static_cast<uint8_t>(State::KEYBOARD_MAPPING_ATARI8)) {
             report.warnings.append(
@@ -513,7 +523,15 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadVChar64(State& state, QI
     for (int pen = 0; pen < 4; ++pen) {
         state.setPenColorDirect(pen, static_cast<uint8_t>(header.colors[pen] & 0x0FU));
     }
-    state.setMulticolorModeDirect(header.vic_res != 0U);
+    if (header.version >= 4U) {
+        state.setPenColorDirect(
+            State::PEN_BACKGROUND3,
+            static_cast<uint8_t>(header.bg_color_3 & 0x0FU));
+        state.setCharacterModeDirect(static_cast<State::CharacterMode>(header.vic_res));
+    } else {
+        state.setPenColorDirect(State::PEN_BACKGROUND3, 6U);
+        state.setMulticolorModeDirect(header.vic_res != 0U);
+    }
     state.setForegroundColorModeDirect(staged_fg_mode);
     state.setExportPropertiesDirect(staged_export_props);
     state.setKeyboardMappingDirect(staged_keyboard_mapping);
@@ -992,6 +1010,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadCTM4(State& state, QIODe
     for (int pen = 0; pen < 4; ++pen) {
         state.setPenColorDirect(pen, static_cast<uint8_t>(header.colors[pen] & 0x0FU));
     }
+    state.setPenColorDirect(State::PEN_BACKGROUND3, 6U);
     state.setMulticolorModeDirect(header.vic_res != 0U);
     state.setForegroundColorModeDirect(
         header.color_mode != 0U ? State::FOREGROUND_COLOR_PER_TILE : State::FOREGROUND_COLOR_GLOBAL);
@@ -1149,6 +1168,7 @@ vchar64::Result<vchar64::ImportReport> StateImport::loadCTM5(State& state, QIODe
     for (int pen = 0; pen < 4; ++pen) {
         state.setPenColorDirect(pen, static_cast<uint8_t>(header.colors[pen] & 0x0FU));
     }
+    state.setPenColorDirect(State::PEN_BACKGROUND3, 6U);
     state.setMulticolorModeDirect((header.flags & 0x04U) != 0U);
     state.setForegroundColorModeDirect(
         header.color_mode != 0U ? State::FOREGROUND_COLOR_PER_TILE : State::FOREGROUND_COLOR_GLOBAL);

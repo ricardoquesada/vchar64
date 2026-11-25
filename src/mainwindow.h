@@ -140,6 +140,9 @@ public slots:
     void onActiveStateChanged(State* state);
     void onCharIndexUpdated(int charIndex);
     void onTileIndexUpdated(int tileIndex);
+    /** @brief Synchronizes mode controls, pen labels/enables, status bar, and tile transforms with `mode`. */
+    void onCharacterModeChanged(State::CharacterMode mode);
+    /** @brief Refreshes pen enables, tile transforms, and color UI when Multicolor status changes. */
     void onMulticolorModeToggled(bool newvalue);
     void onTilePropertiesUpdated();
     bool openFile(const QString& fileName);
@@ -175,6 +178,13 @@ protected:
 
     void activateRadioButtonIndex(int pen);
     void syncPenSelectionControls(const State* state);
+    /**
+     * @brief Enables pen controls valid for the active mode/tile and falls back to `PEN_FOREGROUND` if needed.
+     * @return `true` if the selected pen fell back to `PEN_FOREGROUND`; `false` otherwise.
+     */
+    bool updatePenControls(State* state);
+    /** @brief Enables or disables tile rotation and spatial transform actions based on mode and ECM glyph aliasing. */
+    void updateTileTransformActions(const State* state);
     void activatePalette(int paletteIndex);
 
     void updateMenus();
@@ -234,11 +244,18 @@ private slots:
     void on_radioButton_foreground_toggled(bool checked);
     void on_radioButton_multicolor1_toggled(bool checked);
     void on_radioButton_multicolor2_toggled(bool checked);
+    void on_radioButton_background3_toggled(bool checked);
     void on_actionBackground_triggered();
     void on_actionForeground_triggered();
     void on_actionMulti_Color_1_triggered();
     void on_actionMulti_Color_2_triggered();
-    void on_checkBox_multicolor_toggled(bool checked);
+    void on_actionBackground_3_triggered();
+    void on_radioButton_modeHiRes_toggled(bool checked);
+    void on_radioButton_modeMulticolor_toggled(bool checked);
+    void on_radioButton_modeExtendedColor_toggled(bool checked);
+    void on_actionMode_HiRes_triggered();
+    void on_actionMode_Multicolor_triggered();
+    void on_actionMode_ExtendedColor_triggered();
     void on_actionPalette_0_triggered();
     void on_actionPalette_1_triggered();
     void on_actionPalette_2_triggered();

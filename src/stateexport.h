@@ -18,7 +18,7 @@ limitations under the License.
  * @file stateexport.h
  * @brief Headless, atomic (`QSaveFile`) asset exporters for `vchar64_core`.
  *
- * Implements native v3 `.vchar64proj` serialization alongside RAW binary,
+ * Implements native v3/v4 `.vchar64proj` serialization alongside RAW binary,
  * C64 2-byte load-address `.prg`, 6502 `.byte` assembly, flat ISO C17
  * `const uint8_t[]` (`cc65` / `clang-mos` / `oscar64` compatible), and PNG
  * image writers.
@@ -48,10 +48,11 @@ class State;
 class StateExport {
 public:
     /**
-     * @brief Serializes `state` into a v3 `.vchar64proj` file (`32`-byte little-endian header + charset + colors + map).
+     * @brief Serializes `state` into a v3 (Hi-Res/Multicolor) or v4 (Extended Color Mode)
+     *        `.vchar64proj` file (`32`-byte little-endian header + charset + colors + map).
      *
-     * Zero-initializes `VChar64Header` (including `reserved[2]`) so uninitialized stack
-     * bytes never leak into saved project files.
+     * Zero-initializes `VChar64Header` (including `bg_color_3` in v3 and `reserved`) so
+     * uninitialized stack bytes never leak into saved project files.
      *
      * @return Total bytes written on success, or `ErrorCode` on validation/I/O failure.
      */

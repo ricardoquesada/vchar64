@@ -58,6 +58,7 @@ public slots:
     void setActiveState(State* state);
     void onTileIndexUpdated(int selectedTileIndex);
     void onTilePropertiesUpdated();
+    void onCharacterModeChanged(State::CharacterMode mode);
     void onMulticolorModeToggled(bool state);
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);

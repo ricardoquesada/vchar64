@@ -225,6 +225,13 @@ void TilesetWidget::onTilePropertiesUpdated()
     update();
 }
 
+void TilesetWidget::onCharacterModeChanged(State::CharacterMode mode)
+{
+    Q_UNUSED(mode)
+    _atlasCache.markAllDirty();
+    update();
+}
+
 void TilesetWidget::onMulticolorModeToggled(bool state)
 {
     Q_UNUSED(state)

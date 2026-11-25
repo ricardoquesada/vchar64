@@ -632,15 +632,52 @@ void SetExportPropertiesCommand::redo()
     _state->_setExportProperties(_new);
 }
 
+SetCharacterModeCommand::SetCharacterModeCommand(
+    State* state,
+    State::CharacterMode mode,
+    QUndoCommand* parent)
+    : QUndoCommand(parent)
+    , _state(state)
+    , _new(mode)
+{
+    switch (_new) {
+    case State::CHARACTER_MODE_HIRES:
+        setText(QObject::tr("Character Mode: Hi-Res"));
+        break;
+    case State::CHARACTER_MODE_MULTICOLOR:
+        setText(QObject::tr("Character Mode: Multicolor"));
+        break;
+    case State::CHARACTER_MODE_EXTENDED_COLOR:
+        setText(QObject::tr("Character Mode: Extended Color"));
+        break;
+    }
+}
+
+void SetCharacterModeCommand::undo()
+{
+    if (_captured) {
+        _state->_setCharacterMode(_old);
+    }
+}
+
+void SetCharacterModeCommand::redo()
+{
+    if (!_captured) {
+        _old = _state->characterMode();
+        _captured = true;
+    }
+    _state->_setCharacterMode(_new);
+}
+
 SetMulticolorModeCommand::SetMulticolorModeCommand(
     State* state,
     bool multicolor_enabled,
     QUndoCommand* parent)
     : QUndoCommand(parent)
     , _state(state)
-    , _new(multicolor_enabled)
+    , _newMode(multicolor_enabled ? State::CHARACTER_MODE_MULTICOLOR : State::CHARACTER_MODE_HIRES)
 {
-    if (_new) {
+    if (multicolor_enabled) {
         setText(QObject::tr("Multicolor enabled"));
     } else {
         setText(QObject::tr("Multicolor disabled"));
@@ -650,17 +687,17 @@ SetMulticolorModeCommand::SetMulticolorModeCommand(
 void SetMulticolorModeCommand::undo()
 {
     if (_captured) {
-        _state->_setMulticolorMode(_old);
+        _state->_setCharacterMode(_oldMode);
     }
 }
 
 void SetMulticolorModeCommand::redo()
 {
     if (!_captured) {
-        _old = _state->isMulticolorMode();
+        _oldMode = _state->characterMode();
         _captured = true;
     }
-    _state->_setMulticolorMode(_new);
+    _state->_setCharacterMode(_newMode);
 }
 
 SetColorCommand::SetColorCommand(

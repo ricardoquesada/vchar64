@@ -40,6 +40,7 @@ limitations under the License.
 #include <vector>
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
 #include <QByteArray>
 #include <QClipboard>
@@ -215,6 +216,12 @@ BigCharWidget* MainWindow::adoptDocument(std::unique_ptr<State> state)
             &State::colorPropertiesUpdated,
             bigchar_widget,
             &BigCharWidget::onColorPropertiesUpdated));
+    connections.push_back(
+        connect(
+            raw_state,
+            &State::characterModeChanged,
+            bigchar_widget,
+            &BigCharWidget::onCharacterModeChanged));
     connections.push_back(
         connect(
             raw_state,
@@ -491,7 +498,7 @@ void MainWindow::onActiveStateChanged(State* state)
         }
         _ui->actionUndo->setEnabled(false);
         _ui->actionRedo->setEnabled(false);
-        _ui->actionRotate->setEnabled(false);
+        updateTileTransformActions(nullptr);
         setWindowFilePath(QString());
         updateMenus();
         updateWindowModifiedFlag();
@@ -513,7 +520,17 @@ void MainWindow::onCharIndexUpdated(int char_index)
         return;
     }
 
-    _labelCharIdx->setText(tr("Char: %1").arg(char_index, 3, 10, QLatin1Char(' ')));
+    if (state->isExtendedColorMode()) {
+        const int physical_glyph = state->effectiveCharIndex(char_index);
+        const int bg_bank = static_cast<int>((static_cast<unsigned int>(char_index) >> 6U) & 0x03U);
+        _labelCharIdx->setText(
+            tr("Char: %1 (G:%2 BG#%3)")
+                .arg(char_index, 3, 10, QLatin1Char(' '))
+                .arg(physical_glyph)
+                .arg(bg_bank));
+    } else {
+        _labelCharIdx->setText(tr("Char: %1").arg(char_index, 3, 10, QLatin1Char(' ')));
+    }
 
     const int tile_index = state->getTileIndexFromCharIndex(char_index);
     _labelTileIdx->setText(tr("Tile: %1").arg(tile_index, 3, 10, QLatin1Char(' ')));
@@ -524,33 +541,79 @@ void MainWindow::onTileIndexUpdated(int tile_index)
     const State* const state = getState();
     const QSignalBlocker blocker(_ui->spinBox_tileIndex);
     _ui->spinBox_tileIndex->setValue(tile_index);
-    _ui->actionRotate->setEnabled(state != nullptr && state->canRotateTile(tile_index));
+    updateTileTransformActions(state);
+}
+
+void MainWindow::onCharacterModeChanged(State::CharacterMode mode)
+{
+    Q_UNUSED(mode)
+
+    State* const state = getState();
+    if (state == nullptr) {
+        updateTileTransformActions(nullptr);
+        return;
+    }
+
+    const State::CharacterMode active_mode = state->characterMode();
+    {
+        const QSignalBlocker hires_radio_blocker(_ui->radioButton_modeHiRes);
+        const QSignalBlocker mcm_radio_blocker(_ui->radioButton_modeMulticolor);
+        const QSignalBlocker ecm_radio_blocker(_ui->radioButton_modeExtendedColor);
+        const QSignalBlocker hires_action_blocker(_ui->actionMode_HiRes);
+        const QSignalBlocker mcm_action_blocker(_ui->actionMode_Multicolor);
+        const QSignalBlocker ecm_action_blocker(_ui->actionMode_ExtendedColor);
+
+        _ui->radioButton_modeHiRes->setChecked(active_mode == State::CHARACTER_MODE_HIRES);
+        _ui->radioButton_modeMulticolor->setChecked(active_mode == State::CHARACTER_MODE_MULTICOLOR);
+        _ui->radioButton_modeExtendedColor->setChecked(active_mode == State::CHARACTER_MODE_EXTENDED_COLOR);
+
+        _ui->actionMode_HiRes->setChecked(active_mode == State::CHARACTER_MODE_HIRES);
+        _ui->actionMode_Multicolor->setChecked(active_mode == State::CHARACTER_MODE_MULTICOLOR);
+        _ui->actionMode_ExtendedColor->setChecked(active_mode == State::CHARACTER_MODE_EXTENDED_COLOR);
+    }
+
+    const bool is_ecm = state->isExtendedColorMode();
+    if (is_ecm) {
+        _ui->radioButton_background->setText(tr("Background #0"));
+        _ui->radioButton_multicolor1->setText(tr("Background #1"));
+        _ui->radioButton_multicolor2->setText(tr("Background #2"));
+        _ui->radioButton_background3->setText(tr("Background #3"));
+
+        _ui->actionBackground->setText(tr("Background #0"));
+        _ui->actionMulti_Color_1->setText(tr("Background #1"));
+        _ui->actionMulti_Color_2->setText(tr("Background #2"));
+        _ui->actionBackground_3->setText(tr("Background #3"));
+    } else {
+        _ui->radioButton_background->setText(tr("Background"));
+        _ui->radioButton_multicolor1->setText(tr("Multicolor #1"));
+        _ui->radioButton_multicolor2->setText(tr("Multicolor #2"));
+        _ui->radioButton_background3->setText(tr("Background #3"));
+
+        _ui->actionBackground->setText(tr("Background"));
+        _ui->actionMulti_Color_1->setText(tr("Multi Color #1"));
+        _ui->actionMulti_Color_2->setText(tr("Multi Color #2"));
+        _ui->actionBackground_3->setText(tr("Background #3"));
+    }
+
+    static_cast<void>(updatePenControls(state));
+    updateTileTransformActions(state);
+    onCharIndexUpdated(state->getCharIndex());
+    onColorPropertiesUpdated(state->getSelectedPen());
+    _ui->paletteWidget->update();
 }
 
 void MainWindow::onMulticolorModeToggled(bool new_value)
 {
     Q_UNUSED(new_value)
 
-    const State* const state = getState();
+    State* const state = getState();
     if (state == nullptr) {
-        _ui->actionRotate->setEnabled(false);
+        updateTileTransformActions(nullptr);
         return;
     }
 
-    {
-        const QSignalBlocker check_blocker(_ui->checkBox_multicolor);
-        const QSignalBlocker action_blocker(_ui->actionEnable_Multicolor);
-        _ui->checkBox_multicolor->setChecked(state->isMulticolorMode());
-        _ui->actionEnable_Multicolor->setChecked(state->isMulticolorMode());
-    }
-
-    const bool enable_multicolor_pens = state->shouldBeDisplayedInMulticolor2(state->getTileIndex());
-    _ui->radioButton_multicolor1->setEnabled(enable_multicolor_pens);
-    _ui->radioButton_multicolor2->setEnabled(enable_multicolor_pens);
-    _ui->actionMulti_Color_1->setEnabled(enable_multicolor_pens);
-    _ui->actionMulti_Color_2->setEnabled(enable_multicolor_pens);
-    _ui->actionRotate->setEnabled(state->canRotateTile(state->getTileIndex()));
-
+    static_cast<void>(updatePenControls(state));
+    updateTileTransformActions(state);
     onColorPropertiesUpdated(state->getSelectedPen());
 }
 
@@ -558,7 +621,7 @@ void MainWindow::onTilePropertiesUpdated()
 {
     const State* const state = getState();
     if (state == nullptr) {
-        _ui->actionRotate->setEnabled(false);
+        updateTileTransformActions(nullptr);
         return;
     }
 
@@ -567,8 +630,7 @@ void MainWindow::onTilePropertiesUpdated()
     const int tile_height = std::max(1, tile_size.height());
     _ui->spinBox_tileIndex->setMaximum(std::max(0, (256 / (tile_width * tile_height)) - 1));
 
-    // Rotate is only lossless for square high-resolution tiles (Addendum #4).
-    _ui->actionRotate->setEnabled(state->canRotateTile(state->getTileIndex()));
+    updateTileTransformActions(state);
 }
 
 bool MainWindow::openFile(const QString& file_name)
@@ -601,9 +663,17 @@ void MainWindow::onColorPropertiesUpdated(int pen)
 {
     _ui->dockWidget_colors->update();
 
-    const State* const state = getState();
+    State* const state = getState();
     if (state == nullptr) {
-        _ui->actionRotate->setEnabled(false);
+        updateTileTransformActions(nullptr);
+        return;
+    }
+
+    const bool pen_fell_back = updatePenControls(state);
+    updateTileTransformActions(state);
+    // Avoid overwriting the status label with the stale pre-fallback pen; setSelectedPen()
+    // already emitted selectedPenChanged / triggered a fresh update if needed.
+    if (pen_fell_back && pen != state->getSelectedPen()) {
         return;
     }
 
@@ -627,12 +697,6 @@ void MainWindow::onColorPropertiesUpdated(int pen)
             _ui->radioButton_charColorGlobal->setChecked(true);
         }
     }
-
-    _ui->radioButton_multicolor1->setEnabled(multicolor_enabled);
-    _ui->radioButton_multicolor2->setEnabled(multicolor_enabled);
-    _ui->actionMulti_Color_1->setEnabled(multicolor_enabled);
-    _ui->actionMulti_Color_2->setEnabled(multicolor_enabled);
-    _ui->actionRotate->setEnabled(state->canRotateTile(tile_index));
 }
 
 void MainWindow::onOpenRecentFileTriggered()
@@ -713,7 +777,7 @@ void MainWindow::refresh()
 {
     State* const state = getState();
     if (state == nullptr) {
-        _ui->actionRotate->setEnabled(false);
+        updateTileTransformActions(nullptr);
         return;
     }
 
@@ -722,9 +786,10 @@ void MainWindow::refresh()
     onColorPropertiesUpdated(State::PEN_FOREGROUND);
     onColorPropertiesUpdated(State::PEN_MULTICOLOR1);
     onColorPropertiesUpdated(State::PEN_MULTICOLOR2);
+    onColorPropertiesUpdated(State::PEN_BACKGROUND3);
     onColorPropertiesUpdated(state->getSelectedPen());
 
-    onMulticolorModeToggled(state->isMulticolorMode());
+    onCharacterModeChanged(state->characterMode());
     onMapSizeUpdated();
 
     if (_undoView != nullptr) {
@@ -803,14 +868,8 @@ bool MainWindow::_openFile(const QString& file_name)
         return false;
     }
 
-    const bool is_multicolor = state->isMulticolorMode();
     adoptDocument(std::move(state));
     setRecentFile(file_name);
-
-    {
-        const QSignalBlocker blocker(_ui->checkBox_multicolor);
-        _ui->checkBox_multicolor->setChecked(is_multicolor);
-    }
 
     ApplySubWindowPathAndTitle(
         this,
@@ -871,6 +930,13 @@ void MainWindow::createActions()
     _ui->colorRectWidget_1->setPen(State::PEN_FOREGROUND);
     _ui->colorRectWidget_2->setPen(State::PEN_MULTICOLOR1);
     _ui->colorRectWidget_3->setPen(State::PEN_MULTICOLOR2);
+    _ui->colorRectWidget_4->setPen(State::PEN_BACKGROUND3);
+
+    auto* mode_action_group = new QActionGroup(this);
+    mode_action_group->setExclusive(true);
+    mode_action_group->addAction(_ui->actionMode_HiRes);
+    mode_action_group->addAction(_ui->actionMode_Multicolor);
+    mode_action_group->addAction(_ui->actionMode_ExtendedColor);
 
     ServerPreview* const server_preview = ServerPreview::getInstance();
     connect(server_preview, &ILivePreviewSink::previewConnected, this, &MainWindow::serverConnected);
@@ -961,6 +1027,11 @@ void MainWindow::wireActiveDocumentRelay()
         &ActiveDocumentRelay::activeStateChanged,
         _ui->colorRectWidget_3,
         &ColorRectWidget::setActiveState);
+    connect(
+        relay,
+        &ActiveDocumentRelay::activeStateChanged,
+        _ui->colorRectWidget_4,
+        &ColorRectWidget::setActiveState);
     connect(relay, &ActiveDocumentRelay::activeStateChanged, this, &MainWindow::onActiveStateChanged);
 
     connect(relay, &ActiveDocumentRelay::fileLoaded, this, &MainWindow::refresh);
@@ -1031,12 +1102,41 @@ void MainWindow::wireActiveDocumentRelay()
         _ui->colorRectWidget_1->update();
         _ui->colorRectWidget_2->update();
         _ui->colorRectWidget_3->update();
+        _ui->colorRectWidget_4->update();
     });
 
     connect(relay, &ActiveDocumentRelay::selectedPenChanged, this, &MainWindow::onColorPropertiesUpdated);
     connect(relay, &ActiveDocumentRelay::selectedPenChanged, _ui->paletteWidget, [this](int) {
         _ui->paletteWidget->update();
     });
+
+    connect(
+        relay,
+        &ActiveDocumentRelay::characterModeChanged,
+        _ui->charsetWidget,
+        &CharsetWidget::onCharacterModeChanged);
+    connect(
+        relay,
+        &ActiveDocumentRelay::characterModeChanged,
+        _ui->tilesetWidget,
+        &TilesetWidget::onCharacterModeChanged);
+    connect(
+        relay,
+        &ActiveDocumentRelay::characterModeChanged,
+        _ui->mapWidget,
+        &MapWidget::onCharacterModeChanged);
+    connect(
+        relay,
+        &ActiveDocumentRelay::characterModeChanged,
+        _ui->paletteWidget,
+        [this](State::CharacterMode) {
+            _ui->paletteWidget->update();
+        });
+    connect(
+        relay,
+        &ActiveDocumentRelay::characterModeChanged,
+        this,
+        &MainWindow::onCharacterModeChanged);
 
     connect(
         relay,
@@ -1235,17 +1335,19 @@ void MainWindow::syncPenSelectionControls(const State* state)
 
     const int pen = std::clamp(state->getSelectedPen(), 0, State::PEN_MAX - 1);
 
-    const std::array<QAction*, 4> actions = {
+    const std::array<QAction*, State::PEN_MAX> actions = {
         _ui->actionBackground,
         _ui->actionMulti_Color_1,
         _ui->actionMulti_Color_2,
         _ui->actionForeground,
+        _ui->actionBackground_3,
     };
-    const std::array<QRadioButton*, 4> radios = {
+    const std::array<QRadioButton*, State::PEN_MAX> radios = {
         _ui->radioButton_background,
         _ui->radioButton_multicolor1,
         _ui->radioButton_multicolor2,
         _ui->radioButton_foreground,
+        _ui->radioButton_background3,
     };
 
     for (size_t i = 0U; i < actions.size(); ++i) {
@@ -1257,6 +1359,62 @@ void MainWindow::syncPenSelectionControls(const State* state)
         const QSignalBlocker radio_blocker(radios[i]);
         radios[i]->setChecked(static_cast<int>(i) == pen);
     }
+}
+
+bool MainWindow::updatePenControls(State* state)
+{
+    if (state == nullptr) {
+        return false;
+    }
+
+    const int tile_index = state->getTileIndex();
+    const bool is_ecm = state->isExtendedColorMode();
+    const bool enable_mc_or_ecm_pens = state->shouldBeDisplayedInMulticolor2(tile_index) || is_ecm;
+
+    _ui->radioButton_multicolor1->setEnabled(enable_mc_or_ecm_pens);
+    _ui->radioButton_multicolor2->setEnabled(enable_mc_or_ecm_pens);
+    _ui->actionMulti_Color_1->setEnabled(enable_mc_or_ecm_pens);
+    _ui->actionMulti_Color_2->setEnabled(enable_mc_or_ecm_pens);
+
+    _ui->radioButton_background3->setEnabled(is_ecm);
+    _ui->actionBackground_3->setEnabled(is_ecm);
+
+    const int selected_pen = state->getSelectedPen();
+    const bool selected_pen_invalid = ((selected_pen == State::PEN_MULTICOLOR1 || selected_pen == State::PEN_MULTICOLOR2)
+                                          && !enable_mc_or_ecm_pens)
+        || (selected_pen == State::PEN_BACKGROUND3 && !is_ecm);
+
+    bool fell_back = false;
+    if (selected_pen_invalid) {
+        state->setSelectedPen(State::PEN_FOREGROUND);
+        fell_back = true;
+    }
+    syncPenSelectionControls(state);
+    return fell_back;
+}
+
+void MainWindow::updateTileTransformActions(const State* state)
+{
+    if (state == nullptr) {
+        _ui->actionRotate->setEnabled(false);
+        _ui->actionFlipHorizontally->setEnabled(false);
+        _ui->actionFlipVertically->setEnabled(false);
+        _ui->actionShiftLeft->setEnabled(false);
+        _ui->actionShiftRight->setEnabled(false);
+        _ui->actionShiftUp->setEnabled(false);
+        _ui->actionShiftDown->setEnabled(false);
+        return;
+    }
+
+    const int tile_index = state->getTileIndex();
+    const bool can_spatial_transform = !state->hasAliasedSubChars(tile_index);
+    _ui->actionRotate->setEnabled(state->canRotateTile(tile_index));
+    _ui->actionFlipHorizontally->setEnabled(can_spatial_transform);
+    _ui->actionFlipVertically->setEnabled(can_spatial_transform);
+    _ui->actionShiftLeft->setEnabled(can_spatial_transform);
+    _ui->actionShiftRight->setEnabled(can_spatial_transform);
+    _ui->actionShiftUp->setEnabled(can_spatial_transform);
+    _ui->actionShiftDown->setEnabled(can_spatial_transform);
 }
 
 void MainWindow::activatePalette(int palette_index)
@@ -1330,7 +1488,7 @@ void MainWindow::updateMenus()
 
     _ui->actionPaste->setEnabled(has_documents && hasValidClipboardPayload());
     if (!has_documents) {
-        _ui->actionRotate->setEnabled(false);
+        updateTileTransformActions(nullptr);
     }
 }
 
@@ -1944,6 +2102,14 @@ void MainWindow::on_radioButton_multicolor2_toggled(bool checked)
     activateRadioButtonIndex(State::PEN_MULTICOLOR2);
 }
 
+void MainWindow::on_radioButton_background3_toggled(bool checked)
+{
+    if (!checked) {
+        return;
+    }
+    activateRadioButtonIndex(State::PEN_BACKGROUND3);
+}
+
 void MainWindow::on_actionBackground_triggered()
 {
     activateRadioButtonIndex(State::PEN_BACKGROUND);
@@ -1964,20 +2130,60 @@ void MainWindow::on_actionMulti_Color_2_triggered()
     activateRadioButtonIndex(State::PEN_MULTICOLOR2);
 }
 
-void MainWindow::on_checkBox_multicolor_toggled(bool checked)
+void MainWindow::on_actionBackground_3_triggered()
 {
-    State* const state = getState();
-    if (state == nullptr || checked == state->isMulticolorMode()) {
+    activateRadioButtonIndex(State::PEN_BACKGROUND3);
+}
+
+void MainWindow::on_radioButton_modeHiRes_toggled(bool checked)
+{
+    if (!checked) {
         return;
     }
+    if (State* const state = getState()) {
+        state->setCharacterMode(State::CHARACTER_MODE_HIRES);
+    }
+}
 
-    _ui->radioButton_multicolor1->setEnabled(checked);
-    _ui->radioButton_multicolor2->setEnabled(checked);
-    _ui->actionMulti_Color_1->setEnabled(checked);
-    _ui->actionMulti_Color_2->setEnabled(checked);
-    _ui->actionEnable_Multicolor->setChecked(checked);
+void MainWindow::on_radioButton_modeMulticolor_toggled(bool checked)
+{
+    if (!checked) {
+        return;
+    }
+    if (State* const state = getState()) {
+        state->setCharacterMode(State::CHARACTER_MODE_MULTICOLOR);
+    }
+}
 
-    state->setMulticolorMode(checked);
+void MainWindow::on_radioButton_modeExtendedColor_toggled(bool checked)
+{
+    if (!checked) {
+        return;
+    }
+    if (State* const state = getState()) {
+        state->setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    }
+}
+
+void MainWindow::on_actionMode_HiRes_triggered()
+{
+    if (State* const state = getState()) {
+        state->setCharacterMode(State::CHARACTER_MODE_HIRES);
+    }
+}
+
+void MainWindow::on_actionMode_Multicolor_triggered()
+{
+    if (State* const state = getState()) {
+        state->setCharacterMode(State::CHARACTER_MODE_MULTICOLOR);
+    }
+}
+
+void MainWindow::on_actionMode_ExtendedColor_triggered()
+{
+    if (State* const state = getState()) {
+        state->setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    }
 }
 
 void MainWindow::on_actionPalette_0_triggered()

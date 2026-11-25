@@ -66,11 +66,13 @@ constexpr std::array<uint8_t, 128> kAsciiToPetscii = {
 };
 // clang-format on
 
-// Resolves a pixel bit pattern (`0..1` in Hi-Res, `0..3` in Multicolor) for `tile_index`
-// to its 4-bit C64 palette color index (`0..15`), applying 3-bit hardware Color RAM
-// masking for Multicolor foreground (`0x3U`) pixels.
+// Resolves a pixel bit pattern (`0..1` in Hi-Res/ECM, `0..3` in Multicolor) for
+// `char_index` and `tile_index` to its 4-bit C64 palette color index (`0..15`),
+// applying 2-bit ECM background bank selection and 3-bit hardware Color RAM masking
+// for Multicolor foreground (`0x3U`) pixels.
 [[nodiscard]] int ResolveCharPixelColorIndex(
     const State& state,
+    int char_index,
     int tile_index,
     bool is_multicolor,
     uint8_t pixel_bits)
@@ -81,7 +83,7 @@ constexpr std::array<uint8_t, 128> kAsciiToPetscii = {
 
     switch (pixel_bits) {
     case 0x0U:
-        return state.getColorForPen(State::PEN_BACKGROUND);
+        return state.getBackgroundColorForChar(char_index);
     case 0x1U:
         if (is_multicolor) {
             return state.getColorForPen(State::PEN_MULTICOLOR1);
@@ -119,8 +121,9 @@ void utilsDrawCharInPainter(
     const State::CharsetBuffer& charset = state->getCharsetBuffer();
     const int tile_index = state->getTileIndexFromCharIndex(char_index);
     const bool is_multicolor = state->shouldBeDisplayedInMulticolor2(tile_index);
+    const int physical_char = state->effectiveCharIndex(char_index);
 
-    const uint8_t* char_bytes = &charset[static_cast<size_t>(char_index) * 8U];
+    const uint8_t* char_bytes = &charset[static_cast<size_t>(physical_char) * 8U];
     const int char_width = is_multicolor ? 4 : 8;
     const int bit_width = is_multicolor ? 2 : 1;
     const uint8_t* masks = is_multicolor ? kMulticolorMasks.data() : kHiResMasks.data();
@@ -130,7 +133,12 @@ void utilsDrawCharInPainter(
         for (int col = 0; col < char_width; ++col) {
             const unsigned int shift = static_cast<unsigned int>((8 - bit_width) - col * bit_width);
             const uint8_t pixel_bits = static_cast<uint8_t>((row_byte & masks[col]) >> shift);
-            const int color_index = ResolveCharPixelColorIndex(*state, tile_index, is_multicolor, pixel_bits);
+            const int color_index = ResolveCharPixelColorIndex(
+                *state,
+                char_index,
+                tile_index,
+                is_multicolor,
+                pixel_bits);
 
             painter->setBrush(Palette::getColor(color_index));
             const QRectF rect(
@@ -158,8 +166,9 @@ void utilsDrawCharInImage(
     const State::CharsetBuffer& charset = state->getCharsetBuffer();
     const int tile_index = state->getTileIndexFromCharIndex(char_index);
     const bool is_multicolor = state->shouldBeDisplayedInMulticolor2(tile_index);
+    const int physical_char = state->effectiveCharIndex(char_index);
 
-    const uint8_t* char_bytes = &charset[static_cast<size_t>(char_index) * 8U];
+    const uint8_t* char_bytes = &charset[static_cast<size_t>(physical_char) * 8U];
     const int char_width = is_multicolor ? 4 : 8;
     const int bit_width = is_multicolor ? 2 : 1;
     const uint8_t* masks = is_multicolor ? kMulticolorMasks.data() : kHiResMasks.data();
@@ -169,7 +178,12 @@ void utilsDrawCharInImage(
         for (int col = 0; col < char_width; ++col) {
             const unsigned int shift = static_cast<unsigned int>((8 - bit_width) - col * bit_width);
             const uint8_t pixel_bits = static_cast<uint8_t>((row_byte & masks[col]) >> shift);
-            const int color_index = ResolveCharPixelColorIndex(*state, tile_index, is_multicolor, pixel_bits);
+            const int color_index = ResolveCharPixelColorIndex(
+                *state,
+                char_index,
+                tile_index,
+                is_multicolor,
+                pixel_bits);
             const QRgb rgb = Palette::getColor(color_index).rgb();
 
             if (is_multicolor) {

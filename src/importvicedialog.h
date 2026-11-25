@@ -83,7 +83,7 @@ private slots:
     void on_spinBoxScreenRAM_editingFinished();
     void on_spinBoxCharset_valueChanged(int address);
     void on_spinBoxScreenRAM_valueChanged(int address);
-    void on_checkBoxMulticolor_toggled(bool checked);
+    void on_comboBoxCharMode_currentIndexChanged(int index);
     void on_checkBoxGuessColors_toggled(bool checked);
     void on_checkBoxDisplayGrid_toggled(bool checked);
     void on_checkBoxInvalidAddresses_toggled(bool checked);
@@ -95,7 +95,7 @@ private:
 
     std::vector<uint8_t> _memoryRAM;
     std::array<uint8_t, 1024> _colorRAM { };
-    std::array<uint8_t, 3> _vicColorsBackup { 1U, 5U, 7U };
+    std::array<uint8_t, 4> _vicColorsBackup { 1U, 5U, 7U, 6U };
     std::unique_ptr<State> _previewState;
     TileAtlasCache _atlasCache;
 

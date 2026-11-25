@@ -33,11 +33,14 @@ limitations under the License.
 #include <vector>
 
 #include <QCheckBox>
+#include <QComboBox>
+#include <QDebug>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSignalBlocker>
 #include <QSize>
 #include <QSpinBox>
 
@@ -127,9 +130,11 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
     _previewState->setPenColorDirect(State::PEN_BACKGROUND, vic_registers[0x21U] & 0x0FU);
     _previewState->setPenColorDirect(State::PEN_MULTICOLOR1, vic_registers[0x22U] & 0x0FU);
     _previewState->setPenColorDirect(State::PEN_MULTICOLOR2, vic_registers[0x23U] & 0x0FU);
+    _previewState->setPenColorDirect(State::PEN_BACKGROUND3, vic_registers[0x24U] & 0x0FU);
     _vicColorsBackup[0] = static_cast<uint8_t>(vic_registers[0x21U] & 0x0FU);
     _vicColorsBackup[1] = static_cast<uint8_t>(vic_registers[0x22U] & 0x0FU);
     _vicColorsBackup[2] = static_cast<uint8_t>(vic_registers[0x23U] & 0x0FU);
+    _vicColorsBackup[3] = static_cast<uint8_t>(vic_registers[0x24U] & 0x0FU);
 
     State::TileColorsBuffer default_colors { };
     default_colors.fill(State::TILE_COLORS_DEFAULT);
@@ -142,9 +147,22 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
     ui->spinBoxCharset->setValue(next_charset);
     ui->spinBoxScreenRAM->setValue(next_screen_ram);
 
-    const bool is_multicolor = ((vic_registers[0x16U] >> 4U) & 0x01U) != 0U;
-    ui->checkBoxMulticolor->setChecked(is_multicolor);
-    _previewState->setMulticolorModeDirect(is_multicolor);
+    const bool is_ecm = ((vic_registers[0x11U] >> 6U) & 0x01U) != 0U;
+    const bool is_mcm = ((vic_registers[0x16U] >> 4U) & 0x01U) != 0U;
+    if (is_ecm && is_mcm) {
+        qWarning() << "VICE snapshot has both ECM ($D011 bit 6) and MCM ($D016 bit 4) set; defaulting preview to ECM.";
+    }
+    State::CharacterMode detected_mode = State::CHARACTER_MODE_HIRES;
+    if (is_ecm) {
+        detected_mode = State::CHARACTER_MODE_EXTENDED_COLOR;
+    } else if (is_mcm) {
+        detected_mode = State::CHARACTER_MODE_MULTICOLOR;
+    }
+    {
+        const QSignalBlocker mode_blocker(ui->comboBoxCharMode);
+        ui->comboBoxCharMode->setCurrentIndex(static_cast<int>(detected_mode));
+    }
+    _previewState->setCharacterModeDirect(detected_mode);
 
     if (old_charset == next_charset) {
         on_spinBoxCharset_valueChanged(next_charset);
@@ -163,7 +181,7 @@ bool ImportVICEDialog::validateVICEFile(const QString& filepath)
 void ImportVICEDialog::updateWidgets()
 {
     const std::array<QWidget*, 7> widgets = {
-        ui->checkBoxMulticolor,
+        ui->comboBoxCharMode,
         ui->checkBoxGuessColors,
         ui->checkBoxDisplayGrid,
         ui->checkBoxInvalidAddresses,
@@ -297,13 +315,19 @@ void ImportVICEDialog::on_spinBoxScreenRAM_valueChanged(int address)
     ui->widgetCharset->update();
 }
 
-void ImportVICEDialog::on_checkBoxMulticolor_toggled(bool checked)
+void ImportVICEDialog::on_comboBoxCharMode_currentIndexChanged(int index)
 {
     if (!_previewState) {
         return;
     }
 
-    _previewState->setMulticolorModeDirect(checked);
+    State::CharacterMode mode = State::CHARACTER_MODE_HIRES;
+    if (index == static_cast<int>(State::CHARACTER_MODE_MULTICOLOR)) {
+        mode = State::CHARACTER_MODE_MULTICOLOR;
+    } else if (index == static_cast<int>(State::CHARACTER_MODE_EXTENDED_COLOR)) {
+        mode = State::CHARACTER_MODE_EXTENDED_COLOR;
+    }
+    _previewState->setCharacterModeDirect(mode);
     syncPreviewAtlas();
     ui->widgetCharset->update();
     ui->widgetScreenRAM->update();
@@ -322,15 +346,18 @@ void ImportVICEDialog::on_checkBoxGuessColors_toggled(bool checked)
         _previewState->setPenColorDirect(State::PEN_BACKGROUND, _vicColorsBackup[0]);
         _previewState->setPenColorDirect(State::PEN_MULTICOLOR1, _vicColorsBackup[1]);
         _previewState->setPenColorDirect(State::PEN_MULTICOLOR2, _vicColorsBackup[2]);
+        _previewState->setPenColorDirect(State::PEN_BACKGROUND3, _vicColorsBackup[3]);
     } else {
         _vicColorsBackup[0] = static_cast<uint8_t>(_previewState->getGlobalColorForPen(State::PEN_BACKGROUND));
         _vicColorsBackup[1] = static_cast<uint8_t>(_previewState->getGlobalColorForPen(State::PEN_MULTICOLOR1));
         _vicColorsBackup[2] = static_cast<uint8_t>(_previewState->getGlobalColorForPen(State::PEN_MULTICOLOR2));
+        _vicColorsBackup[3] = static_cast<uint8_t>(_previewState->getGlobalColorForPen(State::PEN_BACKGROUND3));
 
         _previewState->setPenColorDirect(State::PEN_BACKGROUND, 1U);
         _previewState->setPenColorDirect(State::PEN_MULTICOLOR1, 5U);
         _previewState->setPenColorDirect(State::PEN_MULTICOLOR2, 7U);
         _previewState->setPenColorDirect(State::PEN_FOREGROUND, 11U);
+        _previewState->setPenColorDirect(State::PEN_BACKGROUND3, 6U);
     }
 
     syncPreviewAtlas();

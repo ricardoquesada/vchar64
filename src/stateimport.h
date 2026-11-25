@@ -19,7 +19,7 @@ limitations under the License.
  * @brief Headless binary file parsers and packed wire headers for `vchar64_core`.
  *
  * Defines `KoalaBitmapData`, `StateImport`, and `#pragma pack(push, 1)` on-disk
- * header structures for VChar64 projects (v1–v3), CharPad CTM (v4 and v5),
+ * header structures for VChar64 projects (v1–v4), CharPad CTM (v4 and v5),
  * Koala Painter multicolor bitmaps, C64 PRG/raw charsets, and VICE emulator
  * `.vsf` machine snapshots (`C64` and `C128`).
  */
@@ -117,7 +117,7 @@ public:
         const QString& filename);
 
     /**
-     * @brief Loads a native `.vchar64proj` v1, v2, or v3 file into `state`.
+     * @brief Loads a native `.vchar64proj` v1, v2, v3, or v4 file into `state`.
      *
      * Enforces explicit `qFromLittleEndian` conversion on all 16-bit header fields,
      * validates tile geometry (`W * H <= 256`, `interleaved == 1` or `256 / (W * H)`),
@@ -191,12 +191,12 @@ public:
     };
     static_assert(sizeof(CTMHeader5) == 20, "Invalid CTMHeader5 size");
 
-    /** @brief Packed 32-byte native `.vchar64proj` file header (versions 1, 2, and 3). */
+    /** @brief Packed 32-byte native `.vchar64proj` file header (versions 1, 2, 3, and 4). */
     struct VChar64Header {
         char id[5]; // "VChar"
-        uint8_t version; // 1, 2, or 3
-        uint8_t colors[4]; // BGR, MC1, MC2, RAM
-        uint8_t vic_res; // 0 = Hi Resolution, 1 = Multicolour
+        uint8_t version; // 1, 2, 3, or 4 (4 adds ECM vic_res=2 and bg_color_3)
+        uint8_t colors[4]; // BGR ($D021), MC1/BG1 ($D022), MC2/BG2 ($D023), RAM ($D800)
+        uint8_t vic_res; // 0 = Hi-Res, 1 = Multicolour, 2 = Extended Color Mode
         uint16_t num_chars; // 16-bit LE number of chars (typically 256)
         uint8_t tile_width; // 1-8
         uint8_t tile_height; // 1-8
@@ -211,11 +211,13 @@ public:
         uint16_t address_charset; // 16-bit LE Charset export address
         uint16_t address_map; // 16-bit LE Map export address
         uint16_t address_attribs; // 16-bit LE Attribs/Colors export address
-        uint8_t export_features; // bitmask: charset(1<<0), map(1<<1), colors(1<<2)
+        uint8_t export_features; // bitmask: charset(1<<0), map(1<<1), colors(1<<2), ecm_full_charset(1<<3)
         uint8_t export_format; // 0: RAW, 1: PRG, 2: ASM, 3: C
         uint8_t keyboard_mapping; // 0: C64 screen code, 1: Atari 8-bit
 
-        uint8_t reserved[2]; // Zeroed; 32 bytes total
+        // v4+ fields (replaces v3's reserved[2]; zeroed when saving v3)
+        uint8_t bg_color_3; // $D024 ECM Background Color #3 (0..15)
+        uint8_t reserved; // Zeroed; 32 bytes total
     };
     static_assert(sizeof(VChar64Header) == 32, "Invalid VChar64Header size");
 

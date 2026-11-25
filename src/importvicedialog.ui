@@ -159,11 +159,50 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBoxMulticolor">
-     <property name="text">
-      <string>Multicolor</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_charMode">
+     <item>
+      <widget class="QLabel" name="labelCharMode">
+       <property name="text">
+        <string>Character Mode</string>
+       </property>
+       <property name="buddy">
+        <cstring>comboBoxCharMode</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBoxCharMode">
+       <item>
+        <property name="text">
+         <string>Hi-Res</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Multicolor</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Extended Color</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_charMode">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QCheckBox" name="checkBoxGuessColors">
@@ -260,7 +299,7 @@
   <tabstop>pushButtonBrowse</tabstop>
   <tabstop>spinBoxCharset</tabstop>
   <tabstop>spinBoxScreenRAM</tabstop>
-  <tabstop>checkBoxMulticolor</tabstop>
+  <tabstop>comboBoxCharMode</tabstop>
   <tabstop>checkBoxGuessColors</tabstop>
   <tabstop>checkBoxDisplayGrid</tabstop>
   <tabstop>checkBoxInvalidAddresses</tabstop>

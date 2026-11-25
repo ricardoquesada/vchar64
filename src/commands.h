@@ -285,7 +285,24 @@ private:
     bool _captured = false;
 };
 
-/** @brief Toggles document-wide VIC-II Multicolor mode (`$D016` bit 4). */
+/** @brief Switches VIC-II character display mode (`Hi-Res`, `Multicolor`, or `Extended Color`). */
+class SetCharacterModeCommand : public QUndoCommand {
+public:
+    SetCharacterModeCommand(
+        State* state,
+        State::CharacterMode mode,
+        QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+
+private:
+    State* _state;
+    State::CharacterMode _old = State::CHARACTER_MODE_HIRES;
+    State::CharacterMode _new;
+    bool _captured = false;
+};
+
+/** @brief Compatibility command toggling Multicolor (`$D016` bit 4) while restoring the prior `CharacterMode` on `undo()`. */
 class SetMulticolorModeCommand : public QUndoCommand {
 public:
     SetMulticolorModeCommand(
@@ -297,8 +314,8 @@ public:
 
 private:
     State* _state;
-    bool _old = false;
-    bool _new;
+    State::CharacterMode _oldMode = State::CHARACTER_MODE_HIRES;
+    State::CharacterMode _newMode;
     bool _captured = false;
 };
 

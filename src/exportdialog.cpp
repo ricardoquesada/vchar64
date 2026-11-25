@@ -106,10 +106,15 @@ ExportDialog::ExportDialog(State* state, QWidget* parent)
         ui->spinBox_mapAddress->setEnabled(toggled);
     });
 
-    _checkBox_clicked = static_cast<int>(export_properties.features);
+    _checkBox_clicked = static_cast<int>(export_properties.features & State::EXPORT_FEATURE_ALL);
     ui->checkBox_charset->setChecked((_checkBox_clicked & State::EXPORT_FEATURE_CHARSET) != 0);
     ui->checkBox_map->setChecked((_checkBox_clicked & State::EXPORT_FEATURE_MAP) != 0);
     ui->checkBox_tileColors->setChecked((_checkBox_clicked & State::EXPORT_FEATURE_COLORS) != 0);
+
+    const bool export_full_ecm_charset = (export_properties.features & State::EXPORT_FEATURE_ECM_FULL_CHARSET) != 0U;
+    ui->widget_ecmCharsetSize->setVisible(_state->isExtendedColorMode());
+    ui->radioButton_ecm256Chars->setChecked(export_full_ecm_charset);
+    ui->radioButton_ecm64Chars->setChecked(!export_full_ecm_charset);
 
     // Must honor the order from State::ExportFormat.
     const std::array<QRadioButton*, 4> format_radios = {
@@ -123,6 +128,7 @@ ExportDialog::ExportDialog(State* state, QWidget* parent)
     ui->spinBox_charsetAddress->setValue(static_cast<int>(export_properties.addresses[0]));
     ui->spinBox_mapAddress->setValue(static_cast<int>(export_properties.addresses[1]));
     ui->spinBox_attribAddress->setValue(static_cast<int>(export_properties.addresses[2]));
+    updateButtons();
 }
 
 ExportDialog::~ExportDialog()
@@ -241,6 +247,12 @@ void ExportDialog::accept()
     if (ui->checkBox_charset->isChecked()) {
         feature_mask = static_cast<uint8_t>(feature_mask | State::EXPORT_FEATURE_CHARSET);
     }
+    const bool keep_full_ecm_charset = _state->isExtendedColorMode()
+        ? ui->radioButton_ecm256Chars->isChecked()
+        : ((properties.features & State::EXPORT_FEATURE_ECM_FULL_CHARSET) != 0U);
+    if (keep_full_ecm_charset) {
+        feature_mask = static_cast<uint8_t>(feature_mask | State::EXPORT_FEATURE_ECM_FULL_CHARSET);
+    }
     properties.features = feature_mask;
 
     vchar64::Result<void> result = vchar64::Result<void>::err(
@@ -279,5 +291,7 @@ void ExportDialog::accept()
 
 void ExportDialog::updateButtons()
 {
-    ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(_checkBox_clicked != 0);
+    ui->widget_ecmCharsetSize->setEnabled(ui->checkBox_charset->isChecked());
+    ui->buttonBox->button(QDialogButtonBox::Save)
+        ->setEnabled((_checkBox_clicked & State::EXPORT_FEATURE_ALL) != 0);
 }

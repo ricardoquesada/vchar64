@@ -50,6 +50,7 @@ public slots:
     /** @brief Rebinds the dock to `state` (or `nullptr` when all MDI subwindows close). */
     void setActiveState(State* state);
     void onCharIndexUpdated(int charIndex);
+    void onCharacterModeChanged(State::CharacterMode mode);
     void onMulticolorModeToggled(bool state);
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);

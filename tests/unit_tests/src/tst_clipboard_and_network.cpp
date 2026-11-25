@@ -32,6 +32,7 @@ limitations under the License.
 #include <cstdint>
 #include <cstring>
 #include <random>
+#include <set>
 #include <vector>
 
 #include <QByteArray>
@@ -341,11 +342,14 @@ private slots:
     void cleanupTestCase();
 
     void testClipboardCodecRoundTripsCharsTilesAndMap();
+    void testClipboardCodecEcmBankMirroring();
     void testClipboardCodecAdversarialFuzzRejection();
     void testC64PreviewBuildersAll64TileSizesAnd7x4_7x7Regressions();
     void testServerPreviewAsyncConnectAnd1400BytePingPongBarrier();
     void testServerPreviewProtoFillEndianPens012AndTilePropsRefresh();
     void testServerPreview256KiBStalledModemBackpressureCoalescing();
+    void testServerPreviewEcmSafeModeTransitionsAndD024Pokes();
+    void testServerPreviewEcmTileUpdatedDedupAndBytesUpdatedClamping();
     void testAutoUpdaterOfflineHttpsSchemeEnforcement();
     void testAutoUpdaterOffline64KiBStreamingCap();
     void testAutoUpdaterHtmlSanitizationStrictHttpsUrlAndSignals();
@@ -1066,6 +1070,307 @@ void TestClipboardAndNetwork::testServerPreview256KiBStalledModemBackpressureCoa
     QVERIFY(!preview.isFullSyncPending());
 }
 
+void TestClipboardAndNetwork::testServerPreviewEcmSafeModeTransitionsAndD024Pokes()
+{
+    QTcpServer server;
+    QVERIFY(server.listen(QHostAddress::LocalHost, 0));
+
+    State state;
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+    state.setForegroundColorModeDirect(State::FOREGROUND_COLOR_PER_TILE);
+    state.setPenColorDirect(State::PEN_BACKGROUND, 1U);
+    state.setPenColorDirect(State::PEN_MULTICOLOR1, 2U);
+    state.setPenColorDirect(State::PEN_MULTICOLOR2, 5U);
+    state.setPenColorDirect(State::PEN_BACKGROUND3, 7U);
+
+    State::CharsetBuffer customCharset { };
+    for (size_t i = 0; i < customCharset.size(); ++i) {
+        customCharset[i] = static_cast<uint8_t>((i * 13U + 3U) & 0xFFU);
+    }
+    state.setCharsetBytes(customCharset.data(), customCharset.size());
+
+    ServerPreview preview;
+    preview.setActiveState(&state);
+    preview.connectPreview(QStringLiteral("127.0.0.1"), server.serverPort());
+
+    QTRY_VERIFY(server.hasPendingConnections());
+    QTcpSocket* serverSocket = server.nextPendingConnection();
+    QVERIFY(serverSocket != nullptr);
+
+    MockContikiPreviewServer contiki(serverSocket, /*autoPong=*/true);
+    QTRY_VERIFY(
+        preview.isConnected()
+        && !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_SET_MEM), 0xA5E0U));
+    QVERIFY2(contiki.parseError().isEmpty(), qPrintable(contiki.parseError()));
+    QVERIFY(contiki.maxObservedWindowBytes() <= VCHAR64_SERVER_BUFFER_SIZE);
+
+    // Initial ECM sync must transmit only 64 chars (512 bytes) and poke $D024, $D016=0x08 before $D011=0x5B.
+    int setCharsCount = 0;
+    bool saw64CharSync = false;
+    bool sawD024Poke = false;
+    int idxD016Initial = -1;
+    int idxD011Initial = -1;
+    for (size_t i = 0; i < contiki.packets().size(); ++i) {
+        const ParsedWirePacket& pkt = contiki.packets()[i];
+        if (pkt.type == static_cast<uint8_t>(TYPE_SET_CHARS)) {
+            ++setCharsCount;
+            if (pkt.addrOrIdx == 0U && pkt.count == 64U) {
+                saw64CharSync = true;
+                QCOMPARE(pkt.payload.size(), 512);
+                QCOMPARE(
+                    std::memcmp(pkt.payload.constData(), customCharset.data(), 512U),
+                    0);
+            }
+        } else if (pkt.type == static_cast<uint8_t>(TYPE_POKE)) {
+            if (pkt.addrOrIdx == 0xD024U && pkt.valueOrToken == 7U) {
+                sawD024Poke = true;
+            } else if (pkt.addrOrIdx == 0xD016U && pkt.valueOrToken == 0x08U) {
+                idxD016Initial = static_cast<int>(i);
+            } else if (pkt.addrOrIdx == 0xD011U && pkt.valueOrToken == 0x5BU) {
+                idxD011Initial = static_cast<int>(i);
+            }
+        }
+    }
+    QCOMPARE(setCharsCount, 1);
+    QVERIFY(saw64CharSync);
+    QVERIFY(sawD024Poke);
+    QVERIFY(idxD016Initial >= 0);
+    QVERIFY(idxD011Initial > idxD016Initial);
+
+    // Transition ECM -> MULTICOLOR: $D011=0x1B must arrive strictly before $D016=0x18 (zero duplicates).
+    contiki.clearRecordedPackets();
+    state.setCharacterMode(State::CHARACTER_MODE_MULTICOLOR);
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_POKE), 0xD016U));
+    QVERIFY2(contiki.parseError().isEmpty(), qPrintable(contiki.parseError()));
+
+    int d011Count = 0;
+    int d016Count = 0;
+    int idxD011 = -1;
+    int idxD016 = -1;
+    for (size_t i = 0; i < contiki.packets().size(); ++i) {
+        const ParsedWirePacket& pkt = contiki.packets()[i];
+        if (pkt.type == static_cast<uint8_t>(TYPE_POKE) && pkt.addrOrIdx == 0xD011U) {
+            ++d011Count;
+            QCOMPARE(pkt.valueOrToken, static_cast<uint8_t>(0x1BU));
+            idxD011 = static_cast<int>(i);
+        } else if (pkt.type == static_cast<uint8_t>(TYPE_POKE) && pkt.addrOrIdx == 0xD016U) {
+            ++d016Count;
+            QCOMPARE(pkt.valueOrToken, static_cast<uint8_t>(0x18U));
+            idxD016 = static_cast<int>(i);
+        }
+    }
+    QCOMPARE(d011Count, 1);
+    QCOMPARE(d016Count, 1);
+    QVERIFY(idxD011 >= 0);
+    QVERIFY(idxD016 > idxD011);
+
+    // Transition MULTICOLOR -> ECM: $D016=0x08 must arrive strictly before $D011=0x5B (zero duplicates).
+    contiki.clearRecordedPackets();
+    state.setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_POKE), 0xD011U));
+    QVERIFY2(contiki.parseError().isEmpty(), qPrintable(contiki.parseError()));
+
+    d011Count = 0;
+    d016Count = 0;
+    idxD011 = -1;
+    idxD016 = -1;
+    for (size_t i = 0; i < contiki.packets().size(); ++i) {
+        const ParsedWirePacket& pkt = contiki.packets()[i];
+        if (pkt.type == static_cast<uint8_t>(TYPE_POKE) && pkt.addrOrIdx == 0xD016U) {
+            ++d016Count;
+            QCOMPARE(pkt.valueOrToken, static_cast<uint8_t>(0x08U));
+            idxD016 = static_cast<int>(i);
+        } else if (pkt.type == static_cast<uint8_t>(TYPE_POKE) && pkt.addrOrIdx == 0xD011U) {
+            ++d011Count;
+            QCOMPARE(pkt.valueOrToken, static_cast<uint8_t>(0x5BU));
+            idxD011 = static_cast<int>(i);
+        }
+    }
+    QCOMPARE(d016Count, 1);
+    QCOMPARE(d011Count, 1);
+    QVERIFY(idxD016 >= 0);
+    QVERIFY(idxD011 > idxD016);
+
+    // Color RAM bit-3 crossing (< 8 -> >= 8) in Multicolor mode must NOT emit spurious $D011/$D016 pokes.
+    contiki.clearRecordedPackets();
+    state.setCharacterMode(State::CHARACTER_MODE_MULTICOLOR);
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_POKE), 0xD016U));
+    state.setTileColorDirect(0, 3U);
+    contiki.clearRecordedPackets();
+    state.setColorForPen(State::PEN_FOREGROUND, 12, 0);
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_SET_MEM), 0xD800U));
+    QVERIFY(!contiki.hasPacket(static_cast<uint8_t>(TYPE_POKE), 0xD011U));
+    QVERIFY(!contiki.hasPacket(static_cast<uint8_t>(TYPE_POKE), 0xD016U));
+
+    // Live PEN_BACKGROUND3 ($D024) poke.
+    contiki.clearRecordedPackets();
+    state.setColorForPen(State::PEN_BACKGROUND3, 13);
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_POKE), 0xD024U));
+
+    bool sawD024Update = false;
+    const QByteArray expectedPokeD024("\x05\x24\xD0\x0D", 4);
+    for (const ParsedWirePacket& pkt : contiki.packets()) {
+        if (pkt.type == static_cast<uint8_t>(TYPE_POKE) && pkt.addrOrIdx == 0xD024U) {
+            QCOMPARE(pkt.valueOrToken, static_cast<uint8_t>(13U));
+            QCOMPARE(pkt.rawFrame, expectedPokeD024);
+            sawD024Update = true;
+        }
+    }
+    QVERIFY(sawD024Update);
+
+    preview.disconnectPreview();
+}
+
+void TestClipboardAndNetwork::testServerPreviewEcmTileUpdatedDedupAndBytesUpdatedClamping()
+{
+    QTcpServer server;
+    QVERIFY(server.listen(QHostAddress::LocalHost, 0));
+
+    State state;
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QVERIFY(state.setTilePropertiesDirect(State::TileProperties { QSize(1, 1), 1 }));
+
+    State::CharsetBuffer charset { };
+    for (int g = 0; g < State::ECM_CHAR_COUNT; ++g) {
+        std::fill_n(charset.data() + static_cast<size_t>(g) * 8U, 8U, static_cast<uint8_t>(g + 0x10));
+    }
+    state.setCharsetBytes(charset.data(), charset.size());
+
+    ServerPreview preview;
+    preview.setActiveState(&state);
+    preview.connectPreview(QStringLiteral("127.0.0.1"), server.serverPort());
+
+    QTRY_VERIFY(server.hasPendingConnections());
+    QTcpSocket* serverSocket = server.nextPendingConnection();
+    QVERIFY(serverSocket != nullptr);
+
+    MockContikiPreviewServer contiki(serverSocket, /*autoPong=*/true);
+    QTRY_VERIFY(
+        preview.isConnected()
+        && !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_SET_MEM), 0xA5E0U));
+
+    // (1) Single aliased tileUpdated(65) emits TYPE_SET_CHAR for glyph 1 (65 & 0x3F), never 65.
+    contiki.clearRecordedPackets();
+    preview.tileUpdated(65);
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_SET_CHAR), 1U));
+    QVERIFY(!contiki.hasPacket(static_cast<uint8_t>(TYPE_SET_CHAR), 65U));
+    {
+        int setCharCount = 0;
+        for (const ParsedWirePacket& pkt : contiki.packets()) {
+            if (pkt.type == static_cast<uint8_t>(TYPE_SET_CHAR)) {
+                ++setCharCount;
+                QCOMPARE(pkt.addrOrIdx, static_cast<uint16_t>(1U));
+                QCOMPARE(
+                    std::memcmp(pkt.payload.constData(), state.getCharAtIndex(1), 8U),
+                    0);
+            }
+        }
+        QCOMPARE(setCharCount, 1);
+    }
+
+    // (2) Bank-crossing 3x3 tile 7 (logical chars 63..71 -> physical glyphs {63, 0..7}).
+    state.setTileProperties(State::TileProperties { QSize(3, 3), 1 });
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_SET_MEM), 0xA5E0U));
+    contiki.clearRecordedPackets();
+
+    preview.tileUpdated(7);
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_SET_CHAR), 7U));
+    {
+        std::set<uint16_t> emittedChars;
+        int setCharCount = 0;
+        for (const ParsedWirePacket& pkt : contiki.packets()) {
+            if (pkt.type == static_cast<uint8_t>(TYPE_SET_CHAR)) {
+                ++setCharCount;
+                QVERIFY(pkt.addrOrIdx < static_cast<uint16_t>(State::ECM_CHAR_COUNT));
+                emittedChars.insert(pkt.addrOrIdx);
+            }
+        }
+        const std::set<uint16_t> expectedChars { 0U, 1U, 2U, 3U, 4U, 5U, 6U, 7U, 63U };
+        QCOMPARE(setCharCount, 9);
+        QCOMPARE(emittedChars, expectedChars);
+    }
+
+    // (3) Self-aliased 2x2 interleaved=64 tile 0 (0, 64, 128, 192 -> all glyph 0): deduplicated to 1 packet.
+    state.setTileProperties(State::TileProperties { QSize(2, 2), 64 });
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_SET_MEM), 0xA5E0U));
+    contiki.clearRecordedPackets();
+
+    preview.tileUpdated(0);
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_SET_CHAR), 0U));
+    QTest::qWait(20);
+    {
+        int setCharCount = 0;
+        for (const ParsedWirePacket& pkt : contiki.packets()) {
+            if (pkt.type == static_cast<uint8_t>(TYPE_SET_CHAR)) {
+                ++setCharCount;
+                QCOMPARE(pkt.addrOrIdx, static_cast<uint16_t>(0U));
+            }
+        }
+        QCOMPARE(setCharCount, 1);
+    }
+
+    // (4) bytesUpdated(pos, count) clamps at 512 (ECM_CHAR_BUFFER_SIZE) and early-returns for pos >= 512.
+    contiki.clearRecordedPackets();
+    preview.bytesUpdated(510, 8);
+    QTRY_VERIFY(
+        !preview.isAwaitingPong()
+        && preview.queuedBytes() == 0U
+        && contiki.hasPacket(static_cast<uint8_t>(TYPE_SET_CHARS), 63U));
+    {
+        int setCharsCount = 0;
+        for (const ParsedWirePacket& pkt : contiki.packets()) {
+            if (pkt.type == static_cast<uint8_t>(TYPE_SET_CHARS)) {
+                ++setCharsCount;
+                QCOMPARE(pkt.addrOrIdx, static_cast<uint16_t>(63U));
+                QCOMPARE(pkt.count, static_cast<uint16_t>(1U));
+            }
+        }
+        QCOMPARE(setCharsCount, 1);
+    }
+
+    contiki.clearRecordedPackets();
+    preview.bytesUpdated(512, 8);
+    preview.bytesUpdated(600, 16);
+    QTest::qWait(20);
+    QVERIFY(contiki.packets().empty());
+
+    preview.disconnectPreview();
+}
+
 void TestClipboardAndNetwork::testAutoUpdaterOfflineHttpsSchemeEnforcement()
 {
     const QUrl defaultUrl(QString::fromLatin1(AutoUpdater::kDefaultManifestUrl));
@@ -1207,6 +1512,124 @@ void TestClipboardAndNetwork::testAutoUpdaterHtmlSanitizationStrictHttpsUrlAndSi
         QCOMPARE(availableSpy.count(), 0);
         QCOMPARE(upToDateSpy.count(), 0);
         QCOMPARE(failedSpy.count(), 1);
+    }
+}
+
+void TestClipboardAndNetwork::testClipboardCodecEcmBankMirroring()
+{
+    State ecmState;
+    ecmState.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QVERIFY(ecmState.setTilePropertiesDirect(State::TileProperties { QSize(1, 1), 1 }));
+
+    // Seed physical glyphs 0..63 with distinct patterns while keeping bytes 512..2047 zeroed.
+    State::CharsetBuffer charset { };
+    for (int g = 0; g < State::ECM_CHAR_COUNT; ++g) {
+        std::fill_n(charset.data() + static_cast<size_t>(g) * 8U, 8U, static_cast<uint8_t>(g + 1));
+    }
+    std::fill_n(charset.data() + 1U * 8U, 8U, uint8_t { 0x11U });
+    std::fill_n(charset.data() + 5U * 8U, 8U, uint8_t { 0x55U });
+    std::fill_n(charset.data() + 63U * 8U, 8U, uint8_t { 0x3FU });
+    ecmState.setCharsetBytes(charset.data(), charset.size());
+    ecmState.setTileColorDirect(69, 14U);
+    ecmState.setTileColorDirect(193, 10U);
+
+    // 1. CHARS selection from bank 1 (offset 69 -> physical glyph 5).
+    {
+        State::CopyRange charRange { };
+        charRange.type = State::CopyRange::CHARS;
+        charRange.offset = 69;
+        charRange.blockSize = 1;
+        charRange.skip = 0;
+        charRange.count = 1;
+        charRange.sourceRowWidth = 16;
+        charRange.tileProperties = ecmState.tileProperties();
+
+        const ClipboardPayload encoded = ClipboardCodec::fromStateSelection(ecmState, charRange);
+        const QByteArray wire = ClipboardCodec::serialize(encoded);
+        const auto decodedRes = ClipboardCodec::deserialize(wire);
+        QVERIFY2(decodedRes.isOk(), qPrintable(decodedRes.errorMessage()));
+        const ClipboardPayload& decoded = decodedRes.value();
+
+        // All 256 slots must mirror physical glyphs 0..63 across all 4 banks.
+        for (int c = 0; c < 256; ++c) {
+            const int phys = c & 0x3F;
+            for (size_t row = 0; row < 8U; ++row) {
+                QCOMPARE(
+                    decoded.charset[static_cast<size_t>(c) * 8U + row],
+                    ecmState.charset()[static_cast<size_t>(phys) * 8U + row]);
+            }
+        }
+        for (int bankSlot : { 5, 69, 133, 197 }) {
+            QCOMPARE(decoded.charset[static_cast<size_t>(bankSlot) * 8U], uint8_t { 0x55U });
+        }
+
+        // Paste into Hi-Res at char 69 -> copies valid glyph 5 bytes (0x55) instead of zeros.
+        std::vector<uint8_t> combined(
+            static_cast<size_t>(State::CHAR_BUFFER_SIZE + State::TILE_COLORS_BUFFER_SIZE),
+            0U);
+        std::memcpy(combined.data(), decoded.charset.data(), decoded.charset.size());
+        std::memcpy(
+            combined.data() + State::CHAR_BUFFER_SIZE,
+            decoded.tileColors.data(),
+            decoded.tileColors.size());
+
+        State hiresTarget;
+        hiresTarget.setCharacterModeDirect(State::CHARACTER_MODE_HIRES);
+        hiresTarget.paste(69, decoded.toCopyRange(), combined.data());
+        for (size_t row = 0; row < 8U; ++row) {
+            QCOMPARE(hiresTarget.charset()[69U * 8U + row], uint8_t { 0x55U });
+        }
+        QCOMPARE(hiresTarget.tileColors()[69], uint8_t { 14U });
+
+        // Paste into ECM at char 133 -> writes physical glyph 5 (133 & 0x3F) cleanly.
+        State ecmTarget;
+        ecmTarget.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+        ecmTarget.paste(133, decoded.toCopyRange(), combined.data());
+        for (size_t row = 0; row < 8U; ++row) {
+            QCOMPARE(ecmTarget.charset()[5U * 8U + row], uint8_t { 0x55U });
+            QCOMPARE(ecmTarget.charset()[133U * 8U + row], uint8_t { 0x00U });
+        }
+        QCOMPARE(ecmTarget.tileColors()[133], uint8_t { 14U });
+    }
+
+    // 2. TILES selection from bank 3 (tile 193 -> physical glyph 1).
+    {
+        State::CopyRange tileRange { };
+        tileRange.type = State::CopyRange::TILES;
+        tileRange.offset = 193;
+        tileRange.blockSize = 1;
+        tileRange.skip = 0;
+        tileRange.count = 1;
+        tileRange.sourceRowWidth = 16;
+        tileRange.tileProperties = ecmState.tileProperties();
+
+        const ClipboardPayload encoded = ClipboardCodec::fromStateSelection(ecmState, tileRange);
+        for (int bankSlot : { 1, 65, 129, 193 }) {
+            QCOMPARE(encoded.charset[static_cast<size_t>(bankSlot) * 8U], uint8_t { 0x11U });
+        }
+    }
+
+    // 3. MAP selection preserves bank bits (7..6) intact.
+    {
+        std::vector<uint8_t> mapCells(40U * 25U, 0x20U);
+        mapCells[0] = 0x41U; // bank 1, glyph 1
+        mapCells[1] = 0x85U; // bank 2, glyph 5
+        mapCells[2] = 0xFFU; // bank 3, glyph 63
+        QVERIFY(ecmState.replaceMap(QSize(40, 25), mapCells));
+
+        State::CopyRange mapRange { };
+        mapRange.type = State::CopyRange::MAP;
+        mapRange.offset = 0;
+        mapRange.blockSize = 3;
+        mapRange.skip = 37;
+        mapRange.count = 1;
+        mapRange.sourceRowWidth = 40;
+
+        const ClipboardPayload encoded = ClipboardCodec::fromStateSelection(ecmState, mapRange);
+        QCOMPARE(encoded.mapCells.size(), static_cast<size_t>(3));
+        QCOMPARE(encoded.mapCells[0], uint8_t { 0x41U });
+        QCOMPARE(encoded.mapCells[1], uint8_t { 0x85U });
+        QCOMPARE(encoded.mapCells[2], uint8_t { 0xFFU });
     }
 }
 

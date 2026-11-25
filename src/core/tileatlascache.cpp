@@ -50,11 +50,12 @@ void TileAtlasCache::sync(const State& state)
     const int max_tiles = std::max(1, 256 / (tile_width * tile_height));
 
     const int active_palette = Palette::activePalette();
-    const bool is_multicolor_mode = state.isMulticolorMode();
+    const State::CharacterMode character_mode = state.characterMode();
     const State::ForegroundColorMode foreground_mode = state.getForegroundColorMode();
-    const int background_color = state.getColorForPen(State::PEN_BACKGROUND);
-    const int multicolor1_color = state.getColorForPen(State::PEN_MULTICOLOR1);
-    const int multicolor2_color = state.getColorForPen(State::PEN_MULTICOLOR2);
+    const int background_color = state.getGlobalColorForPen(State::PEN_BACKGROUND);
+    const int multicolor1_color = state.getGlobalColorForPen(State::PEN_MULTICOLOR1);
+    const int multicolor2_color = state.getGlobalColorForPen(State::PEN_MULTICOLOR2);
+    const int bg3_color = state.getGlobalColorForPen(State::PEN_BACKGROUND3);
     const int global_foreground_color = state.getColorForPen(State::PEN_FOREGROUND);
 
     // Detect MDI active-document switches (`_cachedState != &state`), global VIC-II palette
@@ -64,11 +65,12 @@ void TileAtlasCache::sync(const State& state)
         || (_cachedPaletteIndex != active_palette)
         || (_cachedTileSize != QSize(tile_width, tile_height))
         || (_cachedInterleaved != interleaved)
-        || (_cachedMulticolorMode != is_multicolor_mode)
+        || (_cachedCharacterMode != character_mode)
         || (_cachedFgMode != foreground_mode)
         || (_cachedBgColor != background_color)
         || (_cachedMc1Color != multicolor1_color)
         || (_cachedMc2Color != multicolor2_color)
+        || (_cachedBg3Color != bg3_color)
         || (foreground_mode == State::FOREGROUND_COLOR_GLOBAL && _cachedGlobalFgColor != global_foreground_color);
 
     _tilePixelWidth = tile_width * 8;
@@ -86,6 +88,44 @@ void TileAtlasCache::sync(const State& state)
         _allDirty = true;
     }
 
+    // In ECM, tiles across all 4 background banks share the 64 physical glyphs (0..63), so
+    // editing one tile invalidates every other tile referencing the same physical glyph(s).
+    if (!_allDirty && !context_changed && state.isExtendedColorMode() && _dirtyTiles.any()) {
+        const int total_sub_chars = tile_width * tile_height;
+        std::bitset<State::ECM_CHAR_COUNT> dirty_physical_chars { };
+        for (int tile_index = 0; tile_index < max_tiles; ++tile_index) {
+            if (!_dirtyTiles.test(static_cast<size_t>(tile_index))) {
+                continue;
+            }
+            int raw_char = (interleaved == 1) ? (tile_index * total_sub_chars) : tile_index;
+            for (int sub_index = 0; sub_index < total_sub_chars; ++sub_index) {
+                if (raw_char >= 0 && raw_char < 256) {
+                    const size_t physical_char = static_cast<size_t>(static_cast<unsigned int>(raw_char) & 0x3FU);
+                    dirty_physical_chars.set(physical_char);
+                }
+                raw_char += interleaved;
+            }
+        }
+        if (dirty_physical_chars.any()) {
+            for (int tile_index = 0; tile_index < max_tiles; ++tile_index) {
+                if (_dirtyTiles.test(static_cast<size_t>(tile_index))) {
+                    continue;
+                }
+                int raw_char = (interleaved == 1) ? (tile_index * total_sub_chars) : tile_index;
+                for (int sub_index = 0; sub_index < total_sub_chars; ++sub_index) {
+                    if (raw_char >= 0 && raw_char < 256) {
+                        const size_t physical_char = static_cast<size_t>(static_cast<unsigned int>(raw_char) & 0x3FU);
+                        if (dirty_physical_chars.test(physical_char)) {
+                            _dirtyTiles.set(static_cast<size_t>(tile_index));
+                            break;
+                        }
+                    }
+                    raw_char += interleaved;
+                }
+            }
+        }
+    }
+
     if (_allDirty || context_changed) {
         _dirtyTiles.set();
         _allDirty = false;
@@ -93,11 +133,12 @@ void TileAtlasCache::sync(const State& state)
         _cachedPaletteIndex = active_palette;
         _cachedTileSize = QSize(tile_width, tile_height);
         _cachedInterleaved = interleaved;
-        _cachedMulticolorMode = is_multicolor_mode;
+        _cachedCharacterMode = character_mode;
         _cachedFgMode = foreground_mode;
         _cachedBgColor = background_color;
         _cachedMc1Color = multicolor1_color;
         _cachedMc2Color = multicolor2_color;
+        _cachedBg3Color = bg3_color;
         _cachedGlobalFgColor = global_foreground_color;
     }
 
@@ -142,11 +183,17 @@ void TileAtlasCache::rasterizeTile(
     int interleaved)
 {
     const State::CharsetBuffer& charset = state.charset();
+    const bool is_ecm = state.isExtendedColorMode();
     const bool is_multicolor = state.shouldBeDisplayedInMulticolor2(tile_index);
 
-    const QRgb background_rgb = qPremultiply(Palette::getColor(state.getColorForPen(State::PEN_BACKGROUND)).rgba());
-    const QRgb multicolor1_rgb = qPremultiply(Palette::getColor(state.getColorForPen(State::PEN_MULTICOLOR1)).rgba());
-    const QRgb multicolor2_rgb = qPremultiply(Palette::getColor(state.getColorForPen(State::PEN_MULTICOLOR2)).rgba());
+    const QRgb background_rgb = qPremultiply(
+        Palette::getColor(state.getGlobalColorForPen(State::PEN_BACKGROUND)).rgba());
+    const QRgb multicolor1_rgb = qPremultiply(
+        Palette::getColor(state.getGlobalColorForPen(State::PEN_MULTICOLOR1)).rgba());
+    const QRgb multicolor2_rgb = qPremultiply(
+        Palette::getColor(state.getGlobalColorForPen(State::PEN_MULTICOLOR2)).rgba());
+    const QRgb background3_rgb = qPremultiply(
+        Palette::getColor(state.getGlobalColorForPen(State::PEN_BACKGROUND3)).rgba());
     const int raw_foreground = state.getColorForPen(State::PEN_FOREGROUND, tile_index);
     const QRgb foreground_hires_rgb = qPremultiply(Palette::getColor(raw_foreground).rgba());
     // In VIC-II multicolor character mode ($D016 bit 4 == 1 and Color RAM bit 3 == 1),
@@ -158,6 +205,12 @@ void TileAtlasCache::rasterizeTile(
         multicolor1_rgb,
         multicolor2_rgb,
         foreground_multicolor_rgb,
+    };
+    const std::array<QRgb, 4> ecm_backgrounds = {
+        background_rgb,
+        multicolor1_rgb,
+        multicolor2_rgb,
+        background3_rgb,
     };
 
     const int base_origin_x = (tile_index % kColumns) * _tilePixelWidth;
@@ -172,9 +225,16 @@ void TileAtlasCache::rasterizeTile(
             continue;
         }
 
+        const int physical_char = is_ecm
+            ? static_cast<int>(static_cast<unsigned int>(char_index) & 0x3FU)
+            : char_index;
+        const QRgb sub_bg_rgb = is_ecm
+            ? ecm_backgrounds[static_cast<size_t>((static_cast<unsigned int>(char_index) >> 6U) & 0x03U)]
+            : background_rgb;
+
         const int sub_x = (sub_index % tile_width) * 8;
         const int sub_y = (sub_index / tile_width) * 8;
-        const size_t char_byte_base = static_cast<size_t>(char_index) * 8U;
+        const size_t char_byte_base = static_cast<size_t>(physical_char) * 8U;
 
         for (int row = 0; row < 8; ++row) {
             const uint8_t row_byte = charset[char_byte_base + static_cast<size_t>(row)];
@@ -192,10 +252,10 @@ void TileAtlasCache::rasterizeTile(
                     dest_pixels[pair_index * 2U + 1U] = pixel_rgb;
                 }
             } else {
-                // Hi-Res row: 8 single-wide 1-bit pixels [b7 .. b0].
+                // Hi-Res / ECM row: 8 single-wide 1-bit pixels [b7 .. b0].
                 for (unsigned int bit = 0; bit < 8U; ++bit) {
                     const bool is_pixel_set = ((row_byte >> (7U - bit)) & 0x01U) != 0U;
-                    dest_pixels[bit] = is_pixel_set ? foreground_hires_rgb : background_rgb;
+                    dest_pixels[bit] = is_pixel_set ? foreground_hires_rgb : sub_bg_rgb;
                 }
             }
         }

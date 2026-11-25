@@ -46,7 +46,7 @@ void ActiveDocumentRelay::setActiveState(State* next_state)
         return;
     }
 
-    _activeConnections.reserve(18);
+    _activeConnections.reserve(19);
 
     _activeConnections.push_back(
         connect(next_state, &State::fileLoaded, this, &ActiveDocumentRelay::fileLoaded));
@@ -66,6 +66,8 @@ void ActiveDocumentRelay::setActiveState(State* next_state)
         connect(next_state, &State::colorPropertiesUpdated, this, &ActiveDocumentRelay::colorPropertiesUpdated));
     _activeConnections.push_back(
         connect(next_state, &State::selectedPenChanged, this, &ActiveDocumentRelay::selectedPenChanged));
+    _activeConnections.push_back(
+        connect(next_state, &State::characterModeChanged, this, &ActiveDocumentRelay::characterModeChanged));
     _activeConnections.push_back(
         connect(next_state, &State::multicolorModeToggled, this, &ActiveDocumentRelay::multicolorModeToggled));
     _activeConnections.push_back(

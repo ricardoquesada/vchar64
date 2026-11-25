@@ -39,6 +39,9 @@ private slots:
     void on_spinBoxSizeY_editingFinished();
 
 private:
+    /** @brief Clamps `spinBoxInterleaved` maximum to the active glyph budget (`64` in ECM, `256` otherwise). */
+    void updateInterleavedMax();
+
     Ui::TilePropertiesDialog* ui;
     State* _state; // weak ref
 };

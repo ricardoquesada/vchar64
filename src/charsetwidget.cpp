@@ -146,6 +146,12 @@ void CharsetWidget::onCharIndexUpdated(int char_index)
     update();
 }
 
+void CharsetWidget::onCharacterModeChanged(State::CharacterMode mode)
+{
+    Q_UNUSED(mode)
+    invalidateCharsetImage();
+}
+
 void CharsetWidget::onMulticolorModeToggled(bool state)
 {
     Q_UNUSED(state)
@@ -240,6 +246,22 @@ void CharsetWidget::paintEvent(QPaintEvent* event)
             painter.drawLine(
                 QPointF(static_cast<qreal>(col * 8 + kOffset), static_cast<qreal>(kOffset)),
                 QPointF(static_cast<qreal>(col * 8 + kOffset), static_cast<qreal>(kRows * 8 + kOffset)));
+        }
+    }
+
+    if (state->isExtendedColorMode()) {
+        // Draw subtle dividers between rows 2, 4, and 6 separating the four 64-glyph ECM banks.
+        QPen divider_pen;
+        divider_pen.setColor(QColor(220, 220, 220, 180));
+        divider_pen.setStyle(Qt::SolidLine);
+        divider_pen.setWidthF(1.0 / _zoomLevel);
+        painter.setPen(divider_pen);
+
+        for (const int row : { 2, 4, 6 }) {
+            const qreal line_y = static_cast<qreal>(row * 8 + kOffset);
+            painter.drawLine(
+                QPointF(static_cast<qreal>(kOffset), line_y),
+                QPointF(static_cast<qreal>(kColumns * 8 + kOffset), line_y));
         }
     }
 
@@ -424,6 +446,17 @@ QPoint CharsetWidget::mapMousePositionToCell(const QPoint& pos) const noexcept
 QString CharsetWidget::cellStatusMessage(const QPoint& cell) const
 {
     const int char_index = cell.y() * kColumns + cell.x();
+    if (_activeState != nullptr && _activeState->isExtendedColorMode()) {
+        const int physical_glyph = _activeState->effectiveCharIndex(char_index);
+        const int bg_bank = static_cast<int>((static_cast<unsigned int>(char_index) >> 6U) & 0x03U);
+        return tr("x: %1, y: %2 | Char: %3 | Glyph: %4, BG #%5")
+            .arg(cell.x())
+            .arg(cell.y())
+            .arg(vchar64::formatIndexDecHex(char_index))
+            .arg(vchar64::formatIndexDecHex(physical_glyph))
+            .arg(bg_bank);
+    }
+
     return tr("x: %1, y: %2 | Char: %3")
         .arg(cell.x())
         .arg(cell.y())

@@ -136,6 +136,14 @@ private slots:
     void testActiveDocumentRelayIsolationAndLifecycle();
     void testFileUtilsPathBoundaryAndReplaceExtension();
     void testFileUtilsClassifyDroppedFiles();
+    void testEcmPenBackground3AndStateLifecycle();
+    void testSetCharacterModeAndMulticolorUndoFromEcm();
+    void testEcmGlyphAliasingAndWriteTilePixelPenBgClearing();
+    void testEcmBankWrap63To64AcrossCopyPasteClearRotateAndShift();
+    void testEcmSelfAliasedTileGuardAndInvertDeduplication();
+    void testTileAtlasCacheEcmCrossBankDirtyAndContextInvalidation();
+    void testDocumentImageRendererAndCharsetCacheEcm();
+    void testActiveDocumentRelayCharacterModeChanged();
 };
 
 void TestStateAndCommands::initTestCase()
@@ -1611,6 +1619,727 @@ void TestStateAndCommands::testFileUtilsClassifyDroppedFiles()
 
     QVERIFY(FileUtils::classifyDroppedFiles({ }).isEmpty());
     QVERIFY(FileUtils::classifyDroppedFiles({ QUrl::fromLocalFile(text) }).isEmpty());
+}
+
+void TestStateAndCommands::testEcmPenBackground3AndStateLifecycle()
+{
+    State state;
+    QCOMPARE(state.characterMode(), State::CHARACTER_MODE_HIRES);
+    QVERIFY(!state.isExtendedColorMode());
+    QVERIFY(!state.isMulticolorMode());
+    QCOMPARE(static_cast<int>(State::PEN_MAX), 5);
+    QCOMPARE(state.getGlobalColorForPen(State::PEN_BACKGROUND3), 6);
+    QCOMPARE(state.exportCharsetByteCount(), static_cast<size_t>(State::CHAR_BUFFER_SIZE));
+
+    const std::array<int, State::PEN_MAX> expectedDefaults = { 1, 5, 7, 11, 6 };
+    for (int pen = 0; pen < State::PEN_MAX; ++pen) {
+        QCOMPARE(Palette::getColorForPen(nullptr, pen), Palette::getColor(expectedDefaults[static_cast<size_t>(pen)]));
+    }
+
+    QSignalSpy spyColor(&state, &State::colorPropertiesUpdated);
+    state.setColorForPen(State::PEN_BACKGROUND3, 0x1A);
+    QCOMPARE(state.getGlobalColorForPen(State::PEN_BACKGROUND3), 10);
+    QCOMPARE(spyColor.count(), 1);
+    QCOMPARE(spyColor.takeFirst().at(0).toInt(), static_cast<int>(State::PEN_BACKGROUND3));
+    QVERIFY(state.isModified());
+
+    state.undo();
+    QCOMPARE(state.getGlobalColorForPen(State::PEN_BACKGROUND3), 6);
+    state.redo();
+    QCOMPARE(state.getGlobalColorForPen(State::PEN_BACKGROUND3), 10);
+
+    const int undoCountBeforeNoOp = state.getUndoStack()->count();
+    spyColor.clear();
+    state.setColorForPen(State::PEN_BACKGROUND3, 10);
+    QCOMPARE(spyColor.count(), 0);
+    QCOMPARE(state.getUndoStack()->count(), undoCountBeforeNoOp);
+
+    state.setColorForPen(State::PEN_BACKGROUND, 1);
+    state.setColorForPen(State::PEN_MULTICOLOR1, 2);
+    state.setColorForPen(State::PEN_MULTICOLOR2, 3);
+    state.setColorForPen(State::PEN_BACKGROUND3, 4);
+
+    QCOMPARE(State::penForExtendedBgBank(0), static_cast<int>(State::PEN_BACKGROUND));
+    QCOMPARE(State::penForExtendedBgBank(1), static_cast<int>(State::PEN_MULTICOLOR1));
+    QCOMPARE(State::penForExtendedBgBank(2), static_cast<int>(State::PEN_MULTICOLOR2));
+    QCOMPARE(State::penForExtendedBgBank(3), static_cast<int>(State::PEN_BACKGROUND3));
+
+    // Outside ECM, every char uses PEN_BACKGROUND ($D021).
+    QCOMPARE(state.getBackgroundColorForChar(0), 1);
+    QCOMPARE(state.getBackgroundColorForChar(65), 1);
+    QCOMPARE(state.getBackgroundColorForChar(129), 1);
+    QCOMPARE(state.getBackgroundColorForChar(193), 1);
+
+    state.setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(state.exportCharsetByteCount(), static_cast<size_t>(State::ECM_CHAR_BUFFER_SIZE));
+    QCOMPARE(state.getBackgroundColorForChar(0), 1);
+    QCOMPARE(state.getBackgroundColorForChar(65), 2);
+    QCOMPARE(state.getBackgroundColorForChar(129), 3);
+    QCOMPARE(state.getBackgroundColorForChar(193), 4);
+
+    state.setColorForPen(State::PEN_BACKGROUND3, 12);
+    State copied;
+    copied.copyState(state);
+    QCOMPARE(copied.characterMode(), State::CHARACTER_MODE_EXTENDED_COLOR);
+    QVERIFY(copied.isExtendedColorMode());
+    QCOMPARE(copied.getGlobalColorForPen(State::PEN_BACKGROUND3), 12);
+
+    copied.reset();
+    QCOMPARE(copied.characterMode(), State::CHARACTER_MODE_HIRES);
+    QVERIFY(!copied.isExtendedColorMode());
+    QCOMPARE(copied.getGlobalColorForPen(State::PEN_BACKGROUND3), 6);
+}
+
+void TestStateAndCommands::testSetCharacterModeAndMulticolorUndoFromEcm()
+{
+    State state;
+    QSignalSpy spyCharMode(&state, &State::characterModeChanged);
+    QSignalSpy spyMc(&state, &State::multicolorModeToggled);
+
+    // HIRES -> EXTENDED_COLOR: emits characterModeChanged once, 0 multicolorModeToggled.
+    state.setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(state.characterMode(), State::CHARACTER_MODE_EXTENDED_COLOR);
+    QVERIFY(state.isExtendedColorMode());
+    QVERIFY(!state.isMulticolorMode());
+    QCOMPARE(spyCharMode.count(), 1);
+    QCOMPARE(spyCharMode.takeFirst().at(0).value<State::CharacterMode>(), State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(spyMc.count(), 0);
+
+    // Setting already-active mode must be a complete no-op.
+    const int countAfterEnterEcm = state.getUndoStack()->count();
+    state.setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(spyCharMode.count(), 0);
+    QCOMPARE(spyMc.count(), 0);
+    QCOMPARE(state.getUndoStack()->count(), countAfterEnterEcm);
+
+    // EXTENDED_COLOR -> HIRES: emits characterModeChanged once, 0 multicolorModeToggled.
+    state.setCharacterMode(State::CHARACTER_MODE_HIRES);
+    QCOMPARE(state.characterMode(), State::CHARACTER_MODE_HIRES);
+    QCOMPARE(spyCharMode.count(), 1);
+    QCOMPARE(spyCharMode.takeFirst().at(0).value<State::CharacterMode>(), State::CHARACTER_MODE_HIRES);
+    QCOMPARE(spyMc.count(), 0);
+
+    // HIRES -> EXTENDED_COLOR -> MULTICOLOR: crossing into MC emits multicolorModeToggled(true).
+    state.setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    spyCharMode.clear();
+    spyMc.clear();
+    state.setCharacterMode(State::CHARACTER_MODE_MULTICOLOR);
+    QCOMPARE(spyCharMode.count(), 1);
+    QCOMPARE(spyCharMode.takeFirst().at(0).value<State::CharacterMode>(), State::CHARACTER_MODE_MULTICOLOR);
+    QCOMPARE(spyMc.count(), 1);
+    QCOMPARE(spyMc.takeFirst().at(0).toBool(), true);
+
+    // MULTICOLOR -> EXTENDED_COLOR: leaving MC emits multicolorModeToggled(false).
+    state.setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(spyCharMode.count(), 1);
+    QCOMPARE(spyCharMode.takeFirst().at(0).value<State::CharacterMode>(), State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(spyMc.count(), 1);
+    QCOMPARE(spyMc.takeFirst().at(0).toBool(), false);
+
+    // SetMulticolorModeCommand undo from ECM must revert to EXTENDED_COLOR (not Hi-Res).
+    state.clearUndoStack();
+    spyCharMode.clear();
+    spyMc.clear();
+    state.setMulticolorMode(true);
+    QCOMPARE(state.characterMode(), State::CHARACTER_MODE_MULTICOLOR);
+    QCOMPARE(spyCharMode.count(), 1);
+    QCOMPARE(spyMc.count(), 1);
+    QCOMPARE(spyMc.takeFirst().at(0).toBool(), true);
+    spyCharMode.clear();
+
+    state.undo();
+    QCOMPARE(state.characterMode(), State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(spyCharMode.count(), 1);
+    QCOMPARE(spyCharMode.takeFirst().at(0).value<State::CharacterMode>(), State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(spyMc.count(), 1);
+    QCOMPARE(spyMc.takeFirst().at(0).toBool(), false);
+
+    state.redo();
+    QCOMPARE(state.characterMode(), State::CHARACTER_MODE_MULTICOLOR);
+
+    // Non-destructive mode switching & Multicolor display gating.
+    state.setCharacterModeDirect(State::CHARACTER_MODE_HIRES);
+    State::CharsetBuffer sentinel { };
+    for (size_t i = 0; i < sentinel.size(); ++i) {
+        sentinel[i] = static_cast<uint8_t>((i * 37U + 11U) & 0xFFU);
+    }
+    state.setCharsetBytes(sentinel.data(), sentinel.size());
+    state.setPenColorDirect(State::PEN_FOREGROUND, 15U);
+    state.setTileColorDirect(0, 15U);
+    state.setForegroundColorModeDirect(State::FOREGROUND_COLOR_PER_TILE);
+
+    state.setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QVERIFY(!state.shouldBeDisplayedInMulticolor());
+    QVERIFY(!state.shouldBeDisplayedInMulticolor2(0));
+
+    state.setCharacterMode(State::CHARACTER_MODE_HIRES);
+    for (size_t i = static_cast<size_t>(State::ECM_CHAR_BUFFER_SIZE); i < sentinel.size(); ++i) {
+        QCOMPARE(state.charset()[i], sentinel[i]);
+    }
+}
+
+void TestStateAndCommands::testEcmGlyphAliasingAndWriteTilePixelPenBgClearing()
+{
+    struct ExposedState final : public State {
+        using State::getCharFromTile;
+        using State::setCharForTile;
+    };
+
+    ExposedState state;
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+
+    // 6-bit aliasing contract.
+    QCOMPARE(state.effectiveCharIndex(-1), 0);
+    QCOMPARE(state.effectiveCharIndex(0), 0);
+    QCOMPARE(state.effectiveCharIndex(63), 63);
+    QCOMPARE(state.effectiveCharIndex(64), 0);
+    QCOMPARE(state.effectiveCharIndex(65), 1);
+    QCOMPARE(state.effectiveCharIndex(129), 1);
+    QCOMPARE(state.effectiveCharIndex(193), 1);
+    QCOMPARE(state.effectiveCharIndex(255), 63);
+    QCOMPARE(state.effectiveCharIndex(256), 63);
+
+    // Out-of-range char_index >= 256 must be rejected BEFORE effectiveCharIndex() wraps it.
+    State::CharsetBuffer seeded { };
+    std::fill_n(seeded.data(), 16U, uint8_t { 0xFFU }); // glyphs 0 and 1 all-ones
+    state.setCharsetBytes(seeded.data(), seeded.size());
+    QVERIFY(state.setTilePropertiesDirect(State::TileProperties { QSize(2, 2), 256 }));
+    // Tile 0 sub-char (0, 0) -> 0 (valid), sub-char (1, 0) -> 256 (OOB: must NOT wrap to 0!).
+    QCOMPARE(state.tileGetPen(0, QPoint(0, 0)), 1);
+    QCOMPARE(state.tileGetPen(0, QPoint(8, 0)), 0);
+    const State::CharGlyph oobGlyph = state.getCharFromTile(0, 1, 0);
+    QCOMPARE(oobGlyph, (State::CharGlyph { }));
+    const State::CharGlyph zeroed { };
+    state.setCharForTile(0, 1, 0, zeroed);
+    QCOMPARE(state.charset()[0], static_cast<uint8_t>(0xFFU));
+
+    // Reset to 1x1 blank ECM state for aliasing and pen-clearing tests.
+    QVERIFY(state.setTilePropertiesDirect(State::TileProperties { QSize(1, 1), 1 }));
+    state.resetCharsetBuffer();
+    state.clearUndoStack();
+
+    // Painting pixel (0, 0) of tile 65 (bank 1, glyph 1) sets bit 7 of glyph 1 and aliases banks 0..3.
+    state.tilePaint(65, QPoint(0, 0), State::PEN_FOREGROUND, false);
+    QCOMPARE(state.charset()[8], static_cast<uint8_t>(0x80U));
+    QCOMPARE(state.charset()[65 * 8], static_cast<uint8_t>(0x00U));
+    QCOMPARE(state.tileGetPen(1, QPoint(0, 0)), 1);
+    QCOMPARE(state.tileGetPen(65, QPoint(0, 0)), 1);
+    QCOMPARE(state.tileGetPen(129, QPoint(0, 0)), 1);
+    QCOMPARE(state.tileGetPen(193, QPoint(0, 0)), 1);
+
+    // Verify isBackgroundPen() across ECM, Hi-Res, and Multicolor.
+    QVERIFY(state.isBackgroundPen(State::PEN_BACKGROUND));
+    QVERIFY(state.isBackgroundPen(State::PEN_MULTICOLOR1));
+    QVERIFY(state.isBackgroundPen(State::PEN_MULTICOLOR2));
+    QVERIFY(state.isBackgroundPen(State::PEN_BACKGROUND3));
+    QVERIFY(!state.isBackgroundPen(State::PEN_FOREGROUND));
+
+    state.setCharacterModeDirect(State::CHARACTER_MODE_HIRES);
+    QVERIFY(state.isBackgroundPen(State::PEN_BACKGROUND));
+    QVERIFY(state.isBackgroundPen(State::PEN_MULTICOLOR1));
+    QVERIFY(state.isBackgroundPen(State::PEN_MULTICOLOR2));
+    QVERIFY(state.isBackgroundPen(State::PEN_BACKGROUND3));
+    QVERIFY(!state.isBackgroundPen(State::PEN_FOREGROUND));
+
+    state.setCharacterModeDirect(State::CHARACTER_MODE_MULTICOLOR);
+    QVERIFY(state.isBackgroundPen(State::PEN_BACKGROUND));
+    QVERIFY(!state.isBackgroundPen(State::PEN_MULTICOLOR1));
+    QVERIFY(!state.isBackgroundPen(State::PEN_MULTICOLOR2));
+    QVERIFY(!state.isBackgroundPen(State::PEN_BACKGROUND3));
+    QVERIFY(!state.isBackgroundPen(State::PEN_FOREGROUND));
+
+    // Seed pixels (0,0), (1,0), (2,0), (3,0) of glyph 1 to FG and clear each with BG0..BG3.
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+    state.resetCharsetBuffer();
+    state.clearUndoStack();
+    state.tilePaint(1, QPoint(0, 0), State::PEN_FOREGROUND, false);
+    state.tilePaint(1, QPoint(1, 0), State::PEN_FOREGROUND, false);
+    state.tilePaint(1, QPoint(2, 0), State::PEN_FOREGROUND, false);
+    state.tilePaint(1, QPoint(3, 0), State::PEN_FOREGROUND, false);
+    QCOMPARE(state.charset()[8], static_cast<uint8_t>(0xF0U));
+
+    state.tilePaint(65, QPoint(0, 0), State::PEN_BACKGROUND, false);
+    state.tilePaint(65, QPoint(1, 0), State::PEN_MULTICOLOR1, false);
+    state.tilePaint(65, QPoint(2, 0), State::PEN_MULTICOLOR2, false);
+    state.tilePaint(65, QPoint(3, 0), State::PEN_BACKGROUND3, false);
+    QCOMPARE(state.charset()[8], static_cast<uint8_t>(0x00U));
+
+    for (int i = 0; i < 4; ++i) {
+        state.undo();
+    }
+    QCOMPARE(state.charset()[8], static_cast<uint8_t>(0xF0U));
+}
+
+void TestStateAndCommands::testEcmBankWrap63To64AcrossCopyPasteClearRotateAndShift()
+{
+    State state;
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+
+    // 1. Contiguous 3x3 tile 7 straddles chars 63..71 -> physical glyphs {63, 0, 1, 2, 3, 4, 5, 6, 7}.
+    QVERIFY(state.setTilePropertiesDirect(State::TileProperties { QSize(3, 3), 1 }));
+    State::CharsetBuffer seed { };
+    for (size_t g = 0U; g < 8U; ++g) {
+        for (size_t row = 0U; row < 8U; ++row) {
+            seed[g * 8U + row] = static_cast<uint8_t>(0x10U + g * 8U + row);
+        }
+    }
+    for (size_t row = 0; row < 8; ++row) {
+        seed[63U * 8U + row] = static_cast<uint8_t>(0xA0U + row);
+    }
+    for (int c = 64; c <= 71; ++c) {
+        for (size_t row = 0; row < 8; ++row) {
+            seed[static_cast<size_t>(c) * 8U + row] = static_cast<uint8_t>(0x5AU ^ static_cast<uint8_t>(c));
+        }
+    }
+    state.setCharsetBytes(seed.data(), seed.size());
+    state.clearUndoStack();
+
+    state.tileClear(7);
+    for (int g = 0; g < 8; ++g) {
+        for (size_t row = 0; row < 8; ++row) {
+            QCOMPARE(state.charset()[static_cast<size_t>(g) * 8U + row], uint8_t { 0U });
+        }
+    }
+    for (size_t row = 0; row < 8; ++row) {
+        QCOMPARE(state.charset()[63U * 8U + row], uint8_t { 0U });
+    }
+    // Raw bytes at chars 64..71 must remain untouched.
+    for (int c = 64; c <= 71; ++c) {
+        for (size_t row = 0; row < 8; ++row) {
+            QCOMPARE(state.charset()[static_cast<size_t>(c) * 8U + row], seed[static_cast<size_t>(c) * 8U + row]);
+        }
+    }
+
+    state.undo();
+    QCOMPARE(state.charset(), seed);
+
+    // 2. Non-self-aliased interleaved 2x2 tile straddling bank boundary:
+    //    tile 62 with interleaved = 2 -> logical {62, 64, 66, 68} -> physical {62, 0, 2, 4}.
+    QVERIFY(state.setTilePropertiesDirect(State::TileProperties { QSize(2, 2), 2 }));
+    QVERIFY(!state.hasAliasedSubChars(62));
+    QVERIFY(state.canRotateTile(62));
+    const std::array<int, 4> tile62Phys = { 62, 0, 2, 4 };
+    for (size_t idx = 0; idx < tile62Phys.size(); ++idx) {
+        const size_t base = static_cast<size_t>(tile62Phys[idx]) * 8U;
+        for (size_t row = 0; row < 8; ++row) {
+            seed[base + row] = static_cast<uint8_t>((idx + 1U) * 17U + row);
+        }
+    }
+    state.setCharsetBytes(seed.data(), seed.size());
+    state.clearUndoStack();
+
+    // Rotate 90 deg clockwise + undo.
+    state.tileRotate(62);
+    QVERIFY(state.charset() != seed);
+    for (int c = 64; c <= 71; ++c) {
+        for (size_t row = 0; row < 8; ++row) {
+            QCOMPARE(state.charset()[static_cast<size_t>(c) * 8U + row], seed[static_cast<size_t>(c) * 8U + row]);
+        }
+    }
+    state.undo();
+    QCOMPARE(state.charset(), seed);
+
+    // Flip H/V and Shift L/R/U/D across bank wrap + undo.
+    state.tileFlipHorizontally(62);
+    QVERIFY(state.charset() != seed);
+    state.undo();
+    QCOMPARE(state.charset(), seed);
+
+    state.tileFlipVertically(62);
+    QVERIFY(state.charset() != seed);
+    state.undo();
+    QCOMPARE(state.charset(), seed);
+
+    state.tileShiftLeft(62);
+    QVERIFY(state.charset() != seed);
+    state.undo();
+    QCOMPARE(state.charset(), seed);
+
+    state.tileShiftRight(62);
+    QVERIFY(state.charset() != seed);
+    state.undo();
+    QCOMPARE(state.charset(), seed);
+
+    state.tileShiftUp(62);
+    QVERIFY(state.charset() != seed);
+    state.undo();
+    QCOMPARE(state.charset(), seed);
+
+    state.tileShiftDown(62);
+    QVERIFY(state.charset() != seed);
+    state.undo();
+    QCOMPARE(state.charset(), seed);
+
+    // Raw 64..71 untouched after all spatial ops.
+    for (int c = 64; c <= 71; ++c) {
+        for (size_t row = 0; row < 8; ++row) {
+            QCOMPARE(state.charset()[static_cast<size_t>(c) * 8U + row], seed[static_cast<size_t>(c) * 8U + row]);
+        }
+    }
+
+    // 3. _pasteChars across 63 -> 64 and logical Color RAM preservation.
+    QVERIFY(state.setTilePropertiesDirect(State::TileProperties { QSize(1, 1), 1 }));
+    state.setForegroundColorModeDirect(State::FOREGROUND_COLOR_PER_TILE);
+
+    State::CharsetBuffer pasteCharsSrc { };
+    State::TileColorsBuffer pasteColorsSrc { };
+    pasteColorsSrc.fill(1U);
+    for (size_t c = 0U; c < 4U; ++c) {
+        std::fill_n(pasteCharsSrc.data() + c * 8U, 8U, static_cast<uint8_t>(0x30U + c));
+        pasteColorsSrc[c] = static_cast<uint8_t>(10U + c);
+    }
+
+    state.setTileColorDirect(0, 5U);
+    state.setTileColorDirect(1, 6U);
+    state.setTileColorDirect(62, 1U);
+    state.setTileColorDirect(63, 2U);
+    state.setTileColorDirect(64, 3U);
+    state.setTileColorDirect(65, 4U);
+    state.clearUndoStack();
+
+    const std::vector<uint8_t> combined = buildCombinedCharsAndColorsPayload(pasteCharsSrc, pasteColorsSrc);
+    State::CopyRange charRange { };
+    charRange.offset = 0;
+    charRange.blockSize = 4;
+    charRange.skip = 0;
+    charRange.count = 1;
+    charRange.sourceRowWidth = 16;
+    charRange.type = State::CopyRange::CHARS;
+    charRange.tileProperties = state.tileProperties();
+    charRange.bufferSize = static_cast<int>(combined.size());
+
+    QSignalSpy spyBytes(&state, &State::bytesUpdated);
+    state.paste(62, charRange, combined.data());
+
+    // Physical glyphs 62, 63, 0, 1 receive copied bytes.
+    QCOMPARE(state.charset()[62 * 8], uint8_t { 0x30U });
+    QCOMPARE(state.charset()[63 * 8], uint8_t { 0x31U });
+    QCOMPARE(state.charset()[0 * 8], uint8_t { 0x32U });
+    QCOMPARE(state.charset()[1 * 8], uint8_t { 0x33U });
+    // Raw 64..65 remain untouched.
+    QCOMPARE(state.charset()[64 * 8], seed[64 * 8]);
+    QCOMPARE(state.charset()[65 * 8], seed[65 * 8]);
+    // All bytesUpdated positions must be < 512.
+    QCOMPARE(spyBytes.count(), 4);
+    const std::array<int, 4> expectedBytePos = { 62 * 8, 63 * 8, 0 * 8, 1 * 8 };
+    for (int i = 0; i < 4; ++i) {
+        QCOMPARE(spyBytes.at(i).at(0).toInt(), expectedBytePos[static_cast<size_t>(i)]);
+        QCOMPARE(spyBytes.at(i).at(1).toInt(), 8);
+    }
+    // Logical Color RAM updates 62..65 without touching 0..1.
+    QCOMPARE(state.tileColors()[62], uint8_t { 10U });
+    QCOMPARE(state.tileColors()[63], uint8_t { 11U });
+    QCOMPARE(state.tileColors()[64], uint8_t { 12U });
+    QCOMPARE(state.tileColors()[65], uint8_t { 13U });
+    QCOMPARE(state.tileColors()[0], uint8_t { 5U });
+    QCOMPARE(state.tileColors()[1], uint8_t { 6U });
+
+    state.undo();
+    QCOMPARE(state.charset(), seed);
+    QCOMPARE(state.tileColors()[62], uint8_t { 1U });
+    QCOMPARE(state.tileColors()[63], uint8_t { 2U });
+    QCOMPARE(state.tileColors()[64], uint8_t { 3U });
+    QCOMPARE(state.tileColors()[65], uint8_t { 4U });
+
+    // 4. _pasteTiles for 3x3 tile 7 straddling 63..71 -> physical {63, 0..7}.
+    QVERIFY(state.setTilePropertiesDirect(State::TileProperties { QSize(3, 3), 1 }));
+    State::CharsetBuffer tilePasteSrc { };
+    for (size_t g = 0U; g < 9U; ++g) {
+        std::fill_n(tilePasteSrc.data() + g * 8U, 8U, static_cast<uint8_t>(0xC0U + g));
+    }
+    State::TileColorsBuffer tilePasteColors { };
+    tilePasteColors[0] = 9U;
+    state.setTileColorDirect(7, 2U);
+    const std::vector<uint8_t> combinedTiles = buildCombinedCharsAndColorsPayload(tilePasteSrc, tilePasteColors);
+    State::CopyRange tileRange { };
+    tileRange.offset = 0;
+    tileRange.blockSize = 1;
+    tileRange.skip = 0;
+    tileRange.count = 1;
+    tileRange.sourceRowWidth = 1;
+    tileRange.type = State::CopyRange::TILES;
+    tileRange.tileProperties = state.tileProperties();
+    tileRange.bufferSize = static_cast<int>(combinedTiles.size());
+
+    spyBytes.clear();
+    state.paste(63, tileRange, combinedTiles.data());
+    QCOMPARE(state.charset()[63 * 8], uint8_t { 0xC0U });
+    for (size_t g = 0U; g < 8U; ++g) {
+        QCOMPARE(state.charset()[g * 8U], static_cast<uint8_t>(0xC1U + g));
+    }
+    for (int c = 64; c <= 71; ++c) {
+        QCOMPARE(state.charset()[static_cast<size_t>(c) * 8U], seed[static_cast<size_t>(c) * 8U]);
+    }
+    for (const QList<QVariant>& emission : spyBytes) {
+        QVERIFY(emission.at(0).toInt() < State::ECM_CHAR_BUFFER_SIZE);
+    }
+    QCOMPARE(state.tileColors()[7], uint8_t { 9U });
+
+    state.undo();
+    QCOMPARE(state.charset(), seed);
+    QCOMPARE(state.tileColors()[7], uint8_t { 2U });
+}
+
+void TestStateAndCommands::testEcmSelfAliasedTileGuardAndInvertDeduplication()
+{
+    State state;
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+
+    // Contiguous 8x8 tiles (interleaved == 1) never self-alias.
+    QVERIFY(state.setTilePropertiesDirect(State::TileProperties { QSize(8, 8), 1 }));
+    for (int t = 0; t < state.maxTiles(); ++t) {
+        QVERIFY(!state.hasAliasedSubChars(t));
+    }
+
+    // 2x2 with interleaved = 32 -> {0, 32, 64, 96} -> {0, 32, 0, 32} (self-aliased).
+    QVERIFY(state.setTilePropertiesDirect(State::TileProperties { QSize(2, 2), 32 }));
+    QVERIFY(state.hasAliasedSubChars(0));
+    QVERIFY(!state.canRotateTile(0));
+
+    // 2x2 with interleaved = 64 -> {0, 64, 128, 192} -> {0, 0, 0, 0} (4x self-aliased).
+    QVERIFY(state.setTilePropertiesDirect(State::TileProperties { QSize(2, 2), 64 }));
+    QVERIFY(state.hasAliasedSubChars(0));
+    QVERIFY(!state.canRotateTile(0));
+
+    const State::CharGlyph initialGlyph { 0xAAU, 0x55U, 0x0FU, 0xF0U, 0x01U, 0x80U, 0x00U, 0xFFU };
+    State::CharsetBuffer buf { };
+    std::copy_n(initialGlyph.data(), 8U, buf.data());
+    state.setCharsetBytes(buf.data(), buf.size());
+    state.clearUndoStack();
+
+    const int initialUndoCount = state.getUndoStack()->count();
+    state.tileRotate(0);
+    state.tileFlipHorizontally(0);
+    state.tileFlipVertically(0);
+    state.tileShiftLeft(0);
+    state.tileShiftRight(0);
+    state.tileShiftUp(0);
+    state.tileShiftDown(0);
+    QCOMPARE(state.getUndoStack()->count(), initialUndoCount);
+    QCOMPARE(state.charset(), buf);
+
+    // _tileInvert must invert physical glyph 0 exactly ONCE (not 4 times!).
+    state.tileInvert(0);
+    const State::CharGlyph expectedInverted { 0x55U, 0xAAU, 0xF0U, 0x0FU, 0xFEU, 0x7FU, 0xFFU, 0x00U };
+    for (size_t row = 0; row < 8; ++row) {
+        QCOMPARE(state.charset()[row], expectedInverted[row]);
+    }
+
+    state.undo();
+    for (size_t row = 0; row < 8; ++row) {
+        QCOMPARE(state.charset()[row], initialGlyph[row]);
+    }
+
+    state.redo();
+    for (size_t row = 0; row < 8; ++row) {
+        QCOMPARE(state.charset()[row], expectedInverted[row]);
+    }
+}
+
+void TestStateAndCommands::testTileAtlasCacheEcmCrossBankDirtyAndContextInvalidation()
+{
+    const int savedPalette = Palette::activePalette();
+    Palette::setActivePalette(Palette::PEPTO);
+
+    State state;
+    state.resetCharsetBuffer();
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+    state.setPenColorDirect(State::PEN_BACKGROUND, 0U); // Black
+    state.setPenColorDirect(State::PEN_MULTICOLOR1, 2U); // Red
+    state.setPenColorDirect(State::PEN_MULTICOLOR2, 5U); // Green
+    state.setPenColorDirect(State::PEN_BACKGROUND3, 6U); // Blue
+    state.setPenColorDirect(State::PEN_FOREGROUND, 1U); // White (#FFFFFF in Pepto)
+
+    TileAtlasCache cache;
+    cache.sync(state);
+    QCOMPARE(cache.lastSyncedTileCount(), 256);
+
+    // Paint pixel (0, 0) of tile 1 ($01) and mark ONLY tile 1 dirty -> expands to {1, 65, 129, 193}.
+    state.tilePaint(1, QPoint(0, 0), State::PEN_FOREGROUND, false);
+    cache.markTileDirty(1);
+    cache.sync(state);
+    QCOMPARE(cache.lastSyncedTileCount(), 4);
+
+    const std::array<std::pair<int, int>, 4> kBankTiles = { {
+        { 1, 0 },
+        { 65, 2 },
+        { 129, 5 },
+        { 193, 6 },
+    } };
+    for (const auto& [tileIdx, expectedBgPen] : kBankTiles) {
+        const QRect rect = cache.sourceRectForTile(tileIdx);
+        QCOMPARE(cache.atlasImage().pixelColor(rect.topLeft()), QColor(0xFF, 0xFF, 0xFF));
+        QCOMPARE(
+            cache.atlasImage().pixelColor(rect.topLeft() + QPoint(1, 0)),
+            Palette::getColor(expectedBgPen));
+    }
+
+    const QRect tile2Rect = cache.sourceRectForTile(2);
+    QCOMPARE(cache.atlasImage().pixelColor(tile2Rect.topLeft()), Palette::getColor(0));
+
+    // Mutate $D024 without markAllDirty() -> automatic full context invalidation.
+    state.setPenColorDirect(State::PEN_BACKGROUND3, 7U); // Yellow
+    cache.sync(state);
+    QCOMPARE(cache.lastSyncedTileCount(), 256);
+    QCOMPARE(
+        cache.atlasImage().pixelColor(cache.sourceRectForTile(193).topLeft() + QPoint(1, 0)),
+        Palette::getColor(7));
+
+    // Mode switch without markAllDirty() -> automatic full context invalidation.
+    state.setCharacterModeDirect(State::CHARACTER_MODE_HIRES);
+    cache.sync(state);
+    QCOMPARE(cache.lastSyncedTileCount(), 256);
+
+    // Multi-char cross-bank tile (3x3 tile 7 spanning chars 63..71 -> physical 63, 0..7):
+    // dirtying tile 0 (glyphs 0..8) must expand to mark tile 7 dirty as well.
+    state.resetCharsetBuffer();
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QVERIFY(state.setTilePropertiesDirect({ QSize(3, 3), 1 }));
+    cache.sync(state);
+    QCOMPARE(cache.lastSyncedTileCount(), state.maxTiles());
+
+    state.tilePaint(0, QPoint(0, 0), State::PEN_FOREGROUND, false);
+    cache.markTileDirty(0);
+    cache.sync(state);
+    QVERIFY(cache.lastSyncedTileCount() > 1);
+    const QRect tile7Rect = cache.sourceRectForTile(7);
+    // Sub-char 1 of tile 7 is char 64 (bank 1, physical glyph 0), located at pixel offset (+8, 0).
+    QCOMPARE(cache.atlasImage().pixelColor(tile7Rect.topLeft() + QPoint(8, 0)), QColor(0xFF, 0xFF, 0xFF));
+    QCOMPARE(
+        cache.atlasImage().pixelColor(tile7Rect.topLeft() + QPoint(9, 0)),
+        Palette::getColor(2));
+
+    Palette::setActivePalette(savedPalette);
+}
+
+void TestStateAndCommands::testDocumentImageRendererAndCharsetCacheEcm()
+{
+    const int savedPalette = Palette::activePalette();
+    Palette::setActivePalette(Palette::PEPTO);
+
+    State state;
+    state.resetCharsetBuffer();
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+    state.setForegroundColorModeDirect(State::FOREGROUND_COLOR_PER_TILE);
+    state.setPenColorDirect(State::PEN_BACKGROUND, 6U); // Blue
+    state.setPenColorDirect(State::PEN_MULTICOLOR1, 2U); // Red
+    state.setPenColorDirect(State::PEN_MULTICOLOR2, 5U); // Green
+    state.setPenColorDirect(State::PEN_BACKGROUND3, 7U); // Yellow
+
+    // Set foreground colors including >= 8 to verify bit 3 never forces 2bpp Multicolor in ECM.
+    state.setTileColorDirect(1, 1U); // White
+    state.setTileColorDirect(65, 14U); // Light Blue
+    state.setTileColorDirect(129, 10U); // Light Red
+    state.setTileColorDirect(193, 13U); // Light Green
+
+    // Paint glyph 1 pixel (0, 0) = 1; (1, 0) = 0.
+    state.tilePaint(1, QPoint(0, 0), State::PEN_FOREGROUND, false);
+    QVERIFY(state.replaceMap(QSize(4, 1), std::vector<uint8_t> { 1U, 65U, 129U, 193U }));
+
+    const QImage charsetOpaque = DocumentImageRenderer::renderCharset(state, false);
+    QCOMPARE(charsetOpaque.format(), QImage::Format_ARGB32);
+
+    CharsetImageCache charsetCache;
+    const QImage& cachedCharset = charsetCache.sync(state);
+    QVERIFY(charsetCache.lastSyncRebuilt());
+    QCOMPARE(cachedCharset.format(), QImage::Format_ARGB32_Premultiplied);
+    QCOMPARE(cachedCharset, charsetOpaque.convertToFormat(QImage::Format_ARGB32_Premultiplied));
+
+    struct BankCellSpec {
+        int col;
+        int row;
+        int mapCellIndex;
+        int fgColor;
+        int bgColor;
+        bool bg0Transparent;
+    };
+    const std::array<BankCellSpec, 4> kCells = { {
+        { 1, 0, 0, 1, 6, true },
+        { 1, 2, 1, 14, 2, false },
+        { 1, 4, 2, 10, 5, false },
+        { 1, 6, 3, 13, 7, false },
+    } };
+
+    for (const BankCellSpec& cell : kCells) {
+        const int cx = cell.col * 8;
+        const int cy = cell.row * 8;
+        QCOMPARE(QColor::fromRgba(charsetOpaque.pixel(cx, cy)), Palette::getColor(cell.fgColor));
+        QCOMPARE(QColor::fromRgba(charsetOpaque.pixel(cx + 1, cy)), Palette::getColor(cell.bgColor));
+    }
+
+    // Verify BG0-only transparency across renderCharset, renderTileset, and renderMap.
+    const QImage charsetTrans = DocumentImageRenderer::renderCharset(state, true);
+    const QImage tilesetTrans = DocumentImageRenderer::renderTileset(state, true);
+    const QImage mapTrans = DocumentImageRenderer::renderMap(state, true);
+    QCOMPARE(charsetTrans.format(), QImage::Format_ARGB32);
+    QCOMPARE(tilesetTrans.format(), QImage::Format_ARGB32);
+    QCOMPARE(mapTrans.format(), QImage::Format_ARGB32);
+
+    for (const BankCellSpec& cell : kCells) {
+        const int cx = cell.col * 8;
+        const int cy = cell.row * 8;
+        const int mx = cell.mapCellIndex * 8;
+
+        for (const QImage* img : { &charsetTrans, &tilesetTrans }) {
+            const QRgb fgPixel = img->pixel(cx, cy);
+            const QRgb bgPixel = img->pixel(cx + 1, cy);
+            QCOMPARE(qAlpha(fgPixel), 255);
+            QCOMPARE(QColor::fromRgba(fgPixel), Palette::getColor(cell.fgColor));
+            if (cell.bg0Transparent) {
+                QCOMPARE(qAlpha(bgPixel), 0);
+            } else {
+                QCOMPARE(qAlpha(bgPixel), 255);
+                QCOMPARE(QColor::fromRgba(bgPixel), Palette::getColor(cell.bgColor));
+            }
+        }
+
+        const QRgb mapFgPixel = mapTrans.pixel(mx, 0);
+        const QRgb mapBgPixel = mapTrans.pixel(mx + 1, 0);
+        QCOMPARE(qAlpha(mapFgPixel), 255);
+        QCOMPARE(QColor::fromRgba(mapFgPixel), Palette::getColor(cell.fgColor));
+        if (cell.bg0Transparent) {
+            QCOMPARE(qAlpha(mapBgPixel), 0);
+        } else {
+            QCOMPARE(qAlpha(mapBgPixel), 255);
+            QCOMPARE(QColor::fromRgba(mapBgPixel), Palette::getColor(cell.bgColor));
+        }
+    }
+
+    Palette::setActivePalette(savedPalette);
+}
+
+void TestStateAndCommands::testActiveDocumentRelayCharacterModeChanged()
+{
+    auto docA = std::make_unique<State>();
+    auto docB = std::make_unique<State>();
+
+    ActiveDocumentRelay relay;
+    QSignalSpy spyCharMode(&relay, &ActiveDocumentRelay::characterModeChanged);
+    QVERIFY(spyCharMode.isValid());
+
+    relay.setActiveState(docA.get());
+    docA->setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(spyCharMode.count(), 1);
+    QCOMPARE(
+        spyCharMode.first().at(0).value<State::CharacterMode>(),
+        State::CHARACTER_MODE_EXTENDED_COLOR);
+
+    // Mutating inactive docB must emit 0 characterModeChanged signals through the relay.
+    spyCharMode.clear();
+    docB->setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    docB->setCharacterMode(State::CHARACTER_MODE_MULTICOLOR);
+    QCOMPARE(spyCharMode.count(), 0);
+
+    // Switching active document forwards docB's transitions and isolates docA.
+    relay.setActiveState(docB.get());
+    docA->setCharacterMode(State::CHARACTER_MODE_HIRES);
+    QCOMPARE(spyCharMode.count(), 0);
+
+    docB->setCharacterMode(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(spyCharMode.count(), 1);
+    QCOMPARE(
+        spyCharMode.first().at(0).value<State::CharacterMode>(),
+        State::CHARACTER_MODE_EXTENDED_COLOR);
 }
 
 QTEST_GUILESS_MAIN(TestStateAndCommands)

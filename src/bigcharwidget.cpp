@@ -101,6 +101,12 @@ void BigCharWidget::onTileUpdated(int tile_index)
     update();
 }
 
+void BigCharWidget::onCharacterModeChanged(State::CharacterMode mode)
+{
+    Q_UNUSED(mode)
+    update();
+}
+
 void BigCharWidget::onMulticolorModeToggled(bool enabled)
 {
     Q_UNUSED(enabled)
@@ -239,6 +245,7 @@ void BigCharWidget::keyPressEvent(QKeyEvent* event)
 
     bool needs_update = false;
     const bool is_multicolor = _state->shouldBeDisplayedInMulticolor2(_tileIndex);
+    const bool is_ecm = _state->isExtendedColorMode();
     const QPoint old_cursor_pos = _cursorPos;
     const int step_x = is_multicolor ? 2 : 1;
 
@@ -264,14 +271,20 @@ void BigCharWidget::keyPressEvent(QKeyEvent* event)
         needs_update = true;
         break;
     case Qt::Key_3:
-        if (is_multicolor) {
+        if (is_multicolor || is_ecm) {
             paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_MULTICOLOR1);
             needs_update = true;
         }
         break;
     case Qt::Key_4:
-        if (is_multicolor) {
+        if (is_multicolor || is_ecm) {
             paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_MULTICOLOR2);
+            needs_update = true;
+        }
+        break;
+    case Qt::Key_5:
+        if (is_ecm) {
+            paintPixel(_cursorPos.x(), _cursorPos.y(), State::PEN_BACKGROUND3);
             needs_update = true;
         }
         break;
@@ -425,11 +438,16 @@ void BigCharWidget::paintPixel(int pixel_x, int pixel_y, int pen)
         return;
     }
 
-    if (_state->tileGetPen(_tileIndex, QPoint(pixel_x, pixel_y)) != pen) {
-        int effective_pen = pen;
-        if (!_state->shouldBeDisplayedInMulticolor2(_tileIndex) && effective_pen != 0) {
-            effective_pen = 1;
-        }
+    int effective_pen = pen;
+    int target_tile_pen = pen;
+    if (!_state->shouldBeDisplayedInMulticolor2(_tileIndex)) {
+        const bool is_bg = _state->isBackgroundPen(pen);
+        effective_pen = is_bg ? State::PEN_BACKGROUND : State::PEN_FOREGROUND;
+        // State::tileGetPen() returns raw 1-bit pixel values (0 or 1) in 1bpp modes.
+        target_tile_pen = is_bg ? 0 : 1;
+    }
+
+    if (_state->tileGetPen(_tileIndex, QPoint(pixel_x, pixel_y)) != target_tile_pen) {
         _state->tilePaint(_tileIndex, QPoint(pixel_x, pixel_y), effective_pen, _commandMergeable);
     }
 

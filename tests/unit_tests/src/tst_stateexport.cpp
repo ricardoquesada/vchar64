@@ -93,6 +93,8 @@ class TestStateExport : public QObject {
 private slots:
     void initTestCase();
     void testSaveVChar64ZeroedReservedEndiannessAndRoundTrip();
+    void testSaveVChar64V4EcmRoundTripAndNonDestructiveCharset();
+    void testEcmExportsEmit512ByteCharsetAcrossRawPrgAsmC();
     void testSaveRawExactBytes();
     void testSavePrgLittleEndianLoadAddress();
     void testSaveAsmFormatAndCoreAppVersion();
@@ -209,6 +211,254 @@ void TestStateExport::testSaveVChar64ZeroedReservedEndiannessAndRoundTrip()
     QCOMPARE(reloaded.getKeyboardMapping(), state.getKeyboardMapping());
     for (int pen = 0; pen < 4; ++pen) {
         QCOMPARE(reloaded.getGlobalColorForPen(pen), state.getGlobalColorForPen(pen));
+    }
+}
+
+void TestStateExport::testSaveVChar64V4EcmRoundTripAndNonDestructiveCharset()
+{
+    State state;
+    State::CharsetBuffer charset { };
+    for (size_t i = 0; i < charset.size(); ++i) {
+        charset[i] = static_cast<uint8_t>((i * 41U + 13U) & 0xFFU);
+    }
+    State::TileColorsBuffer colors { };
+    for (size_t i = 0; i < colors.size(); ++i) {
+        colors[i] = static_cast<uint8_t>((i * 3U + 2U) & 0x0FU);
+    }
+    std::vector<uint8_t> mapCells(10U * 8U, 0U);
+    for (size_t i = 0; i < mapCells.size(); ++i) {
+        mapCells[i] = static_cast<uint8_t>((i * 7U + 1U) & 0xFFU);
+    }
+
+    QVERIFY(state.setTilePropertiesDirect({ QSize(2, 2), 1 }));
+    QVERIFY(state.assignImportedBuffers(charset, colors, QSize(10, 8), mapCells));
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+    state.setPenColorDirect(State::PEN_BACKGROUND, 1U);
+    state.setPenColorDirect(State::PEN_MULTICOLOR1, 2U);
+    state.setPenColorDirect(State::PEN_MULTICOLOR2, 5U);
+    state.setPenColorDirect(State::PEN_FOREGROUND, 14U);
+    state.setPenColorDirect(State::PEN_BACKGROUND3, 7U);
+    state.setForegroundColorModeDirect(State::FOREGROUND_COLOR_PER_TILE);
+
+    State::ExportProperties exportProps { };
+    exportProps.addresses[0] = 0x2000U;
+    exportProps.addresses[1] = 0x2800U;
+    exportProps.addresses[2] = 0xD800U;
+    exportProps.format = State::EXPORT_FORMAT_ASM;
+    exportProps.features = State::EXPORT_FEATURE_ALL;
+    state.setExportPropertiesDirect(exportProps);
+    state.setKeyboardMappingDirect(State::KEYBOARD_MAPPING_ATARI8);
+
+    QTemporaryDir tempDir;
+    QVERIFY(tempDir.isValid());
+    const QString path = tempDir.filePath(QStringLiteral("ecm_project.vchar64proj"));
+
+    dirtyCallStack();
+    const auto saveRes = StateExport::saveVChar64(state, path);
+    QVERIFY(saveRes.isOk());
+    constexpr qint64 kExpectedBytes = 32LL + 2048LL + 256LL + 80LL; // 2,416 bytes
+    QCOMPARE(saveRes.value(), kExpectedBytes);
+
+    const QByteArray raw = readWholeFile(path);
+    QCOMPARE(raw.size(), static_cast<qsizetype>(kExpectedBytes));
+    QCOMPARE(static_cast<uint8_t>(raw.at(5)), static_cast<uint8_t>(4U));
+    QCOMPARE(static_cast<uint8_t>(raw.at(10)), static_cast<uint8_t>(2U));
+    QCOMPARE(static_cast<uint8_t>(raw.at(30)), static_cast<uint8_t>(7U));
+    QCOMPARE(static_cast<uint8_t>(raw.at(31)), static_cast<uint8_t>(0x00U));
+
+    State reloaded;
+    const auto loadRes = StateImport::loadVChar64(reloaded, path);
+    QVERIFY(loadRes.isOk());
+    QCOMPARE(reloaded.characterMode(), State::CHARACTER_MODE_EXTENDED_COLOR);
+    for (int pen = 0; pen < State::PEN_MAX; ++pen) {
+        QCOMPARE(reloaded.getGlobalColorForPen(pen), state.getGlobalColorForPen(pen));
+    }
+    QCOMPARE(reloaded.charset(), state.charset());
+    QCOMPARE(reloaded.tileColors(), state.tileColors());
+    QCOMPARE(reloaded.mapSize(), state.mapSize());
+    QCOMPARE(reloaded.map(), state.map());
+    QCOMPARE(reloaded.tileProperties(), state.tileProperties());
+    QCOMPARE(reloaded.getForegroundColorMode(), state.getForegroundColorMode());
+    QCOMPARE(reloaded.exportProperties(), state.exportProperties());
+    QCOMPARE(reloaded.getKeyboardMapping(), state.getKeyboardMapping());
+
+    // Setting EXPORT_FEATURE_ECM_FULL_CHARSET (bit 3) persists in v4 and is stripped when saving v3.
+    exportProps.features = State::EXPORT_FEATURE_ALL | State::EXPORT_FEATURE_ECM_FULL_CHARSET;
+    state.setExportPropertiesDirect(exportProps);
+    const QString fullEcmPath = tempDir.filePath(QStringLiteral("ecm_full_flag.vchar64proj"));
+    dirtyCallStack();
+    QVERIFY(StateExport::saveVChar64(state, fullEcmPath).isOk());
+    const QByteArray fullEcmRaw = readWholeFile(fullEcmPath);
+    QCOMPARE(static_cast<uint8_t>(fullEcmRaw.at(27)), static_cast<uint8_t>(State::EXPORT_FEATURE_VALID_MASK));
+
+    State reloadedFullEcm;
+    QVERIFY(StateImport::loadVChar64(reloadedFullEcm, fullEcmPath).isOk());
+    QCOMPARE(reloadedFullEcm.exportProperties().features, static_cast<uint8_t>(State::EXPORT_FEATURE_VALID_MASK));
+
+    // Switching back to Hi-Res emits backward-compatible v3 with zeroed bytes 30..31 and strips ECM bit 3.
+    state.setCharacterModeDirect(State::CHARACTER_MODE_HIRES);
+    const QString v3Path = tempDir.filePath(QStringLiteral("hires_again.vchar64proj"));
+    dirtyCallStack();
+    QVERIFY(StateExport::saveVChar64(state, v3Path).isOk());
+    const QByteArray v3Raw = readWholeFile(v3Path);
+    QCOMPARE(static_cast<uint8_t>(v3Raw.at(5)), static_cast<uint8_t>(3U));
+    QCOMPARE(static_cast<uint8_t>(v3Raw.at(10)), static_cast<uint8_t>(0U));
+    QCOMPARE(static_cast<uint8_t>(v3Raw.at(27)), static_cast<uint8_t>(State::EXPORT_FEATURE_ALL));
+    QCOMPARE(static_cast<uint8_t>(v3Raw.at(30)), static_cast<uint8_t>(0x00U));
+    QCOMPARE(static_cast<uint8_t>(v3Raw.at(31)), static_cast<uint8_t>(0x00U));
+}
+
+void TestStateExport::testEcmExportsEmit512ByteCharsetAcrossRawPrgAsmC()
+{
+    State state;
+    State::CharsetBuffer charset { };
+    for (size_t i = 0; i < static_cast<size_t>(State::ECM_CHAR_BUFFER_SIZE); ++i) {
+        charset[i] = static_cast<uint8_t>((i * 13U + 5U) & 0xFFU);
+    }
+    charset[0] = 0xA5U;
+    charset[511] = 0x5AU;
+    for (size_t i = static_cast<size_t>(State::ECM_CHAR_BUFFER_SIZE); i < charset.size(); ++i) {
+        charset[i] = 0xEEU;
+    }
+    state.setCharsetBytes(charset.data(), charset.size());
+
+    QCOMPARE(state.exportCharsetByteCount(), static_cast<size_t>(State::CHAR_BUFFER_SIZE));
+    state.setCharacterModeDirect(State::CHARACTER_MODE_MULTICOLOR);
+    QCOMPARE(state.exportCharsetByteCount(), static_cast<size_t>(State::CHAR_BUFFER_SIZE));
+    state.setCharacterModeDirect(State::CHARACTER_MODE_EXTENDED_COLOR);
+    QCOMPARE(state.exportCharsetByteCount(), static_cast<size_t>(State::ECM_CHAR_BUFFER_SIZE));
+
+    State::ExportProperties props { };
+    props.addresses[0] = 0x2000U;
+    props.features = State::EXPORT_FEATURE_CHARSET;
+
+    QTemporaryDir tempDir;
+    QVERIFY(tempDir.isValid());
+
+    // 1. RAW (512 bytes)
+    {
+        const QString basePath = tempDir.filePath(QStringLiteral("ecm.raw"));
+        QVERIFY(state.exportRaw(basePath, props).isOk());
+        const QByteArray disk = readWholeFile(tempDir.filePath(QStringLiteral("ecm-charset.raw")));
+        QCOMPARE(disk.size(), 512);
+        QVERIFY(std::memcmp(disk.constData(), charset.data(), 512U) == 0);
+    }
+
+    // 2. PRG (2-byte LE address 0x2000 + 512 bytes = 514 bytes)
+    {
+        const QString basePath = tempDir.filePath(QStringLiteral("ecm.prg"));
+        QVERIFY(state.exportPRG(basePath, props).isOk());
+        const QByteArray disk = readWholeFile(tempDir.filePath(QStringLiteral("ecm-charset.prg")));
+        QCOMPARE(disk.size(), 514);
+        QCOMPARE(static_cast<uint8_t>(disk.at(0)), static_cast<uint8_t>(0x00U));
+        QCOMPARE(static_cast<uint8_t>(disk.at(1)), static_cast<uint8_t>(0x20U));
+        QVERIFY(std::memcmp(disk.constData() + 2, charset.data(), 512U) == 0);
+    }
+
+    // 3. ASM (32 .byte lines of 16 bytes = 512 bytes)
+    {
+        const QString basePath = tempDir.filePath(QStringLiteral("ecm.s"));
+        QVERIFY(state.exportAsm(basePath, props).isOk());
+        const QString asmText = QString::fromUtf8(readWholeFile(tempDir.filePath(QStringLiteral("ecm-charset.s"))));
+        QVERIFY(asmText.contains(QStringLiteral("; Total bytes: 512")));
+        QVERIFY(asmText.contains(QStringLiteral("CHARSET_COUNT = 512")));
+
+        int byteLineCount = 0;
+        int decodedByteCount = 0;
+        for (const QString& line : asmText.split(QLatin1Char('\n'))) {
+            if (line.startsWith(QStringLiteral(".byte "))) {
+                ++byteLineCount;
+                const QString hexPart = line.section(QLatin1Char('\t'), 0, 0).mid(6);
+                decodedByteCount += static_cast<int>(hexPart.split(QLatin1Char(',')).size());
+            }
+        }
+        QCOMPARE(byteLineCount, 32);
+        QCOMPARE(decodedByteCount, 512);
+    }
+
+    // 4. C (const uint8_t charset[512] + strict ISO C17 syntax check when compiler present)
+    {
+        const QString basePath = tempDir.filePath(QStringLiteral("ecm.c"));
+        QVERIFY(state.exportC(basePath, props).isOk());
+        const QString cFilePath = tempDir.filePath(QStringLiteral("ecm-charset.c"));
+        const QString cText = QString::fromUtf8(readWholeFile(cFilePath));
+        QVERIFY(cText.contains(QStringLiteral("#define CHARSET_COUNT 512\n")));
+        QVERIFY(cText.contains(QStringLiteral("const uint8_t charset[512] = {")));
+
+        const QString cCompiler = findC17Compiler();
+        if (!cCompiler.isEmpty()) {
+            QProcess proc;
+            proc.start(
+                cCompiler,
+                { QStringLiteral("-std=c17"),
+                    QStringLiteral("-Wall"),
+                    QStringLiteral("-Wextra"),
+                    QStringLiteral("-Wpedantic"),
+                    QStringLiteral("-Werror"),
+                    QStringLiteral("-xc"),
+                    QStringLiteral("-fsyntax-only"),
+                    cFilePath });
+            QVERIFY2(proc.waitForFinished(10000), "C17 compiler syntax check timed out");
+            QVERIFY2(
+                proc.exitStatus() == QProcess::NormalExit && proc.exitCode() == 0,
+                qPrintable(QString::fromUtf8(proc.readAllStandardError())));
+        }
+    }
+
+    // 5. Map & Colors exports remain full size (mapSize + 256 tile colors) in ECM.
+    {
+        State::ExportProperties mapAndColorProps = props;
+        mapAndColorProps.features = State::EXPORT_FEATURE_MAP | State::EXPORT_FEATURE_COLORS;
+        const QString basePath = tempDir.filePath(QStringLiteral("ecm_mc.raw"));
+        QVERIFY(state.exportRaw(basePath, mapAndColorProps).isOk());
+        const QByteArray mapRaw = readWholeFile(tempDir.filePath(QStringLiteral("ecm_mc-map.raw")));
+        const QByteArray colorsRaw = readWholeFile(tempDir.filePath(QStringLiteral("ecm_mc-colors.raw")));
+        QCOMPARE(mapRaw.size(), static_cast<qsizetype>(state.map().size()));
+        QCOMPARE(colorsRaw.size(), State::TILE_COLORS_BUFFER_SIZE);
+    }
+
+    // 6. Optional full 256-char (2,048-byte) ECM export for split-screen programs across RAW/PRG/ASM/C and Quick Export.
+    {
+        State::ExportProperties fullProps = props;
+        fullProps.features = State::EXPORT_FEATURE_CHARSET | State::EXPORT_FEATURE_ECM_FULL_CHARSET;
+        QCOMPARE(state.exportCharsetByteCount(fullProps), static_cast<size_t>(State::CHAR_BUFFER_SIZE));
+
+        const QString rawBase = tempDir.filePath(QStringLiteral("ecm_full.raw"));
+        QVERIFY(state.exportRaw(rawBase, fullProps).isOk());
+        const QByteArray rawDisk = readWholeFile(tempDir.filePath(QStringLiteral("ecm_full-charset.raw")));
+        QCOMPARE(rawDisk.size(), 2048);
+        QVERIFY(std::memcmp(rawDisk.constData(), charset.data(), 2048U) == 0);
+
+        const QString prgBase = tempDir.filePath(QStringLiteral("ecm_full.prg"));
+        QVERIFY(state.exportPRG(prgBase, fullProps).isOk());
+        const QByteArray prgDisk = readWholeFile(tempDir.filePath(QStringLiteral("ecm_full-charset.prg")));
+        QCOMPARE(prgDisk.size(), 2050);
+        QVERIFY(std::memcmp(prgDisk.constData() + 2, charset.data(), 2048U) == 0);
+
+        const QString asmBase = tempDir.filePath(QStringLiteral("ecm_full.s"));
+        QVERIFY(state.exportAsm(asmBase, fullProps).isOk());
+        const QString asmText = QString::fromUtf8(readWholeFile(tempDir.filePath(QStringLiteral("ecm_full-charset.s"))));
+        QVERIFY(asmText.contains(QStringLiteral("; Total bytes: 2048")));
+        QVERIFY(asmText.contains(QStringLiteral("CHARSET_COUNT = 2048")));
+        QVERIFY(asmText.contains(QStringLiteral("$ee,$ee,$ee,$ee")));
+
+        const QString cBase = tempDir.filePath(QStringLiteral("ecm_full.c"));
+        QVERIFY(state.exportC(cBase, fullProps).isOk());
+        const QString cText = QString::fromUtf8(readWholeFile(tempDir.filePath(QStringLiteral("ecm_full-charset.c"))));
+        QVERIFY(cText.contains(QStringLiteral("#define CHARSET_COUNT 2048\n")));
+        QVERIFY(cText.contains(QStringLiteral("const uint8_t charset[2048] = {")));
+
+        // Verify Quick Export (`export_()`) honors persisted `EXPORT_FEATURE_ECM_FULL_CHARSET`.
+        fullProps.format = State::EXPORT_FORMAT_RAW;
+        state.setExportPropertiesDirect(fullProps);
+        QCOMPARE(state.exportCharsetByteCount(), static_cast<size_t>(State::CHAR_BUFFER_SIZE));
+        const QString quickBase = tempDir.filePath(QStringLiteral("ecm_quick.raw"));
+        QVERIFY(state.exportRaw(quickBase, fullProps).isOk());
+        QVERIFY(QFile::remove(tempDir.filePath(QStringLiteral("ecm_quick-charset.raw"))));
+        QVERIFY(state.export_().isOk());
+        const QByteArray quickDisk = readWholeFile(tempDir.filePath(QStringLiteral("ecm_quick-charset.raw")));
+        QCOMPARE(quickDisk.size(), 2048);
+        QCOMPARE(static_cast<uint8_t>(quickDisk.at(2047)), static_cast<uint8_t>(0xEEU));
     }
 }
 

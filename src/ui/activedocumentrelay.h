@@ -52,7 +52,7 @@ public:
 
 public slots:
     /**
-     * @brief Detaches all 18 signal forwarders from the previous document and attaches to `nextState`.
+     * @brief Detaches all 19 signal forwarders from the previous document and attaches to `nextState`.
      *
      * Passing `nullptr` detaches all connections cleanly and emits `activeStateChanged(nullptr)`
      * so docks, actions, and `ILivePreviewSink` enter their disabled empty-workspace state.
@@ -71,6 +71,7 @@ signals:
     void charsetUpdated();
     void colorPropertiesUpdated(int pen);
     void selectedPenChanged(int pen);
+    void characterModeChanged(State::CharacterMode mode);
     void multicolorModeToggled(bool enabled);
     void contentsChanged();
     void charIndexUpdated(int charIndex);

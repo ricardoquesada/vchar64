@@ -344,7 +344,19 @@ ClipboardPayload ClipboardCodec::fromStateSelection(
     }
 
     if (copy_range.type != State::CopyRange::MAP) {
-        payload.charset = state.charset();
+        if (state.isExtendedColorMode()) {
+            // Mirror the 64 physical ECM glyphs across all 4 screen-code banks (0..255)
+            // so pasting bank 1..3 selections into either ECM or Hi-Res carries valid bytes.
+            for (int char_index = 0; char_index < 256; ++char_index) {
+                const int physical_char = state.effectiveCharIndex(char_index);
+                std::copy_n(
+                    state.charset().data() + static_cast<size_t>(physical_char) * 8U,
+                    8U,
+                    payload.charset.data() + static_cast<size_t>(char_index) * 8U);
+            }
+        } else {
+            payload.charset = state.charset();
+        }
         payload.tileColors = state.tileColors();
         return payload;
     }

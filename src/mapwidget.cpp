@@ -55,6 +55,18 @@ constexpr int kOffset = 0;
         .arg(vchar64::formatIndexDecHex(state.getTileIndexFromMap(cell)));
 }
 
+// Translates an ASCII character to a map screen code, preserving the currently
+// selected tile's 2-bit background bank (bits 7..6) when ECM is active.
+[[nodiscard]] quint8 ResolveTypedMapScreenCode(const State& state, quint8 ascii_code)
+{
+    quint8 screen_code = utilsAsciiToScreenCode(&state, ascii_code);
+    if (state.isExtendedColorMode()) {
+        const quint8 bg_bank_bits = static_cast<quint8>(static_cast<unsigned int>(state.getTileIndex()) & 0xC0U);
+        screen_code = static_cast<quint8>((screen_code & 0x3FU) | bg_bank_bits);
+    }
+    return screen_code;
+}
+
 // Computes a signed rectangular selection size spanning from `cursor_pos` to `target_cell`,
 // inclusive of `cursor_pos`, clamped within `map_size`.
 [[nodiscard]] QSize ComputeDragSelectionSize(
@@ -210,6 +222,13 @@ void MapWidget::onMapSizeUpdated()
 
 void MapWidget::onMapContentUpdated()
 {
+    update();
+}
+
+void MapWidget::onCharacterModeChanged(State::CharacterMode mode)
+{
+    Q_UNUSED(mode)
+    _atlasCache.markAllDirty();
     update();
 }
 
@@ -476,7 +495,7 @@ void MapWidget::keyPressEvent(QKeyEvent* event)
         break;
     case Qt::Key_Backspace:
     case Qt::Key_Delete:
-        state->mapPaint(_cursorPos, utilsAsciiToScreenCode(state, 0x20U), false);
+        state->mapPaint(_cursorPos, static_cast<int>(ResolveTypedMapScreenCode(*state, 0x20U)), false);
         cursor_delta = { -1, 0 };
         break;
     case Qt::Key_Enter:
@@ -512,7 +531,7 @@ void MapWidget::keyPressEvent(QKeyEvent* event)
             return;
         }
         const quint8 ascii_code = static_cast<quint8>(static_cast<unsigned char>(latin1_bytes[0]));
-        const quint8 screen_code = utilsAsciiToScreenCode(state, ascii_code);
+        const quint8 screen_code = ResolveTypedMapScreenCode(*state, ascii_code);
         state->mapPaint(_cursorPos, static_cast<int>(screen_code), false);
         cursor_delta = { +1, 0 };
         is_typing = true;

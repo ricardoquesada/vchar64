@@ -20,7 +20,8 @@ limitations under the License.
  *
  * Encapsulates the three coupled asset buffers of a VChar64 project:
  *
- * - **Charset (`_charset`):** Fixed `2,048`-byte (`256 x 8`) 1bpp/2bpp glyph RAM.
+ * - **Charset (`_charset`):** Fixed `2,048`-byte (`256 x 8`) 1bpp/2bpp glyph RAM
+ *   (`64` unique glyphs / `512` bytes in Extended Color Mode).
  * - **Tile Colors (`_tileColors`):** Fixed `256`-byte 4-bit Color RAM (`$D800`
  *   nibble semantics where bit 3 gates per-tile Multicolor decoding).
  * - **Map (`_map`):** Dynamically sized (`1..4096 x 1..4096`) tile-index grid.
@@ -60,6 +61,7 @@ class ShiftRightTileCommand;
 class RotateTileCommand;
 class InvertTileCommand;
 class ClearTileCommand;
+class SetCharacterModeCommand;
 class SetMulticolorModeCommand;
 class SetTilePropertiesCommand;
 class SetExportPropertiesCommand;
@@ -94,6 +96,7 @@ class State : public QObject {
     friend class RotateTileCommand;
     friend class InvertTileCommand;
     friend class ClearTileCommand;
+    friend class SetCharacterModeCommand;
     friend class SetMulticolorModeCommand;
     friend class SetTilePropertiesCommand;
     friend class SetExportPropertiesCommand;
@@ -107,6 +110,10 @@ class State : public QObject {
 public:
     /** @brief Size in bytes of one 256-glyph C64 character set (`256 * 8 = 2,048`). */
     static constexpr int CHAR_BUFFER_SIZE = 8 * 256;
+    /** @brief Number of unique 8x8 glyphs addressable in VIC-II Extended Color Mode (`64`). */
+    static constexpr int ECM_CHAR_COUNT = 64;
+    /** @brief Size in bytes of an ECM 64-glyph character set (`64 * 8 = 512`). */
+    static constexpr int ECM_CHAR_BUFFER_SIZE = 8 * ECM_CHAR_COUNT;
     /** @brief Maximum number of addressable tiles and per-tile Color RAM entries (`256`). */
     static constexpr int TILE_COLORS_BUFFER_SIZE = 256;
     /** @brief Default 4-bit C64 foreground color index (`11` = Dark Grey, Multicolor bit 3 set). */
@@ -134,19 +141,39 @@ public:
     using map_t = MapBuffer;
 
     /**
-     * @brief Logical VIC-II color pens mapped to `$D021`–`$D023` and `$D800` Color RAM.
+     * @brief VIC-II character display mode (`$D011` bit 6 / `$D016` bit 4).
+     *
+     * Prevents illegal hardware states (such as enabling both ECM and Multicolor
+     * simultaneously) by representing all three valid VIC-II text modes cleanly.
+     */
+    enum CharacterMode {
+        CHARACTER_MODE_HIRES = 0,
+        CHARACTER_MODE_MULTICOLOR = 1,
+        CHARACTER_MODE_EXTENDED_COLOR = 2,
+    };
+    Q_ENUM(CharacterMode)
+
+    /**
+     * @brief Logical VIC-II color pens mapped to `$D021`–`$D024` and `$D800` Color RAM.
      *
      * In Multicolor mode, 2-bit pixel pairs `00`, `01`, `10`, and `11` map to
      * `PEN_BACKGROUND`, `PEN_MULTICOLOR1`, `PEN_MULTICOLOR2`, and `PEN_FOREGROUND`
-     * (low 3 bits `0..7` of Color RAM), respectively.
+     * (low 3 bits `0..7` of Color RAM), respectively. In Extended Color Mode,
+     * `$D021`–`$D024` serve as Background #0..#3 via `PEN_BG0`..`PEN_BG3`.
      */
     enum Pen {
-        PEN_BACKGROUND = 0, /* $d021 */
-        PEN_MULTICOLOR1 = 1, /* $d022 */
-        PEN_MULTICOLOR2 = 2, /* $d023 */
+        PEN_BACKGROUND = 0, /* $d021 (also ECM BG #0) */
+        PEN_MULTICOLOR1 = 1, /* $d022 (also ECM BG #1) */
+        PEN_MULTICOLOR2 = 2, /* $d023 (also ECM BG #2) */
         PEN_FOREGROUND = 3, /* color RAM: $d800-... */
+        PEN_BACKGROUND3 = 4, /* $d024 (ECM BG #3) */
 
-        PEN_MAX = 4
+        PEN_MAX = 5,
+
+        PEN_BG0 = PEN_BACKGROUND,
+        PEN_BG1 = PEN_MULTICOLOR1,
+        PEN_BG2 = PEN_MULTICOLOR2,
+        PEN_BG3 = PEN_BACKGROUND3,
     };
 
     /** @brief Selects whether `PEN_FOREGROUND` reads a single global register or per-tile Color RAM. */
@@ -155,14 +182,16 @@ public:
         FOREGROUND_COLOR_PER_TILE = 1
     };
 
-    /** @brief Bitmask flags selecting which asset sections an export operation writes. */
+    /** @brief Bitmask flags selecting which asset sections and options an export writes. */
     enum ExportFeature {
         EXPORT_FEATURE_NONE = 0,
         EXPORT_FEATURE_CHARSET = 1 << 0,
         EXPORT_FEATURE_MAP = 1 << 1,
         EXPORT_FEATURE_COLORS = 1 << 2,
+        EXPORT_FEATURE_ECM_FULL_CHARSET = 1 << 3,
 
-        EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_COLORS)
+        EXPORT_FEATURE_ALL = (EXPORT_FEATURE_CHARSET | EXPORT_FEATURE_MAP | EXPORT_FEATURE_COLORS),
+        EXPORT_FEATURE_VALID_MASK = (EXPORT_FEATURE_ALL | EXPORT_FEATURE_ECM_FULL_CHARSET)
     };
 
     /** @brief Target file encoding for binary and source-code asset exports. */
@@ -294,7 +323,7 @@ public:
 
     /** @brief Auto-detects format by extension (`.vchar64proj`, `.ctm`, `.prg`/`.64c`, or raw) and loads `filename`. */
     vchar64::Result<vchar64::ImportReport> openFile(const QString& filename);
-    /** @brief Atomically writes a v3 `.vchar64proj` project file to `filename` and marks `_undoStack` clean. */
+    /** @brief Atomically writes a v3 (Hi-Res/Multicolor) or v4 (Extended Color Mode) `.vchar64proj` project file to `filename` and marks `_undoStack` clean. */
     vchar64::Result<void> saveProject(const QString& filename);
     /** @brief Exports selected sections (`CHARSET`, `MAP`, `COLORS`) as raw headerless binary files. */
     vchar64::Result<void> exportRaw(const QString& filename, const ExportProperties& properties);
@@ -312,6 +341,25 @@ public:
         bool transparentBackground = true);
     /** @brief Re-runs the most recent export using `_exportedFilename` and `_exportProperties`. */
     vchar64::Result<void> export_();
+    /**
+     * @brief Returns the charset byte count for binary/source export under `properties`.
+     *
+     * Emits `512` bytes (`64` active ECM glyphs) in Extended Color Mode unless
+     * `EXPORT_FEATURE_ECM_FULL_CHARSET` is set (for split-screen programs using
+     * glyphs `64..255` in another mode), and `2,048` bytes otherwise.
+     */
+    [[nodiscard]] size_t exportCharsetByteCount(const ExportProperties& properties) const noexcept
+    {
+        if (!isExtendedColorMode() || (properties.features & EXPORT_FEATURE_ECM_FULL_CHARSET) != 0U) {
+            return _charset.size();
+        }
+        return static_cast<size_t>(ECM_CHAR_BUFFER_SIZE);
+    }
+    /** @brief Returns the charset byte count for binary/source export under `_exportProperties`. */
+    [[nodiscard]] size_t exportCharsetByteCount() const noexcept
+    {
+        return exportCharsetByteCount(_exportProperties);
+    }
 
     /** @brief Inserts `-charset`, `-map`, or `-colors` before the file extension when exporting multi-file formats. */
     [[nodiscard]] static QString filenameFixSuffix(const QString& filename, ExportFeature suffix);
@@ -332,8 +380,35 @@ public:
     void setSelectedPen(int pen);
     [[nodiscard]] int getSelectedPen() const noexcept { return _selectedPen; }
 
+    /** @brief Maps an ECM 2-bit background bank (`0..3`) to the corresponding `State::Pen` (`$D021`–`$D024`). */
+    [[nodiscard]] static constexpr int penForExtendedBgBank(int bank) noexcept
+    {
+        switch (static_cast<unsigned int>(bank) & 0x03U) {
+        case 1U:
+            return PEN_MULTICOLOR1;
+        case 2U:
+            return PEN_MULTICOLOR2;
+        case 3U:
+            return PEN_BACKGROUND3;
+        default:
+            return PEN_BACKGROUND;
+        }
+    }
+    /** @brief Returns true if `pen` paints background pixels in the active display mode. */
+    [[nodiscard]] bool isBackgroundPen(int pen) const noexcept;
+    /** @brief Resolves the background C64 color (`0..15`) for screen code `charIndex`. */
+    [[nodiscard]] int getBackgroundColorForChar(int charIndex) const noexcept;
+
+    /** @brief Pushes an undoable command switching the VIC-II display mode (`Hi-Res`, `Multicolor`, or `Extended Color`). */
+    void setCharacterMode(CharacterMode mode);
+    /** @brief Returns the active VIC-II character display mode. */
+    [[nodiscard]] CharacterMode characterMode() const noexcept { return _characterMode; }
+    /** @brief Returns `true` when Extended Color Mode (`$D011` bit 6) is active. */
+    [[nodiscard]] bool isExtendedColorMode() const noexcept { return _characterMode == CHARACTER_MODE_EXTENDED_COLOR; }
+    /** @brief Compatibility wrapper pushing an undoable switch between Multicolor (`$D016` bit 4) and Hi-Res mode. */
     void setMulticolorMode(bool enabled);
-    [[nodiscard]] bool isMulticolorMode() const noexcept { return _multicolorMode; }
+    /** @brief Returns `true` when Multicolor mode (`$D016` bit 4) is active. */
+    [[nodiscard]] bool isMulticolorMode() const noexcept { return _characterMode == CHARACTER_MODE_MULTICOLOR; }
 
     void setForegroundColorMode(ForegroundColorMode mode);
     [[nodiscard]] ForegroundColorMode getForegroundColorMode() const noexcept { return _foregroundColorMode; }
@@ -341,11 +416,12 @@ public:
     /** @brief Checks whether the currently active `_tileIndex` decodes as `4x8` 2bpp VIC-II Multicolor. */
     [[nodiscard]] bool shouldBeDisplayedInMulticolor() const noexcept;
     /**
-     * @brief Checks whether `tileIdx` decodes as `4x8` 2bpp VIC-II Multicolor (`_multicolorMode` AND foreground color `>= 8`).
+     * @brief Checks whether `tileIdx` decodes as `4x8` 2bpp VIC-II Multicolor (`CHARACTER_MODE_MULTICOLOR` AND foreground color `>= 8`).
      *
-     * On the MOS 6567/6569 VIC-II, enabling `$D016` bit 4 puts characters with Color RAM bit 3
-     * cleared (`0..7`) into standard `8x8` Hi-Res mode and only decodes characters with Color RAM
-     * bit 3 set (`8..15`) as `4x8` 2-bit pixel pairs.
+     * On the MOS 6567/6569 VIC-II, enabling `$D016` bit 4 (`CHARACTER_MODE_MULTICOLOR`) puts
+     * characters with Color RAM bit 3 cleared (`0..7`) into standard `8x8` Hi-Res mode and
+     * only decodes characters with Color RAM bit 3 set (`8..15`) as `4x8` 2-bit pixel pairs.
+     * Always returns `false` in `CHARACTER_MODE_HIRES` and `CHARACTER_MODE_EXTENDED_COLOR`.
      */
     [[nodiscard]] bool shouldBeDisplayedInMulticolor2(int tileIdx) const noexcept;
 
@@ -398,6 +474,10 @@ public:
     [[nodiscard]] bool isValidTileIndex(int tileIndex) const noexcept;
     [[nodiscard]] int getCharIndexFromTileIndex(int tileIndex) const noexcept;
     [[nodiscard]] int getTileIndexFromCharIndex(int charIndex) const noexcept;
+    /** @brief Maps logical `charIndex` (`0..255`) to its physical glyph slot (`0..63` in ECM, `0..255` otherwise). */
+    [[nodiscard]] int effectiveCharIndex(int charIndex) const noexcept;
+    /** @brief Returns true in ECM if two sub-characters of `tileIndex` alias the same physical glyph (`0..63`). */
+    [[nodiscard]] bool hasAliasedSubChars(int tileIndex) const noexcept;
     [[nodiscard]] const uint8_t* getCharAtIndex(int charIndex) const;
 
     void copyTileFromIndex(int tileIndex, uint8_t* buffer, int bufferSize) const;
@@ -431,7 +511,13 @@ public:
     void setTileColorsDirect(const uint8_t* data, size_t count) noexcept;
     void setTileColorDirect(int tileIdx, uint8_t color) noexcept;
     void setPenColorDirect(int pen, uint8_t color) noexcept;
-    void setMulticolorModeDirect(bool enabled) noexcept { _multicolorMode = enabled; }
+    /** @brief Directly sets `_characterMode` without pushing an undo command or emitting signals (for importers/tests). */
+    void setCharacterModeDirect(CharacterMode mode) noexcept { _characterMode = mode; }
+    /** @brief Compatibility wrapper directly setting `_characterMode` to Multicolor or Hi-Res without undo or signals. */
+    void setMulticolorModeDirect(bool enabled) noexcept
+    {
+        _characterMode = enabled ? CHARACTER_MODE_MULTICOLOR : CHARACTER_MODE_HIRES;
+    }
     void setForegroundColorModeDirect(ForegroundColorMode mode) noexcept { _foregroundColorMode = mode; }
     [[nodiscard]] bool setTilePropertiesDirect(const TileProperties& properties) noexcept;
     void setExportPropertiesDirect(const ExportProperties& properties) noexcept { _exportProperties = properties; }
@@ -443,15 +529,17 @@ public:
     /**
      * @brief Checks whether `tileIndex` supports lossless 90-degree clockwise rotation.
      *
-     * Rotation requires a square tile (`width == height`) in `8x8` Hi-Res mode. Non-square
-     * tiles and `4x8` 2bpp Multicolor tiles (non-square `2:1` pixel aspect ratio) return `false`.
+     * Rotation requires a square tile (`width == height`) in a `1bpp` mode (`Hi-Res` or
+     * non-self-aliased `Extended Color`). Non-square tiles, `4x8` 2bpp Multicolor tiles
+     * (non-square `2:1` pixel aspect ratio), and self-aliased ECM tiles return `false`.
      */
     [[nodiscard]] bool canRotateTile(int tileIndex) const noexcept;
     /**
      * @brief Reverses pixels horizontally across one 8-bit character row.
      *
-     * Reverses all 8 individual bits in Hi-Res mode, or swaps the four 2-bit pixel pairs
-     * (`[7:6] <-> [1:0]`, `[5:4] <-> [3:2]`) in Multicolor mode so pen indices stay intact.
+     * Reverses all 8 individual bits in 1bpp modes (Hi-Res and Extended Color), or swaps
+     * the four 2-bit pixel pairs (`[7:6] <-> [1:0]`, `[5:4] <-> [3:2]`) in Multicolor mode
+     * so pen indices stay intact.
      */
     [[nodiscard]] static uint8_t reverseCharRowBits(uint8_t rowByte, bool isMulticolorTile) noexcept;
 
@@ -489,6 +577,9 @@ signals:
     void charsetUpdated();
     void colorPropertiesUpdated(int pen);
     void selectedPenChanged(int pen);
+    /** @brief Emitted whenever the document's `CharacterMode` changes via command or undo/redo. */
+    void characterModeChanged(State::CharacterMode mode);
+    /** @brief Emitted when Multicolor status changes (entered or exited); kept alongside `characterModeChanged()`. */
     void multicolorModeToggled(bool enabled);
     void contentsChanged();
     void charIndexUpdated(int charIndex);
@@ -525,7 +616,7 @@ protected:
 
     void _tileSetPen(int tileIndex, const QPoint& position, int pen);
     void _applyTilePoints(int tileIndex, const QList<QPoint>& points, int pen);
-    void _setMulticolorMode(bool enabled);
+    void _setCharacterMode(CharacterMode mode);
     void _setForegroundColorMode(ForegroundColorMode mode);
     void _setColorForPen(int pen, int color, int tileIdx);
     void _setTileProperties(const TileProperties& properties);
@@ -546,11 +637,11 @@ protected:
     MapBuffer _map;
     QSize _mapSize { 40, 25 };
 
-    bool _multicolorMode = false;
+    CharacterMode _characterMode = CHARACTER_MODE_HIRES;
     ForegroundColorMode _foregroundColorMode = FOREGROUND_COLOR_GLOBAL;
 
     int _selectedPen = PEN_FOREGROUND;
-    std::array<uint8_t, PEN_MAX> _penColors { 1U, 5U, 7U, 11U };
+    std::array<uint8_t, PEN_MAX> _penColors { 1U, 5U, 7U, 11U, 6U };
 
     TileProperties _tileProperties { QSize(1, 1), 1 };
 

@@ -76,6 +76,7 @@ public slots:
     void onTilePropertiesUpdated();
     void onMapSizeUpdated();
     void onMapContentUpdated();
+    void onCharacterModeChanged(State::CharacterMode mode);
     void onMulticolorModeToggled(bool enabled);
     void onColorPropertiesUpdated(int pen);
     void onTileUpdated(int tileIndex);

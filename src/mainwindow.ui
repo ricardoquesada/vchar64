@@ -174,8 +174,11 @@
     <addaction name="actionForeground"/>
     <addaction name="actionMulti_Color_1"/>
     <addaction name="actionMulti_Color_2"/>
+    <addaction name="actionBackground_3"/>
     <addaction name="separator"/>
-    <addaction name="actionEnable_Multicolor"/>
+    <addaction name="actionMode_HiRes"/>
+    <addaction name="actionMode_Multicolor"/>
+    <addaction name="actionMode_ExtendedColor"/>
    </widget>
    <widget class="QMenu" name="menuMap">
     <property name="title">
@@ -300,6 +303,19 @@
         <item row="3" column="1">
          <widget class="ColorRectWidget" name="colorRectWidget_2" native="true"/>
         </item>
+        <item row="5" column="0">
+         <widget class="QRadioButton" name="radioButton_background3">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Background #3</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="ColorRectWidget" name="colorRectWidget_4" native="true"/>
+        </item>
        </layout>
       </widget>
      </item>
@@ -307,10 +323,36 @@
       <widget class="PaletteWidget" name="paletteWidget" native="true"/>
      </item>
      <item>
-      <widget class="QCheckBox" name="checkBox_multicolor">
-       <property name="text">
-        <string>Multicolor Mode</string>
+      <widget class="QGroupBox" name="groupBox_charMode">
+       <property name="title">
+        <string>Character Mode</string>
        </property>
+       <layout class="QVBoxLayout" name="verticalLayout_charMode">
+        <item>
+         <widget class="QRadioButton" name="radioButton_modeHiRes">
+          <property name="text">
+           <string>Hi-Res</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_modeMulticolor">
+          <property name="text">
+           <string>Multicolor</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_modeExtendedColor">
+          <property name="text">
+           <string>Extended Color</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </item>
      <item>
@@ -867,15 +909,51 @@
     <string>Ctrl+4</string>
    </property>
   </action>
-  <action name="actionEnable_Multicolor">
+  <action name="actionBackground_3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Background #3</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+5</string>
+   </property>
+  </action>
+  <action name="actionMode_HiRes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Hi-Res</string>
+   </property>
+  </action>
+  <action name="actionMode_Multicolor">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Enable Multicolor</string>
+    <string>Multicolor</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionMode_ExtendedColor">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Extended Color</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+M</string>
    </property>
   </action>
   <action name="actionPalette_4">
@@ -1161,7 +1239,10 @@
   <tabstop>radioButton_foreground</tabstop>
   <tabstop>radioButton_multicolor1</tabstop>
   <tabstop>radioButton_multicolor2</tabstop>
-  <tabstop>checkBox_multicolor</tabstop>
+  <tabstop>radioButton_background3</tabstop>
+  <tabstop>radioButton_modeHiRes</tabstop>
+  <tabstop>radioButton_modeMulticolor</tabstop>
+  <tabstop>radioButton_modeExtendedColor</tabstop>
   <tabstop>radioButton_charColorGlobal</tabstop>
   <tabstop>radioButton_charColorPerChar</tabstop>
   <tabstop>spinBox_tileIndex</tabstop>
@@ -1171,22 +1252,5 @@
  <resources>
   <include location="resources.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>actionEnable_Multicolor</sender>
-   <signal>triggered()</signal>
-   <receiver>checkBox_multicolor</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>580</x>
-     <y>333</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

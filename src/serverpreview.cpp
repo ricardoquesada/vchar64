@@ -33,6 +33,7 @@ limitations under the License.
 
 #include <algorithm>
 #include <array>
+#include <bitset>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -55,8 +56,12 @@ constexpr quint16 kVicBorderColorReg = 0xD020U;
 constexpr quint16 kVicBackgroundColorReg = 0xD021U;
 constexpr quint16 kVicMulticolor1Reg = 0xD022U;
 constexpr quint16 kVicMulticolor2Reg = 0xD023U;
+constexpr quint16 kVicBackgroundColor3Reg = 0xD024U;
+constexpr quint16 kVicControlReg1 = 0xD011U;
 constexpr quint16 kVicControlReg2 = 0xD016U;
 
+constexpr uint8_t kVicControl1Standard = 0x1BU;
+constexpr uint8_t kVicControl1Extended = 0x5BU;
 constexpr uint8_t kVicControlHiRes40Col = 0x08U;
 constexpr uint8_t kVicControlMulticolor40Col = 0x18U;
 
@@ -157,9 +162,9 @@ void ServerPreview::setActiveState(const State* state)
     _stateConnections.push_back(
         QObject::connect(
             _activeState,
-            &State::multicolorModeToggled,
+            &State::characterModeChanged,
             this,
-            &ServerPreview::multicolorModeUpdated));
+            &ServerPreview::characterModeUpdated));
     _stateConnections.push_back(
         QObject::connect(
             _activeState,
@@ -264,11 +269,15 @@ void ServerPreview::bytesUpdated(int pos, int count)
     if (!isConnected() || _activeState == nullptr) {
         return;
     }
-    if (pos < 0 || count <= 0 || pos >= State::CHAR_BUFFER_SIZE) {
+
+    const int max_bytes = _activeState->isExtendedColorMode()
+        ? State::ECM_CHAR_BUFFER_SIZE
+        : State::CHAR_BUFFER_SIZE;
+    if (pos < 0 || count <= 0 || pos >= max_bytes) {
         return;
     }
 
-    const int clamped_end = std::min(pos + count, State::CHAR_BUFFER_SIZE);
+    const int clamped_end = std::min(pos + count, max_bytes);
     const int first_char = pos / 8;
     const int end_char_exclusive = (clamped_end + 7) / 8;
     const int char_count = end_char_exclusive - first_char;
@@ -288,6 +297,22 @@ void ServerPreview::tileUpdated(int tile_index)
     const State::TileProperties props = _activeState->getTileProperties();
     const int char_count = props.size.width() * props.size.height();
     int char_index = _activeState->getCharIndexFromTileIndex(tile_index);
+
+    if (_activeState->isExtendedColorMode()) {
+        std::bitset<State::ECM_CHAR_COUNT> sent_chars;
+        for (int i = 0; i < char_count; ++i) {
+            if (char_index >= 0 && char_index < 256) {
+                const int effective_char = static_cast<int>(
+                    static_cast<unsigned int>(char_index) & 0x3FU);
+                if (!sent_chars.test(static_cast<size_t>(effective_char))) {
+                    sent_chars.set(static_cast<size_t>(effective_char));
+                    protoSetChar(effective_char, _activeState->getCharAtIndex(effective_char));
+                }
+            }
+            char_index += props.interleaved;
+        }
+        return;
+    }
 
     if (props.interleaved == 1) {
         protoSetChars(char_index, _activeState->getCharAtIndex(char_index), char_count);
@@ -321,9 +346,21 @@ void ServerPreview::colorPropertiesUpdated(int pen)
     case State::PEN_FOREGROUND:
         enqueueForegroundColorPackets();
         break;
+    case State::PEN_BACKGROUND3:
+        enqueueBackgroundColor3Packet();
+        break;
     default:
         break;
     }
+}
+
+void ServerPreview::characterModeUpdated(State::CharacterMode mode)
+{
+    Q_UNUSED(mode);
+    if (!isConnected() || _activeState == nullptr) {
+        return;
+    }
+    enqueueColorModePacket();
 }
 
 void ServerPreview::multicolorModeUpdated(bool toggled)
@@ -703,6 +740,14 @@ void ServerPreview::enqueueMulticolor2Packet()
     protoPoke(kVicMulticolor2Reg, MaskedGlobalPenColor(*_activeState, State::PEN_MULTICOLOR2));
 }
 
+void ServerPreview::enqueueBackgroundColor3Packet()
+{
+    if (_activeState == nullptr) {
+        return;
+    }
+    protoPoke(kVicBackgroundColor3Reg, MaskedGlobalPenColor(*_activeState, State::PEN_BACKGROUND3));
+}
+
 void ServerPreview::enqueueForegroundColorPackets()
 {
     if (_activeState == nullptr) {
@@ -731,10 +776,26 @@ void ServerPreview::enqueueColorModePacket()
     if (_activeState == nullptr) {
         return;
     }
-    const uint8_t d016 = _activeState->isMulticolorMode()
-        ? kVicControlMulticolor40Col
-        : kVicControlHiRes40Col;
-    protoPoke(kVicControlReg2, d016);
+
+    switch (_activeState->characterMode()) {
+    case State::CHARACTER_MODE_EXTENDED_COLOR:
+        // Clear MCM ($D016 bit 4) before setting ECM ($D011 bit 6) so the
+        // VIC-II never momentarily enters Invalid Display Mode #5 (ECM=1 && MCM=1).
+        protoPoke(kVicControlReg2, kVicControlHiRes40Col);
+        protoPoke(kVicControlReg1, kVicControl1Extended);
+        break;
+    case State::CHARACTER_MODE_MULTICOLOR:
+        // Clear ECM ($D011 bit 6) before setting MCM ($D016 bit 4) so the
+        // VIC-II never momentarily enters Invalid Display Mode #5 (ECM=1 && MCM=1).
+        protoPoke(kVicControlReg1, kVicControl1Standard);
+        protoPoke(kVicControlReg2, kVicControlMulticolor40Col);
+        break;
+    case State::CHARACTER_MODE_HIRES:
+    default:
+        protoPoke(kVicControlReg2, kVicControlHiRes40Col);
+        protoPoke(kVicControlReg1, kVicControl1Standard);
+        break;
+    }
 }
 
 void ServerPreview::enqueueAllColorPackets()
@@ -742,6 +803,7 @@ void ServerPreview::enqueueAllColorPackets()
     enqueueBackgroundColorPackets();
     enqueueMulticolor1Packet();
     enqueueMulticolor2Packet();
+    enqueueBackgroundColor3Packet();
     enqueueForegroundColorPackets();
     enqueueColorModePacket();
 }
@@ -752,7 +814,10 @@ void ServerPreview::enqueueCharsetPackets()
         return;
     }
     const State::CharsetBuffer& charset = _activeState->getCharsetBuffer();
-    protoSetChars(0, charset.data(), 256);
+    const int char_count = _activeState->isExtendedColorMode()
+        ? State::ECM_CHAR_COUNT
+        : 256;
+    protoSetChars(0, charset.data(), char_count);
 }
 
 void ServerPreview::enqueueTilesScreenPacket()

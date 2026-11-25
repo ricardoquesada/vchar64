@@ -91,11 +91,12 @@ private:
     int _cachedPaletteIndex = -1;
     QSize _cachedTileSize { 0, 0 };
     int _cachedInterleaved = 0;
-    bool _cachedMulticolorMode = false;
+    State::CharacterMode _cachedCharacterMode = State::CHARACTER_MODE_HIRES;
     State::ForegroundColorMode _cachedFgMode = State::FOREGROUND_COLOR_GLOBAL;
     int _cachedBgColor = -1;
     int _cachedMc1Color = -1;
     int _cachedMc2Color = -1;
+    int _cachedBg3Color = -1;
     int _cachedGlobalFgColor = -1;
 
     int _maxTiles = kMaxTiles;
